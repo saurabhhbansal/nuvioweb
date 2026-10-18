@@ -49,6 +49,8 @@ The public-config application build passed on Node22 without account/API request
 
 Local provider-emulator verification also passed: Wrangler 4.129.0 `pages dev dist/preview/3a1bebc7fab4590c366394dc0ba378a5161789a9 --ip 127.0.0.1 --port 4372 --persist-to /tmp/nuvioweb-preview-state` parsed all four redirects and three header blocks, with no Functions. Its observed default compatibility date was 2026-09-03; use that explicit date for reproduction. Actual emulator responses were no-cache for app/source/license, no-cache plus no-store for worker/config, nosniff, and 404 for missing JS/API. A Chromium run against that emulator passed signed-out rendering, alias reload and guest Home with zero page errors and external requests blocked. This is a local emulator result, not an uploaded preview.
 
+Corrected self-rebuilding staging then passed at `7a316136e8116c0c8920dfafd1d30dd3de5c7a8d`: fresh public build, 124 independently verified hashes and exact staged app/worker/config equality with that new build. Browser CI now executes this staging command without uploading anything. [Preparation PR #35](https://github.com/saurabhhbansal/nuvioweb/pull/35) retains the deployment checkpoint.
+
 ## Capabilities and release limits
 
 The static host provides browser assets only. It provides no video relay, CORS proxy, native sidecar, FFmpeg, push-notification service, Trakt secret bridge or hosted compute/payment. Existing guest mode offers the locally verified shell; add-on catalogs, playback, subtitles/audio, real upstream login/refresh/profile sync, service CORS and cross-browser codec behavior are still unverified. An error or unavailable endpoint must not be described as a working backend.

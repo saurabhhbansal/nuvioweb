@@ -37,3 +37,5 @@ jobs:
           NUVIO_LOCAL_PROPERTIES: ${{ github.workspace }}/tests/fixtures/build.properties
       - run: npm run test:browser
       - run: npm run test:preview
+      - name: Rebuild and stage public-only static preview without uploading
+        run: npm run preview:stage
