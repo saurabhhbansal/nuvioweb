@@ -1,6 +1,6 @@
 # Alpha baseline verification — issue #5
 
-Verified locally on 2026-10-18 using Node **22.23.1**, npm **10.9.8**, Linux, and the intact Alpha `web` pin `5624da2fb26c19e4acad66a4f0cd4e4bcb8b74ff`. Source import: [PR #28](https://github.com/saurabhhbansal/nuvioweb/pull/28). [Issue plan](plans/issues/issue-5.md), [source provenance](../UPSTREAM_SOURCES.md), [feature matrix](FEATURE_SUPPORT.md).
+Verified locally on 2026-10-18 using Node **22.23.1**, npm **10.9.8**, Linux, and the intact Alpha `web` pin `5624da2fb26c19e4acad66a4f0cd4e4bcb8b74ff`. Baseline CI/evidence: [PR #30](https://github.com/saurabhhbansal/nuvioweb/pull/30). Source import: [PR #28](https://github.com/saurabhhbansal/nuvioweb/pull/28). [Issue plan](plans/issues/issue-5.md), [source provenance](../UPSTREAM_SOURCES.md), [feature matrix](FEATURE_SUPPORT.md).
 
 ## Reproduce the verified baseline
 

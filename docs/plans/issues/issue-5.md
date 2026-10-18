@@ -1,6 +1,6 @@
 # Issue #5: [M1][P0] Reproduce upstream install, build, lint and unit tests
 
-**Plan status:** Implemented and locally verified on `m1/issue-5-reproducible-baseline`; remote CI is the remaining merge gate. #4 merged as PR #28 with source ancestry/tree equality rechecked on main.
+**Plan status:** Implemented and locally verified on `m1/issue-5-reproducible-baseline`; [PR #30](https://github.com/saurabhhbansal/nuvioweb/pull/30) records successful application/docs CI and merge evidence. #4 merged as PR #28 with source ancestry/tree equality rechecked on main.
 **Milestone:** M1 · **Priority:** P0  
 **GitHub issue:** https://github.com/saurabhhbansal/nuvioweb/issues/5  
 **Workstream:** [M1 roadmap](https://github.com/saurabhhbansal/nuvioweb/blob/main/docs/ROADMAP.md) · **Agent rules:** [AGENTS.md](https://github.com/saurabhhbansal/nuvioweb/blob/main/AGENTS.md)
@@ -51,7 +51,7 @@ Dependency install uses public registry network and upstream install scripts, no
 
 - [x] Reproducible clean build produces expected dist artifact
 - [x] Full upstream tests and lint pass with the documented inert configuration; inherited dependency advisories tracked in #29
-- [ ] CI evidence available on PR
+- [x] Application and docs CI evidence available on [PR #30](https://github.com/saurabhhbansal/nuvioweb/pull/30)
 
 ## Verification design
 
@@ -74,10 +74,10 @@ Capture bounded, redacted failure counters and trace IDs without exposing access
 ## Definition of done
 
 - [x] Pinned Node/npm, original lockfile and public build-config contract verified.
-- [ ] Remote CI evidence must pass before closure; local command evidence is recorded below.
+- [x] Local commands and remote application/docs CI passed; actual evidence is recorded below.
 - [x] Existing secret-allowlist/bundle regression tests pass; no live identity, deployment or paid action.
 - [x] Baseline evidence, source provenance, feature matrix and local instructions updated.
-- [ ] Reviewed pull request linked to issue, with rollout and rollback evidence.
+- [x] [PR #30](https://github.com/saurabhhbansal/nuvioweb/pull/30) links this issue, reviewed root-only tooling/fixture changes, initial failure, actual checks, release gates and rollback.
 
 ## Baseline failure and scoped resolution
 
@@ -96,3 +96,5 @@ Ranked predictions: (1) explicit non-live build configuration makes the existing
 - `git diff --exit-code -- app/alpha` — exit 0, including an unchanged package-lock SHA-256 `7a42cf7e2590ed932b6d05a02f907cd09cc075f883caffebb3691ff69a2b9711`.
 
 Full command logs were captured under `/tmp/nuvioweb-issue-5-logs`; this committed report and the PR's durable CI run are the review evidence. No browser/device compatibility or public-service authorization is inferred from unit tests.
+
+Remote verification: [application job passed](https://github.com/saurabhhbansal/nuvioweb/actions/runs/39115852804/job/117641364644) in 40 seconds; [docs job passed](https://github.com/saurabhhbansal/nuvioweb/actions/runs/39115852843/job/117641364798). Final-head CI must remain green before merge.
