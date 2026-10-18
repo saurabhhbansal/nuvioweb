@@ -32,14 +32,14 @@ The initial 24 roadmap tickets are retained, plus dependency remediation #29 and
 | [#22](https://github.com/saurabhhbansal/nuvioweb/issues/22) [M4][P1] Integrate eligible payment provider and transparent credit checkout | pending | #20, #21 | Implementation/verification outstanding |
 | [#23](https://github.com/saurabhhbansal/nuvioweb/issues/23) [M5][P1] Automate upstream change monitoring and reviewed parity tracking | ready | #4, #5 | Implementation/verification outstanding |
 | [#24](https://github.com/saurabhhbansal/nuvioweb/issues/24) [M5][P1] Define full browser device, security and staged release verification | pending | #5, #9, #10 | Implementation/verification outstanding |
-| [#29](https://github.com/saurabhhbansal/nuvioweb/issues/29) [M1][P1] Remediate audited build-tool dependency advisories before release | in_progress | #5 | Preserved local package/audit patch; install/tests/CI not yet verified |
+| [#29](https://github.com/saurabhhbansal/nuvioweb/issues/29) [M1][P1] Remediate audited build-tool dependency advisories before release | in_progress | #5 | Clean install, build, 1,079 unit tests, lint, 4 Chromium journeys and zero-advisory audits passed locally; protected PR CI pending |
 | [#31](https://github.com/saurabhhbansal/nuvioweb/issues/31) Recovery audit, branch safeguards and browser evidence | verified | #1, #2, #4, #5 | PR #32; recovery acceptance evidence and CI in the audit |
 
 ## What works and what remains unverified
 
 Source import and provenance are verified. A pinned Node 22 clean install/build, 1,079 inherited upstream tests, lint and distribution-asset checks pass. Four real Chromium smoke tests now pass for signed-out startup, validation/network errors and guest navigation/persistence; see the [feature matrix](docs/FEATURE_SUPPORT.md) for observed results and limits.
 
-Live authentication/session refresh/account isolation/sync, actual add-on/catalog/provider CORS, legal media playback/audio/subtitles, cross-browser codecs/HDR, PWA lifecycle and deployed hosting remain unverified. Native sidecars are not deployed. Eight build-tool advisories are the unfinished #29 patch; release notice/asset/font/native rights gates remain open.
+Live authentication/session refresh/account isolation/sync, actual add-on/catalog/provider CORS, legal media playback/audio/subtitles, cross-browser codecs/HDR, PWA lifecycle and deployed hosting remain unverified. Native sidecars are not deployed. The #29 patch removes all eight observed build-tool advisory records locally; protected integration is pending; release notice/asset/font/native rights gates remain open.
 
 ## Milestones, forecast and next demonstration
 
