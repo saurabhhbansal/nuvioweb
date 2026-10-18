@@ -1,6 +1,6 @@
 # Issue #4: [M1][P0] Import pinned Alpha NuvioWeb browser baseline with attribution
 
-**Plan status:** Approved layout `app/alpha`; implementation in progress on `m1/issue-4-alpha-import`.
+**Plan status:** Source imported and locally verified on `m1/issue-4-alpha-import`; PR CI/merge evidence follows in GitHub.
 **Milestone:** M1 · **Priority:** P0  
 **GitHub issue:** https://github.com/saurabhhbansal/nuvioweb/issues/4  
 **Workstream:** [M1 roadmap](https://github.com/saurabhhbansal/nuvioweb/blob/main/docs/ROADMAP.md) · **Agent rules:** [AGENTS.md](https://github.com/saurabhhbansal/nuvioweb/blob/main/AGENTS.md)
@@ -47,9 +47,9 @@ Preserved source includes original hosted-auth and native/sidecar integrations; 
 
 ## Functional acceptance criteria
 
-- [ ] Upstream source and reference commit are traceable
-- [ ] License and copyright files retained
-- [ ] Diff to imported baseline is understood and documented
+- [x] Upstream source and reference commit are traceable
+- [x] License and copyright files retained
+- [x] Diff to imported baseline is understood and documented: zero changes to the upstream subtree
 
 ## Verification design
 
@@ -71,8 +71,21 @@ Capture bounded, redacted failure counters and trace IDs without exposing access
 
 ## Definition of done
 
-- [ ] Dependency assumptions and interface/API contract verified against code or published upstream evidence.
-- [ ] All issue acceptance criteria tested and documented.
-- [ ] Negative/security/budget cases covered as relevant.
-- [ ] Docs, compatibility notes and source provenance updated.
+- [x] Dependency assumptions and source/API preservation verified against the pinned tree.
+- [x] All issue acceptance criteria tested and documented.
+- [x] No runtime changes, API calls or deployment; existing source/security/release caveats recorded.
+- [x] Docs, feature evidence matrix and source provenance updated.
 - [ ] Reviewed pull request linked to issue, with rollout and rollback evidence.
+
+## Executed verification (2026-10-18)
+
+- `git fetch alpha web` and `git ls-remote alpha refs/heads/web` — pin unchanged at `5624da2fb26c19e4acad66a4f0cd4e4bcb8b74ff`.
+- Nonsquashed subtree command above — exit 0; import commit `920ae80ec4c1aef3f1fd6755e2e6b45ca5e83f66`; upstream pin is its second parent. Tag created at the original pin.
+- `git rev-parse HEAD:app/alpha` — `ad9ff4cea2781cf85010f49b61c315c9bc332e86`; `git diff --exit-code 5624da2fb26c19e4acad66a4f0cd4e4bcb8b74ff^{tree} HEAD:app/alpha` — exit 0/no differences.
+- `git merge-base --is-ancestor 5624da2fb26c19e4acad66a4f0cd4e4bcb8b74ff HEAD` and `git fsck --full` — exit 0.
+- `git ls-tree -r HEAD:app/alpha | wc -l` — 605. License SHA-256 matches the prior audit exactly.
+- `node --test scripts/check-docs.test.mjs` — 6/6 passed on local Node v24.19.0.
+- `node scripts/check-docs.mjs` and explicit `findBrokenLinks(process.cwd(), ["UPSTREAM_SOURCES.md"])` assertion — passed.
+- `git diff --check` — passed for this project's documentation updates. Upstream source whitespace remains unchanged by design.
+
+No application tests/build or live service requests are claimed for #4. The separate #5 plan owns that baseline. Rollout consists of source availability only; no deployment is performed.

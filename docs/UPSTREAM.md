@@ -1,6 +1,6 @@
 # Upstream tracking and provenance strategy
 
-The [pinned provenance contract](../UPSTREAM_SOURCES.md) defines the exact baseline and history-preserving import checks. See the [license evidence audit](UPSTREAM_LICENSE_AUDIT.md) before reusing source or producing release artifacts. Application source remains unimported until #4.
+The [pinned provenance contract](../UPSTREAM_SOURCES.md) defines the exact baseline and history-preserving import checks. See the [license evidence audit](UPSTREAM_LICENSE_AUDIT.md) before reusing source or producing release artifacts. Issue #4 imports the pinned Alpha tree intact under `app/alpha`; the contract records its import commit and ancestry checks. Build and runtime validation remain separate gates.
 
 ## Repositories monitored
 

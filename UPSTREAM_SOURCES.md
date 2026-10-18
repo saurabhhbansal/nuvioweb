@@ -1,6 +1,6 @@
 # Upstream provenance and import contract
 
-Status: source audit for [issue #1](https://github.com/saurabhhbansal/nuvioweb/issues/1), verified 2026-10-18. **No application source is imported by this document.** Source import belongs to [issue #4](https://github.com/saurabhhbansal/nuvioweb/issues/4).
+Status: Alpha source imported intact under `app/alpha` for [issue #4](https://github.com/saurabhhbansal/nuvioweb/issues/4), verified 2026-10-18. The prior [issue #1](https://github.com/saurabhhbansal/nuvioweb/issues/1) audit governs reuse and release gates. Application build/browser support remains unverified until its own evidence is recorded.
 
 ## Primary baseline
 
@@ -14,8 +14,9 @@ Status: source audit for [issue #1](https://github.com/saurabhhbansal/nuvioweb/i
 | Reachable commits | 999 in the complete fetched `web` history |
 | Original authors and history | Preserve through a nonsquashed Git subtree import |
 | Destination | `app/alpha`; confirmed by the owner on 2026-10-18 |
-| Imported commit / PR | Pending #4 |
-| Source-license evidence | Root `LICENSE`; see the [license audit](docs/UPSTREAM_LICENSE_AUDIT.md) for notices, assets, dependencies and reuse restrictions |
+| Imported commit | `920ae80ec4c1aef3f1fd6755e2e6b45ca5e83f66` (nonsquashed subtree merge) |
+| Immutable upstream tag | `upstream/alpha-web-5624da2` |
+| Source-license evidence | [Preserved Alpha LICENSE](app/alpha/LICENSE); see the [license audit](docs/UPSTREAM_LICENSE_AUDIT.md) for notices, assets, dependencies and reuse restrictions |
 
 The observed `web` tip matches the earlier [source audit](docs/AUDIT_2026-10-18.md). Preserve this SHA even if the branch moves. Importing a newer commit requires a new audit and explicit plan update.
 
@@ -70,3 +71,13 @@ Every later port needs its own source URL, immutable SHA, original path, local d
 ## Rollback
 
 Revert the scoped import PR through GitHub, preserving the upstream history and mapping. A subtree import is a merge commit; inspect its parents and use `git revert -m 1 <import-merge-sha>` when reverting that commit directly. Never rewrite shared history or force-push to remove attribution. Reverting these documents changes no runtime behavior.
+
+## Executed import evidence — issue #4
+
+- `git ls-remote alpha refs/heads/web` — tip still `5624da2fb26c19e4acad66a4f0cd4e4bcb8b74ff`.
+- `git subtree add --prefix=app/alpha 5624da2fb26c19e4acad66a4f0cd4e4bcb8b74ff -m 'Import pinned Alpha web baseline with complete history (#4)'` — exit 0; commit `920ae80ec4c1aef3f1fd6755e2e6b45ca5e83f66`, parents `bcd994f2fd34529cbe084a923545e2a93946aa05` and the upstream pin.
+- `git rev-parse HEAD:app/alpha` at import — `ad9ff4cea2781cf85010f49b61c315c9bc332e86`. Tree diff against upstream returned exit 0 with no changes.
+- `git merge-base --is-ancestor 5624da2fb26c19e4acad66a4f0cd4e4bcb8b74ff HEAD` and `git fsck --full` — exit 0.
+- `git ls-tree -r HEAD:app/alpha | wc -l` — 605; `sha256sum app/alpha/LICENSE` — `3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986`.
+
+The application subtree has no local patches in #4. The source-only import uses an ordinary PR merge, preserving the subtree's second-parent ancestry; never squash this import PR. See the [capability evidence matrix](docs/FEATURE_SUPPORT.md) for the distinction between imported code and validated behavior.
