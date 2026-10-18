@@ -2,7 +2,7 @@
 
 **Independent community browser client for Nuvio-compatible accounts, add-ons, and high-quality playback.**
 
-> **Status — planning and initial engineering, as of 2026-10-18.** No playable application, payment service, or public compute endpoint is shipped from this repository yet. Not affiliated with or endorsed by Nuvio. Use only media you are authorized to access.
+> **Status — source imported, as of 2026-10-18.** The pinned Alpha browser source is available in [app/alpha](app/alpha), with complete upstream history and notices. Install/build/test validation is the next gate (#5); no public application, payment service, or compute endpoint has been deployed from this repository. Not affiliated with or endorsed by Nuvio. Use only media you are authorized to access.
 
 ## What we are building
 
@@ -23,6 +23,7 @@
 - [Milestones and implementation roadmap](docs/ROADMAP.md)
 - [Security, privacy, and compliance](docs/SECURITY_PRIVACY.md)
 - [Quality and acceptance gates](docs/QUALITY_GATES.md)
+- [Feature support and verification evidence](docs/FEATURE_SUPPORT.md)
 - [Cost and billing model](docs/COST_MODEL.md)
 - [Upstream tracking strategy](docs/UPSTREAM.md)
 - [Pinned source provenance and import contract](UPSTREAM_SOURCES.md)
@@ -41,7 +42,7 @@
 
 ## Source provenance and licensing
 
-**Recommended initial baseline:** [alphasquare404/NuvioWeb, branch web](https://github.com/alphasquare404/NuvioWeb/tree/web), GPL-3.0. No upstream source code has been imported yet. Its license/copyright notices must be preserved when imported. Other reference implementations can have differing license obligations (notably the AGPL-licensed Orochi project); do not combine sources without review.
+**Recommended initial baseline:** [alphasquare404/NuvioWeb, branch web](https://github.com/alphasquare404/NuvioWeb/tree/web), GPL-3.0. The exact audited commit is imported intact in `app/alpha`, with its GPL license, notices and original history retained. See [provenance](UPSTREAM_SOURCES.md) for the source mapping and import verification. Other reference implementations can have differing license obligations (notably the AGPL-licensed Orochi project); do not combine sources without review.
 
 ## Scope
 

@@ -1,6 +1,6 @@
 # Issue #4: [M1][P0] Import pinned Alpha NuvioWeb browser baseline with attribution
 
-**Plan status:** Proposed for agent review — no implementation/test evidence recorded.  
+**Plan status:** Source imported and locally verified on `m1/issue-4-alpha-import`; [PR #28](https://github.com/saurabhhbansal/nuvioweb/pull/28) records CI/merge evidence.
 **Milestone:** M1 · **Priority:** P0  
 **GitHub issue:** https://github.com/saurabhhbansal/nuvioweb/issues/4  
 **Workstream:** [M1 roadmap](https://github.com/saurabhhbansal/nuvioweb/blob/main/docs/ROADMAP.md) · **Agent rules:** [AGENTS.md](https://github.com/saurabhhbansal/nuvioweb/blob/main/AGENTS.md)
@@ -17,26 +17,39 @@ M0-01
 
 Before modifying code, verify required prior issue state and exact upstream revision or package versions. Unavailable dependencies must be logged and should block sensitive implementation.
 
-## Planned interfaces and deliverables
+## Concrete implementation plan (2026-10-18)
 
-Imported upstream source tree with license/notice files and immutable pinned source SHA mapping
+Issue #1 is merged in PR #27. The owner confirmed `app/alpha` and authorized GitHub pushes/merges. Import the approved Alpha `web` pin `5624da2fb26c19e4acad66a4f0cd4e4bcb8b74ff`, with no source edits or feature rewrites.
 
-The issue-owning agent must convert this initial artifact inventory into precise file paths, types/interfaces, test fixture IDs and API contracts after checking the imported codebase. Avoid introducing extra auth systems or central media relay as implicit dependencies.
+### Target files and interfaces
 
-## Detailed implementation sequence
+- `app/alpha/`: complete upstream tree, including GPL license, notices, source, tests, lockfile and nested upstream docs/workflows; these nested workflows do not run as this repository's Actions.
+- Git history: nonsquashed `git subtree add`, retaining upstream as a parent; immutable tag `upstream/alpha-web-5624da2` pushed to origin.
+- `UPSTREAM_SOURCES.md`: confirmed destination, actual import commit/tree and executed checks.
+- `README.md`, `TRACKER.md`, `docs/UPSTREAM.md`, `docs/ARCHITECTURE.md`: record source availability and distinguish it from a tested/shipped app.
+- `docs/FEATURE_SUPPORT.md`: initial evidence matrix; imported code is not browser/device verification.
+- This plan: exact commands/results and linked PR.
 
-1. Re-check upstream web tip against audited SHA before import
-2. Import app sources with documented provenance, full required license notices and history decision
-3. Preserve a reproducible upstream tag/commit mapping
-4. Avoid feature rewrites while importing
+No API contract changes: preserve every upstream byte and mode. Root CI remains documentation-only until #5. No dependency install, live auth/API calls, deployment, paid compute, plugin execution, or build fixes in #4. Application build/lint/tests follow as a separate issue #5 PR.
 
-**Integration sequencing:** land the smallest verifiable unit first; update the plan if tests reveal a wrong assumption, then create separate follow-up issues for work outside scope.
+### Sequence and required verification
+
+1. Re-fetch origin and Alpha `web`; confirm current branch tip and approved pin, license SHA-256 `3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986`, tree `ad9ff4cea2781cf85010f49b61c315c9bc332e86`, 605 tracked files and 999 reachable commits. Do not silently advance the pin.
+2. Commit this plan before source changes so subtree import starts from a clean worktree.
+3. Run `git subtree add --prefix=app/alpha 5624da2fb26c19e4acad66a4f0cd4e4bcb8b74ff` without `--squash`; tag the original pin. Keep all source notices intact.
+4. Run tree comparison, ancestry check, file-count/license assertions and `git fsck --full`; record actual import commit. Verify root docs/scripts are unaffected by the import commit itself.
+5. Update provenance/status/evidence matrix. Run `node --test scripts/check-docs.test.mjs`, `node scripts/check-docs.mjs`, explicit provenance-link validation and `git diff --check` restricted to our docs (upstream whitespace is not rewritten).
+6. Open a draft PR, verify Node 22 CI, mark ready and announce/perform the authorized merge **with a merge commit**. Squash/rebase merging would drop the upstream ancestry and is prohibited for this PR. Verify ancestry and subtree tree equality again on merged main.
+
+### Risks, costs and rollback
+
+Preserved source includes original hosted-auth and native/sidecar integrations; importing it does not approve public backend use or attest to those components' security. The prior [license audit](../../UPSTREAM_LICENSE_AUDIT.md) remains a release gate. No service is deployed or called. Revert the eventual PR merge using first-parent semantics, retaining shared source history/tag and attribution; never force-push to remove provenance.
 
 ## Functional acceptance criteria
 
-- [ ] Upstream source and reference commit are traceable
-- [ ] License and copyright files retained
-- [ ] Diff to imported baseline is understood and documented
+- [x] Upstream source and reference commit are traceable
+- [x] License and copyright files retained
+- [x] Diff to imported baseline is understood and documented: zero changes to the upstream subtree
 
 ## Verification design
 
@@ -58,8 +71,23 @@ Capture bounded, redacted failure counters and trace IDs without exposing access
 
 ## Definition of done
 
-- [ ] Dependency assumptions and interface/API contract verified against code or published upstream evidence.
-- [ ] All issue acceptance criteria tested and documented.
-- [ ] Negative/security/budget cases covered as relevant.
-- [ ] Docs, compatibility notes and source provenance updated.
-- [ ] Reviewed pull request linked to issue, with rollout and rollback evidence.
+- [x] Dependency assumptions and source/API preservation verified against the pinned tree.
+- [x] All issue acceptance criteria tested and documented.
+- [x] No runtime changes, API calls or deployment; existing source/security/release caveats recorded.
+- [x] Docs, feature evidence matrix and source provenance updated.
+- [x] [PR #28](https://github.com/saurabhhbansal/nuvioweb/pull/28) links this plan, exact-source comparison, owner-approved layout, release limitations and rollback. No upstream runtime logic is edited.
+
+## Executed verification (2026-10-18)
+
+- `git fetch alpha web` and `git ls-remote alpha refs/heads/web` — pin unchanged at `5624da2fb26c19e4acad66a4f0cd4e4bcb8b74ff`.
+- Nonsquashed subtree command above — exit 0; import commit `920ae80ec4c1aef3f1fd6755e2e6b45ca5e83f66`; upstream pin is its second parent. Tag created at the original pin.
+- `git rev-parse HEAD:app/alpha` — `ad9ff4cea2781cf85010f49b61c315c9bc332e86`; `git diff --exit-code 5624da2fb26c19e4acad66a4f0cd4e4bcb8b74ff^{tree} HEAD:app/alpha` — exit 0/no differences.
+- `git merge-base --is-ancestor 5624da2fb26c19e4acad66a4f0cd4e4bcb8b74ff HEAD` and `git fsck --full` — exit 0.
+- `git ls-tree -r HEAD:app/alpha | wc -l` — 605. License SHA-256 matches the prior audit exactly.
+- `node --test scripts/check-docs.test.mjs` — 6/6 passed on local Node v24.19.0.
+- `node scripts/check-docs.mjs` and explicit `findBrokenLinks(process.cwd(), ["UPSTREAM_SOURCES.md"])` assertion — passed.
+- `git diff --check` — passed for this project's documentation updates. Upstream source whitespace remains unchanged by design.
+
+No application tests/build or live service requests are claimed for #4. The separate #5 plan owns that baseline. Rollout consists of source availability only; no deployment is performed.
+
+- Initial HTTPS tag push was rejected because the CLI OAuth credential lacks workflow scope for the original upstream root workflows. Existing SSH authentication was verified and used for the tag, without adding permissions or altering source/history.

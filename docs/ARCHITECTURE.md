@@ -36,6 +36,10 @@ One Nuvio login. No second account creation. Same playlist and watch history. Ad
 
 Nuvio manages identity and sync; the NuvioWeb control plane only stores verified identity bindings, entitlements and narrowly necessary processing metadata. User source bytes should travel directly from authorized origins to the selected processor/browser where possible. Logs redact tokens, URL queries and private media details.
 
+## Current source layout
+
+The owner-approved baseline lives in `app/alpha`, preserving the complete original Alpha tree and history. Root `docs`, `scripts` and `.github/workflows` belong to this project. Upstream workflows are retained under `app/alpha/.github` as source; they are not root Actions workflows. Run future application commands from `app/alpha`; see [feature evidence](FEATURE_SUPPORT.md) for verified status.
+
 ## Suggested future code structure
 
 apps/web, apps/desktop-agent, packages/compute-protocol, packages/source-capabilities, packages/nuvio-auth, services/control-api, services/compute-agent, services/hosted-compute, deploy/docker, deploy/cloudflare-lite, deploy/cloudflare-compute, tests/fixtures.
