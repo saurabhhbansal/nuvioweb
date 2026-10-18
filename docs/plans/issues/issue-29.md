@@ -1,6 +1,7 @@
 # Issue #29: Remediate audited build-tool dependency advisories before release
 
 **Plan status:** In progress on `m1/issue-29-dependency-advisories` after baseline PR #30 and recovery PR #32 merged. The original local patch was preserved unchanged during the audit.
+**PR:** https://github.com/saurabhhbansal/nuvioweb/pull/33 (proposed completion until protected merge).
 **Issue:** https://github.com/saurabhhbansal/nuvioweb/issues/29
 
 ## Objective, scope and dependency
@@ -44,3 +45,7 @@ Owner recovery issue #31 completed through protected PR #32. False issue closure
 ## Executed verification after resumption
 
 Clean install and configured build passed; lint unchanged passed. Full application/runtime and root-tooling audits exit 0 with zero reported advisories. All ten non-platform changed notice files match integrity-verified registry tarballs. Chromium smoke passes 4/4; governance/docs regressions pass 15/15; artifact/ledger/docs/whitespace checks pass. Full upstream suite passed 1,079/1,079 with zero failures/skips in 46.7 seconds. Final protected CI must pass before closure. See [dependency report](../../DEPENDENCY_REMEDIATION.md).
+
+## Automated review
+
+Standards: zero findings; independently checked dependency/license delta and evidence. Spec: zero findings; acceptance scope matches #29. Both reviews are automated, not independent human approval. Protected PR CI remains the integration checkpoint.

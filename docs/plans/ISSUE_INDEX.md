@@ -33,4 +33,4 @@
 
 Follow dependency order in each issue. Agents must edit the corresponding plan with concrete implementation files/contract tests after inspecting current upstream code; they must record actual test evidence in PRs and never claim these planning documents mean a feature has shipped.
 
-- [#29 — Build dependency advisory remediation](issues/issue-29.md): resumed preserved branch; local acceptance checks passed; protected PR integration pending.
+- [#29 — Build dependency advisory remediation](issues/issue-29.md): resumed preserved branch; local acceptance checks passed; [PR #33](https://github.com/saurabhhbansal/nuvioweb/pull/33) pending protected integration.

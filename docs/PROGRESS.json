@@ -249,10 +249,21 @@
     {
       "number": 29,
       "title": "[M1][P1] Remediate audited build-tool dependency advisories before release",
-      "status": "in_progress",
+      "status": "verified",
       "dependencies": [
         5
-      ]
+      ],
+      "completion": {
+        "pr": 33,
+        "documents": [
+          "docs/DEPENDENCY_REMEDIATION.md",
+          "docs/plans/issues/issue-29.md"
+        ],
+        "verification": [
+          "Clean Node22 install/build, 1079 unit tests, lint, artifact checks, 4 Chromium smoke journeys and 15 governance/docs tests passed",
+          "Full application/runtime and root tooling npm audits reported zero advisories; all four protected CI contexts required before merge"
+        ]
+      }
     },
     {
       "number": 31,
