@@ -2940,4 +2940,16 @@
     <string name="licenses_attributions_torbox_title">TorBox</string>
     <string name="licenses_attributions_torbox_body">Nuvio connects to TorBox for account authentication, cloud library access, cache checks, and cloud playback features. Nuvio is not affiliated with or endorsed by TorBox.</string>
     <string name="offline.downloadSeason">Download Season</string>
+    <string name="source_metadata_declared">Provider format: %1$s (unverified)</string>
+    <string name="source_metadata_unknown">Format and codec unknown</string>
+    <string name="source_native_predicted">Browser predicts native support; playback unverified</string>
+    <string name="source_native_not_reported">Native support not reported; another engine may work</string>
+    <string name="source_native_unknown">Browser support unknown</string>
+    <string name="source_size_declared">Provider size: %1$s (unverified)</string>
+    <string name="source_size_unknown">Resolution unknown</string>
+    <string name="source_hdr_declared">HDR: %1$s (unverified)</string>
+    <string name="source_hdr_unknown">HDR unknown</string>
+    <string name="source_headers_declared">Requires request headers; native playback may be restricted</string>
+    <string name="source_expiry_declared">Provider-declared link expiry has passed; refresh sources</string>
+    <string name="source_provider_label">Provider label: %1$s</string>
 </resources>

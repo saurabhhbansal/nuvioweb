@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
 
-const scenarios = new Set(["basic","objects","configured","cors-denied","malformed","shape","slow","failure","empty","timeout","partial"]);
+const scenarios = new Set(["basic","objects","configured","cors-denied","malformed","shape","slow","failure","empty","timeout","partial","declared","unknown-quality","unsupported-mime"]);
 const mediaRoot = new URL("../media/",import.meta.url);
 
 export function createAddonFixtureServer() {
@@ -74,7 +74,8 @@ export function createAddonFixtureServer() {
       if (path === "meta/movie/fixture:original.json") { json({meta}); return; }
       if (path === "stream/movie/fixture:original.json") {
         if (scenario === "partial" && !partialRecovered) { json({message:"Fixture stream endpoint unavailable"},503); return; }
-        json({streams:scenario === "empty" ? [] : [{name:"Original local VP8/Opus",title:"Generated legal fixture",url:`${origin}/media/procedural-vp8-opus.webm${scenario === "partial" ? "?provider=partial" : ""}`,subtitles:[{id:"fixture:english",lang:"eng",url:`${origin}/media/english.vtt`}],behaviorHints:{notWebReady:false}}]}); return;
+        const explicit = scenario === "declared" ? {mimeType:'video/webm; codecs="vp8,opus"',video:{codec:"vp8",width:640,height:360,bitrate:100000,framerate:10},audioTracks:[{codec:"opus",language:"und",channels:1}]} : scenario === "unsupported-mime" ? {mimeType:"video/x-nuvioweb-unsupported",video:{codec:"fixture-unknown"}} : {};
+        json({streams:scenario === "empty" ? [] : [{...explicit,name:scenario === "unknown-quality" ? "Provider claims 4K HDR HEVC" : "Original local VP8/Opus",title:"Generated legal fixture",url:`${origin}/media/procedural-vp8-opus.webm${scenario === "partial" ? "?provider=partial" : ""}`,subtitles:[{id:"fixture:english",lang:"eng",url:`${origin}/media/english.vtt`}],behaviorHints:{notWebReady:false}}]}); return;
       }
       if (path === "subtitles/movie/fixture:original.json") { json({subtitles:[{id:"fixture:english",lang:"eng",url:`${origin}/media/english.vtt`}]}); return; }
       json({error:`Unsupported fixture resource at ${base}`},404);

@@ -19485,6 +19485,12 @@ html[data-card-depth="true"][data-card-depth-trailers="true"] .detail-trailer-ca
   margin-top: 4px;
 }
 
+.stream-route-card-line.source-capability-evidence {
+  display: block;
+  overflow: visible;
+  overflow-wrap: anywhere;
+}
+
 .stream-route-card-meta {
   margin-top: 16px;
   display: flex;

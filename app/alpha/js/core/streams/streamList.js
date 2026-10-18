@@ -205,6 +205,8 @@ export function flattenStreams(streamResult) {
 
         streamPresentation: stream.streamPresentation || null,
 
+        sourceDescriptor: stream.sourceDescriptor || null,
+
         subtitles: Array.isArray(stream.subtitles) ? stream.subtitles : [],
 
         addonId: stream.addonId || group.addonId || null,

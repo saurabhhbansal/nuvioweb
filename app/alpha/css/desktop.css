@@ -3073,6 +3073,11 @@ html.desktop-browser {
   margin-top: 2px;
 }
 
+.desktop-browser #stream .stream-route-card-line.source-capability-evidence,
+.desktop-browser .season-download-source-card .stream-route-card-line.source-capability-evidence {
+  font-size: 16px;
+}
+
 .desktop-browser #stream .stream-route-card-side {
   width: 108px;
   flex-basis: 108px;

@@ -9,6 +9,14 @@ const server = createAddonFixtureServer();
 let origin;
 before(async()=>{server.listen(0,"127.0.0.1");await once(server,"listening");origin=`http://127.0.0.1:${server.address().port}`;});
 after(async()=>{server.closeAllConnections();await new Promise(resolve=>server.close(resolve));});
+test("capability declarations remain separate from quality names and original media",async()=>{
+  const [declared,unknown,unsupported] = await Promise.all(["declared","unknown-quality","unsupported-mime"].map(async(scenario)=>(await (await fetch(`${origin}/${scenario}/stream/movie/fixture:original.json`)).json()).streams[0]));
+  assert.equal(declared.mimeType,'video/webm; codecs="vp8,opus"');
+  assert.equal(declared.video.width,640);assert.equal(declared.video.height,360);
+  assert.match(unknown.name,/4K HDR HEVC/);assert.equal(unknown.video,undefined);assert.equal(unknown.mimeType,undefined);
+  assert.equal(unsupported.mimeType,"video/x-nuvioweb-unsupported");
+  for(const source of [declared,unknown,unsupported]) assert.equal(source.url,`${origin}/media/procedural-vp8-opus.webm`);
+});
 test("legal resource chain and configured/object manifests stay on the fixture origin",async()=>{
   for (const base of ["basic","objects","configured/sample"]) {
     const manifest=await (await fetch(`${origin}/${base}/manifest.json`)).json();

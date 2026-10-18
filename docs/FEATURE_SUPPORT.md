@@ -4,7 +4,7 @@ Last updated 2026-10-18. This matrix records observed evidence; imported impleme
 
 | Capability or gate | Current evidence | Remaining verification |
 | --- | --- | --- |
-| Source provenance and notices | Pristine #4 import matched605 files/tree/license; original ancestry retained; [six local patch paths](../UPSTREAM_SOURCES.md) documented | Preserve mapping and notices with later patches and releases |
+| Source provenance and notices | Pristine #4 import matched605 files/tree/license; original ancestry retained; [local patch inventory](../UPSTREAM_SOURCES.md) documented | Preserve mapping and notices with later patches and releases |
 | Documentation CI | Root documentation checker/tests pass | Keep each PR green |
 | Locked dependency install | #5 baseline and #29 reviewed patch clean-install on Node 22.23.1/npm 10.9.8; full/runtime/root audits report zero advisories | Keep protected audit CI green; no general security clearance |
 | Browser distribution build | #5 and #29 upstream build passed; 12 assets and inert public-config checks passed | Broader release notice/rights review; dedicated development preview verified under #6 |
@@ -14,6 +14,7 @@ Last updated 2026-10-18. This matrix records observed evidence; imported impleme
 | Stable subject for pairing / entitlements | Owner-reviewed authoritative current-user lookup design, separate subject/owner and consent boundaries; no verifier implemented | Verified deployed issuer/session semantics and #14/#20 security tests; cached owner or decoded JWT cannot authorize |
 | Permission-unavailable fallback | Existing guest entry and shell navigation tested; contract specifies local use without duplicate accounts | Hosted background traffic suppression and offline/provider behavior remain unverified |
 | HTTP/Stremio add-ons | #9 local Chromium: actual manifest/catalog/meta/stream/subtitle parsing, UI install/toggle/reload, real allowed/denied CORS, explicit errors and profile snapshots; [matrix](ADDON_INTEROPERABILITY.md) | Live providers/cloud sync, general timeout policy and broader compatibility unverified |
+| Source format/capability reporting | #10 in progress: explicit declarations survive mapping/flattening; browser cards distinguish provider labels, unknown metadata and native predictions; [contract](SOURCE_CAPABILITIES.md) | Predictions are not playback evidence; ranking, realistic4K/adaptive/device/expiry/header cases remain open |
 | Native video, HLS and DASH | #9 actual bundled UI initiates original local fixture playback in Chromium156: video640x360, time advances, no media error | #10 broader codecs/1080p/4K/HDR/HLS/DASH/audio/subtitle/device evidence; one fixture is not universal support |
 | JavaScript plugin compatibility | Original upstream implementation retained | #11 sandbox/API/license/security verification; no broad compatibility claim |
 | Browser-local recovery | No new implementation | #12 prototype and device evidence |
