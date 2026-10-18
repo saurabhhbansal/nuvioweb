@@ -1,6 +1,6 @@
 # Issue #2: [M0][P0] Set up GitHub CI, PR review, and docs verification
 
-**Plan status:** Proposed for agent review — no implementation/test evidence recorded.  
+**Plan status:** Implementation in progress on `m0-issue-2-docs-ci`; test evidence belongs in the review PR and GitHub Actions run.  
 **Milestone:** M0 · **Priority:** P0  
 **GitHub issue:** https://github.com/saurabhhbansal/nuvioweb/issues/2  
 **Workstream:** [M0 roadmap](https://github.com/saurabhhbansal/nuvioweb/blob/main/docs/ROADMAP.md) · **Agent rules:** [AGENTS.md](https://github.com/saurabhhbansal/nuvioweb/blob/main/AGENTS.md)
@@ -16,6 +16,14 @@ Set up GitHub CI, PR review, and docs verification
 Initial docs committed
 
 Before modifying code, verify required prior issue state and exact upstream revision or package versions. Unavailable dependencies must be logged and should block sensitive implementation.
+
+## Concrete design (2026-10-18)
+
+- `scripts/check-docs.mjs`: dependency-free Node 22 verifier of repository-local inline Markdown links in root guides, docs and GitHub templates. External URLs and same-page fragment links are intentionally not fetched; links escaping repo root must fail.
+- `scripts/check-docs.test.mjs`: fixture-based unit tests for valid links, broken links, external URLs and traversal rejection.
+- `.github/workflows/docs.yml`: least-privileged read-only PR/push GitHub Action running the verifier and unit tests; no cloud credentials, npm install or user data.
+- This first increment does not configure branch protection; the repository owner must enable required checks and review rules in GitHub Settings after verifying the workflow.
+- **Verification:** run Node 22 tests and checker on an actual PR; change one fixture to a broken link and confirm the test detects it. No claim of passing GitHub CI until a run completes.
 
 ## Planned interfaces and deliverables
 
