@@ -1,5 +1,7 @@
 # Upstream tracking and provenance strategy
 
+The [pinned provenance contract](../UPSTREAM_SOURCES.md) defines the exact baseline and history-preserving import checks. See the [license evidence audit](UPSTREAM_LICENSE_AUDIT.md) before reusing source or producing release artifacts. Application source remains unimported until #4.
+
 ## Repositories monitored
 
 - Primary baseline: https://github.com/alphasquare404/NuvioWeb (web and development).
