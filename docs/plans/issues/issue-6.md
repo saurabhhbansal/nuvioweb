@@ -1,6 +1,6 @@
 # Issue #6: Free static Cloudflare preview and PWA verification
 
-**Status:** Public deployment verified; evidence PR integration pending. Preparing on `m1/issue-6-static-preview` from protected main `07d0286`. Public preview explicitly authorized by the owner on 2026-10-18. Workspace device authorization succeeded with account/user read and Pages write; deployment verification is now in progress. No public deployment is claimed before provider response.
+**Status:** Public deployment/browser acceptance verified; protected evidence PR #36 governs integration. Preparation used `m1/issue-6-static-preview` from protected main `07d0286`. Public preview explicitly authorized by the owner on 2026-10-18. Workspace device authorization succeeded with account/user read and Pages write; deployment verification is now in progress. No public deployment is claimed before provider response.
 
 **Issue:** https://github.com/saurabhhbansal/nuvioweb/issues/6
 **Workstream:** [M1 baseline](../M1-BASELINE.md). Dependency #5 verified; #29 dependency remediation merged. Existing identity-contract draft PR #34 remains a separate human review checkpoint; no auth implementation change here.
