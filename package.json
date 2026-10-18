@@ -1,0 +1,12 @@
+{
+  "name": "nuvioweb-verification",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test:browser": "playwright test",
+    "test:governance": "node --test scripts/governance.test.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.0"
+  }
+}

@@ -1,0 +1,26 @@
+name: Issue completion guard
+on:
+  issues:
+    types: [closed]
+permissions:
+  contents: read
+jobs:
+  guard:
+    name: Verify issue completion evidence
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: main
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version-file: .node-version
+      - run: node scripts/guard-issue-closure.mjs
+        env:
+          GITHUB_TOKEN: ${{ github.token }}

@@ -2,7 +2,7 @@
 
 **Independent community browser client for Nuvio-compatible accounts, add-ons, and high-quality playback.**
 
-> **Status — source imported, as of 2026-10-18.** The pinned Alpha browser source is available in [app/alpha](app/alpha), with complete upstream history and notices. Install/build/test validation is the next gate (#5); no public application, payment service, or compute endpoint has been deployed from this repository. Not affiliated with or endorsed by Nuvio. Use only media you are authorized to access.
+> **Status — source imported, as of 2026-10-18.** The pinned Alpha browser source is available in [app/alpha](app/alpha), with complete upstream history and notices. The locked install, fixture-configured build, all 1,079 upstream tests and lint pass (#5); no public application, payment service, or compute endpoint has been deployed from this repository. Not affiliated with or endorsed by Nuvio. Use only media you are authorized to access.
 
 ## What we are building
 
@@ -24,6 +24,9 @@
 - [Security, privacy, and compliance](docs/SECURITY_PRIVACY.md)
 - [Quality and acceptance gates](docs/QUALITY_GATES.md)
 - [Feature support and verification evidence](docs/FEATURE_SUPPORT.md)
+- [Current progress, blockers and forecast](TRACKER.md)
+- [Recovery audit and completion safeguards](docs/RECOVERY_AUDIT.md)
+- [Reproduce the verified local build/test baseline](docs/BASELINE_VERIFICATION.md)
 - [Cost and billing model](docs/COST_MODEL.md)
 - [Upstream tracking strategy](docs/UPSTREAM.md)
 - [Pinned source provenance and import contract](UPSTREAM_SOURCES.md)
@@ -31,6 +34,10 @@
 - [Individual implementation plans](docs/plans/README.md)
 - [Issue tracker and 24 detailed plans](docs/plans/ISSUE_INDEX.md)
 - [Codex/Claude agent instructions](AGENTS.md)
+
+## Local development
+
+Use Node 22.23.1/npm 10.9.8 (root `.node-version`). Application commands run from `app/alpha`. Follow the [baseline instructions](docs/BASELINE_VERIFICATION.md) for a clean install, inert-fixture build, tests and lint; the fixture does not connect to a real Nuvio backend.
 
 ## Development lifecycle
 

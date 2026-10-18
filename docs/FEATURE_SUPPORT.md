@@ -6,12 +6,13 @@ Last updated 2026-10-18. This matrix records observed evidence; imported impleme
 | --- | --- | --- |
 | Source provenance and notices | Identical Git tree, 605 tracked files, GPL license hash, original ancestry and repository integrity checks passed | Preserve mapping and notices with later patches and releases |
 | Documentation CI | Root documentation checker/tests pass | Keep each PR green |
-| Locked dependency install | Not executed for source import | #5: clean `npm ci` on pinned Node/npm |
-| Browser distribution build | Not executed for source import | #5: upstream build, expected `dist` artifacts and notice inventory |
-| Application tests and lint | Imported upstream tests/configuration; not executed | #5: complete upstream suites and explicit baseline failures |
-| Nuvio login, refresh, profiles and sync | [Identity contract](NUVIO_IDENTITY_CONTRACT.md) maps unchanged pinned source; public API v1.3 supports documented third-party operations under terms | #3 human review and unsupported owner/QR/fallback service scope; #7 synthetic/authorized identity, revocation and isolation evidence |
-| Stable subject for pairing / entitlements | Documented authoritative `/auth/v1/user` design, separate subject/owner and consent boundaries; no verifier implemented | Approved issuer/audience/session semantics, service-scope permission and #14/#20 security tests; cached owner or decoded JWT cannot authorize |
-| Permission-unavailable fallback | Existing guest entry observed in source; contract specifies local use without duplicate accounts | Future restricted-mode change must suppress hosted background traffic; no guest/offline browser verification claimed |
+| Locked dependency install | #5 baseline and #29 reviewed patch clean-install on Node 22.23.1/npm 10.9.8; full/runtime/root audits report zero advisories | Keep protected audit CI green; no general security clearance |
+| Browser distribution build | #5 and #29 upstream build passed; 12 assets and inert public-config checks passed | Distribution notice/rights review; no public deployment |
+| Application tests and lint | #29: 1,079 tests passed with zero skips; lint passed | Keep CI green; these tests do not establish real browser/device compatibility |
+| Chromium startup and guest shell | #31/#29: 4 real-browser smoke tests pass: signed-out rendering, validation/network errors, guest Home/Search/Library/Settings and choices after reload | Chromium 156.0.8078.4 only; no live provider, codec or PWA claim |
+| Nuvio login, refresh, profiles and sync | [Identity contract](NUVIO_IDENTITY_CONTRACT.md) maps pinned source and documented API; browser form/error behavior tested | #3 human review and unlisted owner/QR/fallback scope; #7 authorized session/isolation evidence |
+| Stable subject for pairing / entitlements | Documented authoritative current-user lookup design, separate subject/owner and consent boundaries; no verifier implemented | Verified deployed issuer/session semantics and #14/#20 security tests; cached owner or decoded JWT cannot authorize |
+| Permission-unavailable fallback | Existing guest entry and shell navigation tested; contract specifies local use without duplicate accounts | Hosted background traffic suppression and offline/provider behavior remain unverified |
 | HTTP/Stremio add-ons | Original source retained unchanged | #9 legal fixtures, parsing/error/CORS matrix |
 | Native video, HLS and DASH | Original source retained unchanged | #10 real fixtures on specified browsers/devices; no 4K/HDR/codec claim yet |
 | JavaScript plugin compatibility | Original upstream implementation retained | #11 sandbox/API/license/security verification; no broad compatibility claim |
@@ -20,4 +21,8 @@ Last updated 2026-10-18. This matrix records observed evidence; imported impleme
 | Sidecar-backed features | Original source retained; no sidecar deployed | #8 dependency inventory, capability flags and restricted endpoints |
 | Own-host or hosted compute and payments | Planning only; no deployed service | #13–#22 protocol, security, cost, consent and release gates |
 
-No live account, external-media playback, browser/device, production deployment or paid-service testing was performed as part of the source import. Historical audits remain dated evidence; current status is recorded here and in issue-specific plans.
+See [baseline evidence](BASELINE_VERIFICATION.md) for commands, the initial configuration-test failure and its fixture resolution. No live account, external-media playback, browser/device, production deployment or paid-service testing was performed as part of the source import or build baseline. Historical audits remain dated evidence; current status is recorded here and in issue-specific plans.
+
+Browser smoke reproduction and limits: [recovery audit](RECOVERY_AUDIT.md). Playwright 1.64.0, Chromium headless 156.0.8078.4, 4 passed / 0 failed / 0 skipped locally in 17.4 seconds. External requests and service workers are blocked. Guest shell navigation is not proof of populated catalogs, successful sign-in or synchronized data.
+
+Dependency remediation evidence: [#29 report](DEPENDENCY_REMEDIATION.md). Updated-build Chromium shell tests pass; no additional device/media claims follow from the build-tool update.

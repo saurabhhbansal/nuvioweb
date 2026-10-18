@@ -82,3 +82,11 @@ Revert the scoped import PR through GitHub, preserving the upstream history and 
 - `git ls-tree -r HEAD:app/alpha | wc -l` — 605; `sha256sum app/alpha/LICENSE` — `3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986`.
 
 The application subtree has no local patches in #4. The source-only import uses an ordinary PR merge, preserving the subtree's second-parent ancestry; never squash this import PR. See the [capability evidence matrix](docs/FEATURE_SUPPORT.md) for the distinction between imported code and validated behavior.
+
+## Baseline verification — issue #5
+
+Node 22.23.1/npm 10.9.8, clean locked install, configured inert-fixture build, all 1,079 upstream tests and lint passed locally. [Baseline evidence](docs/BASELINE_VERIFICATION.md) records the initial default-config test failure and release blockers. No local patches were made under `app/alpha`; its original tree/lockfile/source remains identical. Project-owned additions are root toolchain/CI, build fixture, artifact checker and documentation.
+
+## Local dependency patch — issue #29
+
+The pristine import commit/tag remains unchanged. #29 modifies only `app/alpha/package.json` (esbuild development range) and `app/alpha/package-lock.json` (36 resolved build/platform version changes). Runtime dependency specifications, JS/CSS/tests and license files are retained. The [dependency remediation report](docs/DEPENDENCY_REMEDIATION.md) records exact versions, integrity/license checks, old/new lock hashes, observed advisory results and rollback. Earlier “no local patches” statements describe #4/#5, not the post-remediation tree.

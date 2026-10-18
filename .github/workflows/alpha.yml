@@ -1,0 +1,54 @@
+name: Alpha baseline
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: alpha-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  baseline:
+    name: Locked install, build, tests and lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: app/alpha
+    env:
+      HUSKY: "0"
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Set up pinned Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version-file: .node-version
+          cache: npm
+          cache-dependency-path: app/alpha/package-lock.json
+      - name: Verify toolchain
+        run: |
+          test "$(node --version)" = "v22.23.1"
+          test "$(npm --version)" = "10.9.8"
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Audit all locked dependencies
+        run: npm audit --audit-level=low
+      - name: Build with inert public configuration
+        env:
+          NUVIO_LOCAL_PROPERTIES: ${{ github.workspace }}/tests/fixtures/build.properties
+        run: npm run build
+      - name: Verify distribution assets and fixture configuration
+        run: node ../../scripts/check-alpha-build.mjs
+      - name: Run complete upstream test suite
+        run: npm test
+      - name: Lint all upstream application code
+        run: npm run lint
