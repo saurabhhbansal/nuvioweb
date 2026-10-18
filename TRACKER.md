@@ -2,7 +2,7 @@
 
 As of 2026-10-18. Source of truth: [acceptance-evidence ledger](docs/PROGRESS.json), [recovery audit](docs/RECOVERY_AUDIT.md), and linked PR/CI records. GitHub closed labels and inherited test counts alone are not product completion. Only main is authoritative; completion entries in an unmerged PR are proposed until their evidence PR merges.
 
-Total tickets: **26**. Verified completed: **9**. In progress: **0**. External blockers: **0**. Ready: **5**. Pending dependencies/implementation: **12**.
+Total tickets: **26**. Verified completed: **9**. In progress: **1**. External blockers: **0**. Ready: **4**. Pending dependencies/implementation: **12**.
 
 The initial 24 roadmap tickets are retained, plus dependency remediation #29 and owner-requested recovery #31. Remaining unfinished tickets include all non-verified rows below; blocked work is included rather than hidden.
 
@@ -17,7 +17,7 @@ The initial 24 roadmap tickets are retained, plus dependency remediation #29 and
 | [#7](https://github.com/saurabhhbansal/nuvioweb/issues/7) [M1][P0] Validate existing Nuvio login, sync and profile isolation | ready | #6, #3 | Implementation/verification outstanding |
 | [#8](https://github.com/saurabhhbansal/nuvioweb/issues/8) [M1][P1] Inventory and safely isolate upstream sidecar-dependent routes | ready | #5 | Implementation/verification outstanding |
 | [#9](https://github.com/saurabhhbansal/nuvioweb/issues/9) [M2][P0] Build legal add-on interoperability fixtures and test matrix | verified | #5 | PR #37; original legal media, real HTTP/CORS/parser and bundled guest install/catalog/playback, persistent partial outcomes and retry; local Chromium limits documented |
-| [#10](https://github.com/saurabhhbansal/nuvioweb/issues/10) [M2][P0] Implement source descriptors and browser playback capability reporting | ready | #9, #5 | Implementation/verification outstanding |
+| [#10](https://github.com/saurabhhbansal/nuvioweb/issues/10) [M2][P0] Implement source descriptors and browser playback capability reporting | in_progress | #9, #5 | Descriptor/browser-prediction seam first; realistic4K/adaptive/cross-browser verification still required |
 | [#11](https://github.com/saurabhhbansal/nuvioweb/issues/11) [M2][P1] Prototype sandboxed Nuvio JavaScript plugin compatibility | ready | #9, #1 | Implementation/verification outstanding |
 | [#12](https://github.com/saurabhhbansal/nuvioweb/issues/12) [M2][P1] Prototype quality-preserving local audio and container recovery | pending | #10, #1 | Implementation/verification outstanding |
 | [#13](https://github.com/saurabhhbansal/nuvioweb/issues/13) [M3][P0] Define versioned compute protocol and strict job lifecycle | pending | #10 | Implementation/verification outstanding |

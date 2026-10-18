@@ -147,7 +147,7 @@
     {
       "number": 10,
       "title": "[M2][P0] Implement source descriptors and browser playback capability reporting",
-      "status": "ready",
+      "status": "in_progress",
       "dependencies": [
         9,
         5

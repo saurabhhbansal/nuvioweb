@@ -1,4 +1,5 @@
 import { safeApiCall } from "../../core/network/safeApiCall.js";
+import { describeSource } from "../../core/streams/sourceCapabilities.js";
 import { addonRepository } from "./addonRepository.js";
 import { StreamApi } from "../remote/api/streamApi.js";
 import { MetaApi } from "../remote/api/metaApi.js";
@@ -279,7 +280,8 @@ class StreamRepository {
       qualityValue: Number.isFinite(Number(stream.qualityValue)) ? Number(stream.qualityValue) : -1,
       clientResolve: stream.clientResolve || null,
       debridCacheStatus: stream.debridCacheStatus || null,
-      subtitles: sidecarSubtitles
+      subtitles: sidecarSubtitles,
+      sourceDescriptor: describeSource(stream)
     };
   }
 

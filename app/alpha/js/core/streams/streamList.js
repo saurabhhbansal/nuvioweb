@@ -5,6 +5,7 @@
 // a screen.
 
 import { DirectDebridResolver } from "../debrid/directDebridResolver.js";
+import { describeSource, normalizeSourceDescriptor } from "./sourceCapabilities.js";
 
 function isMagnetUrl(value = "") {
   return String(value || "")
@@ -204,6 +205,9 @@ export function flattenStreams(streamResult) {
         debridCacheStatus: stream.debridCacheStatus || null,
 
         streamPresentation: stream.streamPresentation || null,
+
+        sourceDescriptor: stream.sourceDescriptor
+          ? normalizeSourceDescriptor(stream.sourceDescriptor) : describeSource(stream),
 
         subtitles: Array.isArray(stream.subtitles) ? stream.subtitles : [],
 
