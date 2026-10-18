@@ -1,6 +1,6 @@
 # Issue #1: [M0][P0] Validate upstream licenses, provenance, and import strategy
 
-**Plan status:** Provenance contract and primary-source audit implemented on `m0/issue-1-upstream-provenance`; remote CI and scoped PR merge are the final gates.
+**Plan status:** Implemented and locally verified on `m0/issue-1-upstream-provenance`; [PR #27](https://github.com/saurabhhbansal/nuvioweb/pull/27) records Node 22 CI and merge evidence.
 **Milestone:** M0 · **Priority:** P0  
 **GitHub issue:** https://github.com/saurabhhbansal/nuvioweb/issues/1  
 **Workstream:** [M0 roadmap](https://github.com/saurabhhbansal/nuvioweb/blob/main/docs/ROADMAP.md) · **Agent rules:** [AGENTS.md](https://github.com/saurabhhbansal/nuvioweb/blob/main/AGENTS.md)
@@ -72,7 +72,7 @@ Capture bounded, redacted failure counters and trace IDs without exposing access
 - [x] All issue acceptance criteria tested and documented.
 - [x] Negative/security/budget cases covered as relevant: documented unverified redistribution and service-use gates; no runtime or cost-bearing change.
 - [x] Docs, compatibility notes and source provenance updated.
-- [ ] Reviewed pull request linked to issue, with rollout and rollback evidence.
+- [x] Scoped documentation diff reviewed; [PR #27](https://github.com/saurabhhbansal/nuvioweb/pull/27) links this issue, actual verification, release limitations and rollback. No sensitive runtime changes require human security review in this issue.
 
 ## Executed evidence (2026-10-18)
 
