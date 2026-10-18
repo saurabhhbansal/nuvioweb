@@ -25,6 +25,8 @@ jobs:
             package-lock.json
             app/alpha/package-lock.json
       - run: npm ci
+      - name: Audit browser verification tooling
+        run: npm audit --audit-level=low
       - run: npx playwright install --with-deps chromium
       - run: npm ci
         working-directory: app/alpha

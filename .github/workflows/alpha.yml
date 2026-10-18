@@ -40,6 +40,8 @@ jobs:
           test "$(npm --version)" = "10.9.8"
       - name: Install locked dependencies
         run: npm ci
+      - name: Audit all locked dependencies
+        run: npm audit --audit-level=low
       - name: Build with inert public configuration
         env:
           NUVIO_LOCAL_PROPERTIES: ${{ github.workspace }}/tests/fixtures/build.properties

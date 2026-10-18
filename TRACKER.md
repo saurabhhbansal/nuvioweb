@@ -2,7 +2,7 @@
 
 As of 2026-10-18. Source of truth: [acceptance-evidence ledger](docs/PROGRESS.json), [recovery audit](docs/RECOVERY_AUDIT.md), and linked PR/CI records. GitHub closed labels and inherited test counts alone are not product completion. Only main is authoritative; completion entries in an unmerged PR are proposed until their evidence PR merges.
 
-Total tickets: **26**. Verified completed: **5**. In progress: **1**. External blockers: **2**. Ready: **3**. Pending dependencies/implementation: **15**.
+Total tickets: **26**. Verified completed: **6**. In progress: **0**. External blockers: **2**. Ready: **3**. Pending dependencies/implementation: **15**.
 
 The initial 24 roadmap tickets are retained, plus dependency remediation #29 and owner-requested recovery #31. Remaining unfinished tickets include all non-verified rows below; blocked work is included rather than hidden.
 
@@ -32,14 +32,14 @@ The initial 24 roadmap tickets are retained, plus dependency remediation #29 and
 | [#22](https://github.com/saurabhhbansal/nuvioweb/issues/22) [M4][P1] Integrate eligible payment provider and transparent credit checkout | pending | #20, #21 | Implementation/verification outstanding |
 | [#23](https://github.com/saurabhhbansal/nuvioweb/issues/23) [M5][P1] Automate upstream change monitoring and reviewed parity tracking | ready | #4, #5 | Implementation/verification outstanding |
 | [#24](https://github.com/saurabhhbansal/nuvioweb/issues/24) [M5][P1] Define full browser device, security and staged release verification | pending | #5, #9, #10 | Implementation/verification outstanding |
-| [#29](https://github.com/saurabhhbansal/nuvioweb/issues/29) [M1][P1] Remediate audited build-tool dependency advisories before release | in_progress | #5 | Preserved local package/audit patch; install/tests/CI not yet verified |
+| [#29](https://github.com/saurabhhbansal/nuvioweb/issues/29) [M1][P1] Remediate audited build-tool dependency advisories before release | verified | #5 | PR #33; clean install/build, 1,079 unit tests, 4 Chromium journeys, lint and zero-advisory audits; proposed until protected integration |
 | [#31](https://github.com/saurabhhbansal/nuvioweb/issues/31) Recovery audit, branch safeguards and browser evidence | verified | #1, #2, #4, #5 | PR #32; recovery acceptance evidence and CI in the audit |
 
 ## What works and what remains unverified
 
 Source import and provenance are verified. A pinned Node 22 clean install/build, 1,079 inherited upstream tests, lint and distribution-asset checks pass. Four real Chromium smoke tests now pass for signed-out startup, validation/network errors and guest navigation/persistence; see the [feature matrix](docs/FEATURE_SUPPORT.md) for observed results and limits.
 
-Live authentication/session refresh/account isolation/sync, actual add-on/catalog/provider CORS, legal media playback/audio/subtitles, cross-browser codecs/HDR, PWA lifecycle and deployed hosting remain unverified. Native sidecars are not deployed. Eight build-tool advisories are the unfinished #29 patch; release notice/asset/font/native rights gates remain open.
+Live authentication/session refresh/account isolation/sync, actual add-on/catalog/provider CORS, legal media playback/audio/subtitles, cross-browser codecs/HDR, PWA lifecycle and deployed hosting remain unverified. Native sidecars are not deployed. The #29 patch removes all eight observed build-tool advisory records locally; PR #33 records protected integration evidence; release notice/asset/font/native rights gates remain open.
 
 ## Milestones, forecast and next demonstration
 
@@ -51,6 +51,6 @@ Live authentication/session refresh/account isolation/sync, actual add-on/catalo
 | Feature-complete roadmap beta | Not achieved; rough 8–16 engineer-weeks including plugin sandbox, own/hosted compute and security, low confidence |
 | Stable production-ready release | Not achieved; additional 4–8 weeks of cross-device/security/release/operational work, very low confidence; external waits excluded |
 
-The next meaningful demonstration is a guest installing a local legal HTTP add-on, browsing its catalog and initiating a supported media fixture with explicit errors. First finish the preserved #29 dependency patch, then #8/#9/#10 by dependency. Public deployment, paid services and sensitive behavior changes retain owner approval gates. These are effort estimates, not dates or progress percentages inferred from ticket counts.
+The next meaningful demonstration is a guest installing a local legal HTTP add-on, browsing its catalog and initiating a supported media fixture with explicit errors. After #29 protected integration, continue deployment preparation and #8/#9/#10 by dependency. Public deployment, paid services and sensitive behavior changes retain owner approval gates. These are effort estimates, not dates or progress percentages inferred from ticket counts.
 
 Independent human review is unavailable with one collaborator; required approvals are zero and automated review is explicitly labelled. Main still enforces PRs, mandatory up-to-date CI, no force pushes/deletion and resolved conversations. Sensitive changes require a separate explicit human checkpoint.

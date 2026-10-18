@@ -39,6 +39,8 @@ Application CI runs the same clean install, fixture build, artifact check, compl
 
 ## Remaining security and distribution gates
 
+This is the historical #5 graph. The separate [#29 remediation report](DEPENDENCY_REMEDIATION.md) records the later reviewed dependency patch and current audit results; it does not overwrite the original baseline evidence.
+
 `npm audit --json` reported eight affected package records: brace-expansion, esbuild, js-yaml, nanoid, postcss, postcss-selector-parser, source-map-js and svgo (5 high, 2 moderate, 1 low). The exact runtime-only command `npm audit --omit=dev --json` reported zero advisories. Build tools still require remediation, tracked in [issue #29](https://github.com/saurabhhbansal/nuvioweb/issues/29); zero runtime findings does not prove all bundled/native code is safe. Primary reports include [esbuild's Windows development-server issue](https://github.com/advisories/GHSA-g7r4-m6w7-qqqr), [PostCSS's map-file issue](https://github.com/advisories/GHSA-fxqj-rqcc-2cmp), and [brace-expansion resource exhaustion](https://github.com/advisories/GHSA-mh99-v99m-4gvg). No automatic dependency updates were applied in the baseline PR.
 
 Actual `dist` inventory contains `assets/libs/hls.js.LICENSE`, `assets/libs/dashjs.LICENSE.md`, and `assets/libs/libbitsub.LICENSE`. Complete GPL/source access, DASH bundled dependency notices, core-js/JSZip notices, QR terms, font/logo rights and included native components still require the [release license review](UPSTREAM_LICENSE_AUDIT.md). Passing build/tests does not clear that gate or approve public publication. The original package-lock SHA-256 remains `7a42cf7e2590ed932b6d05a02f907cd09cc075f883caffebb3691ff69a2b9711`.
