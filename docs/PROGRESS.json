@@ -78,11 +78,22 @@
     {
       "number": 6,
       "title": "[M1][P0] Deploy free static browser preview on Cloudflare",
-      "status": "blocked_external",
+      "status": "verified",
       "dependencies": [
         5
       ],
-      "blocker": "Public preview authorized; local configuration/staging/PWA preparation in progress, but Cloudflare OAuth login expired and cannot refresh noninteractively. No deployment URL verified."
+      "completion": {
+        "pr": 36,
+        "documents": [
+          "docs/STATIC_PREVIEW.md",
+          "docs/evidence/preview-2026-10-18.json",
+          "docs/plans/issues/issue-6.md"
+        ],
+        "verification": [
+          "Owner-authorized dedicated Pages project deployed reviewed artifact7a31613; actual HTTPS asset/source/notice hashes, cache/no-store/nosniff, missing API/JS404 and matching-source200 passed",
+          "Actual Chromium156 signed-out/guest/navigation/reload/profile and automatic worker/cache passed, no page errors; third-party traffic blocked; prior real two-build worker replacement tests passed"
+        ]
+      }
     },
     {
       "number": 7,

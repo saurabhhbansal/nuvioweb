@@ -2,7 +2,7 @@
 
 As of 2026-10-18. Source of truth: [acceptance-evidence ledger](docs/PROGRESS.json), [recovery audit](docs/RECOVERY_AUDIT.md), and linked PR/CI records. GitHub closed labels and inherited test counts alone are not product completion. Only main is authoritative; completion entries in an unmerged PR are proposed until their evidence PR merges.
 
-Total tickets: **26**. Verified completed: **6**. In progress: **1**. External blockers: **2**. Ready: **2**. Pending dependencies/implementation: **15**.
+Total tickets: **26**. Verified completed: **7**. In progress: **1**. External blockers: **1**. Ready: **2**. Pending dependencies/implementation: **15**.
 
 The initial 24 roadmap tickets are retained, plus dependency remediation #29 and owner-requested recovery #31. Remaining unfinished tickets include all non-verified rows below; blocked work is included rather than hidden.
 
@@ -13,7 +13,7 @@ The initial 24 roadmap tickets are retained, plus dependency remediation #29 and
 | [#3](https://github.com/saurabhhbansal/nuvioweb/issues/3) [M0][P0] Verify Nuvio hosted API usage terms and identity requirements | blocked_external | None | Identity-contract research preserved in draft PR #34; human auth/security review pending. Owner accepted documented public APIs; unlisted/session semantics unverified. |
 | [#4](https://github.com/saurabhhbansal/nuvioweb/issues/4) [M1][P0] Import pinned Alpha NuvioWeb browser baseline with attribution | verified | #1 | PR #28; acceptance/verification in linked ledger documents |
 | [#5](https://github.com/saurabhhbansal/nuvioweb/issues/5) [M1][P0] Reproduce upstream install, build, lint and unit tests | verified | #4, #2 | PR #30; acceptance/verification in linked ledger documents |
-| [#6](https://github.com/saurabhhbansal/nuvioweb/issues/6) [M1][P0] Deploy free static browser preview on Cloudflare | blocked_external | #5 | Public preview authorized; local config/PWA preparation in progress; Cloudflare OAuth expired, no deployment URL verified. |
+| [#6](https://github.com/saurabhhbansal/nuvioweb/issues/6) [M1][P0] Deploy free static browser preview on Cloudflare | verified | #5 | PR #36; live development preview, actual Chromium guest/worker checks and deployed artifact/header/source evidence. |
 | [#7](https://github.com/saurabhhbansal/nuvioweb/issues/7) [M1][P0] Validate existing Nuvio login, sync and profile isolation | pending | #6, #3 | Implementation/verification outstanding |
 | [#8](https://github.com/saurabhhbansal/nuvioweb/issues/8) [M1][P1] Inventory and safely isolate upstream sidecar-dependent routes | ready | #5 | Implementation/verification outstanding |
 | [#9](https://github.com/saurabhhbansal/nuvioweb/issues/9) [M2][P0] Build legal add-on interoperability fixtures and test matrix | in_progress | #5 | Legal loopback provider/media and real browser/CORS fixture work; no live account dependency |
@@ -39,7 +39,7 @@ The initial 24 roadmap tickets are retained, plus dependency remediation #29 and
 
 Source import and provenance are verified. A pinned Node 22 clean install/build, 1,079 inherited upstream tests, lint and distribution-asset checks pass. Four real Chromium smoke tests now pass for signed-out startup, validation/network errors and guest navigation/persistence; see the [feature matrix](docs/FEATURE_SUPPORT.md) for observed results and limits.
 
-Live authentication/session refresh/account isolation/sync, actual add-on/catalog/provider CORS, legal media playback/audio/subtitles, cross-browser codecs/HDR, PWA lifecycle and deployed hosting remain unverified. Native sidecars are not deployed. The #29 patch removes all eight observed build-tool advisory records locally; PR #33 records protected integration evidence; release notice/asset/font/native rights gates remain open.
+The [public development preview](https://nuvioweb-preview.pages.dev) passes actual Chromium shell/guest/automatic-worker and deployed artifact/header/source checks; local real worker replacement tests pass. Live authentication/session refresh/account isolation/sync, actual add-on/catalog/provider CORS, legal media playback/audio/subtitles, cross-browser codecs/HDR and full offline/PWA lifecycle remain unverified. Native sidecars are not deployed. The #29 patch removes all eight observed build-tool advisory records locally; PR #33 records protected integration evidence; release notice/asset/font/native rights gates remain open.
 
 ## Milestones, forecast and next demonstration
 
@@ -47,10 +47,10 @@ Live authentication/session refresh/account isolation/sync, actual add-on/catalo
 | --- | --- |
 | Source successfully imported | Verified: PR #28 preserves exact source tree, original history and notices |
 | Application builds and inherited tests pass | Verified: PR #30; does not establish browser behavior |
-| Browser MVP in a realistic environment | Not achieved; initial estimate 5–10 focused engineer-days after backend/config permission and access, low confidence |
+| Browser MVP in a realistic environment | Not achieved; initial estimate 5–10 focused engineer-days after dedicated test-account access and required security review, low confidence |
 | Feature-complete roadmap beta | Not achieved; rough 8–16 engineer-weeks including plugin sandbox, own/hosted compute and security, low confidence |
 | Stable production-ready release | Not achieved; additional 4–8 weeks of cross-device/security/release/operational work, very low confidence; external waits excluded |
 
-The next meaningful demonstration is a guest installing a local legal HTTP add-on, browsing its catalog and initiating a supported media fixture with explicit errors. After #29 protected integration, continue deployment preparation and #8/#9/#10 by dependency. Public preview is owner-authorized and awaiting Cloudflare reconnection; paid services and sensitive behavior changes retain review gates. These are effort estimates, not dates or progress percentages inferred from ticket counts.
+The next meaningful demonstration is a guest installing a local legal HTTP add-on, browsing its catalog and initiating a supported media fixture with explicit errors. Dependency remediation #29 and deployment #6 are verified. Resume the preserved #9 legal add-on fixture work, then #8/#10 by dependency; #3 contract review remains pending. Public development preview is deployed and verified as a shell; paid services and sensitive behavior changes retain review gates. These are effort estimates, not dates or progress percentages inferred from ticket counts.
 
 Independent human review is unavailable with one collaborator; required approvals are zero and automated review is explicitly labelled. Main still enforces PRs, mandatory up-to-date CI, no force pushes/deletion and resolved conversations. Sensitive changes require a separate explicit human checkpoint.

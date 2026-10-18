@@ -15,7 +15,7 @@ Last updated 2026-10-18. This matrix records observed evidence; imported impleme
 | Native video, HLS and DASH | Original source retained unchanged | #10 real fixtures on specified browsers/devices; no 4K/HDR/codec claim yet |
 | JavaScript plugin compatibility | Original upstream implementation retained | #11 sandbox/API/license/security verification; no broad compatibility claim |
 | Browser-local recovery | No new implementation | #12 prototype and device evidence |
-| Static preview and PWA lifecycle | #6: static config/headers and two real Chromium worker/update/host tests pass locally; [reproduction and limits](STATIC_PREVIEW.md) | Cloudflare login expired; no deployment/auto-registration/device/offline claim |
+| Static preview and PWA lifecycle | #6: [public development preview](https://nuvioweb-preview.pages.dev), actual Chromium shell/guest/automatic-worker checks and deployed headers/source hashes; local two-build update tests pass | Live auth/providers/playback, complete offline and other devices/browsers unverified; [evidence](STATIC_PREVIEW.md) |
 | Sidecar-backed features | Original source retained; no sidecar deployed | #8 dependency inventory, capability flags and restricted endpoints |
 | Own-host or hosted compute and payments | Planning only; no deployed service | #13–#22 protocol, security, cost, consent and release gates |
 
