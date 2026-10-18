@@ -26,6 +26,15 @@ const noticePaths = [
 
 export async function preparePreview() {
   if (execFileSync("git",["status","--porcelain"],{cwd:root,encoding:"utf8"}).trim()) throw new Error("Commit preview source before staging so matching source is available");
+  const pinnedNode = (await readFile(join(root,".node-version"),"utf8")).trim();
+  if (process.versions.node !== pinnedNode.replace(/^v/,"")) throw new Error(`Use pinned Node ${pinnedNode} before staging`);
+  // Ignored dist may belong to an earlier commit. Always rebuild from this clean
+  // revision rather than attaching current matching-source links to stale bytes.
+  execFileSync(process.execPath,["scripts/build.mjs"],{
+    cwd:join(root,"app/alpha"),
+    env:{...process.env,NUVIO_LOCAL_PROPERTIES:join(root,"deploy/cloudflare/build.properties")},
+    stdio:"inherit"
+  });
   const source = join(root,"app/alpha/dist");
   validatePublicConfig(await readFile(join(source,"nuvio.env.js"),"utf8"));
   const files = await readdir(source,{recursive:true,withFileTypes:true});
