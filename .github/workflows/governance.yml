@@ -1,0 +1,51 @@
+name: Roadmap integrity
+on:
+  pull_request:
+  push:
+    branches: [main]
+  issues:
+    types: [closed]
+permissions:
+  contents: read
+jobs:
+  verify:
+    if: github.event_name != 'issues'
+    name: Roadmap and import checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version-file: .node-version
+      - run: node --test scripts/governance.test.mjs
+      - run: node scripts/check-progress.mjs
+      - name: Check every new ancestry commit
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: node scripts/check-commit-references.mjs "$BASE_SHA" "$HEAD_SHA"
+  closure:
+    if: github.event_name == 'issues'
+    name: Verify issue completion evidence
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: main
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version-file: .node-version
+      - run: node scripts/guard-issue-closure.mjs
+        env:
+          GITHUB_TOKEN: ${{ github.token }}

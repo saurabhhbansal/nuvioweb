@@ -29,3 +29,10 @@ M1 reproducible Alpha baseline. First recheck upstream pinned SHA, license and e
 ## PR checklist
 
 Linked issue; plan; file diff; upstream provenance; test commands/output; auth/plugin SSRF and media caveats; estimated compute cost implications; rollback.
+
+## Evidence-based completion and import safety
+
+- The central ledger is `docs/PROGRESS.json`; update it and TRACKER.md with actual acceptance/verification evidence. Closed issue labels and inherited tests alone do not prove feature completion.
+- Use `Refs #N` in project commits and PRs; close issues explicitly after their evidence PR merges. Run `node scripts/check-commit-references.mjs <base> HEAD` across all newly reachable ancestry before imports. Unresolved historical closing-reference collisions block merge; retain original upstream commits and notices rather than rewriting messages. Audit issue timelines immediately after any import.
+- Main protections apply to admins: required up-to-date CI, PR workflow, no force pushes/deletion. Never bypass or weaken them. Automated review must be reported as automated, not independent human approval; human review remains required for sensitive areas above. The sole-maintainer repository currently requires zero independent approvals, a documented limitation rather than a claim of review.
+- An inherited test pass establishes only its tested seam. Browser journey claims require a reproducible browser fixture, observed assertions and explicit limits for mocked/live services and supported devices.

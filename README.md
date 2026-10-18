@@ -24,6 +24,8 @@
 - [Security, privacy, and compliance](docs/SECURITY_PRIVACY.md)
 - [Quality and acceptance gates](docs/QUALITY_GATES.md)
 - [Feature support and verification evidence](docs/FEATURE_SUPPORT.md)
+- [Current progress, blockers and forecast](TRACKER.md)
+- [Recovery audit and completion safeguards](docs/RECOVERY_AUDIT.md)
 - [Reproduce the verified local build/test baseline](docs/BASELINE_VERIFICATION.md)
 - [Cost and billing model](docs/COST_MODEL.md)
 - [Upstream tracking strategy](docs/UPSTREAM.md)

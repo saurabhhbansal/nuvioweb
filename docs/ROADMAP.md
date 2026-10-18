@@ -1,6 +1,6 @@
 # Project roadmap and milestones
 
-Milestone status: all in planning at 2026-10-18. Issues are the execution unit; each implementation issue needs a dedicated plan and test evidence. No release date is promised.
+Milestone status at 2026-10-18: source/build foundation verified; realistic browser MVP, beta and production gates remain open. See [current progress](../TRACKER.md). Issues are the execution unit; each implementation issue needs a dedicated plan and test evidence. No release date is promised.
 
 ## M0 — documentation, governance and test policy
 
