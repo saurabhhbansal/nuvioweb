@@ -10,14 +10,14 @@ Last updated 2026-10-18. This matrix records observed evidence; imported impleme
 | Browser distribution build | #5 and #29 upstream build passed; 12 assets and inert public-config checks passed | Distribution notice/rights review; no public deployment |
 | Application tests and lint | #29: 1,079 tests passed with zero skips; lint passed | Keep CI green; these tests do not establish real browser/device compatibility |
 | Chromium startup and guest shell | #31/#29: 4 real-browser smoke tests pass: signed-out rendering, validation/network errors, guest Home/Search/Library/Settings and choices after reload | Chromium 156.0.8078.4 only; no live provider, codec or PWA claim |
-| Nuvio login, refresh, profiles and sync | [Identity contract](NUVIO_IDENTITY_CONTRACT.md) maps pinned source and documented API; browser form/error behavior tested | #3 human review and unlisted owner/QR/fallback scope; #7 authorized session/isolation evidence |
-| Stable subject for pairing / entitlements | Documented authoritative current-user lookup design, separate subject/owner and consent boundaries; no verifier implemented | Verified deployed issuer/session semantics and #14/#20 security tests; cached owner or decoded JWT cannot authorize |
+| Nuvio login, refresh, profiles and sync | Owner-reviewed [identity contract](NUVIO_IDENTITY_CONTRACT.md) in PR #34 maps pinned source and documented API; browser form/error behavior tested | Unlisted owner/QR/fallback scope and #7 authorized session/isolation evidence |
+| Stable subject for pairing / entitlements | Owner-reviewed authoritative current-user lookup design, separate subject/owner and consent boundaries; no verifier implemented | Verified deployed issuer/session semantics and #14/#20 security tests; cached owner or decoded JWT cannot authorize |
 | Permission-unavailable fallback | Existing guest entry and shell navigation tested; contract specifies local use without duplicate accounts | Hosted background traffic suppression and offline/provider behavior remain unverified |
 | HTTP/Stremio add-ons | Original source retained unchanged | #9 legal fixtures, parsing/error/CORS matrix |
 | Native video, HLS and DASH | Original source retained unchanged | #10 real fixtures on specified browsers/devices; no 4K/HDR/codec claim yet |
 | JavaScript plugin compatibility | Original upstream implementation retained | #11 sandbox/API/license/security verification; no broad compatibility claim |
 | Browser-local recovery | No new implementation | #12 prototype and device evidence |
-| Static preview and PWA lifecycle | No deployment | #6 preview, routes, cache and update smoke tests |
+| Static preview and PWA lifecycle | #6: [public development preview](https://nuvioweb-preview.pages.dev), actual Chromium shell/guest/automatic-worker checks and deployed headers/source hashes; local two-build update tests pass | Live auth/providers/playback, complete offline and other devices/browsers unverified; [evidence](STATIC_PREVIEW.md) |
 | Sidecar-backed features | Original source retained; no sidecar deployed | #8 dependency inventory, capability flags and restricted endpoints |
 | Own-host or hosted compute and payments | Planning only; no deployed service | #13–#22 protocol, security, cost, consent and release gates |
 

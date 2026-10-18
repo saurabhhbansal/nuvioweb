@@ -36,9 +36,20 @@
     {
       "number": 3,
       "title": "[M0][P0] Verify Nuvio hosted API usage terms and identity requirements",
-      "status": "blocked_external",
+      "status": "verified",
       "dependencies": [],
-      "blocker": "Existing identity-contract research is complete; draft human auth/security review pending. Owner accepted documented public-client APIs; unlisted endpoint/session semantics remain unverified, with live tests assigned to #7."
+      "completion": {
+        "pr": 34,
+        "documents": [
+          "docs/NUVIO_IDENTITY_CONTRACT.md",
+          "docs/plans/issues/issue-3.md"
+        ],
+        "verification": [
+          "Published API/terms and pinned auth/session/sync-owner source mapped; stable subject, consent and guest fallback specified without a duplicate password database",
+          "Owner explicitly reviewed and approved PR #34 documentation scope on 2026-10-18; approved contract preserved byte-for-byte from 7693878; runtime/service-scope gates remain in #7/#14/#20",
+          "Pinned Node22 documentation/governance checks: 15 passed, no failures/skips; local links, ledger structure, whitespace and ancestry preflight passed; protected CI remains required before merge"
+        ]
+      }
     },
     {
       "number": 4,
@@ -78,11 +89,22 @@
     {
       "number": 6,
       "title": "[M1][P0] Deploy free static browser preview on Cloudflare",
-      "status": "blocked_external",
+      "status": "verified",
       "dependencies": [
         5
       ],
-      "blocker": "Owner authorized public preview on 2026-10-18; Cloudflare OAuth login is expired and cannot refresh noninteractively. Configuration/PWA verification and deployment remain incomplete."
+      "completion": {
+        "pr": 36,
+        "documents": [
+          "docs/STATIC_PREVIEW.md",
+          "docs/evidence/preview-2026-10-18.json",
+          "docs/plans/issues/issue-6.md"
+        ],
+        "verification": [
+          "Owner-authorized dedicated Pages project deployed reviewed artifact7a31613; actual HTTPS asset/source/notice hashes, cache/no-store/nosniff, missing API/JS404 and matching-source200 passed",
+          "Actual Chromium156 signed-out/guest/navigation/reload/profile and automatic worker/cache passed, no page errors; third-party traffic blocked; prior real two-build worker replacement tests passed"
+        ]
+      }
     },
     {
       "number": 7,

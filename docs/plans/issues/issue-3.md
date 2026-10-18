@@ -1,6 +1,6 @@
 # Issue #3: API terms and identity contract
 
-**Status:** Research/contract deliverables complete; draft PR and human review pending. No auth implementation delivered.
+**Status:** Documentation contract reviewed and approved by the owner on 2026-10-18; protected integration and verification in progress. No auth implementation delivered.
 
 **Issue:** https://github.com/saurabhhbansal/nuvioweb/issues/3 (OPEN, no comments or blocking dependencies when checked 2026-10-18).
 
@@ -106,3 +106,39 @@ Resume the existing branch/commit, merge protected main `07d0286`, retain both b
 The sole conflict was docs/FEATURE_SUPPORT.md: retained #5/#29 builds, #31 Chromium shell tests and #3 contract limits. After resolution, pinned Node22 documentation tests passed 6/6 with no skips; docs links, ledger structure and whitespace passed. Earlier file-level sandbox result is historical, not the current test count. Cloudflare public-preview authorization is recorded; `wrangler whoami` found an expired nonrefreshable login, an account-access blocker for #6 rather than a missing owner decision.
 
 Automated Standards review found an outdated unqualified tree-equality statement after #29; corrected the evidence register to distinguish pristine import from the documented two-file dependency metadata patch. No auth/runtime source changes were introduced.
+
+## Owner acceptance and integration plan — 2026-10-18
+
+The owner explicitly reviewed and approved PR #34's identity contract for issue #3's documentation scope in this session, and authorized conflict resolution, required checks, protected merge, completion-evidence updates and explicit closure. Any substantive contract change must return for review. This supersedes the earlier instructions to leave the reviewed documentation draft/open; runtime and service-scope release gates remain unchanged.
+
+Work in isolated `/tmp/nuvioweb-issue3` on `m0/issue-3-owner-acceptance`, preserving the original research worktree and unrelated add-on work. Merge current `origin/main` into the PR ancestry without rewriting history. Resolve documentation conflicts by retaining current deployment evidence and the approved identity requirements. Keep `docs/NUVIO_IDENTITY_CONTRACT.md` byte-identical to approved commit `7693878855717b0a725524a4db3a705dd653f04c`.
+
+Target files: this plan, `TRACKER.md`, `docs/PROGRESS.json`, `docs/FEATURE_SUPPORT.md`, and integration status in `docs/DECISIONS.md` as necessary. Record all three issue acceptance criteria as documentation evidence; runtime verification remains in #7/#14/#20. Update the ledger to verified with evidence PR #34, proposed until protected merge. No API contract, application, workflow, auth implementation, credential, deployment, payment, compute or licensing changes are authorized by this integration.
+
+Required local verification under pinned Node 22.23.1: `node --test scripts/check-docs.test.mjs`, `node scripts/check-docs.mjs`, `node --test scripts/governance.test.mjs`, `node scripts/check-progress.mjs`, `node scripts/check-commit-references.mjs origin/main HEAD`, `git diff --check origin/main`, `git diff --exit-code 7693878855717b0a725524a4db3a705dd653f04c -- docs/NUVIO_IDENTITY_CONTRACT.md`, and `git diff --name-only origin/main`. All four required GitHub CI contexts must succeed on the updated PR, with up-to-date checks, resolved conversations and admin protections intact. Record exact results here and on the PR before protected merge; then verify merged evidence and the issue closure guard against main. No synthetic/live auth tests are claimed by this documentation acceptance.
+
+Threats, costs and rollback remain as above: preserve every identity and consent restriction, do not expose tokens, and incur no hosted compute. If integration changes the contract, stop for owner review. Rollback is a protected documentation revert; do not weaken branch protections or rewrite upstream history.
+
+### Acceptance evidence
+
+- [x] Public use constraints explicitly documented: contract decision/permission table, dated evidence register and rate/capacity limits.
+- [x] Stable authenticated identity and consent specified: server-verified trust domain plus subject; sync owner is not authority; login, pairing and charge consent are separate.
+- [x] No new Nuvio password database: existing-account browser flow and guest fallback retained; no runtime or account-store changes.
+- Owner review is explicit session approval of the concrete PR #34 contract; earlier automated review remains automated and is not independent approval. The approved contract is intentionally retained verbatim, including historical pending-review annotations; this acceptance record supplies current status.
+- `origin/main` at `18655a7` contributes completed #6 deployment evidence. Conflicts were only `TRACKER.md` and `docs/PROGRESS.json`; resolved by preserving that evidence and recording #3 documentation acceptance. The contract and runtime have no integration changes.
+- Initial sandboxed `git merge --no-commit --no-ff origin/main` failed before merging (exit 128, read-only shared Git metadata). Authorized retry entered the expected two documentation conflicts (exit 1); resolution retained both workstreams.
+
+### Integration verification results
+
+Pinned toolchain: `/home/saurabh/.local/share/mise/installs/node/22.23.1/bin/node --version` — exit 0, `v22.23.1`. Commands below used that absolute Node executable.
+
+- `node --test scripts/check-docs.test.mjs scripts/governance.test.mjs` — exit 0, 15 passed / 0 failed / 0 skipped (6 documentation and 9 governance tests). An earlier restricted execution of the governance harness failed at file level (exit 1) without child-test diagnostics; the authorized rerun above exposed all assertions and passed. The earlier restricted docs result counted one file, not six executed subtests.
+- `node scripts/check-docs.mjs` — exit 0, all inspected local Markdown links resolve.
+- `node scripts/check-progress.mjs` — exit 0, 26 tickets / 8 structurally verified records; actual merged-PR verification remains separate.
+- `node scripts/check-commit-references.mjs origin/main HEAD` — exit 0, no local closing directives in new ancestry; rerun after integration commit before push.
+- `git diff --check origin/main` — exit 0.
+- `git diff --exit-code 7693878855717b0a725524a4db3a705dd653f04c -- docs/NUVIO_IDENTITY_CONTRACT.md` — exit 0; approved contract byte-identical. `git hash-object docs/NUVIO_IDENTITY_CONTRACT.md` and `git rev-parse 7693878:docs/NUVIO_IDENTITY_CONTRACT.md` both return `b11aa31f6a4a635b1d972b2216be7ccc0c6133ef`.
+- `git diff --exit-code origin/main -- app/alpha .github scripts tests deploy package.json package-lock.json playwright.config.mjs` — exit 0; no runtime, infrastructure, test or workflow changes relative to current main.
+- `git diff --name-only origin/main` — exit 0; exactly `TRACKER.md`, `docs/DECISIONS.md`, `docs/FEATURE_SUPPORT.md`, `docs/NUVIO_IDENTITY_CONTRACT.md`, `docs/PROGRESS.json`, `docs/SECURITY_PRIVACY.md`, and this issue plan.
+
+All four protected CI contexts still must pass on the updated PR before merge. CI receipts, protected merge and explicit issue-closure verification will be recorded on PR #34 / issue #3. This preserves the approved contract without adding premature runtime or integration claims.

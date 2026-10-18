@@ -29,4 +29,8 @@ Any disputed answer requires new source evidence, tested reproduction, and an ad
 
 ## Owner preview decision — 2026-10-18
 
-The owner supplied the official documentation, accepted documented public-client API use without another permission letter, and authorized a public static preview. Preserve existing Nuvio identity; do not introduce another login or launch paid compute. Unlisted owner/QR/fallback behavior and deployed session guarantees require evidence, not another blanket permission request. Cloudflare access is currently expired; reconnecting the account is an external dependency.
+The owner supplied the official documentation, accepted documented public-client API use without another permission letter, and authorized a public static preview. Preserve existing Nuvio identity; do not introduce another login or launch paid compute. Unlisted owner/QR/fallback behavior and deployed session guarantees require evidence, not another blanket permission request. The earlier Cloudflare access blocker was resolved in #6; the development preview and its limited verification are recorded in [preview evidence](STATIC_PREVIEW.md).
+
+## Identity documentation acceptance — 2026-10-18
+
+The owner reviewed and approved PR #34 for issue #3's documentation scope and authorized its protected integration after passing checks. The contract is preserved byte-for-byte from `7693878`; this acceptance supersedes its historical pending-review annotations. Existing account identity, consent requirements, guest fallback and all unlisted endpoint/session/compute release gates remain unchanged. Live auth/sync, pairing and entitlements verification remain #7/#14/#20. No implementation, hosted-service exception or production launch is approved by documentation acceptance.

@@ -7,6 +7,9 @@ export default defineConfig({
   workers: 1,
   reporter: "list",
   use: { baseURL: "http://127.0.0.1:4371", trace: "retain-on-failure", screenshot: "only-on-failure", serviceWorkers: "block" },
-  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
-  webServer: { command: "node tests/browser/server.mjs", url: "http://127.0.0.1:4371", reuseExistingServer: false, timeout: 15000 }
+  projects: [
+    { name: "chromium", testIgnore: "**/pwa.spec.mjs", use: { ...devices["Desktop Chrome"] } },
+    { name: "chromium-pwa", testMatch: "**/pwa.spec.mjs", use: { ...devices["Desktop Chrome"], serviceWorkers: "allow" } }
+  ],
+  webServer: { command: "node tests/browser/server.mjs", env: { NUVIO_PWA_TEST: "1" }, url: "http://127.0.0.1:4371", reuseExistingServer: false, timeout: 15000 }
 });
