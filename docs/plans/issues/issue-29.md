@@ -32,7 +32,7 @@ No application API changes. Runtime dependency specifications, upstream JS sourc
 - [x] Full application/runtime and root tooling audits report zero advisories after clean installation.
 - [x] Exact 36-version/zero-license-change delta, verified tarballs/notices and two upstream metadata patch paths documented.
 - [x] Clean install, build, 1,079-test upstream suite, lint, artifact/config checks and both audits pass.
-- [ ] Application/audit/docs CI passes on the PR; no runtime code/assertions changed to obtain success.
+- [x] Application/audit/docs CI passes on the PR; no runtime code/assertions changed to obtain success.
 
 ## Risks, costs and rollback
 
@@ -44,8 +44,8 @@ Owner recovery issue #31 completed through protected PR #32. False issue closure
 
 ## Executed verification after resumption
 
-Clean install and configured build passed; lint unchanged passed. Full application/runtime and root-tooling audits exit 0 with zero reported advisories. All ten non-platform changed notice files match integrity-verified registry tarballs. Chromium smoke passes 4/4; governance/docs regressions pass 15/15; artifact/ledger/docs/whitespace checks pass. Full upstream suite passed 1,079/1,079 with zero failures/skips in 46.7 seconds. Final protected CI must pass before closure. See [dependency report](../../DEPENDENCY_REMEDIATION.md).
+Clean install and configured build passed; lint unchanged passed. Full application/runtime and root-tooling audits exit 0 with zero reported advisories. All ten non-platform changed notice files match integrity-verified registry tarballs. Chromium smoke passes 4/4; governance/docs regressions pass 15/15; artifact/ledger/docs/whitespace checks pass. Full upstream suite passed 1,079/1,079 with zero failures/skips in 46.7 seconds. All four protected contexts passed at 6f94ebd: app/audit 40s, Chromium 44s, docs 9s, governance 16s; final documentation-only head is rechecked before merge. See [dependency report](../../DEPENDENCY_REMEDIATION.md).
 
 ## Automated review
 
-Standards: zero findings; independently checked dependency/license delta and evidence. Spec: zero findings; acceptance scope matches #29. Both reviews are automated, not independent human approval. Protected PR CI remains the integration checkpoint.
+Standards: zero findings; independently checked dependency/license delta and evidence. Spec: zero findings; acceptance scope matches #29. Both reviews are automated, not independent human approval. Protected PR CI passed on the implementation/evidence head; the final documentation-only head remains subject to all four enforced contexts.

@@ -38,6 +38,8 @@ Node 22.23.1/npm 10.9.8 throughout:
 - `npm run test:browser`: **4 Chromium journeys passed**, no failures/skips, 20.1 seconds locally against the updated build. Scope remains shell/errors/guest navigation/persistence, not live identity/catalog/media or device codec support.
 - `node --test scripts/governance.test.mjs scripts/check-docs.test.mjs`: **15 passed**, no failures/skips. Ledger/docs/artifact and whitespace checks passed.
 
+[PR #33](https://github.com/saurabhhbansal/nuvioweb/pull/33) passed all four required contexts at `6f94ebd`: application/audit, Chromium, docs and governance. The final documentation-only update is checked again before protected merge.
+
 Application and root browser-tooling CI now fail on any reported advisory at the low threshold. Existing unit/lint, governance and browser assertions were retained. Audit feeds can change; a zero result is the observed state, not a general security guarantee. Logs and scoped tarball/license verification data are under `/tmp/nuvioweb-issue-29-logs`.
 
 Old lockfile SHA-256: `7a42cf7e2590ed932b6d05a02f907cd09cc075f883caffebb3691ff69a2b9711`. New lockfile SHA-256: `36d5bfd1b49e732e0431f353bbf7f95a88d200efe6c7b75230c49b36f9a01306`. Original upstream history, tag and GPL notices are retained.
