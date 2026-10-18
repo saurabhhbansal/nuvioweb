@@ -5,6 +5,16 @@
 **GitHub issue:** https://github.com/saurabhhbansal/nuvioweb/issues/2  
 **Workstream:** [M0 roadmap](https://github.com/saurabhhbansal/nuvioweb/blob/main/docs/ROADMAP.md) · **Agent rules:** [AGENTS.md](https://github.com/saurabhhbansal/nuvioweb/blob/main/AGENTS.md)
 
+## Concrete implementation proposal (2026-10-18)
+
+- **Change surface:** `scripts/check-docs.mjs`, `tests/check-docs.test.mjs`, `.github/workflows/docs.yml`.
+- **Runtime:** Node.js 22, no extra npm dependencies. Run checks with `node --test tests/check-docs.test.mjs` followed by `node scripts/check-docs.mjs`.
+- **Logic:** enumerate project Markdown, ignore generated dependency/output directories, inspect inline Markdown destinations outside fenced code blocks, skip external URLs and same-file anchors, validate local targets, reject repository escapes and missing local files.
+- **CI:** pull_request and push to main, read-only contents token, no secrets or deployment, checkout and Node setup.
+- **Limits:** this is a small local-link check, not a complete CommonMark parser and not an external URL uptime checker. Record false positives and refine only with fixtures.
+- **Safety and rollback:** no Nuvio auth/payment/media paths touched; revert the files/workflow or disable the job if broken.
+- **Preliminary local verification:** 4 Node unit tests passed with synthetic temp-repository fixtures; this does **not** establish that the actual GitHub Actions workflow or full checked-out repository has passed.
+
 ## Objective and scope
 
 Set up GitHub CI, PR review, and docs verification
