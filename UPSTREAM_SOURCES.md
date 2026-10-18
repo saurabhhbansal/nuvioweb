@@ -90,3 +90,7 @@ Node 22.23.1/npm 10.9.8, clean locked install, configured inert-fixture build, a
 ## Local dependency patch — issue #29
 
 The pristine import commit/tag remains unchanged. #29 modifies only `app/alpha/package.json` (esbuild development range) and `app/alpha/package-lock.json` (36 resolved build/platform version changes). Runtime dependency specifications, JS/CSS/tests and license files are retained. The [dependency remediation report](docs/DEPENDENCY_REMEDIATION.md) records exact versions, integrity/license checks, old/new lock hashes, observed advisory results and rollback. Earlier “no local patches” statements describe #4/#5, not the post-remediation tree.
+
+## Local source-outcome presentation patch — issue #9
+
+The original pin/import history/tag and GPL notices remain intact. Issue #9 changes `app/alpha/js/ui/screens/stream/streamScreen.js`, `app/alpha/css/components.css`, `app/alpha/css/desktop.css` and `app/alpha/res/values/strings.xml` to retain unsuccessful source outcomes and render escaped/localized retry guidance. Actual request transport/destinations, auth/session, plugin sandbox, compute/payment code and upstream test assertions are unchanged. [Legal fixture/browser evidence](docs/ADDON_INTEROPERABILITY.md) records the red→green regression and playback limits. Together with #29, these are the six current local Alpha patch paths; earlier tree-equality/no-source-patch statements describe historical import/baseline checkpoints.

@@ -3166,6 +3166,10 @@ html.desktop-browser {
   content: "· ";
 }
 
+.desktop-browser #stream .stream-route-source-status {
+  font-size: 16px;
+}
+
 .desktop-browser #stream .stream-route-panel-header .stream-route-filter-row {
   flex: 0 0 auto;
   justify-content: flex-end;

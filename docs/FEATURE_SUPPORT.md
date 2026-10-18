@@ -4,15 +4,15 @@ Last updated 2026-10-18. This matrix records observed evidence; imported impleme
 
 | Capability or gate | Current evidence | Remaining verification |
 | --- | --- | --- |
-| Source provenance and notices | Identical Git tree, 605 tracked files, GPL license hash, original ancestry and repository integrity checks passed | Preserve mapping and notices with later patches and releases |
+| Source provenance and notices | Pristine #4 import matched605 files/tree/license; original ancestry retained; [six local patch paths](../UPSTREAM_SOURCES.md) documented | Preserve mapping and notices with later patches and releases |
 | Documentation CI | Root documentation checker/tests pass | Keep each PR green |
 | Locked dependency install | #5: clean `npm ci` passed, Node 22.23.1/npm 10.9.8, original lockfile retained | #29: reviewed dependency patch clean-installs with zero reported full/runtime advisories; remote protected CI remains the integration gate |
 | Browser distribution build | #5: upstream build passed; 12 assets and inert public-config checks passed | Distribution notice/rights review; no public deployment |
 | Application tests and lint | #5: 1,079 tests passed with zero skips; lint passed | Keep CI green; these tests do not establish real browser/device compatibility |
 | Chromium startup and guest shell | #31: 4 real-browser smoke tests pass: signed-out rendering, empty-form error, blocked-backend recovery, guest Home/Search/Library/Settings navigation and guest/profile choices after reload | Chromium 156.0.8078.4 only; no live provider, codec or PWA claim |
 | Nuvio login, refresh, profiles and sync | Original source retained; browser sign-in validation/unreachable-backend behavior observed | #3 service-use permission and #7 authorized identity/isolation tests |
-| HTTP/Stremio add-ons | Original source retained unchanged | #9 legal fixtures, parsing/error/CORS matrix |
-| Native video, HLS and DASH | Original source retained unchanged | #10 real fixtures on specified browsers/devices; no 4K/HDR/codec claim yet |
+| HTTP/Stremio add-ons | #9 local Chromium: actual manifest/catalog/meta/stream/subtitle parsing, UI install/toggle/reload, real allowed/denied CORS, explicit errors and profile snapshots; [matrix](ADDON_INTEROPERABILITY.md) | Live providers/cloud sync, general timeout policy and broader compatibility unverified |
+| Native video, HLS and DASH | #9 actual bundled UI initiates original local fixture playback in Chromium156: video640x360, time advances, no media error | #10 broader codecs/1080p/4K/HDR/HLS/DASH/audio/subtitle/device evidence; one fixture is not universal support |
 | JavaScript plugin compatibility | Original upstream implementation retained | #11 sandbox/API/license/security verification; no broad compatibility claim |
 | Browser-local recovery | No new implementation | #12 prototype and device evidence |
 | Static preview and PWA lifecycle | #6: [public development preview](https://nuvioweb-preview.pages.dev), actual Chromium shell/guest/automatic-worker checks and deployed headers/source hashes; local two-build update tests pass | Live auth/providers/playback, complete offline and other devices/browsers unverified; [evidence](STATIC_PREVIEW.md) |
@@ -24,3 +24,5 @@ See [baseline evidence](BASELINE_VERIFICATION.md) for commands, the initial conf
 Browser smoke reproduction and limits: [recovery audit](RECOVERY_AUDIT.md). Playwright 1.64.0, Chromium headless 156.0.8078.4, 4 passed / 0 failed / 0 skipped locally in 17.4 seconds. External requests and service workers are blocked. Guest shell navigation is not proof of populated catalogs, successful sign-in or synchronized data.
 
 Dependency remediation evidence: [#29 report](DEPENDENCY_REMEDIATION.md). Updated-build Chromium shell tests pass; no additional device/media claims follow from the build-tool update.
+
+Add-on interoperability and source-status presentation: [#9 evidence](ADDON_INTEROPERABILITY.md). Live preview revision remains the separately recorded #6 upload until a later verified deployment.

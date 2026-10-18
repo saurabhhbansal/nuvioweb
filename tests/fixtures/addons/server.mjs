@@ -3,11 +3,12 @@ import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
 
-const scenarios = new Set(["basic","objects","configured","cors-denied","malformed","shape","slow","failure","empty","timeout"]);
+const scenarios = new Set(["basic","objects","configured","cors-denied","malformed","shape","slow","failure","empty","timeout","partial"]);
 const mediaRoot = new URL("../media/",import.meta.url);
 
 export function createAddonFixtureServer() {
   const requests = [];
+  let partialRecovered = false;
   const server = http.createServer(async (request,response) => {
     const url = new URL(request.url,"http://127.0.0.1");
     const origin = `http://127.0.0.1:${server.address().port}`;
@@ -18,10 +19,11 @@ export function createAddonFixtureServer() {
     const json = (value,status=200) => response.writeHead(status,headers).end(JSON.stringify(value));
     if (url.pathname === "/health") { json({fixture:true}); return; }
     if (url.pathname === "/__fixture/requests") {
-      if (request.method === "DELETE") { requests.length = 0; response.writeHead(204).end(); }
+      if (request.method === "DELETE") { requests.length = 0; partialRecovered = false; response.writeHead(204).end(); }
       else json(requests);
       return;
     }
+    if (url.pathname === "/__fixture/partial-recovery" && request.method === "POST") { partialRecovered = true; response.writeHead(204).end(); return; }
     if (request.method === "OPTIONS") { response.writeHead(204,headers).end(); return; }
     if (!["GET","HEAD"].includes(request.method)) { json({error:"Method not allowed"},405); return; }
     requests.push({method:request.method,path:url.pathname,authorizationPresent:Boolean(request.headers.authorization),apiKeyPresent:Boolean(request.headers.apikey)});
@@ -44,8 +46,9 @@ export function createAddonFixtureServer() {
         return;
       }
       if (!scenarios.has(scenario)) { json({error:"Unknown fixture"},404); return; }
-      const path = decodeURIComponent(parts.slice(scenario === "configured" && parts[1] === "sample" ? 2 : 1).join("/"));
-      if (scenario === "failure") { json({message:"Fixture provider unavailable"},503); return; }
+      const rawPath = parts.slice(scenario === "configured" && parts[1] === "sample" ? 2 : 1).join("/");
+      const path = decodeURIComponent(rawPath);
+      if (scenario === "failure") { json({message:'Fixture provider unavailable <img src=x onerror="globalThis.__fixtureInjected=true">'},503); return; }
       if (scenario === "slow" || (scenario === "timeout" && path.startsWith("catalog/"))) {
         await new Promise((resolve) => {
           const timer = setTimeout(resolve,scenario === "slow" ? 250 : 2000);
@@ -58,15 +61,20 @@ export function createAddonFixtureServer() {
       if (path === "manifest.json") {
         if (scenario === "malformed") { response.writeHead(200,headers).end('{"id":'); return; }
         if (scenario === "shape") { json({id:"fixture.invalid",types:{wrong:true}}); return; }
-        json({id:`org.nuvioweb.fixture.${scenario}`,version:"1.0.0",name:scenario === "configured" ? "Configured Legal Fixture" : "Legal Fixture",description:"Original local interoperability fixture",types:["movie"],idPrefixes:["fixture:"],
+        json({id:`org.nuvioweb.fixture.${scenario}`,version:"1.0.0",name:scenario === "configured" ? "Configured Legal Fixture" : scenario === "partial" ? "Partial Provider Fixture" : "Legal Fixture",description:"Original local interoperability fixture",types:["movie"],idPrefixes:["fixture:"],
           resources:scenario === "objects" ? ["catalog",...["meta","stream","subtitles"].map((name)=>({name,types:["movie"],idPrefixes:["fixture:"]}))] : ["catalog","meta","stream","subtitles"],
           catalogs:[{id:"original",type:"movie",name:"Legal Fixture Catalog",extra:[{name:"search",isRequired:false},{name:"skip",isRequired:false}]}],
           behaviorHints:{configurable:scenario === "configured",configurationRequired:false},logo:`${origin}/poster.svg`}); return;
       }
-      if (path.startsWith("catalog/movie/original")) { json({metas:scenario === "empty" ? [] : [meta]}); return; }
+      if (path.startsWith("catalog/movie/original")) {
+        const extras = new URLSearchParams(rawPath.slice("catalog/movie/original/".length).replace(/\.json$/,""));
+        const search = extras.get("search") || "";
+        json({metas:scenario === "empty" || Number(extras.get("skip") || 0)>0 || (search && !meta.name.toLowerCase().includes(search.toLowerCase())) ? [] : [meta]}); return;
+      }
       if (path === "meta/movie/fixture:original.json") { json({meta}); return; }
       if (path === "stream/movie/fixture:original.json") {
-        json({streams:scenario === "empty" ? [] : [{name:"Original local VP8/Opus",title:"Generated legal fixture",url:`${origin}/media/procedural-vp8-opus.webm`,subtitles:[{id:"fixture:english",lang:"eng",url:`${origin}/media/english.vtt`}],behaviorHints:{notWebReady:false}}]}); return;
+        if (scenario === "partial" && !partialRecovered) { json({message:"Fixture stream endpoint unavailable"},503); return; }
+        json({streams:scenario === "empty" ? [] : [{name:"Original local VP8/Opus",title:"Generated legal fixture",url:`${origin}/media/procedural-vp8-opus.webm${scenario === "partial" ? "?provider=partial" : ""}`,subtitles:[{id:"fixture:english",lang:"eng",url:`${origin}/media/english.vtt`}],behaviorHints:{notWebReady:false}}]}); return;
       }
       if (path === "subtitles/movie/fixture:original.json") { json({subtitles:[{id:"fixture:english",lang:"eng",url:`${origin}/media/english.vtt`}]}); return; }
       json({error:`Unsupported fixture resource at ${base}`},404);

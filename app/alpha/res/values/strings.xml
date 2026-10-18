@@ -504,6 +504,7 @@
     <string name="stream_panel_title">Streams</string>
     <string name="stream_filter_source">Source</string>
     <string name="stream_refresh_sources">Refresh sources</string>
+    <string name="stream_sources_no_results">No playable results from %1$s. Refresh sources to try again.</string>
     <string name="pwa_install_title">Install Nuvio</string>
     <string name="pwa_install_pitch">Full-screen playback, faster launch, one tap from your home screen.</string>
     <string name="pwa_install_action">Install</string>

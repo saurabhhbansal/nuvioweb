@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import { resolve, extname, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 const root = fileURLToPath(new URL("../../app/alpha/dist/", import.meta.url));
+const sourceRoot = fileURLToPath(new URL("../../app/alpha/js/", import.meta.url));
 const navigationAliases = new Set((await readFile(new URL("../../deploy/cloudflare/_redirects", import.meta.url), "utf8"))
   .split("\n").filter((line) => line && !line.startsWith("#")).map((line) => line.split(" ")[0]));
 const headerRules = (await readFile(new URL("../../deploy/cloudflare/_headers", import.meta.url), "utf8"))
@@ -23,6 +24,17 @@ const types = { ".html":"text/html", ".js":"application/javascript", ".css":"tex
 const app = http.createServer(async (request,response) => {
   try {
     const path = decodeURIComponent(new URL(request.url,"http://127.0.0.1:4371").pathname);
+    if (process.env.NUVIO_ADDON_TEST === "1" && request.method === "GET") {
+      if (path === "/__fixture/harness") {
+        response.writeHead(200,{"Content-Type":"text/html","Cache-Control":"no-store"}).end('<!doctype html><title>Local add-on transport harness</title><script>globalThis.__NUVIO_ENV__={NUVIO_SUPABASE_URL:"https://identity.example.invalid",NUVIO_SUPABASE_ANON_KEY:"fixture-public-anon-key",NUVIO_SUPABASE_FALLBACK_URL:""};</script>'); return;
+      }
+      const prefix = "/__fixture/source/js/";
+      if (path.startsWith(prefix)) {
+        const file = resolve(sourceRoot,path.slice(prefix.length));
+        if (!file.startsWith(sourceRoot.endsWith(sep) ? sourceRoot : sourceRoot+sep) || !file.endsWith(".js")) { response.writeHead(403).end(); return; }
+        response.writeHead(200,{"Content-Type":"application/javascript","Cache-Control":"no-store"}).end(await readFile(file)); return;
+      }
+    }
     if (process.env.NUVIO_PWA_TEST === "1" && path === "/__test/build" && request.method === "POST") {
       revision = new URL(request.url,"http://127.0.0.1:4371").searchParams.get("revision") === "1" ? 1 : 0;
       response.writeHead(204).end(); return;

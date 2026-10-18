@@ -28,10 +28,10 @@
 
 ## Acceptance and verification
 
-- [ ] Supported HTTP/Stremio resource/configuration behaviors have automated fixtures and actual parser/transport/browser evidence.
-- [ ] Error/capability outcomes are observable in fixture matrix/UI or explicit result objects; silent aggregate omissions are recorded as limitations, never success.
-- [ ] All media URLs are fixture-origin paths with original generated content, recorded hash/license and no account/private media.
-- [ ] Parsing, real browser allowed/denied CORS, delays/abort, partial provider and guest lifecycle cases pass or have precise blockers.
+- [x] Supported HTTP/Stremio resource/configuration behaviors have automated fixtures and actual parser/transport/browser evidence.
+- [x] Error/capability outcomes are observable in fixture matrix/UI or explicit result objects; silent aggregate omissions are recorded as limitations, never success.
+- [x] All media URLs are fixture-origin paths with original generated content, recorded hash/license and no account/private media.
+- [x] Parsing, real browser allowed/denied CORS, delays/abort, partial provider and guest lifecycle cases pass or have precise blockers.
 
 Commands planned: `node scripts/generate-legal-media.mjs`; fixture-contract tests if needed; configured inert Alpha build; `npm run test:browser` (or focused new project during development), `node scripts/check-docs.mjs`, `node --test scripts/check-docs.test.mjs scripts/governance.test.mjs`, `node scripts/check-progress.mjs`, `git diff --check` and new-ancestry closing-reference preflight.
 
@@ -46,3 +46,15 @@ No live credentials, external login/sync, real providers, paid service, deployme
 Generated original 640x360-requested VP8/Opus fixture from canvas/oscillator only: 41,129 bytes, SHA256ddc53c6aaf0e76e6852cecf7ffa33ccd449a71245e58963b0fbf87d3f4f097de, Chromium156.0.8078.4, CC0 test media with generator/source/provenance recorded. `npm run test:addon-fixtures` on pinned Node22 passed3/3, zero skips: resource chain/configured/object manifests, original hash/Range behavior, explicit CORS/malformed/503/empty/abort scenarios. No browser add-on integration or playback claim yet.
 
 Work was preserved while owner restored workspace Cloudflare access; issue6 is now deployed and its completion PR36 merged at18655a7. Inert configured application rebuild passed for the forthcoming browser integration tests. Resume this branch against protected main, preserve deployed evidence and the three verified fixture contracts, then implement the browser matrix. No Alpha runtime changes yet.
+
+## Observed error-visibility gap and bounded UI correction
+
+The real partial fixture has a valid manifest/catalog and a stream endpoint returning503 while the healthy fixture returns a playable stream. The new browser regression failed after finding the healthy source: no persistent status named the unavailable provider. Source inspection explains it: desktop filters show names without outcome labels, and `scheduleErrorChipCleanup` discards error entries after1600ms. This violates this issue's visible-outcome acceptance criterion; do not close it as a fixtures-only success.
+
+Before application edits, extend target files to `app/alpha/js/ui/screens/stream/streamScreen.js`, its incumbent styles in `app/alpha/css/components.css`/`desktop.css` as needed, and the default `app/alpha/res/values/strings.xml` text. Keep unsuccessful source names until refresh/navigation; render an escaped, wrapping, screen-reader-readable “No playable results from …” status beside the existing refresh action. Wording covers both empty and failed results without inventing failure causes or codec support. Preserve successful streams and source ordering. Do not change requests, destinations, authorization, retries, plugin sandbox, compute or payment behavior. This is presentation of existing outcomes, not a new remote-fetch policy or auth contract.
+
+Use the existing visual system with Impeccable's scoped hardening guidance; no redesign or new product/configuration system. Check desktop and narrow Chromium viewports in one bounded visual pass; inspect status overflow and retry accessibility. Run the regression red→green with virtual-clock advance beyond the previous cleanup timer. After changing runtime presentation, require configured build, complete1079 upstream tests, lint, full browser suite including prior shell/PWA journeys, fixture contracts and docs/ledger/whitespace checks. Record exact results and local patch inventory/provenance before PR. No self-review is independent human approval.
+
+## Current implementation/verification checkpoint
+
+Actual source harness and bundled settings/catalog/detail/playback tests pass, including real CORS/cancellation, synthetic-token nonforwarding, profile-scoped snapshots, visible malformed/503 failures and injection-shaped text. Corrected driver assumptions (covered checkbox → visible label; post-profile first-use onboarding → observed Skip setup) rather than changing runtime behavior. UI-only partial-source correction is red→green, with real retention beyond3virtual seconds, two viewport screenshots/no text overflow and actual refresh/recovery. Full upstream1079/1079 passed48.7s, lint/configured build/artifact checks passed. No original assertions weakened. Final browser13/13 passed (reported1.2m), fixture3/3 and docs/governance15/15 passed with no skips. Docs/ledger/whitespace pass. Protected PR CI remains required before integration. See [interoperability report](../../ADDON_INTEROPERABILITY.md).

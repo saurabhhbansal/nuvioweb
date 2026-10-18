@@ -1240,7 +1240,6 @@ export const StreamScreen = {
         this.focusState = { zone: "filter", index: 0 };
       }
       this.requestRender();
-      this.scheduleErrorChipCleanup();
       this.maybeAutoResumeStream({ allLoaded: true });
       this.maybeAutoPlayStream({ allLoaded: true });
     } catch (error) {
@@ -1254,7 +1253,6 @@ export const StreamScreen = {
         chip.status === "loading" ? { ...chip, status: "error" } : chip
       );
       this.requestRender();
-      this.scheduleErrorChipCleanup();
     }
   },
 
@@ -1464,20 +1462,6 @@ export const StreamScreen = {
           ${title ? `<div class="stream-route-autoplay-name">${escapeHtml(title)}</div>` : ""}
         </div>
       </div>`;
-  },
-
-  scheduleErrorChipCleanup() {
-    if (this.errorChipTimer) {
-      clearTimeout(this.errorChipTimer);
-      this.errorChipTimer = null;
-    }
-    if (!this.sourceChips.some((chip) => chip.status === "error")) {
-      return;
-    }
-    this.errorChipTimer = setTimeout(() => {
-      this.sourceChips = this.sourceChips.filter((chip) => chip.status !== "error");
-      this.requestRender();
-    }, 1600);
   },
 
   getOrderedFilterNames() {
@@ -2359,6 +2343,21 @@ export const StreamScreen = {
       })
     ].join("");
     const filtered = this.getFilteredStreams();
+    // Keep incomplete providers inspectable until refresh/navigation. An empty
+    // response and a failed request both mean no playable result here; neither
+    // establishes a codec limitation or a provider-wide outage.
+    const unavailableSources = this.sourceChips
+      .filter((chip) => chip.status === "error")
+      .map((chip) => chip.name);
+    const sourceStatus = unavailableSources.length
+      ? `<p class="stream-route-source-status" role="status">${escapeHtml(
+          t(
+            "stream_sources_no_results",
+            [unavailableSources.join(", ")],
+            "No playable results from %1$s. Refresh sources to try again."
+          )
+        )}</p>`
+      : "";
     const hasPendingForFilter = this.hasPendingSourceLoads();
     const hasAnyStreams = this.streams.length > 0;
     const streamBadgesEnabled = DebridSettingsStore.get().streamBadgesEnabled !== false;
@@ -2421,6 +2420,7 @@ export const StreamScreen = {
                          ${this.renderStreamRefreshAction()}
                        </div>
                      </header>
+                     ${sourceStatus}
                      <div class="stream-route-panel">
                        <div class="stream-route-list">${listBody}</div>
                      </div>
@@ -2429,6 +2429,7 @@ export const StreamScreen = {
                      <div class="stream-route-chip-track">${chips}</div>
                    </div>
                    <div class="stream-route-panel-shell">
+                     ${sourceStatus}
                      <div class="stream-route-panel">
                        <div class="stream-route-list">${listBody}</div>
                      </div>
@@ -3316,10 +3317,6 @@ export const StreamScreen = {
     this.loadToken = (this.loadToken || 0) + 1;
     this.playResolveToken = Number(this.playResolveToken || 0) + 1;
     this.cancelScheduledRender();
-    if (this.errorChipTimer) {
-      clearTimeout(this.errorChipTimer);
-      this.errorChipTimer = null;
-    }
     if (this.streamToastTimer) {
       clearTimeout(this.streamToastTimer);
       this.streamToastTimer = null;
