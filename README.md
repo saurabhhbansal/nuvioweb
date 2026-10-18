@@ -26,6 +26,7 @@
 - [Cost and billing model](docs/COST_MODEL.md)
 - [Upstream tracking strategy](docs/UPSTREAM.md)
 - [Individual implementation plans](docs/plans/README.md)
+- [Issue tracker and 24 detailed plans](docs/plans/ISSUE_INDEX.md)
 - [Codex/Claude agent instructions](AGENTS.md)
 
 ## Development lifecycle
