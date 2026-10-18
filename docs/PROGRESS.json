@@ -104,7 +104,7 @@
     {
       "number": 9,
       "title": "[M2][P0] Build legal add-on interoperability fixtures and test matrix",
-      "status": "ready",
+      "status": "in_progress",
       "dependencies": [
         5
       ]
