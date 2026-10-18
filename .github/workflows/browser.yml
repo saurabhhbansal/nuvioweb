@@ -36,3 +36,4 @@ jobs:
         env:
           NUVIO_LOCAL_PROPERTIES: ${{ github.workspace }}/tests/fixtures/build.properties
       - run: npm run test:browser
+      - run: npm run test:preview
