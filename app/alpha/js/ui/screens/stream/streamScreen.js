@@ -1045,7 +1045,10 @@ export const StreamScreen = {
         status,
         orderIndex: Number.isFinite(orderIndex) ? orderIndex : Number.MAX_SAFE_INTEGER
       };
-      const existingIndex = this.sourceChips.findIndex((chip) => chip.name === name);
+      // Repository order identifies a provider for this load; custom labels may collide.
+      const existingIndex = this.sourceChips.findIndex(
+        (chip) => chip.orderIndex === nextChip.orderIndex
+      );
       if (existingIndex >= 0) {
         this.sourceChips[existingIndex] = { ...this.sourceChips[existingIndex], ...nextChip };
       } else {
@@ -1057,53 +1060,17 @@ export const StreamScreen = {
         .sort((left, right) => Number(left.orderIndex || 0) - Number(right.orderIndex || 0));
     };
 
-    const markSuccessfulSources = (names = []) => {
-      if (!Array.isArray(names) || !names.length) {
-        return;
-      }
-      const entries = names
-        .map((entry) => {
-          if (entry && typeof entry === "object") {
-            return {
-              name: String(entry.name || entry.addonName || "").trim(),
-              logo: normalizeAddonLogoUrl(entry.logo || entry.addonLogo),
-              orderIndex: Number(entry.orderIndex ?? entry.addonOrderIndex)
-            };
-          }
-          const name = String(entry || "").trim();
-          const existingStream = this.streams.find((stream) => stream.addonName === name);
-          return {
-            name,
-            logo: resolveAddonLogo(name, this.addonLogoLookup),
-            orderIndex: Number(existingStream?.addonOrderIndex)
-          };
-        })
-        .filter((entry) => entry.name);
-      const successSet = new Set(entries.map((entry) => entry.name));
-      const known = new Set(this.sourceChips.map((chip) => chip.name));
-      this.sourceChips = this.sourceChips.map((chip) =>
-        successSet.has(chip.name) ? { ...chip, status: "success" } : chip
-      );
+    const markSuccessfulSources = (entries = []) => {
       entries.forEach((entry) => {
-        if (!known.has(entry.name)) {
-          const orderIndex = Number.isFinite(entry.orderIndex)
-            ? entry.orderIndex
-            : Number.MAX_SAFE_INTEGER;
-          this.sourceChips.push({
-            name: entry.name,
-            logo: entry.logo || resolveAddonLogo(entry.name, this.addonLogoLookup),
-            status: "success",
-            orderIndex
-          });
-        }
-      });
-      this.sourceChips = this.sourceChips
-        .slice()
-        .sort(
-          (left, right) =>
-            Number(left.orderIndex ?? Number.MAX_SAFE_INTEGER) -
-            Number(right.orderIndex ?? Number.MAX_SAFE_INTEGER)
+        upsertSourceChip(
+          {
+            displayName: entry.addonName,
+            logo: entry.addonLogo,
+            orderIndex: entry.addonOrderIndex
+          },
+          "success"
         );
+      });
     };
 
     const displayChunkGroups = async (groups = []) => {
@@ -1127,13 +1094,7 @@ export const StreamScreen = {
       this.streams = mergeStreamItems(this.streams, chunkStreams);
       void this.refreshOfflineDownloadMetadata();
       this.scheduleDebridPreparation();
-      markSuccessfulSources(
-        groups.map((group) => ({
-          name: group?.addonName || "",
-          logo: group?.addonLogo || "",
-          orderIndex: group?.addonOrderIndex
-        }))
-      );
+      markSuccessfulSources(groups);
       if (this.streams.length && this.focusState?.zone !== "card") {
         this.focusState = { zone: "card", row: 0, action: "play" };
       }
@@ -1210,7 +1171,7 @@ export const StreamScreen = {
       }
       void this.refreshOfflineDownloadMetadata();
       this.scheduleDebridPreparation();
-      markSuccessfulSources(this.streams.map((stream) => stream.addonName));
+      markSuccessfulSources(this.streams);
       if (this.streams.length && showAddonLogo) {
         await preloadAddonLogoImages(this.streams, this.addonLogoLookup);
       }

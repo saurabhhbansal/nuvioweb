@@ -162,8 +162,18 @@ test("profile-scoped add-on snapshots preserve local isolation and partial sourc
   expect(result.nextPage.data.items).toEqual([]);
 });
 
-test("a failing source stays visible alongside working streams and recovers on retry",async ({ page,context,request },testInfo)=> {
+for (const duplicateName of [false,true]) {
+test(`a failing source stays visible alongside working streams and recovers on retry${duplicateName ? " with duplicate custom names" : ""}`,async ({ page,context,request },testInfo)=> {
   await context.addInitScript((provider)=>localStorage.setItem("installedAddonUrls",JSON.stringify({__profileScoped:true,version:1,profiles:{"1":[`${provider}/basic`,`${provider}/partial`]}})),provider);
+  if (duplicateName) {
+    await page.goto("/__fixture/harness");
+    await page.evaluate(async (provider)=> {
+      const { ProfileManager } = await import("/__fixture/source/js/core/profile/profileManager.js");
+      const { addonRepository } = await import("/__fixture/source/js/data/repository/addonRepository.js");
+      await ProfileManager.setActiveProfile("1");
+      addonRepository.setAddonDisplayNameOverrides([{url:`${provider}/partial`,name:"Legal Fixture"}]);
+    },provider);
+  }
   await page.goto("/");
   await page.locator('[data-action="continueGuest"]').click();
   await page.locator('#home .home-poster-card[data-item-id="fixture:original"]').first().click();
@@ -171,7 +181,7 @@ test("a failing source stays visible alongside working streams and recovers on r
   await page.clock.install();
   await page.locator('button[data-action="playDefault"]').click();
   await expect(page.locator('[data-action="playStream"]').filter({hasText:"Original local VP8/Opus"})).toBeVisible();
-  const status = page.getByRole("status").filter({hasText:"Partial Provider Fixture"});
+  const status = page.getByRole("status").filter({hasText:duplicateName ? "Legal Fixture" : "Partial Provider Fixture"});
   await expect(status).toContainText("No playable results");
   await page.clock.fastForward(3000);
   await expect(status).toBeVisible();
@@ -191,3 +201,4 @@ test("a failing source stays visible alongside working streams and recovers on r
   await expect(page.locator('[data-action="playStream"]')).toHaveCount(2);
   await expect(status).toHaveCount(0);
 });
+}
