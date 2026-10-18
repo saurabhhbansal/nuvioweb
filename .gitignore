@@ -1,0 +1,18 @@
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+*.log
+coverage/
+.cache/
+.DS_Store
+.tmp/
+*.local
+# No media assets, credentials, production artifacts or private processing outputs in Git
+*.mp4
+*.mkv
+*.mov
+*.m3u8
+*.ts
+!**/*.d.ts
