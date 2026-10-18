@@ -1,0 +1,21 @@
+name: Documentation checks
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  links:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test documentation validator
+        run: node --test tests/check-docs.test.mjs
+      - name: Validate repository documentation
+        run: node scripts/check-docs.mjs
