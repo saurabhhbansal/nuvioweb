@@ -1,0 +1,16 @@
+{
+  "file": "procedural-vp8-opus.webm",
+  "sha256": "ddc53c6aaf0e76e6852cecf7ffa33ccd449a71245e58963b0fbf87d3f4f097de",
+  "bytes": 41129,
+  "license": "CC0-1.0",
+  "source": "scripts/generate-legal-media.mjs",
+  "generator": "Playwright Chromium 156.0.8078.4",
+  "content": "Original canvas rectangles/text and a 440 Hz oscillator; no third-party media",
+  "requestedEncoding": "video/webm;codecs=vp8,opus",
+  "requestedSize": [
+    640,
+    360
+  ],
+  "requestedFrameRate": 10,
+  "limits": "Short generated fixture; recording duration/bytes vary by environment. Playback capability must be observed independently."
+}

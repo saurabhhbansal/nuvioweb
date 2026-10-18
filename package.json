@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "test:addon-fixtures": "node --test tests/fixtures/addons/server.test.mjs",
     "test:browser": "playwright test",
     "preview:stage": "node scripts/prepare-static-preview.mjs",
     "test:preview": "node --test scripts/prepare-static-preview.test.mjs",

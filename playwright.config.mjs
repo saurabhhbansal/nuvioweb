@@ -11,5 +11,8 @@ export default defineConfig({
     { name: "chromium", testIgnore: "**/pwa.spec.mjs", use: { ...devices["Desktop Chrome"] } },
     { name: "chromium-pwa", testMatch: "**/pwa.spec.mjs", use: { ...devices["Desktop Chrome"], serviceWorkers: "allow" } }
   ],
-  webServer: { command: "node tests/browser/server.mjs", env: { NUVIO_PWA_TEST: "1" }, url: "http://127.0.0.1:4371", reuseExistingServer: false, timeout: 15000 }
+  webServer: [
+    { command: "node tests/browser/server.mjs", env: { NUVIO_PWA_TEST: "1", NUVIO_ADDON_TEST: "1" }, url: "http://127.0.0.1:4371", reuseExistingServer: false, timeout: 15000 },
+    { command: "node tests/fixtures/addons/server.mjs", url: "http://127.0.0.1:4373/health", reuseExistingServer: false, timeout: 15000 }
+  ]
 });

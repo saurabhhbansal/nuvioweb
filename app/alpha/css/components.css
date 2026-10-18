@@ -17292,6 +17292,16 @@ html[data-card-depth="true"][data-card-depth-trailers="true"] .detail-trailer-ca
   color: var(--text-color);
 }
 
+.stream-route-source-status {
+  margin: 0;
+  padding: 12px 16px;
+  max-inline-size: 100%;
+  overflow-wrap: anywhere;
+  color: var(--text-secondary);
+  font-size: var(--tv-secondary-text);
+  line-height: 1.5;
+}
+
 .stream-route-detail-line {
   margin-top: 6px;
   font-size: var(--tv-secondary-text);
