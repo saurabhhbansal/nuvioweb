@@ -4,7 +4,9 @@ import { fileURLToPath } from "node:url";
 
 export function closingReferences(message, repository) {
   const found = new Set();
-  for (const directive of message.matchAll(/\b(?:close[sd]?|fix(?:es|ed)?|resolve[sd]?)\s*:?\s+([^\n]*(?:\n[ \t]+[^\n]*)?)/gi)) {
+  const reference = String.raw`(?:https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/issues\/\d+|(?:[\w.-]+\/[\w.-]+)?#\d+)`;
+  const directives = new RegExp(String.raw`\b(?:close[sd]?|fix(?:es|ed)?|resolve[sd]?)\s*:?\s+(${reference}(?:(?:\s*(?:,|;|\band\b)\s*|\s+)${reference})*)`, "gi");
+  for (const directive of message.matchAll(directives)) {
     const references = /https:\/\/github\.com\/([\w.-]+\/[\w.-]+)\/issues\/(\d+)|(?:([\w.-]+\/[\w.-]+))?#(\d+)/g;
     for (const ref of directive[1].matchAll(references)) {
       const owner = ref[1] || ref[3];
@@ -29,7 +31,9 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   let collisions;
   try { collisions = scanCommits(base, head, repository); }
   catch { console.error("Commit preflight could not read the requested ancestry; verify refs and subprocess permissions."); process.exit(1); }
-  for (const issue of closingReferences(process.env.PR_BODY || "", repository)) collisions.push({ sha: "PR description", issue });
+  for (const [label, text] of [["PR title", process.env.PR_TITLE], ["PR description", process.env.PR_BODY]]) {
+    for (const issue of closingReferences(text || "", repository)) collisions.push({ sha: label, issue });
+  }
   if (collisions.length) {
     for (const { sha, issue } of collisions) console.error(`${sha}: closing reference #${issue} can close a local roadmap ticket`);
     console.error("Preserve upstream history. Resolve the import collision before merge; use Refs in project commits and close issues explicitly after evidence verification.");

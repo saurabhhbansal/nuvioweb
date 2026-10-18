@@ -1,6 +1,6 @@
 # Issue #31: Recover roadmap integrity and browser evidence
 
-**Status:** In progress on `audit/recover-progress`, based on main `c924a4b`.
+**Status:** Implemented and reviewed automatically; final protected CI/integration tracked by [PR #32](https://github.com/saurabhhbansal/nuvioweb/pull/32) on `audit/recover-progress`, based on main `c924a4b`.
 **Issue:** https://github.com/saurabhhbansal/nuvioweb/issues/31
 
 ## Scope and recovered state
@@ -30,7 +30,7 @@ Owner-requested audit before resuming #29. GitHub timeline confirms #12/#13/#15 
 
 - [x] Closure causes and remaining closed issues individually verified; false completions reopened.
 - [x] Main protections applied/read back; review limits and required human checkpoints documented.
-- [x] Completion ledger, commit preflight and closure decision logic covered by six focused regressions; workflows added, remote execution pending.
+- [x] Completion ledger, commit preflight and closure decision logic covered by nine focused regressions; workflows added, remote execution pending.
 - [x] Four real Chromium smoke tests passed locally with zero skips; live auth/add-on/media/compatibility limits explicit.
 - [x] Complete 26-ticket ledger/tracker, dependencies, external blockers and confidence-bounded milestone forecast written.
 - [ ] Automated review, CI and merge evidence attached without claiming independent approval.
@@ -44,9 +44,11 @@ Only repository governance, tests and documentation change. No production deploy
 - Read-only GitHub issue/PR/branch/settings/timeline snapshots and recent CI inspected; original main `c924a4b`. Other worktree #3 commit preserved; original #29 diff backed up and untouched.
 - #12/#13/#15 reopened with precise historical closer receipts. All other closed roadmap tickets matched intended merged evidence PRs.
 - Main protection PUT succeeded and GET verified strict Actions-bound checks, administrator enforcement, required PRs, zero independent approvals, no force/deletion and conversation resolution.
-- `node --test scripts/governance.test.mjs scripts/check-docs.test.mjs` — 12 passed / 0 failed / 0 skipped. Synthetic unrelated-history fixture proves non-first-parent references are scanned. The actual historic import range also returned exit 1 with the known offending commits, as intended.
+- `node --test scripts/governance.test.mjs scripts/check-docs.test.mjs` — 15 passed / 0 failed / 0 skipped. Synthetic unrelated-history fixture proves non-first-parent references are scanned. The actual historic import range also returned exit 1 with the known offending commits, as intended.
 - `node scripts/check-progress.mjs`, `node scripts/check-docs.mjs`, `node scripts/check-alpha-build.mjs`, and `git diff --check` — passed. Application subtree has no local changes in this recovery.
 - Root `npm install` — pinned Playwright 1.64.0; three packages installed, zero reported tooling advisories. Unchanged app `HUSKY=0 npm ci` and inert-fixture build passed; original eight build-tool advisories intentionally remain for #29.
 - `npm run test:browser` — four real Chromium tests passed, no failures/skips, 17.4 seconds. First guest-test assumptions/selectors were corrected to the observed existing public flow; no application code or acceptance assertions were suppressed.
 
 No deployed service or live account was tested. CI, required-context additions and automated review findings will be attached to the recovery PR before integration.
+
+Automated Standards and Spec review findings were fixed and rechecked; neither is independent human approval. PR metadata edits/title checks, missing-evidence-PR handling and structural-validation wording now have focused coverage. The default-branch ledger becomes authoritative only after this protected PR merges.

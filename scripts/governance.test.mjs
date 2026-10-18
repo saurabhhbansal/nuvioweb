@@ -2,8 +2,9 @@ import assert from "node:assert/strict";
 import { mkdtempSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import test from "node:test";
+import { fileURLToPath } from "node:url";
 import { closureProblem, validateProgress } from "./check-progress.mjs";
 import { closingReferences, scanCommits } from "./check-commit-references.mjs";
 const repo = "saurabhhbansal/nuvioweb";
@@ -26,12 +27,17 @@ test("multiple and qualified local references are detected; upstream-qualified a
   assert.deepEqual(closingReferences(`Resolves https://github.com/${repo}/issues/12`, repo), [12]);
   assert.deepEqual(closingReferences("Fixes alphasquare404/NuvioWeb#13\nRefs #15", repo), []);
 });
-test("all imported ancestry is scanned, beyond first-parent merge messages", () => {
+test("preflight covers PR metadata and imported ancestry beyond first-parent merge messages", () => {
   const root = mkdtempSync(join(tmpdir(), "nuvio-import-guard-"));
   const git = (...args) => execFileSync("git", args, { cwd: root, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }).trim();
   try {
     git("init", "-b", "main"); git("config", "user.email", "fixture@example.invalid"); git("config", "user.name", "Fixture");
     writeFileSync(join(root,"root.txt"),"baseline"); git("add", "."); git("commit", "-m", "Baseline"); const base=git("rev-parse", "HEAD");
+    for(const field of ["PR_TITLE","PR_BODY"]) {
+      const result=spawnSync(process.execPath,[fileURLToPath(new URL("./check-commit-references.mjs",import.meta.url)),base,base],{cwd:root,encoding:"utf8",env:{...process.env,GITHUB_REPOSITORY:repo,PR_TITLE:"",PR_BODY:"",[field]:"Fixes #12"}});
+      assert.equal(result.status,1);
+      assert.match(result.stderr,/closing reference #12/);
+    }
     git("checkout", "--orphan", "upstream"); git("rm", "-rf", "."); writeFileSync(join(root,"upstream.txt"),"original"); git("add", "."); git("commit", "-m", "Upstream change: Fixes #13");
     git("checkout", "main"); git("merge", "--allow-unrelated-histories", "upstream", "-m", "Preserve original history");
     assert.deepEqual(scanCommits(base,"HEAD",repo,root).map((item)=>item.issue),[13]);
@@ -42,4 +48,32 @@ test("ledger rejects absent documents, unknown dependencies and unverified prere
   assert.ok(errors.some((error)=>error.includes("missing evidence")));
   assert.ok(errors.some((error)=>error.includes("unverified dependency")));
   assert.ok(errors.some((error)=>error.includes("unknown dependency")));
+});
+
+test("an evidence PR that returns 404 reopens the unsupported closure", async () => {
+  const {guardClosure}=await import("./guard-issue-closure.mjs");
+  const writes=[];
+  const api=async(path,method="GET",body)=>{
+    if(method!=="GET"){writes.push({path,method,body});return {};}
+    if(path==="issues/1")return {state:"closed"};
+    const error=new Error("missing PR");error.status=404;throw error;
+  };
+  assert.match(await guardClosure({action:"closed",issue:{number:1}},{tickets:[complete]},api),/^reopened:/);
+  assert.deepEqual(writes.map(({path,method})=>({path,method})),[{path:"issues/1",method:"PATCH"},{path:"issues/1/comments",method:"POST"}]);
+  assert.equal(writes[0].body.state,"open");
+});
+test("authentication failure is reported rather than inventing missing evidence or mutating issues", async () => {
+  const {guardClosure}=await import("./guard-issue-closure.mjs");
+  let writes=0;
+  const api=async(path,method="GET")=>{
+    if(method!=="GET")writes++;
+    if(path==="issues/1")return {state:"closed"};
+    const error=new Error("forbidden");error.status=403;throw error;
+  };
+  await assert.rejects(guardClosure({action:"closed",issue:{number:1}},{tickets:[complete]},api),/forbidden/);
+  assert.equal(writes,0);
+});
+
+test("ordinary audit prose mentioning closed tickets is not a closing directive",()=>{
+  assert.deepEqual(closingReferences("The import closed three unrelated tickets. Preserve #29 and #3.",repo),[]);
 });

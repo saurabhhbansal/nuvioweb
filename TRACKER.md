@@ -1,8 +1,8 @@
 # NuvioWeb progress and forecast
 
-As of 2026-10-18. Source of truth: [acceptance-evidence ledger](docs/PROGRESS.json), [recovery audit](docs/RECOVERY_AUDIT.md), and linked PR/CI records. GitHub closed labels and inherited test counts alone are not product completion.
+As of 2026-10-18. Source of truth: [acceptance-evidence ledger](docs/PROGRESS.json), [recovery audit](docs/RECOVERY_AUDIT.md), and linked PR/CI records. GitHub closed labels and inherited test counts alone are not product completion. Only main is authoritative; completion entries in an unmerged PR are proposed until their evidence PR merges.
 
-Total tickets: **26**. Verified completed: **4**. In progress: **2**. External blockers: **2**. Ready: **3**. Pending dependencies/implementation: **15**.
+Total tickets: **26**. Verified completed: **5**. In progress: **1**. External blockers: **2**. Ready: **3**. Pending dependencies/implementation: **15**.
 
 The initial 24 roadmap tickets are retained, plus dependency remediation #29 and owner-requested recovery #31. Remaining unfinished tickets include all non-verified rows below; blocked work is included rather than hidden.
 
@@ -33,7 +33,7 @@ The initial 24 roadmap tickets are retained, plus dependency remediation #29 and
 | [#23](https://github.com/saurabhhbansal/nuvioweb/issues/23) [M5][P1] Automate upstream change monitoring and reviewed parity tracking | ready | #4, #5 | Implementation/verification outstanding |
 | [#24](https://github.com/saurabhhbansal/nuvioweb/issues/24) [M5][P1] Define full browser device, security and staged release verification | pending | #5, #9, #10 | Implementation/verification outstanding |
 | [#29](https://github.com/saurabhhbansal/nuvioweb/issues/29) [M1][P1] Remediate audited build-tool dependency advisories before release | in_progress | #5 | Preserved local package/audit patch; install/tests/CI not yet verified |
-| [#31](https://github.com/saurabhhbansal/nuvioweb/issues/31) Recovery audit, branch safeguards and browser evidence | in_progress | #1, #2, #4, #5 | Recovery changes under validation |
+| [#31](https://github.com/saurabhhbansal/nuvioweb/issues/31) Recovery audit, branch safeguards and browser evidence | verified | #1, #2, #4, #5 | PR #32; recovery acceptance evidence and CI in the audit |
 
 ## What works and what remains unverified
 

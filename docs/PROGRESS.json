@@ -257,13 +257,25 @@
     {
       "number": 31,
       "title": "Recovery audit, branch safeguards and browser evidence",
-      "status": "in_progress",
+      "status": "verified",
       "dependencies": [
         1,
         2,
         4,
         5
-      ]
+      ],
+      "completion": {
+        "pr": 32,
+        "documents": [
+          "docs/RECOVERY_AUDIT.md",
+          "docs/plans/issues/issue-31.md"
+        ],
+        "verification": [
+          "Closure timeline audit/reopen receipts and applied protection GET verified",
+          "15 focused governance/docs regressions and 4 real Chromium smoke journeys passed; required CI must pass before integration"
+        ]
+      }
     }
-  ]
+  ],
+  "integrationPolicy": "Only default-branch records are authoritative; entries in an unmerged PR are proposed until their evidence PR merges."
 }
