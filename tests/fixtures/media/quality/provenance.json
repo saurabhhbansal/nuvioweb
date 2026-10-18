@@ -1,0 +1,100 @@
+{
+  "license": "CC0-1.0",
+  "source": "scripts/generate-quality-media.mjs",
+  "sourceSha256": "60aeadd1d2ee8cd064886dce39ce4e28450f2aeadcacda533bad141b610e8d17",
+  "packagingSource": "scripts/quality-fixture-packaging.mjs",
+  "packagingSourceSha256": "51e0804a69f1a012ed42f6f778862152af43a93e9f2d9314ae3b4a2f6b5755e0",
+  "platform": "linux",
+  "architecture": "arm64",
+  "generator": "Playwright Chromium 156.0.8078.4",
+  "content": "Original canvas geometry/text, video-only; no downloaded content, upscaling, audio or HDR",
+  "limits": "Short5fps synthetic recordings; not4K60/HDR/device certification. Regeneration bytes/timing vary. Native local blob observations are distinct from bundled/adaptive journey tests.",
+  "files": [
+    {
+      "file": "original-1080p.mp4",
+      "bytes": 41209,
+      "sha256": "6ca4ff483d09902b23c305d028aed66c34e759ad30c28c83e6aecc341486ba12",
+      "requestedType": "video/mp4;codecs=avc1.420028",
+      "recordedType": "video/mp4;codecs=avc1.42002a",
+      "requestedSize": [
+        1920,
+        1080
+      ],
+      "requestedFrameRate": 5,
+      "requestedBitrate": 1000000,
+      "observed": {
+        "width": 1920,
+        "height": 1080,
+        "currentTime": 0.2053,
+        "duration": 3.845867,
+        "error": null
+      },
+      "codec": "avc1.42c02a",
+      "packaged": [
+        {
+          "file": "1080p/init.mp4",
+          "bytes": 753,
+          "sha256": "538fe574d18e5073c885e4e21065c61380e755be4dc3fc0a65e2c568261309c9"
+        },
+        {
+          "file": "1080p/segment.m4s",
+          "bytes": 40380,
+          "sha256": "f5d35c3de4ac6d747740be9fc5b2c439b72d6f8d13b6729f541f778bda642b95"
+        },
+        {
+          "file": "1080p/stream.m3u8",
+          "bytes": 169,
+          "sha256": "ed6e1e3bd4cb9d479fec091669848d320b2eab5bd7eb387efe1a3f314e3904d3"
+        },
+        {
+          "file": "1080p/manifest.mpd",
+          "bytes": 580,
+          "sha256": "514df4ab26866c052edc5f9859602f259f7d9840133c6a0f596a485f7465b0e1"
+        }
+      ]
+    },
+    {
+      "file": "original-2160p.mp4",
+      "bytes": 52293,
+      "sha256": "53b22203016da937bf4ed24af102fe8bd941c940f2869895a936b0076ca5e06a",
+      "requestedType": "video/mp4;codecs=avc1.640033",
+      "recordedType": "video/mp4;codecs=avc1.640034",
+      "requestedSize": [
+        3840,
+        2160
+      ],
+      "requestedFrameRate": 5,
+      "requestedBitrate": 1000000,
+      "observed": {
+        "width": 3840,
+        "height": 2160,
+        "currentTime": 0.1439,
+        "duration": 3.633967,
+        "error": null
+      },
+      "codec": "avc1.640c34",
+      "packaged": [
+        {
+          "file": "2160p/init.mp4",
+          "bytes": 757,
+          "sha256": "a97d202759c2270954d2abdf98da9f1888ac154432c9b42b7736a4c405087b33"
+        },
+        {
+          "file": "2160p/segment.m4s",
+          "bytes": 51460,
+          "sha256": "e19244693a532738f058dd92433df0c7b86ba5aba47eee66d56644f131fad546"
+        },
+        {
+          "file": "2160p/stream.m3u8",
+          "bytes": 169,
+          "sha256": "67adce5da787f86ba33b8ddc496a94b1af6a135d3a8abbb9ac578449ce9fb6d0"
+        },
+        {
+          "file": "2160p/manifest.mpd",
+          "bytes": 580,
+          "sha256": "e42bf4d7805a835d92b912e2eedfe0ca1c0964cedbfc5a630aa0691b7ce8bf44"
+        }
+      ]
+    }
+  ]
+}

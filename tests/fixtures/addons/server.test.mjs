@@ -47,3 +47,25 @@ test("CORS, malformed, unavailable and cancellable-delay scenarios are explicit"
   await assert.rejects(fetch(`${origin}/timeout/catalog/movie/original.json`,{signal:AbortSignal.timeout(50)}),{name:"TimeoutError"});
   assert.deepEqual((await (await fetch(`${origin}/empty/catalog/movie/original.json`)).json()).metas,[]);
 });
+
+test("quality media routes preserve hashes, MIME/Range and explicit error/CORS boundaries",async()=>{
+  const provenance=JSON.parse(await readFile(new URL("../media/quality/provenance.json",import.meta.url)));
+  for(const source of provenance.files) {
+    const response=await fetch(`${origin}/media/quality/${source.file}`);
+    const bytes=Buffer.from(await response.arrayBuffer());
+    assert.equal(createHash("sha256").update(bytes).digest("hex"),source.sha256);
+    assert.equal(response.headers.get("content-type"),"video/mp4");
+    const range=await fetch(`${origin}/media/quality/${source.file}`,{headers:{Range:"bytes=0-31"}});
+    assert.equal(range.status,206);assert.equal((await range.arrayBuffer()).byteLength,32);
+    for(const packaged of source.packaged) {
+      const result=await fetch(`${origin}/media/quality/${packaged.file}`);
+      assert.equal(result.status,200);
+      assert.equal(createHash("sha256").update(Buffer.from(await result.arrayBuffer())).digest("hex"),packaged.sha256);
+    }
+  }
+  assert.equal((await fetch(`${origin}/media/quality/expired.mp4`)).status,410);
+  assert.equal((await fetch(`${origin}/media/quality/restricted.mp4`)).status,403);
+  const denied=await fetch(`${origin}/media/quality/cors-denied/stream.m3u8`);
+  assert.equal(denied.status,200);assert.equal(denied.headers.get("access-control-allow-origin"),null);
+  assert.equal((await fetch(`${origin}/media/quality/provenance.json`)).status,404);
+});
