@@ -26,3 +26,7 @@
 7. Which payment provider and regulatory/tax/account requirements can be supported responsibly?
 
 Any disputed answer requires new source evidence, tested reproduction, and an added decision record.
+
+## Owner preview decision — 2026-10-18
+
+The owner supplied the official documentation, accepted documented public-client API use without another permission letter, and authorized a public static preview. Preserve existing Nuvio identity; do not introduce another login or launch paid compute. Unlisted owner/QR/fallback behavior and deployed session guarantees require evidence, not another blanket permission request. Cloudflare access is currently expired; reconnecting the account is an external dependency.

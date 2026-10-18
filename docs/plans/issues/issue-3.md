@@ -96,3 +96,11 @@ PY
 - External permission: unresolved for unlisted hosted endpoints/alternate destinations and compute/billing identity use; not invented, denied or silently waived. No maintainer outreach performed.
 - Runtime evidence: no live issuer/audience/session/RLS/browser claims; follow-up fixture and authorized integration gates remain in #7/#14/#20.
 - Keep GitHub issue OPEN and draft PR unmerged until the required evidence/review is accepted. Draft publication alone does not complete this review gate.
+
+## Owner steering and resumed publication — 2026-10-18
+
+The owner supplied https://nuvio.tv/docs, accepted documented public-client use without a separate permission letter, and explicitly authorized a public preview. Re-fetching its linked API Markdown gives the same SHA-256 `81f6f15f6ea66f39c488de63e6efdca50393541697a0243bb02aa2eafa7efd4c`. Do not request that permission again. This does not establish unlisted endpoint behavior, live-session guarantees or paid-service launch authorization.
+
+Resume the existing branch/commit, merge protected main `07d0286`, retain both baseline/browser evidence and identity-contract documentation, publish the draft for human auth/security review, and leave runtime verification to its existing tickets. Update contract/decision/security notes and central ledger to distinguish documented API availability from untested semantics. No runtime or deployment configuration changes in this PR.
+
+The sole conflict was docs/FEATURE_SUPPORT.md: retained #5/#29 builds, #31 Chromium shell tests and #3 contract limits. After resolution, pinned Node22 documentation tests passed 6/6 with no skips; docs links, ledger structure and whitespace passed. Earlier file-level sandbox result is historical, not the current test count. Cloudflare public-preview authorization is recorded; `wrangler whoami` found an expired nonrefreshable login, an account-access blocker for #6 rather than a missing owner decision.
