@@ -38,7 +38,7 @@
       "title": "[M0][P0] Verify Nuvio hosted API usage terms and identity requirements",
       "status": "blocked_external",
       "dependencies": [],
-      "blocker": "Hosted backend authorization and stable-subject contract require upstream/operator evidence; unmerged docs commit 8f01619 exists separately."
+      "blocker": "Identity-contract research preserved in draft PR #34; human auth/security review pending. Owner accepted documented public-client APIs; unlisted endpoint/session semantics remain unverified."
     },
     {
       "number": 4,
@@ -82,7 +82,7 @@
       "dependencies": [
         5
       ],
-      "blocker": "Public deployment requires owner approval and Cloudflare account access; browser/build fixture is not a live-service configuration."
+      "blocker": "Public preview authorized; local configuration/staging/PWA preparation in progress, but Cloudflare OAuth login expired and cannot refresh noninteractively. No deployment URL verified."
     },
     {
       "number": 7,

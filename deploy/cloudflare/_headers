@@ -1,0 +1,13 @@
+# Unversioned filenames must revalidate; do not mark them immutable.
+/*
+  Cache-Control: no-cache
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: no-referrer
+  X-Robots-Tag: noindex, nofollow
+
+/sw.js
+  Cache-Control: no-store
+
+/nuvio.env.js
+  Cache-Control: no-store

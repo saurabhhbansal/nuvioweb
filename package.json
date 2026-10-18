@@ -4,6 +4,8 @@
   "type": "module",
   "scripts": {
     "test:browser": "playwright test",
+    "preview:stage": "node scripts/prepare-static-preview.mjs",
+    "test:preview": "node --test scripts/prepare-static-preview.test.mjs",
     "test:governance": "node --test scripts/governance.test.mjs"
   },
   "devDependencies": {
