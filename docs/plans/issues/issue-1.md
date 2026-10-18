@@ -1,6 +1,6 @@
 # Issue #1: [M0][P0] Validate upstream licenses, provenance, and import strategy
 
-**Plan status:** Proposed for agent review — no implementation/test evidence recorded.  
+**Plan status:** Implemented and locally verified on `m0/issue-1-upstream-provenance`; [PR #27](https://github.com/saurabhhbansal/nuvioweb/pull/27) records Node 22 CI and merge evidence.
 **Milestone:** M0 · **Priority:** P0  
 **GitHub issue:** https://github.com/saurabhhbansal/nuvioweb/issues/1  
 **Workstream:** [M0 roadmap](https://github.com/saurabhhbansal/nuvioweb/blob/main/docs/ROADMAP.md) · **Agent rules:** [AGENTS.md](https://github.com/saurabhhbansal/nuvioweb/blob/main/AGENTS.md)
@@ -17,25 +17,36 @@ Docs foundation
 
 Before modifying code, verify required prior issue state and exact upstream revision or package versions. Unavailable dependencies must be logged and should block sensitive implementation.
 
-## Planned interfaces and deliverables
+## Concrete implementation plan (2026-10-18)
 
-docs/UPSTREAM.md; UPSTREAM_SOURCES.md at the future import; GPL-3.0 LICENSE and copyright inventory
+Select this unblocked issue before application import. The approved baseline remains Alpha's `web` branch at `5624da2fb26c19e4acad66a4f0cd4e4bcb8b74ff`; a moving branch is not an import input.
 
-The issue-owning agent must convert this initial artifact inventory into precise file paths, types/interfaces, test fixture IDs and API contracts after checking the imported codebase. Avoid introducing extra auth systems or central media relay as implicit dependencies.
+### Target files and contract
 
-## Detailed implementation sequence
+- `docs/UPSTREAM_LICENSE_AUDIT.md`: immutable primary-source links, observed branch tips, license/copyright inventory, dependency evidence and unresolved reuse restrictions.
+- `UPSTREAM_SOURCES.md`: provenance contract with source URL/ref/SHA, intended destination, history preservation, required notices, exact import and verification procedure. Mark application source as not imported until #4.
+- `docs/UPSTREAM.md`, `README.md`, `TRACKER.md`: link the contract and audit, and record the next dependency gate without overstating application readiness.
+- This plan: actual verification results and acceptance disposition before PR closure.
 
-1. Inspect Alpha GPL-3.0 licensing and copyright notices plus dependency licenses at pinned web commit
-2. Choose source-history-preserving import strategy and write UPSTREAM_SOURCES.md contract
-3. Document acceptable source reuse from Falcon/GYK and AGPL differences with Orochi
+No runtime/API changes. Do not import upstream code, install dependencies, exercise Nuvio credentials, contact maintainers, deploy, or decide hosted-service permission in #1.
 
-**Integration sequencing:** land the smallest verifiable unit first; update the plan if tests reveal a wrong assumption, then create separate follow-up issues for work outside scope.
+### Sequence and verification
+
+1. Fetch upstream metadata/source in temporary research checkouts; compare named branch heads to the audit pins. Record the precise commands and immutable source links.
+2. Inspect license files, notices, vendored assets and package/lockfile metadata at each pin. Distinguish verified dependency evidence from a complete release license report; unresolved material cannot be treated as approved reuse.
+3. Specify a history-preserving import and reproducible file comparison. Ask the owner about import layout; continue the evidence audit while awaiting that decision.
+4. Document Falcon/GYK port gates and the separate Orochi AGPL boundary. Do not silently relicense code or claim hosted API authorization from a source license.
+5. Run `node --test scripts/check-docs.test.mjs`, `node scripts/check-docs.mjs`, and a link check explicitly including `UPSTREAM_SOURCES.md`; review `git diff --check`. Attach exact output and remote CI URL to a scoped draft PR.
+
+### Risks, costs and rollback
+
+Source-license metadata alone does not prove every bundled asset is redistributable. Explicitly inventory missing or ambiguous notices; make release blockers visible. Network use is read-only source/registry evidence, without production identities or compute. Roll back by reverting this documentation PR; retain pinned references and the audit trail.
 
 ## Functional acceptance criteria
 
-- [ ] Reproducible source SHA and import procedure are documented
-- [ ] Required license files/notices are listed and will be preserved
-- [ ] Dependency reuse constraints are recorded before source import
+- [x] Reproducible source SHA and import procedure are documented
+- [x] Required license files/notices are listed and will be preserved
+- [x] Dependency reuse constraints are recorded before source import
 
 ## Verification design
 
@@ -57,8 +68,23 @@ Capture bounded, redacted failure counters and trace IDs without exposing access
 
 ## Definition of done
 
-- [ ] Dependency assumptions and interface/API contract verified against code or published upstream evidence.
-- [ ] All issue acceptance criteria tested and documented.
-- [ ] Negative/security/budget cases covered as relevant.
-- [ ] Docs, compatibility notes and source provenance updated.
-- [ ] Reviewed pull request linked to issue, with rollout and rollback evidence.
+- [x] Dependency assumptions and interface/API contract verified against code or published upstream evidence.
+- [x] All issue acceptance criteria tested and documented.
+- [x] Negative/security/budget cases covered as relevant: documented unverified redistribution and service-use gates; no runtime or cost-bearing change.
+- [x] Docs, compatibility notes and source provenance updated.
+- [x] Scoped documentation diff reviewed; [PR #27](https://github.com/saurabhhbansal/nuvioweb/pull/27) links this issue, actual verification, release limitations and rollback. No sensitive runtime changes require human security review in this issue.
+
+## Executed evidence (2026-10-18)
+
+- `git clone --branch web --single-branch https://github.com/alphasquare404/NuvioWeb.git /tmp/nuvioweb-alpha-import` — exit 0; full history fetched in a temporary research checkout, outside this project.
+- `git -C /tmp/nuvioweb-alpha-import rev-parse HEAD` — `5624da2fb26c19e4acad66a4f0cd4e4bcb8b74ff`, matching the original audit.
+- `git -C /tmp/nuvioweb-alpha-import rev-parse HEAD^{tree}` — `ad9ff4cea2781cf85010f49b61c315c9bc332e86`.
+- `git -C /tmp/nuvioweb-alpha-import ls-tree -r HEAD | wc -l` — 605 entries; `git -C /tmp/nuvioweb-alpha-import rev-list --count HEAD` — 999 commits. Shell assertions for both counts, the tree ID, commit existence and root `LICENSE` all returned exit 0.
+- A Node assertion over `package-lock.json` found exactly 237 nonroot package entries and a nonempty license field on each. This verifies lock metadata coverage, not artifact redistribution clearance. Direct-package tarball evidence and remaining notice gaps are in the [audit](../../UPSTREAM_LICENSE_AUDIT.md).
+- Local runtime: Node v24.19.0. `node --test scripts/check-docs.test.mjs` — 6/6 passed with sandbox process restrictions lifted; the direct `node scripts/check-docs.test.mjs` invocation independently reported the same six cases. The required GitHub job runs Node 22 and must pass before merge.
+
+The import-layout decision remains with the owner before #4. No upstream source is imported in #1 and no public hosted backend permission, application build, browser compatibility or release clearance is claimed.
+
+- `node scripts/check-docs.mjs` — passed after correcting the audit-to-root relative link.
+- Explicit `findBrokenLinks(process.cwd(), ["UPSTREAM_SOURCES.md"])` assertion — passed.
+- `git diff --check` — passed.
