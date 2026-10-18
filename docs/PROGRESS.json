@@ -1,0 +1,281 @@
+{
+  "asOf": "2026-10-18",
+  "sourceOfTruth": "Acceptance evidence and protected PRs; GitHub issue labels alone are insufficient",
+  "tickets": [
+    {
+      "number": 1,
+      "title": "[M0][P0] Validate upstream licenses, provenance, and import strategy",
+      "status": "verified",
+      "dependencies": [],
+      "completion": {
+        "pr": 27,
+        "documents": [
+          "docs/UPSTREAM_LICENSE_AUDIT.md",
+          "UPSTREAM_SOURCES.md"
+        ],
+        "verification": [
+          "Pinned tree, license and dependency checks; docs CI passed"
+        ]
+      }
+    },
+    {
+      "number": 2,
+      "title": "[M0][P0] Set up GitHub CI, PR review, and docs verification",
+      "status": "verified",
+      "dependencies": [],
+      "completion": {
+        "pr": 25,
+        "documents": [
+          "docs/plans/issues/issue-2.md"
+        ],
+        "verification": [
+          "Documentation checker and six regression cases; GitHub docs CI passed"
+        ]
+      }
+    },
+    {
+      "number": 3,
+      "title": "[M0][P0] Verify Nuvio hosted API usage terms and identity requirements",
+      "status": "blocked_external",
+      "dependencies": [],
+      "blocker": "Hosted backend authorization and stable-subject contract require upstream/operator evidence; unmerged docs commit 8f01619 exists separately."
+    },
+    {
+      "number": 4,
+      "title": "[M1][P0] Import pinned Alpha NuvioWeb browser baseline with attribution",
+      "status": "verified",
+      "dependencies": [
+        1
+      ],
+      "completion": {
+        "pr": 28,
+        "documents": [
+          "UPSTREAM_SOURCES.md"
+        ],
+        "verification": [
+          "Identical imported Git tree and license hash; original ancestry and git fsck passed"
+        ]
+      }
+    },
+    {
+      "number": 5,
+      "title": "[M1][P0] Reproduce upstream install, build, lint and unit tests",
+      "status": "verified",
+      "dependencies": [
+        4,
+        2
+      ],
+      "completion": {
+        "pr": 30,
+        "documents": [
+          "docs/BASELINE_VERIFICATION.md"
+        ],
+        "verification": [
+          "Node 22 clean install, fixture build, 1079 inherited tests, lint and artifact checks passed"
+        ]
+      }
+    },
+    {
+      "number": 6,
+      "title": "[M1][P0] Deploy free static browser preview on Cloudflare",
+      "status": "blocked_external",
+      "dependencies": [
+        5
+      ],
+      "blocker": "Public deployment requires owner approval and Cloudflare account access; browser/build fixture is not a live-service configuration."
+    },
+    {
+      "number": 7,
+      "title": "[M1][P0] Validate existing Nuvio login, sync and profile isolation",
+      "status": "pending",
+      "dependencies": [
+        6,
+        3
+      ]
+    },
+    {
+      "number": 8,
+      "title": "[M1][P1] Inventory and safely isolate upstream sidecar-dependent routes",
+      "status": "ready",
+      "dependencies": [
+        5
+      ]
+    },
+    {
+      "number": 9,
+      "title": "[M2][P0] Build legal add-on interoperability fixtures and test matrix",
+      "status": "ready",
+      "dependencies": [
+        5
+      ]
+    },
+    {
+      "number": 10,
+      "title": "[M2][P0] Implement source descriptors and browser playback capability reporting",
+      "status": "pending",
+      "dependencies": [
+        9,
+        5
+      ]
+    },
+    {
+      "number": 11,
+      "title": "[M2][P1] Prototype sandboxed Nuvio JavaScript plugin compatibility",
+      "status": "pending",
+      "dependencies": [
+        9,
+        1
+      ]
+    },
+    {
+      "number": 12,
+      "title": "[M2][P1] Prototype quality-preserving local audio and container recovery",
+      "status": "pending",
+      "dependencies": [
+        10,
+        1
+      ]
+    },
+    {
+      "number": 13,
+      "title": "[M3][P0] Define versioned compute protocol and strict job lifecycle",
+      "status": "pending",
+      "dependencies": [
+        10
+      ]
+    },
+    {
+      "number": 14,
+      "title": "[M3][P0] Implement Nuvio-verified agent pairing, grants and revocation",
+      "status": "pending",
+      "dependencies": [
+        13,
+        3
+      ]
+    },
+    {
+      "number": 15,
+      "title": "[M3][P0] Package a safe single-service Docker FFmpeg compute agent",
+      "status": "pending",
+      "dependencies": [
+        13,
+        14
+      ]
+    },
+    {
+      "number": 16,
+      "title": "[M3][P1] Publish Bring Your Own Cloudflare Worker Lite template",
+      "status": "pending",
+      "dependencies": [
+        13,
+        14
+      ]
+    },
+    {
+      "number": 17,
+      "title": "[M3][P2] Validate assisted Cloudflare Worker + Container compute deployment",
+      "status": "pending",
+      "dependencies": [
+        15,
+        16
+      ]
+    },
+    {
+      "number": 18,
+      "title": "[M3][P2] Evaluate optional desktop compute companion",
+      "status": "pending",
+      "dependencies": [
+        13,
+        14,
+        15
+      ]
+    },
+    {
+      "number": 19,
+      "title": "[M4][P0] Benchmark compute cost and design user-facing prepaid quotes",
+      "status": "pending",
+      "dependencies": [
+        15,
+        13
+      ]
+    },
+    {
+      "number": 20,
+      "title": "[M4][P0] Build Nuvio-verified entitlements and atomic credits ledger",
+      "status": "pending",
+      "dependencies": [
+        3,
+        19
+      ]
+    },
+    {
+      "number": 21,
+      "title": "[M4][P1] Implement isolated metered hosted processing jobs",
+      "status": "pending",
+      "dependencies": [
+        20,
+        13,
+        19
+      ]
+    },
+    {
+      "number": 22,
+      "title": "[M4][P1] Integrate eligible payment provider and transparent credit checkout",
+      "status": "pending",
+      "dependencies": [
+        20,
+        21
+      ]
+    },
+    {
+      "number": 23,
+      "title": "[M5][P1] Automate upstream change monitoring and reviewed parity tracking",
+      "status": "ready",
+      "dependencies": [
+        4,
+        5
+      ]
+    },
+    {
+      "number": 24,
+      "title": "[M5][P1] Define full browser device, security and staged release verification",
+      "status": "pending",
+      "dependencies": [
+        5,
+        9,
+        10
+      ]
+    },
+    {
+      "number": 29,
+      "title": "[M1][P1] Remediate audited build-tool dependency advisories before release",
+      "status": "in_progress",
+      "dependencies": [
+        5
+      ]
+    },
+    {
+      "number": 31,
+      "title": "Recovery audit, branch safeguards and browser evidence",
+      "status": "verified",
+      "dependencies": [
+        1,
+        2,
+        4,
+        5
+      ],
+      "completion": {
+        "pr": 32,
+        "documents": [
+          "docs/RECOVERY_AUDIT.md",
+          "docs/plans/issues/issue-31.md"
+        ],
+        "verification": [
+          "Closure timeline audit/reopen receipts and applied protection GET verified",
+          "15 focused governance/docs regressions and 4 real Chromium smoke journeys passed; required CI must pass before integration"
+        ]
+      }
+    }
+  ],
+  "integrationPolicy": "Only default-branch records are authoritative; entries in an unmerged PR are proposed until their evidence PR merges."
+}

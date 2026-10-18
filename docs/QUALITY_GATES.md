@@ -29,3 +29,9 @@ Expired/fake Nuvio session, cross-user job, invalid paid balance, duplicate paym
 ## Release pipeline
 
 One issue -> reviewed plan -> bounded PR -> green CI -> staging smoke and fixture tests -> canary -> production with monitoring/rollback. No autonomous merge for sensitive changes. A failed test stays visible; no invented success reports.
+
+## Recovery safeguards
+
+The [recovery audit](RECOVERY_AUDIT.md), [progress ledger](PROGRESS.json) and root [tracker](../TRACKER.md) distinguish source/build, browser smoke, realistic MVP, beta and production release. The required history preflight blocks local closing references in newly introduced ancestry; the default-branch closure guard reopens tickets lacking a verified ledger entry and merged evidence PR. It repairs accidental closure events; it does not prevent GitHub from briefly emitting one. Original history is retained.
+
+Branch protection requires strict CI and PRs for admins as well as contributors, denies force pushes/deletion, and requires resolved conversations. There is only one collaborator: independent approvals are currently zero. Automated sub-agent review is useful evidence but not independent human approval. Do not merge sensitive changes until the owner has reviewed the concrete result.
