@@ -9,7 +9,9 @@ Last updated 2026-10-18. This matrix records observed evidence; imported impleme
 | Locked dependency install | Not executed for source import | #5: clean `npm ci` on pinned Node/npm |
 | Browser distribution build | Not executed for source import | #5: upstream build, expected `dist` artifacts and notice inventory |
 | Application tests and lint | Imported upstream tests/configuration; not executed | #5: complete upstream suites and explicit baseline failures |
-| Nuvio login, refresh, profiles and sync | Original source retained unchanged | #3 service-use permission and #7 authorized identity/isolation tests |
+| Nuvio login, refresh, profiles and sync | [Identity contract](NUVIO_IDENTITY_CONTRACT.md) maps unchanged pinned source; public API v1.3 supports documented third-party operations under terms | #3 human review and unsupported owner/QR/fallback service scope; #7 synthetic/authorized identity, revocation and isolation evidence |
+| Stable subject for pairing / entitlements | Documented authoritative `/auth/v1/user` design, separate subject/owner and consent boundaries; no verifier implemented | Approved issuer/audience/session semantics, service-scope permission and #14/#20 security tests; cached owner or decoded JWT cannot authorize |
+| Permission-unavailable fallback | Existing guest entry observed in source; contract specifies local use without duplicate accounts | Future restricted-mode change must suppress hosted background traffic; no guest/offline browser verification claimed |
 | HTTP/Stremio add-ons | Original source retained unchanged | #9 legal fixtures, parsing/error/CORS matrix |
 | Native video, HLS and DASH | Original source retained unchanged | #10 real fixtures on specified browsers/devices; no 4K/HDR/codec claim yet |
 | JavaScript plugin compatibility | Original upstream implementation retained | #11 sandbox/API/license/security verification; no broad compatibility claim |

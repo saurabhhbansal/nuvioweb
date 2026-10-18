@@ -3,7 +3,7 @@
 | Decision | State | Rationale |
 | --- | --- | --- |
 | ADR-001 Alpha web as baseline | Approved | Most practical fresh static browser implementation |
-| ADR-002 Existing Nuvio identity | Approved; externally dependent | No second end-user auth, leverage current sync |
+| ADR-002 Existing Nuvio identity | Approved direction; implementation/service scope gated | No second end-user auth; authoritative subject distinct from sync routing owner; see [contract](NUVIO_IDENTITY_CONTRACT.md) |
 | ADR-003 Free compatible playback | Approved | High bitrate / 4K / HDR is not itself a paid capability |
 | ADR-004 Separate HTTP addon and JS plugin layers | Approved | Broader compatibility with bounded sandbox |
 | ADR-005 Local before remote compute | Approved | Cost and quality preservation |
@@ -17,7 +17,7 @@
 
 ## Open validation questions
 
-1. Is third-party public/monetized use of Nuvio's hosted backend allowed and rate-limited appropriately?
+1. Public API v1.3 and service terms support documented third-party operations. Permission/semantics for imported unlisted owner/QR/fallback requests, monetized compute identity, aggregate capacity and live-session verification remain unresolved; see the dated [identity evidence and release gates](NUVIO_IDENTITY_CONTRACT.md).
 2. Can source and plugin network calls succeed from supported browsers, or is a *narrowly restricted* server integration needed?
 3. Which GYK JS runtime APIs can be used with correct dependency and source licensing?
 4. Which codec and HDR/audio combinations are realistically supported across Chrome, Edge, Firefox, Safari and mobile?
