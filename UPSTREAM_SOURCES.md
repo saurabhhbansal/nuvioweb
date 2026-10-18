@@ -13,7 +13,7 @@ Status: source audit for [issue #1](https://github.com/saurabhhbansal/nuvioweb/i
 | Tracked entries | 605 at the pinned commit |
 | Reachable commits | 999 in the complete fetched `web` history |
 | Original authors and history | Preserve through a nonsquashed Git subtree import |
-| Destination | Proposed `app/alpha`; owner layout decision requested before import |
+| Destination | `app/alpha`; confirmed by the owner on 2026-10-18 |
 | Imported commit / PR | Pending #4 |
 | Source-license evidence | Root `LICENSE`; see the [license audit](docs/UPSTREAM_LICENSE_AUDIT.md) for notices, assets, dependencies and reuse restrictions |
 
@@ -21,7 +21,7 @@ The observed `web` tip matches the earlier [source audit](docs/AUDIT_2026-10-18.
 
 ## Import procedure for #4
 
-Run from a clean feature branch after #1 is merged and the layout is confirmed. The following commands describe the proposed `app/alpha` layout; #4 must record the actual commands and any approved path change.
+Run from a clean feature branch after #1 is merged and the layout is confirmed. The following commands describe the owner-approved `app/alpha` layout; #4 records the actual import and verification results.
 
 ```bash
 git remote add alpha https://github.com/alphasquare404/NuvioWeb.git
