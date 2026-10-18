@@ -126,15 +126,28 @@
     {
       "number": 9,
       "title": "[M2][P0] Build legal add-on interoperability fixtures and test matrix",
-      "status": "in_progress",
+      "status": "verified",
       "dependencies": [
         5
-      ]
+      ],
+      "completion": {
+        "pr": 37,
+        "documents": [
+          "docs/ADDON_INTEROPERABILITY.md",
+          "docs/plans/issues/issue-9.md",
+          "tests/fixtures/media/provenance.json"
+        ],
+        "verification": [
+          "Original CC0 generated media with hash/license; 3 HTTP fixture contracts passed, actual repository parsing, real browser CORS/abort, synthetic-credential nonforwarding and local profile snapshots verified",
+          "Bundled guest install/toggle/reload, catalog/detail and actual original640x360 playback with advancing time/no media error observed; persistent partial-source outcomes and refresh recovery verified for distinct and colliding custom names",
+          "Final runtime correction: 1079 upstream tests, lint, configured build/artifact and 15 docs/governance tests passed; 14/14 complete browser journeys passed (eight add-on plus retained shell/PWA); all four protected CI contexts remain mandatory before integration"
+        ]
+      }
     },
     {
       "number": 10,
       "title": "[M2][P0] Implement source descriptors and browser playback capability reporting",
-      "status": "pending",
+      "status": "ready",
       "dependencies": [
         9,
         5
@@ -143,7 +156,7 @@
     {
       "number": 11,
       "title": "[M2][P1] Prototype sandboxed Nuvio JavaScript plugin compatibility",
-      "status": "pending",
+      "status": "ready",
       "dependencies": [
         9,
         1
