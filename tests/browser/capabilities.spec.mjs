@@ -202,7 +202,7 @@ test("header/expiry guidance is visible and source metadata cannot render secret
       { exact: true },
     ),
   ).toBeVisible();
-  await expect(page.locator("img,script")).toHaveCount(0);
+  await expect(page.locator("body img,body script")).toHaveCount(0);
   expect(
     await page.evaluate(() => globalThis.__fixtureInjected),
   ).toBeUndefined();
@@ -211,4 +211,65 @@ test("header/expiry guidance is visible and source metadata cannot render secret
   expect(
     JSON.stringify(output.descriptor) + output.html + output.label,
   ).not.toMatch(/synthetic-private|Authorization|token=/);
+});
+
+test("raw provider descriptors cannot bypass flattening or direct card redaction", async ({
+  page,
+}) => {
+  await page.goto("/__fixture/harness");
+  const output = await page.evaluate(async (provider) => {
+    const { flattenStreams } =
+      await import("/__fixture/source/js/core/streams/streamList.js");
+    const { normalizeSourceForDisplay, renderBrowserSourceCardContent } =
+      await import("/__fixture/source/js/ui/components/browserStreamSourceCard.js");
+    const raw = {
+      name: "Untrusted plugin metadata fixture",
+      url: `${provider}/media/procedural-vp8-opus.webm`,
+      sourceDescriptor: {
+        contentType:
+          "video/https://fixture.invalid?token=synthetic-private-type",
+        video: {
+          codec: "https://fixture.invalid?token=synthetic-private-codec",
+          hdr: "x".repeat(10000),
+        },
+        audioTracks: Array(100).fill({
+          codec: "https://fixture.invalid?token=synthetic-private-audio",
+        }),
+        requiredHeaderCount: "synthetic-private-header",
+      },
+    };
+    const [stream] = flattenStreams({
+      status: "success",
+      data: [{ addonName: "Untrusted Fixture", streams: [raw] }],
+    });
+    const options = {
+      badgeSettings: { showAddonLogo: false },
+      streamBadgesEnabled: false,
+    };
+    const direct = normalizeSourceForDisplay(raw, options);
+    return {
+      descriptor: stream.sourceDescriptor,
+      directHtml: renderBrowserSourceCardContent(direct),
+      flattenedHtml: renderBrowserSourceCardContent(
+        normalizeSourceForDisplay(stream, options),
+      ),
+    };
+  }, provider);
+  expect(output.descriptor.video).toMatchObject({ codec: null, hdr: null });
+  expect(output.descriptor.audioTracks).toHaveLength(32);
+  expect(output.descriptor.contentType).toBeNull();
+  expect(JSON.stringify(output)).not.toMatch(
+    /synthetic-private|token=|fixture.invalid|xxxx/,
+  );
+  for (const html of [output.directHtml, output.flattenedHtml]) {
+    await page.locator("body").evaluate((body, html) => {
+      body.innerHTML = html;
+    }, html);
+    await expect(
+      page.getByText("Format and codec unknown", { exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByText("Resolution unknown · HDR unknown", { exact: true }),
+    ).toBeVisible();
+  }
 });

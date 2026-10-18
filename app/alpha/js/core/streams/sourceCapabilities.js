@@ -85,12 +85,33 @@ export function describeSource(stream = {}) {
       language: token(track?.lang || track?.language, 32),
       format: token(track?.format, 32)
     })),
-    requiredHeaderCount: headerCount,
+    requiredHeaderCount: Math.min(256, headerCount),
     expiresAt: Number.isFinite(expiryTime) ? new Date(expiryTime).toISOString() : null
   };
 }
 
+// JSON-returning providers/plugins can supply this internal-looking field too.
+// Revalidate its declarations before carrying or rendering it.
+export function normalizeSourceDescriptor(descriptor) {
+  const normalized = describeSource({
+    mimeType: descriptor?.contentType,
+    video: descriptor?.video,
+    audioTracks: descriptor?.audioTracks,
+    subtitles: descriptor?.subtitleTracks,
+    expiresAt: descriptor?.expiresAt
+  });
+  const count = descriptor?.requiredHeaderCount;
+  normalized.requiredHeaderCount = Number.isInteger(count) && count > 0 ? Math.min(256, count) : 0;
+  normalized.transportHint = ["direct", "hls", "dash", "torrent"].includes(
+    descriptor?.transportHint
+  )
+    ? descriptor.transportHint
+    : "unknown";
+  return normalized;
+}
+
 export function probeNativeSource(descriptor, videoElement) {
+  descriptor = normalizeSourceDescriptor(descriptor);
   if (!descriptor?.contentType || typeof videoElement?.canPlayType !== "function") return "unknown";
   try {
     const result = videoElement.canPlayType(descriptor.contentType);
@@ -108,6 +129,7 @@ export async function probeSourceCapabilities(
   descriptor,
   { videoElement, mediaCapabilities, timeoutMs = 750 } = {}
 ) {
+  descriptor = normalizeSourceDescriptor(descriptor);
   const report = {
     evidence: "browser-prediction",
     native: probeNativeSource(descriptor, videoElement),

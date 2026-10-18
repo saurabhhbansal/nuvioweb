@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   describeSource,
+  normalizeSourceDescriptor,
   probeNativeSource,
   probeSourceCapabilities
 } from "./sourceCapabilities.js";
@@ -100,7 +101,7 @@ test("native reports preserve maybe/probably/negative/unknown without declaring 
   );
 });
 
-test("video decoding prediction uses exact declared4K configuration and never rewrites quality or charges", async () => {
+test("video decoding prediction preserves exact declared4K configuration without mutating metadata", async () => {
   const descriptor = declared();
   const before = JSON.stringify(descriptor);
   let configuration;
@@ -165,4 +166,41 @@ test("missing configuration/API, rejected and hanging probes are bounded unknown
   });
   assert.equal(report.decodingStatus, "unavailable");
   assert.equal(report.videoDecoding, null);
+});
+
+test("forged internal descriptors are normalized before rendering or capability probing", async () => {
+  const forged = {
+    contentType: "video/https://fixture.invalid?token=private-query",
+    video: {
+      codec: "https://fixture.invalid?token=private-codec",
+      hdr: "x".repeat(10000),
+      width: "3840"
+    },
+    audioTracks: Array(100).fill({ codec: "https://fixture.invalid?token=private-audio" }),
+    subtitleTracks: [{ language: "https://fixture.invalid?token=private-subtitle" }],
+    requiredHeaderCount: "private-header",
+    expiresAt: "private-expiry",
+    transportHint: "private-url"
+  };
+  const source = normalizeSourceDescriptor(forged);
+  assert.equal(source.contentType, null);
+  assert.equal(source.video.codec, null);
+  assert.equal(source.video.hdr, null);
+  assert.equal(source.video.width, null);
+  assert.equal(source.audioTracks.length, 32);
+  assert.equal(source.requiredHeaderCount, 0);
+  assert.equal(source.transportHint, "unknown");
+  assert.doesNotMatch(JSON.stringify(source), /private-|https:/);
+  let probed = false;
+  const report = await probeSourceCapabilities(forged, {
+    videoElement: {
+      canPlayType() {
+        probed = true;
+        return "probably";
+      }
+    }
+  });
+  assert.equal(report.native, "unknown");
+  assert.equal(probed, false);
+  assert.equal(normalizeSourceDescriptor({ requiredHeaderCount: 100000 }).requiredHeaderCount, 256);
 });

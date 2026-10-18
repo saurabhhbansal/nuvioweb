@@ -7,13 +7,14 @@ import {
 } from "../../core/media/addonLogoCache.js";
 import { matchStreamBadges, normalizeStreamBadgeChipColor } from "../../core/streams/streamBadgeRules.js";
 import { I18n } from "../../i18n/index.js";
-import { describeSource, probeNativeSource } from "../../core/streams/sourceCapabilities.js";
+import { describeSource, normalizeSourceDescriptor, probeNativeSource } from "../../core/streams/sourceCapabilities.js";
 
 const STREAM_BADGE_LIMIT = 9;
 const nativeReports = new Map();
 
 function sourceEvidenceLines(source) {
-  const descriptor = source.sourceDescriptor || describeSource(source);
+  const descriptor = source.sourceDescriptor
+    ? normalizeSourceDescriptor(source.sourceDescriptor) : describeSource(source);
   let native = "unknown";
   if (descriptor.contentType && typeof document !== "undefined") {
     if (!nativeReports.has(descriptor.contentType)) {
