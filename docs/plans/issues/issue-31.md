@@ -33,7 +33,7 @@ Owner-requested audit before resuming #29. GitHub timeline confirms #12/#13/#15 
 - [x] Completion ledger, commit preflight and closure decision logic covered by nine focused regressions; workflows added, remote execution pending.
 - [x] Four real Chromium smoke tests passed locally with zero skips; live auth/add-on/media/compatibility limits explicit.
 - [x] Complete 26-ticket ledger/tracker, dependencies, external blockers and confidence-bounded milestone forecast written.
-- [ ] Automated review, CI and merge evidence attached without claiming independent approval.
+- [x] Automated Standards/Spec review and successful remote app/docs/governance/browser CI attached in [PR #32](https://github.com/saurabhhbansal/nuvioweb/pull/32); protected merge is the final integration gate, never independent human approval.
 
 ## Risks, costs and rollback
 
@@ -52,3 +52,5 @@ Only repository governance, tests and documentation change. No production deploy
 No deployed service or live account was tested. CI, required-context additions and automated review findings will be attached to the recovery PR before integration.
 
 Automated Standards and Spec review findings were fixed and rechecked; neither is independent human approval. PR metadata edits/title checks, missing-evidence-PR handling and structural-validation wording now have focused coverage. The default-branch ledger becomes authoritative only after this protected PR merges.
+
+All four check contexts are now required and settings were read back. Original #29 diff and plan compare byte-for-byte to preserved backups; #3 worktree remains unchanged.
