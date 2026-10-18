@@ -6,9 +6,9 @@ Last updated 2026-10-18. This matrix records observed evidence; imported impleme
 | --- | --- | --- |
 | Source provenance and notices | Identical Git tree, 605 tracked files, GPL license hash, original ancestry and repository integrity checks passed | Preserve mapping and notices with later patches and releases |
 | Documentation CI | Root documentation checker/tests pass | Keep each PR green |
-| Locked dependency install | Not executed for source import | #5: clean `npm ci` on pinned Node/npm |
-| Browser distribution build | Not executed for source import | #5: upstream build, expected `dist` artifacts and notice inventory |
-| Application tests and lint | Imported upstream tests/configuration; not executed | #5: complete upstream suites and explicit baseline failures |
+| Locked dependency install | #5: clean `npm ci` passed, Node 22.23.1/npm 10.9.8, original lockfile retained | #29: remediate reported build-tool advisories before release |
+| Browser distribution build | #5: upstream build passed; 12 assets and inert public-config checks passed | Distribution notice/rights review; no public deployment |
+| Application tests and lint | #5: 1,079 tests passed with zero skips; lint passed | Keep CI green; these tests do not establish real browser/device compatibility |
 | Nuvio login, refresh, profiles and sync | Original source retained unchanged | #3 service-use permission and #7 authorized identity/isolation tests |
 | HTTP/Stremio add-ons | Original source retained unchanged | #9 legal fixtures, parsing/error/CORS matrix |
 | Native video, HLS and DASH | Original source retained unchanged | #10 real fixtures on specified browsers/devices; no 4K/HDR/codec claim yet |
@@ -18,4 +18,4 @@ Last updated 2026-10-18. This matrix records observed evidence; imported impleme
 | Sidecar-backed features | Original source retained; no sidecar deployed | #8 dependency inventory, capability flags and restricted endpoints |
 | Own-host or hosted compute and payments | Planning only; no deployed service | #13–#22 protocol, security, cost, consent and release gates |
 
-No live account, external-media playback, browser/device, production deployment or paid-service testing was performed as part of the source import. Historical audits remain dated evidence; current status is recorded here and in issue-specific plans.
+See [baseline evidence](BASELINE_VERIFICATION.md) for commands, the initial configuration-test failure and its fixture resolution. No live account, external-media playback, browser/device, production deployment or paid-service testing was performed as part of the source import or build baseline. Historical audits remain dated evidence; current status is recorded here and in issue-specific plans.
