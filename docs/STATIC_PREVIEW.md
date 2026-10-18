@@ -1,6 +1,6 @@
 # Static preview preparation — issue #6
 
-The owner authorized a public preview on 2026-10-18 and supplied the [official Nuvio API docs](https://nuvio.tv/docs). **No preview is deployed yet.** Existing Cloudflare OAuth access is expired and cannot refresh noninteractively; `wrangler whoami` exited 1. Reconnect with `npx wrangler login` locally; never paste account credentials or API tokens into issues/chat.
+The owner authorized a public preview on 2026-10-18 and supplied the [official Nuvio API docs](https://nuvio.tv/docs). **Public development preview is now verified at https://nuvioweb-preview.pages.dev; see the final deployment evidence below.** The following preparation checkpoints are historical. Existing Cloudflare OAuth access is expired and cannot refresh noninteractively; `wrangler whoami` exited 1. Reconnect with `npx wrangler login` locally; never paste account credentials or API tokens into issues/chat.
 
 ## Configuration and deployment contract
 
@@ -22,7 +22,7 @@ After account access returns, use existing Wrangler 4.129.0 to inspect available
 
 ## Cache, routing and worker verification
 
-[Host headers](../deploy/cloudflare/_headers) revalidate unversioned assets and mark runtime config/worker no-store; no-referrer, nosniff, frame denial and noindex are explicit. A [custom 404](../deploy/cloudflare/404.html) and [navigation aliases](../deploy/cloudflare/_redirects) prevent unknown API/JS requests becoming successful SPA HTML. These follow Cloudflare's [headers](https://developers.cloudflare.com/pages/configuration/headers/) and [serving](https://developers.cloudflare.com/pages/configuration/serving-pages/) contracts; provider behavior is still unverified until uploaded.
+[Host headers](../deploy/cloudflare/_headers) revalidate unversioned assets and mark runtime config/worker no-store; no-referrer, nosniff, frame denial and noindex are explicit. A [custom 404](../deploy/cloudflare/404.html) and [navigation aliases](../deploy/cloudflare/_redirects) prevent unknown API/JS requests becoming successful SPA HTML. These follow Cloudflare's [headers](https://developers.cloudflare.com/pages/configuration/headers/) and [serving](https://developers.cloudflare.com/pages/configuration/serving-pages/) contracts; deployed behavior was subsequently verified in the final evidence below.
 
 Local fixture reproduction uses the inert build, not public-account traffic:
 
@@ -58,3 +58,27 @@ The static host provides browser assets only. It provides no video relay, CORS p
 The original source, GPL notices and pin/history are retained. Staging supplies the previously missing core-js/JSZip and DASH bundled notice files along with their included components' notices. Complete nested native/WASM component provenance, trademark/logo rights and distribution obligations remain release-review work; no blanket licensing clearance is asserted. Source/notice links in `SOURCE.txt` must be reachable from the public artifact. Do not distribute sidecar executables under this static-preview task.
 
 Rollback is the previous preview artifact/provider rollback or a protected PR revert, with no history rewriting or deletion of an unrelated site. No public URL, live account/media result or provider cost is claimed by local checks.
+
+## Verified public development preview — 2026-10-18
+
+Live URL: https://nuvioweb-preview.pages.dev. Branch alias: https://preview.nuvioweb-preview.pages.dev. Both now respond over normally verified HTTPS. This section supersedes the earlier pre-deployment/access-blocked checkpoints above.
+
+Owner-approved workspace device login restored account/user read and Pages write only. After listing projects, created dedicated `nuvioweb-preview` with main as its production branch. Uploaded the reviewed immutable staging directory for public source revision `7a316136e8116c0c8920dfafd1d30dd3de5c7a8d`, independently rechecking all 124 inventory hashes before upload. No Functions, backend bindings, custom domain, paid resources or billing changes.
+
+Initial preview-branch deployment `2a45a860` succeeded but nested preview/hash hostnames failed normal TLS probes. The bare project hostname had valid TLS and no main deployment. Uploading the identical artifact on main (`fd767932`) activated that dedicated preview address. The earlier preview alias subsequently returned HTTPS200 too; provisioning timing/cause is not established. TLS verification was never bypassed. Cloudflare's production environment label applies to this development-preview project, not a stable product release.
+
+Executed with cached Wrangler4.129.0 under pinned Node22.23.1 (the `wrangler` shorthand below refers to that executable):
+
+```sh
+wrangler pages project list
+wrangler pages project create nuvioweb-preview --production-branch main
+wrangler pages deploy <reviewed-stage> --project-name nuvioweb-preview --branch preview --commit-hash 7a316136e8116c0c8920dfafd1d30dd3de5c7a8d --commit-message 'Verified static development preview; source and notices included' --commit-dirty=false
+wrangler pages deploy <reviewed-stage> --project-name nuvioweb-preview --branch main --commit-hash 7a316136e8116c0c8920dfafd1d30dd3de5c7a8d --commit-message 'Owner-authorized public development preview; verified static artifact' --commit-dirty=false
+NUVIO_PREVIEW_REPORT=/tmp/nuvioweb-live-preview-verification.json node scripts/verify-live-preview.mjs <reviewed-stage>
+```
+
+`<reviewed-stage>` is `/home/saurabh/workspace/personal/projects/nuvioweb/dist/preview/7a316136e8116c0c8920dfafd1d30dd3de5c7a8d`. Upload ran from an isolated worktree with uncommitted plan documentation, hence Wrangler's working-tree warning. The explicit source hash and false dirty flag describe the separately committed/hash-verified artifact; those plan edits were not built or uploaded. Provider upload counted 123 asset files plus parsed header/redirect rules; local inventory includes these rules before its own generated manifest.
+
+[Read-only verification script](../scripts/verify-live-preview.mjs) passed on actual Chromium156.0.8078.4: ten remote index/app/worker/config/source/GPL/provenance/notice hashes match the local inventory; cache/no-store/nosniff, missing API/JS404 and matching-source GitHub URL200 pass. Actual browser assertions pass for signed-out form, automatic worker control/cache, guest Home/Search/Library/Settings, guest/profile choices after reload and a navigation alias. Zero uncaught page errors. [Sanitized result](evidence/preview-2026-10-18.json) contains no tokens or account identifiers.
+
+All third-party browser requests were blocked, including Nuvio API, Cinemeta, OpenSubtitles and Google Fonts. No credentials entered. This is deployed shell/PWA evidence; live login/sync, populated catalogs, playback/audio/subtitles, complete offline behavior and other devices/browsers remain unverified. The initial TLS probe failed and is recorded separately. Local two-build worker replacement tests remain the update-behavior evidence.
