@@ -36,9 +36,20 @@
     {
       "number": 3,
       "title": "[M0][P0] Verify Nuvio hosted API usage terms and identity requirements",
-      "status": "blocked_external",
+      "status": "verified",
       "dependencies": [],
-      "blocker": "Identity-contract research preserved in draft PR #34; human auth/security review pending. Owner accepted documented public-client APIs; unlisted endpoint/session semantics remain unverified."
+      "completion": {
+        "pr": 34,
+        "documents": [
+          "docs/NUVIO_IDENTITY_CONTRACT.md",
+          "docs/plans/issues/issue-3.md"
+        ],
+        "verification": [
+          "Published API/terms and pinned auth/session/sync-owner source mapped; stable subject, consent and guest fallback specified without a duplicate password database",
+          "Owner explicitly reviewed and approved PR #34 documentation scope on 2026-10-18; approved contract preserved byte-for-byte from 7693878; runtime/service-scope gates remain in #7/#14/#20",
+          "Pinned Node22 documentation/governance checks: 15 passed, no failures/skips; local links, ledger structure, whitespace and ancestry preflight passed; protected CI remains required before merge"
+        ]
+      }
     },
     {
       "number": 4,

@@ -6,11 +6,13 @@ Last updated 2026-10-18. This matrix records observed evidence; imported impleme
 | --- | --- | --- |
 | Source provenance and notices | Identical Git tree, 605 tracked files, GPL license hash, original ancestry and repository integrity checks passed | Preserve mapping and notices with later patches and releases |
 | Documentation CI | Root documentation checker/tests pass | Keep each PR green |
-| Locked dependency install | #5: clean `npm ci` passed, Node 22.23.1/npm 10.9.8, original lockfile retained | #29: reviewed dependency patch clean-installs with zero reported full/runtime advisories; remote protected CI remains the integration gate |
-| Browser distribution build | #5: upstream build passed; 12 assets and inert public-config checks passed | Distribution notice/rights review; no public deployment |
-| Application tests and lint | #5: 1,079 tests passed with zero skips; lint passed | Keep CI green; these tests do not establish real browser/device compatibility |
-| Chromium startup and guest shell | #31: 4 real-browser smoke tests pass: signed-out rendering, empty-form error, blocked-backend recovery, guest Home/Search/Library/Settings navigation and guest/profile choices after reload | Chromium 156.0.8078.4 only; no live provider, codec or PWA claim |
-| Nuvio login, refresh, profiles and sync | Original source retained; browser sign-in validation/unreachable-backend behavior observed | #3 service-use permission and #7 authorized identity/isolation tests |
+| Locked dependency install | #5 baseline and #29 reviewed patch clean-install on Node 22.23.1/npm 10.9.8; full/runtime/root audits report zero advisories | Keep protected audit CI green; no general security clearance |
+| Browser distribution build | #5 and #29 upstream build passed; 12 assets and inert public-config checks passed | Distribution notice/rights review; no public deployment |
+| Application tests and lint | #29: 1,079 tests passed with zero skips; lint passed | Keep CI green; these tests do not establish real browser/device compatibility |
+| Chromium startup and guest shell | #31/#29: 4 real-browser smoke tests pass: signed-out rendering, validation/network errors, guest Home/Search/Library/Settings and choices after reload | Chromium 156.0.8078.4 only; no live provider, codec or PWA claim |
+| Nuvio login, refresh, profiles and sync | Owner-reviewed [identity contract](NUVIO_IDENTITY_CONTRACT.md) in PR #34 maps pinned source and documented API; browser form/error behavior tested | Unlisted owner/QR/fallback scope and #7 authorized session/isolation evidence |
+| Stable subject for pairing / entitlements | Owner-reviewed authoritative current-user lookup design, separate subject/owner and consent boundaries; no verifier implemented | Verified deployed issuer/session semantics and #14/#20 security tests; cached owner or decoded JWT cannot authorize |
+| Permission-unavailable fallback | Existing guest entry and shell navigation tested; contract specifies local use without duplicate accounts | Hosted background traffic suppression and offline/provider behavior remain unverified |
 | HTTP/Stremio add-ons | Original source retained unchanged | #9 legal fixtures, parsing/error/CORS matrix |
 | Native video, HLS and DASH | Original source retained unchanged | #10 real fixtures on specified browsers/devices; no 4K/HDR/codec claim yet |
 | JavaScript plugin compatibility | Original upstream implementation retained | #11 sandbox/API/license/security verification; no broad compatibility claim |
