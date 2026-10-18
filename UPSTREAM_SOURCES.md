@@ -15,6 +15,7 @@ Status: Alpha source imported intact under `app/alpha` for [issue #4](https://gi
 | Original authors and history | Preserve through a nonsquashed Git subtree import |
 | Destination | `app/alpha`; confirmed by the owner on 2026-10-18 |
 | Imported commit | `920ae80ec4c1aef3f1fd6755e2e6b45ca5e83f66` (nonsquashed subtree merge) |
+| Import PR | [#28](https://github.com/saurabhhbansal/nuvioweb/pull/28), merge commit required |
 | Immutable upstream tag | `upstream/alpha-web-5624da2` |
 | Source-license evidence | [Preserved Alpha LICENSE](app/alpha/LICENSE); see the [license audit](docs/UPSTREAM_LICENSE_AUDIT.md) for notices, assets, dependencies and reuse restrictions |
 

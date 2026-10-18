@@ -1,6 +1,6 @@
 # Issue #4: [M1][P0] Import pinned Alpha NuvioWeb browser baseline with attribution
 
-**Plan status:** Source imported and locally verified on `m1/issue-4-alpha-import`; PR CI/merge evidence follows in GitHub.
+**Plan status:** Source imported and locally verified on `m1/issue-4-alpha-import`; [PR #28](https://github.com/saurabhhbansal/nuvioweb/pull/28) records CI/merge evidence.
 **Milestone:** M1 · **Priority:** P0  
 **GitHub issue:** https://github.com/saurabhhbansal/nuvioweb/issues/4  
 **Workstream:** [M1 roadmap](https://github.com/saurabhhbansal/nuvioweb/blob/main/docs/ROADMAP.md) · **Agent rules:** [AGENTS.md](https://github.com/saurabhhbansal/nuvioweb/blob/main/AGENTS.md)
@@ -75,7 +75,7 @@ Capture bounded, redacted failure counters and trace IDs without exposing access
 - [x] All issue acceptance criteria tested and documented.
 - [x] No runtime changes, API calls or deployment; existing source/security/release caveats recorded.
 - [x] Docs, feature evidence matrix and source provenance updated.
-- [ ] Reviewed pull request linked to issue, with rollout and rollback evidence.
+- [x] [PR #28](https://github.com/saurabhhbansal/nuvioweb/pull/28) links this plan, exact-source comparison, owner-approved layout, release limitations and rollback. No upstream runtime logic is edited.
 
 ## Executed verification (2026-10-18)
 
@@ -89,3 +89,5 @@ Capture bounded, redacted failure counters and trace IDs without exposing access
 - `git diff --check` — passed for this project's documentation updates. Upstream source whitespace remains unchanged by design.
 
 No application tests/build or live service requests are claimed for #4. The separate #5 plan owns that baseline. Rollout consists of source availability only; no deployment is performed.
+
+- Initial HTTPS tag push was rejected because the CLI OAuth credential lacks workflow scope for the original upstream root workflows. Existing SSH authentication was verified and used for the tag, without adding permissions or altering source/history.
