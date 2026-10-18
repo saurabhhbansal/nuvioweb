@@ -1,0 +1,161 @@
+name: Publish NuvioWeb Docker Images
+
+on:
+  push:
+    branches:
+      - web
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+concurrency:
+  group: publish-ghcr-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    if: github.ref == 'refs/heads/web' || startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      # A numbered image takes its number from the git tag, while the version
+      # the app shows under About is baked in from package.json at build time.
+      # Nothing tied the two together, so a tag pushed without a bump would
+      # publish an image called 0.1.3 that tells every user it is 0.1.2 -- and
+      # the image is the only copy anyone can check it against. Disagreeing is
+      # a failed build now, not a release.
+      - name: Check the tag matches the version the app will report
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          package_version="$(node -p "require('./package.json').version")"
+          tag_version="${GITHUB_REF_NAME#v}"
+          if [ "$package_version" != "$tag_version" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME would publish an image the app reports as $package_version."
+            echo "::error::Bump package.json to $tag_version, or tag v$package_version instead."
+            exit 1
+          fi
+          echo "Tag $GITHUB_REF_NAME matches package.json $package_version."
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract frontend image metadata
+        id: frontend-meta
+        uses: docker/metadata-action@369eb591f429131d6889c46b94e711f089e6ca96 # v5.6.1
+        with:
+          images: ghcr.io/alphasquare404/nuvioweb
+          flavor: |
+            latest=false
+          tags: |
+            type=raw,value=nightly,enable=${{ github.ref == 'refs/heads/web' }}
+            type=raw,value=latest
+            type=raw,value=desktop
+            type=raw,value=stable,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
+            type=semver,pattern={{version}},enable=${{ startsWith(github.ref, 'refs/tags/v') }}
+            type=sha,format=short,prefix=sha-
+
+      - name: Extract Trakt bridge image metadata
+        id: trakt-meta
+        uses: docker/metadata-action@369eb591f429131d6889c46b94e711f089e6ca96 # v5.6.1
+        with:
+          images: ghcr.io/alphasquare404/nuvioweb-trakt-auth-bridge
+          flavor: |
+            latest=false
+          tags: |
+            type=raw,value=nightly,enable=${{ github.ref == 'refs/heads/web' }}
+            type=raw,value=latest
+            type=raw,value=desktop
+            type=raw,value=stable,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
+            type=semver,pattern={{version}},enable=${{ startsWith(github.ref, 'refs/tags/v') }}
+            type=sha,format=short,prefix=sha-
+
+      - name: Extract debrid bridge image metadata
+        id: debrid-meta
+        uses: docker/metadata-action@369eb591f429131d6889c46b94e711f089e6ca96 # v5.6.1
+        with:
+          images: ghcr.io/alphasquare404/nuvioweb-debrid-api-bridge
+          flavor: |
+            latest=false
+          tags: |
+            type=raw,value=nightly,enable=${{ github.ref == 'refs/heads/web' }}
+            type=raw,value=latest
+            type=raw,value=desktop
+            type=raw,value=stable,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
+            type=semver,pattern={{version}},enable=${{ startsWith(github.ref, 'refs/tags/v') }}
+            type=sha,format=short,prefix=sha-
+
+      - name: Extract external return bridge image metadata
+        id: external-return-meta
+        uses: docker/metadata-action@369eb591f429131d6889c46b94e711f089e6ca96 # v5.6.1
+        with:
+          images: ghcr.io/alphasquare404/nuvioweb-external-return-bridge
+          flavor: |
+            latest=false
+          tags: |
+            type=raw,value=nightly,enable=${{ github.ref == 'refs/heads/web' }}
+            type=raw,value=latest
+            type=raw,value=desktop
+            type=raw,value=stable,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
+            type=semver,pattern={{version}},enable=${{ startsWith(github.ref, 'refs/tags/v') }}
+            type=sha,format=short,prefix=sha-
+
+      - name: Build and publish image
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.frontend-meta.outputs.tags }}
+          labels: ${{ steps.frontend-meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and publish Trakt auth bridge image
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
+        with:
+          context: .
+          file: ./services/trakt-auth-bridge/Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.trakt-meta.outputs.tags }}
+          labels: ${{ steps.trakt-meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and publish debrid API bridge image
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
+        with:
+          context: .
+          file: ./services/debrid-api-bridge/Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.debrid-meta.outputs.tags }}
+          labels: ${{ steps.debrid-meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and publish external return bridge image
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
+        with:
+          context: .
+          file: ./services/external-return-bridge/Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.external-return-meta.outputs.tags }}
+          labels: ${{ steps.external-return-meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
