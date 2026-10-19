@@ -243,3 +243,17 @@ The directory hash is derived from the JS and WASM SHA-256 values so identical i
 **Verification.** `node --test app/alpha/scripts/pluginEngineAssets.test.mjs` and `scripts/prepare-static-preview.test.mjs` (+ `stage-legal-demo`), inert default build + `node scripts/check-alpha-build.mjs` (12 assets, no engine files), opt-in build with `NUVIO_PLUGIN_ENGINE_ASSETS=1` + artifact check (versioned dir/manifest/hashes/MIME), stager rejection without the flag, `npm test --prefix app/alpha`, lint, docs/governance/preview/links/ledger/ancestry/whitespace. Record exact asset hash/dir in evidence. No upload.
 
 **Rollback.** Protected revert of the opt-in hook, installed-layout helper, header rules and tests; default build/stager behavior and deployed preview remain unchanged.
+
+### Unit 6b-1 results — opt-in engine asset emission (2026-10-19)
+
+Implemented the installed-layout helper (`app/alpha/scripts/pluginEngineAssets.mjs`), shared validator (`pluginEngineManifest.mjs`), opt-in build hook (`NUVIO_PLUGIN_ENGINE_ASSETS=1`), artifact-check/stager enforcement, notice packaging and scoped `_headers` rules. No application import, flag exposure, execution, upload or preview deployment.
+
+Executed with pinned Node22.23.1:
+
+- Default inert build + `node scripts/check-alpha-build.mjs` — **12 baseline assets**, no `assets/plugins`, no engine references in `app.bundle.js`.
+- Opt-in build — emits `assets/plugins/ffd052f2ddae417d/{plugin-engine.js,emscripten-module.wasm}` + `assets/plugins/plugin-engine.json`; JS64,698B/WASM1,027,523B/total1,092,221B hashes verified; directory equals `sha256(jsSha:wasmSha)` first16; artifact check passes with the flag and rejects mismatches.
+- Opt-in `npm run preview:stage` (no upload) — stages the manifest + versioned dir only, copies the three MIT notices (`third-party/quickjs-emscripten/LICENSE`, `quickjs-emscripten-core`, `@jitl/quickjs-wasmfile-release-asyncify`), lists them in `SOURCE.txt`, and carries the no-store/immutable + `application/wasm` header rules. Default staging contains no engine assets or engine notices.
+- `node --test app/alpha/scripts/pluginEngineAssets.test.mjs scripts/prepare-static-preview.test.mjs` —12/12 pass (orphan/sibling rejection, content-bound directory, tampered same-length hash, opt-in mismatch).
+- `npm test --prefix app/alpha` —1238/1238 pass; lint pass; docs/ledger/whitespace pass.
+
+**Read-only Codex review:** five P2 findings (root inventory, content-bound directory, header merge, notice attribution, installer symlink/stale-sibling handling); all fixed with regressions. Record: `docs/agent-runs/2026-10-19-engine-assets-review.md`. Limits: Cloudflare `_headers` behavior is documented but not deployed/verified here; `! Cache-Control` relies on Pages unset semantics. No app seam, CSP decision, execution or independent security review yet; unit 6b-2 remains owner/reviewer gated.
