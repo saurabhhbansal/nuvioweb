@@ -38,3 +38,22 @@ Interpretation:
 
 - Classify unsupported MKV/HEVC/DV/DDP sources before or at startup and show an honest capability message instead of `startup-stall` (see issue #10 plan amendment).
 - Produce or obtain an original multi-audio fixture and a supported HDR/HLS fixture for device checks; do not use provider media URLs in reports.
+
+## Additional iPhone Safari observations (owner, 2026-10-19)
+
+After the MKV sources failed, the owner tried other formats:
+
+| Source type | Result |
+| --- | --- |
+| MP4 (non-MKV) | `startup-stall`; playback did not start |
+| WebDL source requiring request headers | Explicit message: the source is not compatible with this device's player because it requires special request headers; try a different source or contact the add-on provider. The reported reason was still `startup-stall`. |
+
+Interpretation:
+
+- The header-required capability message exists and is useful, but the machine-readable reason is still the generic `startup-stall`, so diagnostics and automated assertions cannot distinguish “unsupported headers” from a genuine stall.
+- The MP4 failures mean the iOS playback gap is not limited to Matroska: without the source's container/codec/audio details and headers, a root cause cannot be claimed. Possibilities include an unsupported H.264 profile/level, an unsupported audio layout, a container variant, or an access/header constraint; none is established.
+- These remain manual, single-session observations. No further manual checks are requested from the owner unless a specific high-value verification cannot be automated; the next step is engine-level automation with synthetic sources.
+
+## Owner direction on further manual testing
+
+The owner will not continue ad-hoc manual device checks. Future #7/#10 evidence should come from automated suites (including a WebKit engine fixture in CI) and synthetic source descriptors, with manual device runs reserved for a specific claim that cannot be automated.

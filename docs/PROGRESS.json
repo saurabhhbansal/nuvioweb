@@ -222,7 +222,7 @@
           "remaining": [
             "Live account-switch Library hydration FAIL under #7, no equivalent retry; exact-key cleanup verified.",
             "Hosted guest demo/media/save/subtitle journey PASS at1f67867; manual Windows Edge/iPhone spot checks are optional owner evidence, not closure gates.",
-            "Owner direction2026-10-19: Chromium engine coverage accepted for Chromium-based Edge; no per-platform matrix closure gate. Windows11 Edge155 guest checklist PASS with audible audio (manual); iPhone17Pro/iOS27 Safari plays VP8/Opus demo but native MKV/HEVC/DV/HDR sources fail, one misclassified as startup-stall. Next unit: honest unsupported-container/codec classification; multitrack audio, supported HDR observation, hosted external-provider CORS and complete offline remain open evidence."
+            "Owner direction2026-10-19: Chromium engine coverage accepted for Chromium-based Edge; no per-platform matrix closure gate. Windows11 Edge155 guest checklist PASS with audible audio (manual); iPhone17Pro/iOS27 Safari plays VP8/Opus demo but native MKV/HEVC/DV/HDR sources fail, one misclassified as startup-stall. Additional iPhone Safari attempts: non-MKV MP4 also startup-stall; header-required WebDL shows the correct message but reason remains startup-stall. The iOS gap is not MKV-only; root cause needs engine fixtures. Next units: startup-classification fix and Playwright WebKit in CI; owner paused manual checks. Multitrack audio, supported HDR observation, hosted external-provider CORS and complete offline remain open evidence."
           ],
           "pr": 49
         },
