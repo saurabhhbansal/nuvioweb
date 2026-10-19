@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-19T07:36:15.512Z",
+  "candidateRevision": "8650d85afd665c589872ddf8474a3695900c6fb7",
+  "environment": "loopback candidate with live Nuvio API",
+  "publicDeployment": false,
+  "mode": "one reversible incremental Library marker",
+  "results": [
+    {
+      "alias": "B-writer",
+      "operation": "intended-login-and-library-pull",
+      "identityMatched": true,
+      "pullStatus": 200
+    },
+    {
+      "alias": "A-control",
+      "operation": "intended-login-and-library-pull",
+      "identityMatched": true,
+      "pullStatus": 200
+    },
+    {
+      "alias": "A/B",
+      "operation": "preflight",
+      "distinctAuthoritativeIdentities": true,
+      "distinctSyncOwners": true,
+      "startingBCount": 0,
+      "markerCollision": false,
+      "emptyContractProbesPassed": true
+    },
+    {
+      "alias": "B",
+      "operation": "incremental-marker-insert",
+      "markerOnly": true,
+      "remoteCount": 1
+    },
+    {
+      "alias": "B-receiver",
+      "operation": "intended-login-and-library-pull",
+      "identityMatched": true,
+      "pullStatus": 200
+    },
+    {
+      "alias": "B-receiver",
+      "operation": "independent-app-arrival",
+      "local": true,
+      "visible": true
+    }
+  ],
+  "limitations": [
+    "Single Linux Chromium environment",
+    "All third-party providers and legacy full-snapshot Library pushes blocked",
+    "API insertion does not verify app Save button or push path",
+    "No media playback, QR, measured expiry or remote revocation claim"
+  ],
+  "browser": "156.0.8078.4",
+  "platform": "linux",
+  "architecture": "arm64",
+  "status": "blocked-or-failed",
+  "failedStage": "A-marker-absence",
+  "failureCode": "STAGE_DID_NOT_COMPLETE",
+  "cleanup": {
+    "verified": false,
+    "privateCleanupNoteRetained": true
+  },
+  "cleanupFailureCode": "CLEANUP_STAGE_DID_NOT_COMPLETE",
+  "blockedLegacySnapshotRequests": 0,
+  "cleanupRecovery": {
+    "command": "node /tmp/nuvioweb-issue7-library-cleanup.mjs /tmp/nuvioweb-test-accounts.json",
+    "exitCode": 0,
+    "targetedDelete": true,
+    "remoteMarkerAbsent": true,
+    "remoteCount": 0,
+    "privateCleanupNoteRemoved": true
+  }
+}
