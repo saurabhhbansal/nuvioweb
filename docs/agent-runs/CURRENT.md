@@ -15,10 +15,10 @@ This file is the durable handoff. A new agent must be able to resume from it wit
 ## Current selection
 
 - Selected ticket: **#7** (real-account login/sync/profile isolation) and **#10** (source descriptors and browser playback capability reporting) remain the only in-progress MVP tickets. Governance/continuity work precedes them and is not a roadmap ticket.
-- Current branch: `m2/issue-10-capability-aware-tests` (from `main` `41aa19e`).
-- Current PR: capability-aware cross-engine playback assertions (issue #10 unit).
-- Most recently completed atomic task: PR #52 merged at `41aa19e` (add-on failure normalization); capability-aware quality/source-preference tests verified at `11ddfa3` — Chromium 42/42, Chrome for Testing 155 42/42, Playwright Firefox 40/40.
-- Next exact atomic task: merge this unit, then resume the bounded #7 diagnosis and the remaining #10 hosted/branded-device gates; hosted upload still waits on the owner's Cloudflare login.
+- Current branch: clean `main` at `98e8b72`; no open PR.
+- Current PR: none.
+- Most recently completed atomic task: PR #53 merged at `98e8b72` (capability-aware tests). Full cross-engine at `11ddfa3`: Chromium 42/42, Chrome for Testing 155 42/42, Playwright Firefox 40/40. PRs #50–#53 merged through protection.
+- Next exact atomic task: begin issue #11 (sandboxed Nuvio JavaScript plugin compatibility) with a read-only feasibility/decomposition plan and its smallest testable unit. #7 live work and the #10 hosted gate remain owner-blocked (see Known blockers); #10 named-engine work is substantially advanced but not closed.
 
 ## Relevant plans and evidence
 
