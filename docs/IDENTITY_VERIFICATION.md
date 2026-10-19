@@ -30,3 +30,13 @@ These are synthetic findings and an unmerged, undeployed fix; the live checks ab
 Local refresh-fix regression verification:1114/1114 application tests,31/31 Chromium/PWA journeys, lint, inert build/12-asset check and15/15 docs/governance tests pass. These do not replace the outstanding live/new-data/negative checks.
 
 [First hydration attempt](evidence/identity-hydration-attempt-2026-10-19.json) remains recorded as failed/partial: cloud requests returned200 and existing watched/add-on sets matched across A contexts, but the initial progress snapshot differed and the driver checked Sign Out before asynchronous navigation completed. The driver is being corrected to wait for completed/stable hydration and router mounting; no product sync fix or successful Library-isolation claim follows from this attempt. Empty Library controls cannot prove cross-account Library isolation.
+
+## Final bounded live hydration probe
+
+[Attempt2](evidence/identity-hydration-attempt-2-2026-10-19.json) corrected the early snapshot: independent A matched162 watched identities,154 progress identities and6 configured add-ons. [Final reduced probe](evidence/identity-hydration-final-2026-10-19.json) used actual browser router state and stable snapshots. A/B primary-profile cloud pulls returned200. Completed A→B matched fresh B's empty watched/progress and2 add-ons, with A-only watched/progress/add-on identities absent. These comparisons used private per-run salted identity hashes; no item names, URLs, IDs or hashes were retained.
+
+The final probe FAILED on B→A restoration: profiles and6 add-ons returned, but watched/progress remained empty versus A's162/154 control; the expected cloud pull operations were not observed within the bounded wait. This is an outstanding deployed hydration/scheduling problem to reproduce with synthetic controlled services, not a successful account-switch hydration test. No further live retries were performed. The original13 session/profile observations still have their limited meaning.
+
+Both test Libraries were empty. Equal empty controls do not verify Library synchronization or isolation. New-data creation/removal and push propagation remain untested; no existing remote record was modified. Future write probes need a documented reversible marker and a verified narrow cleanup contract. The current PR addresses only the separately reproduced refresh races and preserves these live limitations.
+
+Automated Standards/Spec reviews at909deac report no actionable findings in the bounded refresh fix; neither is human approval. All four required CI contexts passed on909deac. Final documentation updates require exact-head CI before the owner auth review checkpoint.

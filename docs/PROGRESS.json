@@ -124,7 +124,7 @@
           "Owner Windows/Edge initial3checks reported passed; exact browser version/session setup unknown.",
           "Live Chromium deployed8edec42:13 scoped assertions pass for intended distinct A/B logins, reload, independent A profiles and completed A-B-A profile controls/local logout. No Library/history/expiry claim."
         ],
-        "remaining": "Library/add-on/history sync/isolation, delayed-response and refresh/offline/QR cases, required auth review. Owner supplied secure local test inputs; no credential details in evidence."
+        "remaining": "Final live probe verifies A-to-B existing history/progress/add-on isolation but fails B-to-A history/progress rehydration. Empty Libraries cannot prove Library sync/isolation. Refresh races fixed/tested in draft PR44 (1114 application/31 browser passes), awaiting final CI/owner auth review; new-data/QR/offline/expiry and complete isolation remain. No credential details in evidence."
       }
     },
     {

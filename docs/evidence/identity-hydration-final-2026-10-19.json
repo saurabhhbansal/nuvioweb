@@ -1,0 +1,192 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-19T07:04:45.062Z",
+  "deployedRevision": "8edec4248405d59f5b8639085a1e779e6878911b",
+  "mode": "read-only live primary-profile hydration",
+  "results": [
+    {
+      "alias": "B-control",
+      "operation": "cloud-pull-status",
+      "operations": {
+        "addons": 200,
+        "library": 200,
+        "history": 200,
+        "progress": 200
+      },
+      "stableSnapshots": true,
+      "missingOperations": []
+    },
+    {
+      "alias": "B-control",
+      "operation": "password-sign-in",
+      "status": 200,
+      "identityMatched": true,
+      "authenticatedRoute": true,
+      "profileCount": 1
+    },
+    {
+      "alias": "A-control",
+      "operation": "cloud-pull-status",
+      "operations": {
+        "addons": 200,
+        "history": 200,
+        "library": 200,
+        "progress": 200
+      },
+      "stableSnapshots": true,
+      "missingOperations": []
+    },
+    {
+      "alias": "A-control",
+      "operation": "password-sign-in",
+      "status": 200,
+      "identityMatched": true,
+      "authenticatedRoute": true,
+      "profileCount": 3
+    },
+    {
+      "alias": "A",
+      "operation": "client-sign-out",
+      "accessAbsent": true,
+      "refreshAbsent": true,
+      "signInVisible": true
+    },
+    {
+      "alias": "A-to-B",
+      "operation": "cloud-pull-status",
+      "operations": {
+        "history": 200,
+        "progress": 200,
+        "addons": 200,
+        "library": 200
+      },
+      "stableSnapshots": true,
+      "missingOperations": []
+    },
+    {
+      "alias": "A-to-B",
+      "operation": "password-sign-in",
+      "status": 200,
+      "identityMatched": true,
+      "authenticatedRoute": true,
+      "profileCount": 1
+    },
+    {
+      "alias": "A-to-B",
+      "operation": "existing-data-control",
+      "matching": {
+        "library": {
+          "equal": true,
+          "count": 0,
+          "controlCount": 0
+        },
+        "history": {
+          "equal": true,
+          "count": 0,
+          "controlCount": 0
+        },
+        "progress": {
+          "equal": true,
+          "count": 0,
+          "controlCount": 0
+        },
+        "addons": {
+          "equal": true,
+          "count": 2,
+          "controlCount": 2
+        }
+      },
+      "writePropagation": "not-tested"
+    },
+    {
+      "alias": "A-to-B",
+      "operation": "private-marker-isolation",
+      "stores": {
+        "library": {
+          "distinctAMarkers": 0,
+          "absentInSwitchedB": true
+        },
+        "history": {
+          "distinctAMarkers": 162,
+          "absentInSwitchedB": true
+        },
+        "progress": {
+          "distinctAMarkers": 154,
+          "absentInSwitchedB": true
+        },
+        "addons": {
+          "distinctAMarkers": 6,
+          "absentInSwitchedB": true
+        }
+      }
+    },
+    {
+      "alias": "B",
+      "operation": "client-sign-out",
+      "accessAbsent": true,
+      "refreshAbsent": true,
+      "signInVisible": true
+    },
+    {
+      "alias": "B-to-A",
+      "operation": "cloud-pull-status",
+      "operations": {
+        "addons": 200
+      },
+      "stableSnapshots": true,
+      "missingOperations": [
+        "library",
+        "history",
+        "progress"
+      ]
+    },
+    {
+      "alias": "B-to-A",
+      "operation": "password-sign-in",
+      "status": 200,
+      "identityMatched": true,
+      "authenticatedRoute": true,
+      "profileCount": 3
+    },
+    {
+      "alias": "B-to-A",
+      "operation": "existing-data-control",
+      "matching": {
+        "library": {
+          "equal": true,
+          "count": 0,
+          "controlCount": 0
+        },
+        "history": {
+          "equal": false,
+          "count": 0,
+          "controlCount": 162
+        },
+        "progress": {
+          "equal": false,
+          "count": 0,
+          "controlCount": 154
+        },
+        "addons": {
+          "equal": true,
+          "count": 6,
+          "controlCount": 6
+        }
+      },
+      "writePropagation": "not-tested"
+    }
+  ],
+  "limitations": [
+    "Third-party providers blocked",
+    "No measured token expiry or revocation",
+    "No new-data write propagation proof; existing controls only",
+    "No QR/PIN approval",
+    "Single Linux Chromium environment; owner Windows/Edge report is separate"
+  ],
+  "browser": "156.0.8078.4",
+  "platform": "linux",
+  "architecture": "arm64",
+  "status": "blocked-or-failed",
+  "failedStage": "B-to-A-open-library",
+  "failureCode": "HYDRATION_CONTROL_MISMATCH"
+}
