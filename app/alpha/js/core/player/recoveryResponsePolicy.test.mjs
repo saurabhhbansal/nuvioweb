@@ -97,3 +97,18 @@ test("only an explicit ok classification permits consuming a body", () => {
     assert.equal(mayConsumeRecoveryBody(value), false, JSON.stringify(value));
   }
 });
+
+test("the body guard fails closed on throwing or revoked inputs", () => {
+  const throwing = {
+    get ok() {
+      throw new Error("boom");
+    }
+  };
+  assert.doesNotThrow(() => mayConsumeRecoveryBody(throwing));
+  assert.equal(mayConsumeRecoveryBody(throwing), false);
+
+  const { proxy, revoke } = Proxy.revocable({}, {});
+  revoke();
+  assert.doesNotThrow(() => mayConsumeRecoveryBody(proxy));
+  assert.equal(mayConsumeRecoveryBody(proxy), false);
+});

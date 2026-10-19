@@ -65,5 +65,10 @@ export function classifyRecoveryResponse(input = {}) {
 // A body may only be consumed after a positive classification, which keeps an
 // error page out of the demuxer and out of the byte budget.
 export function mayConsumeRecoveryBody(classification) {
-  return Boolean(classification && classification.ok === true);
+  // A throwing getter or revoked proxy must read as "not allowed", never throw.
+  try {
+    return Boolean(classification && classification.ok === true);
+  } catch (_) {
+    return false;
+  }
 }
