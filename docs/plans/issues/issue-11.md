@@ -176,3 +176,43 @@ Decision: asyncify variant only (the broker's `api.fetch` must await a host call
 **Next unit (6).** Implement the default-off lazy engine seam + build/stager WASM emission and an in-browser fixture journey, then the security/dependency review package.
 
 **Rollback.** Protected revert removes the measurement tooling/tests/doc; no shipped artifact changes.
+
+### Unit 6a — opt-in browser engine asset builder and in-browser fixture (planned 2026-10-19, before code)
+
+Feasibility was spiked under ignored `dist/`: the asyncify QuickJS bundle plus external `emscripten-module.wasm` loaded from loopback with `application/wasm` and executed the real `executePluginWithNetworkPrototype` path. The representative fixture returned one normalized group with one stream, dropped its `javascript:` URL, and produced no page errors. The spike is not committed evidence; this unit makes it reproducible and reviewable.
+
+**Targets.** New `app/alpha/scripts/pluginEngineBrowserEntry.mjs`, `app/alpha/scripts/pluginEngineAssets.mjs` (+ `.test.mjs`), `app/alpha/scripts/buildPluginEngineAssets.mjs`, `tests/browser/plugin-engine.spec.mjs`, and updates to `PLUGIN_ENGINE_EVALUATION.md`, this plan and ledgers. Reuse `pluginSandboxNetworkPrototype.mjs`, `pluginContract.js` and `representative-plugin.js` unchanged.
+
+**Build contract.** `buildPluginEngineAssets({outdir})` bundles the asyncify variant with esbuild (minify, ESM, browser, es2022), copies the package's external `emscripten-module.wasm` beside the JS, and writes `plugin-engine.json` containing the engine package/version/license, file names, byte sizes, SHA-256 for both files, and the required MIME types (`text/javascript`, `application/wasm`). Output goes under `app/alpha/dist/` (ignored) and is only produced by this explicit tool or the browser test; the normal application build, stager and preview are unchanged.
+
+**Browser fixture.** `tests/browser/plugin-engine.spec.mjs` builds the assets, serves them from an ephemeral loopback server with exact MIME types, and loads them in Chromium. Scenarios: representative fixture normalization and dropped `javascript:` URL; no `fetch`/`require`/`process`/`XMLHttpRequest`/`WebSocket`/`importScripts` inside the VM; allowed-host synthetic broker fetch; denied-host rejection with zero dispatch; wall-clock timeout; memory limit; oversized output; and no page errors/cross-origin requests. The fixture transport is synthetic and in-memory; no real network, account state or application bundle is used.
+
+**Non-goals.** No application import or wiring, no feature flag exposure, no stager/preview asset emission, no service-worker cache change, no real provider fetch, no plugin compatibility claim and no shipping default. Unit 6b (app seam, stager emission, CSP/`wasm-unsafe-eval` decision and security review package) remains separate and owner/reviewer gated.
+
+**Threats and controls.** Same-origin bundled JS/WASM only; the VM receives only injected bindings; transport never sees headers or credentials; exact allowlists and per-hop redirect authorization come from the reviewed broker; output/inputs are bounded; assets are generated deterministically from pinned devDependencies. Adding the WASM to any future CSP must scope `wasm-unsafe-eval` to this feature only. Asset cost is ~1.08MB raw/~378KB gzip plus external WASM and is not loaded by default in this unit.
+
+**Verification.** `node --test app/alpha/scripts/pluginEngineAssets.test.mjs`; `npx playwright test tests/browser/plugin-engine.spec.mjs --project=chromium`; `npm test --prefix app/alpha`; `npm run lint --prefix app/alpha`; inert `NUVIO_LOCAL_PROPERTIES=… npm run build --prefix app/alpha` + `node scripts/check-alpha-build.mjs` (must remain 12 assets, no engine files); docs/governance/preview tests and links/ledger/ancestry/whitespace. Record exact browser version and asset sizes/SHA-256.
+
+**Rollback.** Protected revert deletes the new scripts/spec and docs; no application runtime, preview artifact, storage or user data changes. The existing `quickjs-emscripten` devDependency and prototype files are untouched.
+
+### Unit 6a results — browser engine assets and in-browser fixture (2026-10-19)
+
+Implemented `pluginEngineAssets.mjs`, `buildPluginEngineAssets.mjs`, `pluginEngineBrowserEntry.mjs`, their focused test and `tests/browser/plugin-engine.spec.mjs`. The builder emits the asyncify JS + external WASM with a deterministic manifest (sizes, SHA-256, MIME, MIT/package versions, `defaultEnabled:false`). Built assets: `plugin-engine.js`64,698B / `emscripten-module.wasm`1,027,523B (total1,092,221B).
+
+Executed with pinned Node22.23.1/Playwright1.64/Chromium156.0.8078.4/LinuxARM64:
+
+- `node --test app/alpha/scripts/pluginEngineAssets.test.mjs` —7/7 pass (including symlink output-escape and symlinked/missing `dist` containment, run without a prebuilt `dist`).
+- `npx playwright test tests/browser/plugin-engine.spec.mjs --project=chromium` —9/9 pass,0 skipped (4.2s): manifest/hash correspondence, actual browser200 `application/wasm` response, representative fixture one group/one stream with dropped `javascript:`, no ambient host globals, allowed synthetic fetch through the broker, denied host with zero dispatch, timeout, memory, output-size, blocked/recorded unexpected external request, no page errors.
+- `npm test --prefix app/alpha` —1237/1237 pass,0 skipped (15.1s).
+- `npm run lint --prefix app/alpha` — pass.
+- Inert build + `node scripts/check-alpha-build.mjs` — pass, **12 assets**, no engine files in the app dist.
+- Full `npx playwright test` —51/51 pass (1.6min).
+- Read-only Codex review (`docs/agent-runs/2026-10-19-unit6a-review.md`): 2 P1 + 3 P2, all fixed (symlink output escape, missing cross-origin guard, server-side WASM assertion, stale JS hash, teardown guard); no P0 and no shipped-artifact exposure.
+
+The browser run exposed an in-VM OOM classification gap: allocations failing inside the VM surfaced as `plugin`. The network prototype now applies the same word-bounded OOM rule to rejections; abuse corpus12/12 and network prototype tests remain green, with a plain `"boom"` control still classified `plugin`.
+
+**Limits.** Test-only: no application import, feature flag, stager/preview emission, CSP change or real network. The browser fixture uses a synthetic in-memory transport and Chromium only; WebKit/Firefox and audible/device behavior are not covered. No compatibility, shipping or sandbox-escape claim.
+
+**Next unit (6b).** App default-off lazy seam consuming the contract + broker with an explicit opt-in source, stager emission of the hashed WASM/JS with `application/wasm` and cache rules, CSP/`wasm-unsafe-eval` decision, Firefox/WebKit coverage where available, and the independent security/dependency review package. Owner-gated rollout; no shipping default.
+
+**Rollback.** Protected revert deletes the new scripts/spec/docs and the prototype classifier line; no app runtime, preview, storage or user-data change.
