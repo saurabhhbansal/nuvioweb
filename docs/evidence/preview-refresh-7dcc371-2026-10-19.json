@@ -1,0 +1,74 @@
+{
+  "kind": "static-preview-refresh",
+  "recordedAt": "2026-10-19T20:12:00Z",
+  "project": "nuvioweb-preview",
+  "revision": "7dcc3717742e04745c018eccd342df0915bbe8fe",
+  "deployment": {
+    "id": "b6451df5-53cb-45d3-9312-361254bf3463",
+    "environment": "Production",
+    "branch": "main",
+    "url": "https://nuvioweb-preview.pages.dev",
+    "deploymentUrl": "https://b6451df5.nuvioweb-preview.pages.dev",
+    "uploaded": 6,
+    "alreadyUploaded": 127
+  },
+  "rollback": {
+    "deployment": "b48de821-9034-49cc-8e1f-ab5c50e7fa3a",
+    "revision": "1f67867ebab7f426672886121d852a643a436414",
+    "deploymentUrl": "https://b48de821.nuvioweb-preview.pages.dev"
+  },
+  "stage": {
+    "buildProperties": "deploy/cloudflare/build.properties",
+    "assetBuildId": "6ec3164fc673",
+    "workerCache": "nuvio-app-shell-0.1.5-ec38947e5d39",
+    "filesInManifest": 134,
+    "filesOnDisk": 135,
+    "totalBytes": 11496420,
+    "hashMismatches": 0,
+    "largestAsset": {
+      "path": "app.bundle.js",
+      "bytes": 2610808
+    },
+    "noticeFiles": 16,
+    "demoFiles": 19,
+    "licenseSourceUpstreamPresent": true
+  },
+  "verification": {
+    "livePreview": {
+      "command": "node scripts/verify-live-preview.mjs dist/preview/7dcc3717742e04745c018eccd342df0915bbe8fe",
+      "assetAndSourceHashesMatch": true,
+      "cacheAndSecurityHeaders": true,
+      "missingAssetApi404": true,
+      "matchingSourceReachable": true,
+      "automaticWorkerController": true,
+      "guestNavigationReload": true,
+      "aliasRoute": true,
+      "pageErrors": 0
+    },
+    "hostedGuestJourney": {
+      "command": "node scripts/verify-mvp-preview.mjs 7dcc3717742e04745c018eccd342df0915bbe8fe",
+      "browser": "156.0.8078.4",
+      "platform": "linux-arm64",
+      "journeys": {
+        "guestEntry": "PASS",
+        "addonInstallCatalog": "PASS",
+        "sourcePlayback": "PASS",
+        "pauseSeekResume": "PASS",
+        "subtitleActiveCue": "PASS",
+        "returnToBrowsing": "PASS",
+        "saveReloadPersistence": "PASS"
+      },
+      "decodedDimensions": [
+        640,
+        360
+      ],
+      "uncaughtPageErrors": 0
+    }
+  },
+  "limits": [
+    "Guest-only hosted evidence: no real account login, sync, account switching, Library isolation, external-provider CORS, audible or multitrack output, named Chrome/Edge/Safari/mobile, 4K60/HDR or complete-offline claim.",
+    "Third-party origins are blocked during the journey; the same-host legal CC0 demo is used for playback.",
+    "Builds are not bit-reproducible: the bundle embeds a build timestamp, so the asset id differs per rebuild.",
+    "The upload reused cached files for unchanged paths (127 of 133) and uploaded 6 changed files."
+  ]
+}
