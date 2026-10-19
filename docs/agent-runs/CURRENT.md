@@ -15,10 +15,10 @@ This file is the durable handoff. A new agent must be able to resume from it wit
 ## Current selection
 
 - Selected ticket: **#7** (real-account login/sync/profile isolation) and **#10** (source descriptors and browser playback capability reporting) remain the only in-progress MVP tickets. Governance/continuity work precedes them and is not a roadmap ticket.
-- Current branch: `m2/issue-10-addon-error-normalization` (from `main` `dd5a836`).
-- Current PR: cross-engine add-on failure normalization (issue #10 unit).
-- Most recently completed atomic task: governance PR #50 merged at `80f739c`; preview candidate revalidation PR #51 merged at `dd5a836`; add-on failure normalization implemented and verified at `aff4f062` (Chromium 42/42, Chrome for Testing 155 42/42, Playwright Firefox 33/40 capability-limited).
-- Next exact atomic task: merge this unit, then make codec-dependent/prediction-order browser tests capability-aware (separate #10 unit) so Firefox H.264 absence is asserted as an explicit error rather than a decode expectation.
+- Current branch: `m2/issue-10-capability-aware-tests` (from `main` `41aa19e`).
+- Current PR: capability-aware cross-engine playback assertions (issue #10 unit).
+- Most recently completed atomic task: PR #52 merged at `41aa19e` (add-on failure normalization); capability-aware quality/source-preference tests verified at `11ddfa3` — Chromium 42/42, Chrome for Testing 155 42/42, Playwright Firefox 40/40.
+- Next exact atomic task: merge this unit, then resume the bounded #7 diagnosis and the remaining #10 hosted/branded-device gates; hosted upload still waits on the owner's Cloudflare login.
 
 ## Relevant plans and evidence
 
@@ -35,6 +35,7 @@ This file is the durable handoff. A new agent must be able to resume from it wit
 - Governance PR #50: `node scripts/check-docs.mjs` pass; `node --test scripts/check-docs.test.mjs scripts/governance.test.mjs` 15/15 pass; `node scripts/check-progress.mjs` valid. Merged at `80f739c` after all four required checks passed on exact head `8936214`.
 - Preview candidate at `80f739c` in clean detached worktree: `npm run preview:stage` pass (asset `53a3ebbd44cc`, worker `nuvio-app-shell-0.1.5-134fd4f07f67`); 134/134 inventory hashes independently matched, GPL matched, 10 demo files, 0 forbidden paths. Loopback preflight PASS: 10 hash/header checks, 404s, demo resources, guest navigation/reload/alias, 0 page errors, all third-party origins blocked. Receipt: [preview-candidate-2026-10-19.json](../evidence/preview-candidate-2026-10-19.json).
 - Cloudflare access check FAIL: `wrangler 4.129.0 pages project list --json` requires `CLOUDFLARE_API_TOKEN`; OAuth expired `2026-10-19T10:05:01Z`. No upload attempted.
+- Capability-aware unit at `11ddfa3`: Chromium `npx playwright test` 42/42; Chrome for Testing 155 40/40 + 2/2 PWA; Playwright Firefox 157 40/40; focused quality/source-preference 9/9 in both Firefox and Chromium. Evidence: [cross-engine capability](../evidence/cross-engine-capability-2026-10-19.json).
 - Cross-engine unit at `aff4f062`: `node --test app/alpha/js/data/remote/addonFailure.test.mjs` 6/6; `npm test --prefix app/alpha` 1181/1181; lint pass; inert build/12 assets pass; Chromium `npx playwright test` 42/42; Chrome for Testing 155 40/40 non-PWA plus 2/2 PWA; Playwright Firefox 157 33/40 (7 capability/test-brittleness differences documented in [cross-engine evidence](../evidence/cross-engine-2026-10-19.json)).
 - Prior-agent receipts remain authoritative for their tested seams; see the files above.
 

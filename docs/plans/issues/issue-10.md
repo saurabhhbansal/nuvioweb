@@ -273,3 +273,16 @@ Limits: no branded Edge/Safari/physical mobile, no Firefox PWA run, no hosted/li
 **Verification.** Focused Firefox quality/source-ordering cases red before, green after; then full Playwright Firefox (40/40 non-PWA), Chromium 42/42 and Chrome for Testing155 42/42 at the same commit. Record exact engines and retained limits. Chromium assertions are not relaxed: its `canPlayType` is nonempty, so the strict branch still runs there.
 
 **Threats.** A capability probe could hide a real Chromium decode regression; mitigated because the unsupported branch requires an explicit user-visible error and Chromium never takes it. Probe only reads `canPlayType`, performs no I/O and changes no product behavior. **Rollback:** protected revert restores the Chromium-only assertions.
+
+### Capability-aware hardening results (source `11ddfa3`)
+
+The 7 Firefox differences from the previous unit were reproduced red, then resolved without relaxing Chromium: `quality.spec.mjs` now probes the engine's H.264 support and requires either strict decoding or an explicit `Playback Error` overlay with a working return; HLS-CORS accepts either a failed request or a failed response for the same denied manifest and either the switching-engine warning or a classified `mediaErrorCode 2`, retaining redaction checks; `source-preference.spec.mjs` derives the expected prediction order from measured codec support and still requires the 4K source to be selectable and to fail explicitly when undecodable.
+
+Executed at `11ddfa3af9081101309c25425dea2ecc8042ecb7` with the inert build:
+
+- Playwright Firefox157 (x86_64 under this ARM64 host) —40/40 non-PWA pass,0 failed/skipped.
+- Chromium156.0.8078.4 —42/42 pass (strict branch unchanged).
+- Chrome for Testing155.0.8059.84 —40/40 non-PWA plus2/2 PWA pass.
+- Focused Firefox quality/source-preference9/9 and Chromium9/9 pass.
+
+Limits: no branded Edge (no ARM64 Linux build or x64 device), Safari, iOS or physical mobile; Chrome for Testing is not a user-profile installation; Playwright Firefox is not branded-Firefox certification; Firefox PWA not run; no hosted/live-service/audible-audio/4K60/HDR claim. Evidence: `docs/evidence/cross-engine-capability-2026-10-19.json`. #10 stays open for hosted, branded-device and audio/quality gates.

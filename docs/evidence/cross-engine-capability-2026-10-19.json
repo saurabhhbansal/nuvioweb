@@ -1,0 +1,32 @@
+{
+  "asOf": "2026-10-19",
+  "sourceRevision": "11ddfa3af9081101309c25425dea2ecc8042ecb7",
+  "sourceNote": "Test-only commit hardening codec/prediction assertions. No application runtime file changed in this unit.",
+  "environment": {
+    "host": "Linux aarch64 (ARM64)",
+    "node": "22.23.1",
+    "playwright": "1.64.0",
+    "applicationBuild": "inert fixture configuration, 12 nonempty assets"
+  },
+  "results": {
+    "chromium": { "version": "156.0.8078.4", "total": 42, "passed": 42, "failed": 0, "skipped": 0, "command": "npx playwright test" },
+    "chrome": { "version": "155.0.8059.84", "total": 42, "passed": 42, "failed": 0, "skipped": 0, "breakdown": "40 non-PWA + 2 PWA/service-worker", "source": "Chrome for Testing linux-arm64 portable build" },
+    "firefox": { "version": "157.0", "total": 40, "passed": 40, "failed": 0, "skipped": 0, "source": "Playwright firefox-1555 build, x86_64 under ARM64 host", "note": "PWA project not run in Firefox" }
+  },
+  "whatChanged": [
+    "quality.spec.mjs probes canPlayType for the fixture codec: a capable engine keeps the existing strict dimensions/seek assertions; an engine without H.264 must show the visible Playback Error overlay with a nonempty message and a working Go Back.",
+    "HLS-CORS accepts either a failed request or a failed response for the same denied manifest path, and accepts either the switching-engine warning or a classified mediaErrorCode 2, while retaining redaction and no-secret-log assertions.",
+    "source-preference.spec.mjs derives the expected preferred order from the engine's own H.264 capability and, when unsupported, still requires the 4K source to be selectable and to surface an explicit error with a return path."
+  ],
+  "notRelaxed": [
+    "Chromium and Chrome report H.264 support, so the strict decode/seek/dimension branch still runs there and all 42 cases pass.",
+    "All eight sources remain present, toggle restores provider order, no extra media/provider request is made, provider-order autoplay is unchanged, and the no-secret-log assertion remains.",
+    "Unsupported-codec browsers must show an explicit user-visible failure, which is the product requirement rather than a skipped assertion."
+  ],
+  "limits": [
+    "Playwright Firefox is a real Gecko engine but not branded-Firefox certification, and it runs an emulated x86_64 build on this ARM64 host.",
+    "Chrome for Testing is a real Chrome binary but not a user-profile installation.",
+    "No Microsoft Edge (no ARM64 Linux build or physical x64 device), Safari, iOS or physical mobile.",
+    "No hosted HTTPS, live Nuvio service, audible/multitrack audio or 4K60/HDR claim."
+  ]
+}
