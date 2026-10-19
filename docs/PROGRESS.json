@@ -115,25 +115,23 @@
         3
       ],
       "progress": {
-        "branch": "m1/issue-7-library-reconciliation",
+        "branch": "m1/issue-7-reconciliation-live",
         "documents": [
           "docs/IDENTITY_VERIFICATION.md",
-          "docs/plans/issues/issue-7.md"
+          "docs/plans/issues/issue-7.md",
+          "docs/MVP_ACCEPTANCE.md",
+          "docs/evidence/identity-library-reconciliation-2026-10-19.json"
         ],
         "verification": [
-          "Owner Windows/Edge initial3checks reported passed; exact browser version/session setup unknown.",
-          "Live Chromium deployed8edec42:13 scoped assertions pass for intended distinct A/B logins, reload, independent A profiles and completed A-B-A profile controls/local logout. No Library/history/expiry claim.",
-          "Owner approved PR44 at35d36cb; protected merge e674c0e after all required CI, no override. Candidate1127 app/31 browser/32 focused and scoped live existing-data replay passed; public preview remains8edec42.",
-          "Nonempty B incremental marker reached an independent B app Library/local store. Distinct sync owners verified privately. Isolation sequence did not complete: first harness exception, reduced receiver no observed successful Library pull within30s. Both temporary markers removed with exact-key cleanup and verified empty B cloud Library.",
-          "Separate activation regression reproduced Home first paint delaying background sync; scoped source b629a30 now1131 application/31 browser/36 focused/17 governance passes, lint/build/assets pass and automated Standards/Spec0 findings. Changed local6df6ebd live marker replay still fails receiver Library pull barrier; exact-key cleanup succeeds. No live isolation/removal pass.",
-          "Owner approved PR45 at2ee9689; merged a046a54 with all protected CI. New actual-bundle synthetic identity/Library fixture6/6pass: B-A-B nonempty isolation, independent contexts, delayed critical response, pending catalog/no auth-header leak, obsolete B response and reload/new pull. No live barrier reproduction or real account writes.",
-          "Full synthetic browser/PWA37/37pass and17 governance cases pass. One bounded B-only no-test-record-mutation diagnostic on local6df6ebd: both independent Library reads complete200 at2.7-2.8s, critical reads complete. Empty Libraries and one run do not resolve earlier nonempty-marker failures; receipt preserves pending unrelated reads honestly.",
-          "Test-only PR46 merged07c0615 after all protected CI. Separate Library mutation unit reproduces empty-snapshot omission, cross-session queue/snapshot adoption, queue overlap and transport refresh/retry adoption. Final55 focused cases pass; bundled mock-backend UI final-item removal asserted. Full new-source regression/owner review pending, no live writes.",
-          "Library mutation sourcece1b2d5:1150 application/38 bundled-browser-PWA/55 focused/17 governance cases pass,0skips; inert build/assets/lint/docs/ledger/ancestry/whitespace pass. Draft PR47 has automated Standards/Spec0 actionable findings and awaits final CI/separate owner auth review. No live snapshot or public upload.",
-          "Owner approved PR47 at976726d; protected merge48ee9b0 after all required CI. Separate reconciliation unit reproduces7 snapshot/pending/shape failures plus1 acknowledgement race, then74 focused and9 bundled synthetic identity/deletion/pending-reload cases pass.1169 application tests, lint/inert build/assets pass; full browser/review pending. No live account/test-record changes.",
-          "Final reconciliation source3b602f3:1171 app/40 browser-PWA/76 focused pass,0skips; lint/inert build/assets pass. Automated Standards/Spec and migration follow-up0 actionable findings. Legacy unknown cache protected pending, fresh remote baseline clean; no automatic upload. Draft PR48 requires final-head CI/owner sync approval, no live account use."
+          "Owner reported initial three Windows/Edge checks passed; browser version and independent-session setup unspecified.",
+          "Hosted8edec42: distinct intended A/B sign-in, reload and profile controls observed; original hydration/isolation failures retained in dated receipts.",
+          "Owner-approved PR44 merged e674c0e: refresh/sync lifecycle guards; scoped loopback live existing-data A-B-A controls passed. Owner-approved PR45 merged a046a54: sync dispatch before Home paint. PR46 synthetic Library/session verification merged07c0615.",
+          "Owner-approved PR47 exact976726d merged48ee9b0 after protected CI: explicit final-item empty snapshot, mutation/queue/refresh ownership.1150 application/38 browser/55 focused pass; no live snapshot test.",
+          "Owner-approved PR48 exactf1ee08e merged25ce335 after protected CI: clean remote-empty reconciliation and pending/legacy edit preservation.1171 application/40 browser-PWA/76 focused pass; automated reviews0 actionable findings, not independent approval. No automatic retry/outbox or live deletion claim.",
+          "All four main workflows pass at25ce335. Public preview remains8edec42/deployment96f977f4; merged runtime44-48 not yet uploaded.",
+          "One bounded reviewed-sourcef800920 loopback/live API run: distinct A/B identities and sync owners, fresh initial Library pulls and independent nonempty B local/UI arrival pass. B-to-A reaches Library but no successful new Library response within30s; account switching FAIL/incomplete. Exact-key cleanup verified remote marker absent and original B keys unchanged, contexts/server closed. No full-snapshot write attempted or equivalent retry planned."
         ],
-        "remaining": "Issue7 open. PR44/45/47 owner-approved and PR46 test-only integrated; public preview still8edec42. Draft PR48 reconciliation1171 app/40 browser/76 focused pass and automated reviews clear; final CI/owner approval pending. Clean remote deletion and failed-pending reload are synthetic proofs only. Failed/legacy edits wait for later explicit Library mutation; no retry/resolution UI, automatic outbox, cross-tab/cloud conflict guarantee or storage-failure guarantee across reload. Earlier live nonempty receiver failure, real Save/removal/switching, expiry/revocation/QR/device/public checks incomplete."
+        "remaining": "Issue7 OPEN. MVP blocker: live B-to-A Library read/hydration barrier; reason not yet isolated, cumulative failed requests do not prove server rejection or leakage. Save/push/final-item deletion and receiver deletion remain synthetic only; live snapshot operation was blocked. Failed/legacy local changes persist pending but have no retry/resolution UI; full-snapshot concurrent writers, storage across failure/reload and cross-tab conflicts unresolved. Live expiry/revocation/QR and named-browser/device/hosted latest-source checks incomplete. No new permission needed for local debugging; exact preview refresh approval and external device evidence are the next owner checkpoints. Continue independent #10 native-playback acceptance while avoiding equivalent live probes."
       }
     },
     {
@@ -190,7 +188,9 @@
         "documents": [
           "docs/PLAYBACK_QUALITY_MATRIX.md",
           "docs/evidence/quality-2026-10-19.json",
-          "docs/plans/issues/issue-10.md"
+          "docs/plans/issues/issue-10.md",
+          "docs/MVP_ACCEPTANCE.md",
+          "docs/evidence/browser-mvp-playback-2026-10-19.md"
         ],
         "verifiedLocally": [
           "Original1080p/4K MP4 and4K HLS/DASH bundled playback and seek;403/410/CORS failure and return",
@@ -203,14 +203,19 @@
           "Sustained high-bitrate/4K60/HDR and broader failure fixtures"
         ],
         "currentUnit": {
-          "branch": "m2/issue-10-source-ranking",
-          "scope": "Optional native-prediction display ordering with unknown/constraint policy; provider-order auto-play unchanged",
+          "branch": "m1/issue-7-reconciliation-live",
+          "scope": "Owner-requested MVP correction: live acceptance status, explicit Back navigation fix, complete local guest playback/save journey and optional same-host CC0 demo in static staging; no auth/fetch policy change",
           "verifiedLocally": [
-            "Focused19 unit,6 HTTP fixture,2 actual browser cases; inert build/lint pass",
-            "Complete29 browser cases pass,0fail/skip/flaky; automated Standards/Spec no unresolved actionable findings;artifact12/docs-governance15 pass"
+            "Confirmed panel Escape\u2192immediate Back navigation bug;2 actual-Router cases failed before6-line fix;70 Router/focus cases pass afterward.",
+            "Complete real bundled guest install/catalog/save/play/pause/seek/resume/subtitle/back/reload and fresh-return control:2/2pass in9.0s; native English active cue visually inspected; audio-track menu reports no selectable tracks, no multitrack/audible output claim.",
+            "Final inert build1f6602975d2f/worker4cf247398dd9/assets/lint pass;1173 application cases and42 browser/PWA journeys pass,0skips. Static-demo plus preview config3/3pass; full final docs/governance/review/CI pending."
           ],
-          "integrationGate": "PR40 merged at8edec42 after all required exact-head checks; remote application1094/browser29 pass; no new fetch policy",
-          "pr": 40
+          "integrationGate": "Unmerged current MVP unit; protected exact-head CI and automated review required. No public upload. Current main25ce335 and deployed8edec42 remain separate.",
+          "remaining": [
+            "Live account-switch Library hydration FAIL under #7, no equivalent retry; exact-key cleanup verified.",
+            "Hosted optional demo/media/save/subtitle journey NOT TESTED; prepare merged candidate and obtain exact owner upload approval.",
+            "Named Chrome/Edge first then Firefox/Safari/mobile; multitrack/audible output and complete offline; advanced4K60/HDR separate later gates."
+          ]
         },
         "preview": {
           "sourceRevision": "8edec4248405d59f5b8639085a1e779e6878911b",

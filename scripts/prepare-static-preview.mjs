@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { ENV_PROPERTY_KEYS } from "../app/alpha/scripts/envProperties.mjs";
+import { stageLegalDemo } from "./stage-legal-demo.mjs";
 
 export function validatePublicConfig(source) {
   const json = source.match(/var values = (\{[\s\S]*?\n\});/)?.[1];
@@ -65,6 +66,7 @@ export async function preparePreview() {
     await mkdir(resolve(target,".."),{recursive:true});
     await cp(join(root,"app/alpha/node_modules",path),target);
   }
+  await stageLegalDemo(destination);
   await writeFile(join(destination,"SOURCE.txt"),`NuvioWeb independent community preview; not affiliated with or endorsed by Nuvio.\nGPL source and build instructions for this revision:\nhttps://github.com/saurabhhbansal/nuvioweb/tree/${revision}\nUpstream provenance: /UPSTREAM_SOURCES.md\nGPL license: /LICENSE.txt\nThird-party notice files: ${noticePaths.map((path)=>`/third-party/${path}`).join(", ")}\nBrowser preview only. Native sidecars, paid compute and a media proxy are not deployed.\n`);
   const inventory = [];
   for (const entry of await readdir(destination,{recursive:true,withFileTypes:true})) if (entry.isFile()) {

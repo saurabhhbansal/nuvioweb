@@ -1921,7 +1921,7 @@ test.after(() => {
   delete globalThis.__NUVIO_PLATFORM__;
 });
 
-test("a Back whose popstate is suppressed settles as not landed instead of hanging", async () => {
+test("a Back suppressed after dispatch settles as not landed instead of hanging", async () => {
   // The player stops playback the moment Back is pressed and then waits on this
   // promise to know whether the route actually changed. A popstate the router
   // discards used to leave it pending forever, so the player's own in-progress
@@ -1940,8 +1940,17 @@ test("a Back whose popstate is suppressed settles as not landed instead of hangi
     streamRouteParams: { itemId: "movie-1", itemType: "movie" }
   });
 
-  Router.suppressNextPopstate(1500);
-  const pending = Router.backToPreviousNuvioRoute("stream");
+  const originalBack = history.back;
+  history.back = function () {
+    Router.suppressNextPopstate(1500);
+    return originalBack.call(this);
+  };
+  let pending;
+  try {
+    pending = Router.backToPreviousNuvioRoute("stream");
+  } finally {
+    history.back = originalBack;
+  }
   assert.equal(pending.accepted, true);
   await history.whenSettled();
   await flushNavigation();
@@ -1950,7 +1959,7 @@ test("a Back whose popstate is suppressed settles as not landed instead of hangi
   assert.equal(Router.getCurrent(), "player", "and the route did not change");
 });
 
-test("an ignored popstate settles a pending Back too", async () => {
+test("a popstate ignored after dispatch settles a pending Back too", async () => {
   const detail = makeDetailScreen();
   const stream = makeStreamScreen();
   const player = makePlayerBackScreen();
@@ -1965,8 +1974,17 @@ test("an ignored popstate settles a pending Back too", async () => {
     streamRouteParams: { itemId: "movie-1", itemType: "movie" }
   });
 
-  Router.ignoreSinglePopstate();
-  const pending = Router.backToPreviousNuvioRoute("stream");
+  const originalBack = history.back;
+  history.back = function () {
+    Router.ignoreSinglePopstate();
+    return originalBack.call(this);
+  };
+  let pending;
+  try {
+    pending = Router.backToPreviousNuvioRoute("stream");
+  } finally {
+    history.back = originalBack;
+  }
   assert.equal(pending.accepted, true);
   await history.whenSettled();
   await flushNavigation();
@@ -1997,4 +2015,41 @@ test("an ordinary Player Back still lands on Stream", async () => {
 
   assert.equal(await pending.settled, true);
   assert.equal(Router.getCurrent(), "stream");
+});
+
+
+test("explicit Player Back supersedes stale overlay popstate suppression and ignore flags", async () => {
+  const detail = makeDetailScreen();
+  const stream = makeStreamScreen();
+  const player = makePlayerBackScreen();
+  resetRouter({ detail, stream, player });
+  Router.init();
+  await Router.navigate("detail", { itemId: "movie-1", itemType: "movie" });
+  await Router.navigate("stream", { itemId: "movie-1", itemType: "movie" });
+  await Router.navigate("player", { itemId: "movie-1", itemType: "movie", returnToStreamOnBack: true });
+  Router.suppressNextPopstate(1500);
+  Router.ignoreSinglePopstate();
+  const pending = Router.backToPreviousNuvioRoute("stream");
+  assert.equal(pending.accepted, true);
+  await history.whenSettled();
+  await flushNavigation();
+  assert.equal(await pending.settled, true);
+  assert.equal(Router.getCurrent(), "stream");
+  assert.equal(Router.suppressPopstateUntil, 0);
+  assert.equal(Router.ignoreNextPopstate, false);
+});
+
+test("explicit source Back supersedes stale overlay guards and reaches its detail parent", async () => {
+  const detail = makeDetailScreen();
+  const stream = makeStreamScreen();
+  resetRouter({ detail, stream });
+  Router.init();
+  await Router.navigate("detail", { itemId: "movie-1", itemType: "movie" });
+  await Router.navigate("stream", { itemId: "movie-1", itemType: "movie" });
+  Router.suppressNextPopstate(1500);
+  Router.ignoreSinglePopstate();
+  await Router.back();
+  await history.whenSettled();
+  await flushNavigation();
+  assert.equal(Router.getCurrent(), "detail");
 });

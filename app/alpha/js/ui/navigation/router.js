@@ -512,6 +512,10 @@ export const Router = {
       resolve
     };
     try {
+      // A deliberate app traversal is newer than an overlay's duplicate-event
+      // guards. Let its popstate land instead of dropping the user's Back.
+      this.suppressPopstateUntil = 0;
+      this.ignoreNextPopstate = false;
       window.history.back();
       return { accepted: true, settled };
     } catch (_) {
@@ -1091,6 +1095,8 @@ export const Router = {
       if (options?.skipConsume) {
         this.skipConsumeNextPopstate = true;
       }
+      this.suppressPopstateUntil = 0;
+      this.ignoreNextPopstate = false;
       window.history.back();
       return;
     }

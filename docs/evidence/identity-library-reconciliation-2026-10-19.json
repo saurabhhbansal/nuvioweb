@@ -1,0 +1,174 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-19T08:59:46.705Z",
+  "candidateRevision": "f8009207be06e9120dd5beaf71a5e8bdbe6c4323",
+  "environment": "loopback candidate with live Nuvio API",
+  "publicDeployment": false,
+  "mode": "one reversible incremental Library marker",
+  "results": [
+    {
+      "alias": "B-writer",
+      "operation": "intended-login-and-library-pull",
+      "identityMatched": true,
+      "pullStatus": 200
+    },
+    {
+      "alias": "A-control",
+      "operation": "intended-login-and-library-pull",
+      "identityMatched": true,
+      "pullStatus": 200
+    },
+    {
+      "alias": "A/B",
+      "operation": "preflight",
+      "distinctAuthoritativeIdentities": true,
+      "distinctSyncOwners": true,
+      "startingBCount": 0,
+      "markerCollision": false,
+      "emptyContractProbesPassed": true
+    },
+    {
+      "alias": "B",
+      "operation": "incremental-marker-insert",
+      "markerOnly": true,
+      "remoteCount": 1
+    },
+    {
+      "alias": "B-receiver",
+      "operation": "intended-login-and-library-pull",
+      "identityMatched": true,
+      "pullStatus": 200
+    },
+    {
+      "alias": "B-receiver",
+      "operation": "independent-app-arrival",
+      "local": true,
+      "visible": true
+    },
+    {
+      "alias": "B-to-A",
+      "operation": "library-barrier-diagnostic",
+      "ui": {
+        "route": "library",
+        "visible": true,
+        "activationOverlayPresent": false,
+        "sessionPresent": true,
+        "localLibraryCount": 0,
+        "primaryLibraryPending": false
+      },
+      "operations": {
+        "owner": {
+          "started": 2,
+          "headers": 1,
+          "completedBodies": 1,
+          "failed": 1,
+          "httpStatuses": [
+            200
+          ],
+          "latestFinishSeconds": 1
+        },
+        "profiles": {
+          "started": 5,
+          "headers": 2,
+          "completedBodies": 2,
+          "failed": 3,
+          "httpStatuses": [
+            200,
+            200
+          ],
+          "latestFinishSeconds": 2.3
+        },
+        "criticalSettings": {
+          "started": 3,
+          "headers": 2,
+          "completedBodies": 2,
+          "failed": 1,
+          "httpStatuses": [
+            200,
+            200
+          ],
+          "latestFinishSeconds": 1.9
+        },
+        "criticalAddons": {
+          "started": 2,
+          "headers": 2,
+          "completedBodies": 2,
+          "failed": 0,
+          "httpStatuses": [
+            200,
+            200
+          ],
+          "latestFinishSeconds": 3.4
+        },
+        "criticalHomeCatalog": {
+          "started": 4,
+          "headers": 3,
+          "completedBodies": 3,
+          "failed": 1,
+          "httpStatuses": [
+            200,
+            200,
+            200
+          ],
+          "latestFinishSeconds": 1.9
+        },
+        "library": {
+          "started": 2,
+          "headers": 1,
+          "completedBodies": 1,
+          "failed": 1,
+          "httpStatuses": [
+            200
+          ],
+          "latestFinishSeconds": 2.3
+        },
+        "watched": {
+          "started": 3,
+          "headers": 1,
+          "completedBodies": 1,
+          "failed": 2,
+          "httpStatuses": [
+            200
+          ],
+          "latestFinishSeconds": 2.3
+        },
+        "progress": {
+          "started": 3,
+          "headers": 1,
+          "completedBodies": 1,
+          "failed": 2,
+          "httpStatuses": [
+            200
+          ],
+          "latestFinishSeconds": 2.3
+        }
+      }
+    },
+    {
+      "alias": "B",
+      "operation": "targeted-cleanup",
+      "targetedDelete": true,
+      "remoteMarkerAbsent": true,
+      "originalBKeysUnchanged": true
+    }
+  ],
+  "limitations": [
+    "Single Linux Chromium environment",
+    "All third-party providers and legacy full-snapshot Library pushes blocked",
+    "API insertion does not verify app Save button or push path",
+    "No media playback, QR, measured expiry or remote revocation claim"
+  ],
+  "browser": "156.0.8078.4",
+  "platform": "linux",
+  "architecture": "arm64",
+  "errorCategory": "OTHER",
+  "status": "blocked-or-failed",
+  "failedStage": "B-to-A-hydrate",
+  "failureCode": "LIBRARY_PULL_NOT_OBSERVED",
+  "cleanup": {
+    "targetedDelete": true,
+    "remoteMarkerAbsent": true,
+    "originalBKeysUnchanged": true
+  },
+  "blockedLegacySnapshotRequests": 0
+}
