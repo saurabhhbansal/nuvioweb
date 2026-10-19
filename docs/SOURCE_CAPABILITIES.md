@@ -55,4 +55,24 @@ Changing the display order performs no provider/media requests and does not chan
 
 Local verification so far: focused capability/preference/ordering/auto-play unit tests19/19, HTTP fixture contracts6/6, actual browser UI/selector scenarios2/2, configured inert build/lint pass. The bundled test proves default/toggled order, every original canonical source ID retained, Enter/Space/Tab and focus, no toggle requests, actual original3840x2160 playback and retained preference on player Back. The imported screen/real selector test proves enabled FIRST_STREAM auto-play chooses provider-first despite a differently ranked display. All third-party traffic blocked. Initial test-driver assumptions about upstream-generated IDs, source-module entry order and the player's Sources panel were corrected; no application behavior or assertion was weakened to accept failure. One desktop/narrow visual round found a header row collision; one corrective round confirms separate44px/16px control, wrapping and no new horizontal overflow. Blocked external icon fonts still show inherited fallback text, not a newly certified icon/font release.
 
-This unit remains unmerged pending complete browser/required exact-head CI and automated review. Named Chrome/Edge/Firefox/Safari/device, sustained high-bitrate/4K60/HDR and broader failure evidence remain outstanding; #10 is not complete. Prediction ordering is advisory, not automatic quality selection or compatibility certification.
+Final complete local browser run on5f4d0b4 passed29/29 (54.2seconds),0fail/skip/flaky; [structured receipt](evidence/source-order-2026-10-19.json). Automated Standards/Spec reviews have zero unresolved actionable findings; an initial expiry-cache concern was withdrawn after confirming inherited render invalidation. Artifact12 and docs/governance15/15 plus links/ledger/ancestry/whitespace pass. [PR40](https://github.com/saurabhhbansal/nuvioweb/pull/40) remains unmerged pending required exact-head CI. Named Chrome/Edge/Firefox/Safari/device, sustained high-bitrate/4K60/HDR and broader failure evidence remain outstanding; #10 is not complete. Prediction ordering is advisory, not automatic quality selection or compatibility certification.
+
+
+Third-unit exact executed commands (pinned Node22):
+
+```sh
+node --test app/alpha/js/core/streams/sourcePreference.test.mjs app/alpha/js/core/streams/sourceCapabilities.test.mjs app/alpha/js/core/streams/streamOrdering.test.mjs app/alpha/js/core/streams/streamAutoPlaySelector.test.mjs
+npm run test:addon-fixtures
+NUVIO_LOCAL_PROPERTIES=../../tests/fixtures/build.properties npm run build --prefix app/alpha
+npm run lint --prefix app/alpha
+npx playwright test tests/browser/source-preference.spec.mjs --project chromium
+PLAYWRIGHT_JSON_OUTPUT_NAME=/tmp/nuvioweb-source-order-browser-2026-10-19.json npx playwright test --reporter=list,json
+node scripts/check-alpha-build.mjs
+node --test scripts/check-docs.test.mjs scripts/governance.test.mjs
+node scripts/check-docs.mjs
+node scripts/check-progress.mjs
+node scripts/check-commit-references.mjs origin/main HEAD
+git diff --check
+```
+
+The restricted sandbox summarized only test-file subprocesses; the authorized rerun produced19 actual unit and6 actual fixture results. The full local application suite was not rerun for this display-only unit: focused seam tests and mandatory remote full regression are the planned gates. The inherited1089 run remains PR39 evidence, not new-feature proof. No new browser/device, account or deployment result is inferred.

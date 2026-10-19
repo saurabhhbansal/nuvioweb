@@ -1,0 +1,41 @@
+{
+  "sourceCommit": "5f4d0b419cc6b0222d4f9fb488dc88094cddd7aa",
+  "pullRequest": 40,
+  "browser": "Playwright1.64.0 Chromium156.0.8078.4",
+  "environment": "Linux ARM64; pinned Node22.23.1/npm10.9.8; loopback fixtures; third-party traffic blocked",
+  "stats": {
+    "startTime": "2026-10-19T03:34:01.117Z",
+    "duration": 54171.15,
+    "expected": 29,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "cases": [
+    {
+      "test": "bundled native preference is opt-in, keyboard accessible and keeps original4K selectable",
+      "status": "passed",
+      "durationMs": 3835
+    },
+    {
+      "test": "actual screen keeps automatic selection in provider order despite display preference",
+      "status": "passed",
+      "durationMs": 920
+    }
+  ],
+  "verifiedAssertions": [
+    "Default provider order; opt-in native-prediction order; toggle-off restoration",
+    "All eight original canonical IDs retained; no provider/media requests from toggling",
+    "Native Enter/Space/Tab and focus retention; aria-pressed state",
+    "Desktop1280x800 and narrow390x844:16px type,control at least44px high,own row, no new horizontal overflow",
+    "Explicitly chosen original3840x2160 MP4: advancing time,no MediaError,unchanged original URL",
+    "Actual player Back restores order choice through existing in-memory route snapshot",
+    "Imported actual StreamScreen+FIRST_STREAM selector: original provider-first choice despite ranked display"
+  ],
+  "limits": [
+    "Predictions only; no live auth/sync/provider or audio/subtitle/HDR claims",
+    "Only this Linux Chromium host; no named Chrome/Edge/Firefox/Safari/device certification",
+    "Short original fixture does not establish sustained high bitrate/4K60",
+    "No extra remote-fetch/engine/compute/payment policy or deployment"
+  ]
+}

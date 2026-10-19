@@ -174,9 +174,11 @@
           "branch": "m2/issue-10-source-ranking",
           "scope": "Optional native-prediction display ordering with unknown/constraint policy; provider-order auto-play unchanged",
           "verifiedLocally": [
-            "Focused19 unit,6 HTTP fixture,2 actual browser cases; inert build/lint pass"
+            "Focused19 unit,6 HTTP fixture,2 actual browser cases; inert build/lint pass",
+            "Complete29 browser cases pass,0fail/skip/flaky; automated Standards/Spec no unresolved actionable findings;artifact12/docs-governance15 pass"
           ],
-          "integrationGate": "Complete browser suite, automated two-axis review and required exact-head protected CI pending"
+          "integrationGate": "PR40: required exact-head protected CI and resolved conversations before normal merge",
+          "pr": 40
         }
       }
     },
