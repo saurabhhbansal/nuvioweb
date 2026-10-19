@@ -334,3 +334,58 @@ The owner has paused further manual checks. The next units are therefore:
 4. **#11 unit 6b-2** continues in parallel.
 
 Manual device runs are now reserved for a specific claim that cannot be automated; none are requested at this stage.
+
+#### Pre-code plan amendment — bounded startup-failure classification (2026-10-19, round 17)
+
+Status: implemented, reviewed (two automated Codex passes, seven findings fixed) and recorded in [startup-classification evidence](../../evidence/startup-classification-2026-10-19.md) and the [review record](../../agent-runs/2026-10-19-startup-classification-review.md). No transcoding, demuxer, proxy or codec work.
+
+**Problem restated from evidence.** [device verification](../../evidence/device-verification-2026-10-19.md) recorded three mislabels on iPhone/Safari iOS 27: a native Matroska/HEVC/Dolby Vision source surfaced `startup-stall`, a non-MKV MP4 source surfaced `startup-stall`, and a header-restricted WebDL source showed the correct "requires special request headers" text but still reported the reason `startup-stall`. The user-visible string is produced by `getStartupErrorMessage` while the machine-readable reason is a hard-coded literal at each call site, so the two can disagree and neither reflects the source descriptor.
+
+**Targets.**
+
+- New pure module `app/alpha/js/core/player/startupFailure.js`: no DOM, no network, no storage, no `t()` import. Exports `STARTUP_FAILURE_REASONS`, `STARTUP_FAILURE_CATEGORIES` and `classifyStartupFailure(input)`.
+- New unit test `app/alpha/js/core/player/startupFailure.test.mjs`.
+- `app/alpha/js/ui/screens/player/playerScreen.js`: gather descriptor/prediction/header evidence, call the classifier, pass its `reason` to `showStartupError` and use one message builder for classified reasons. The three startup sites are the play-promise rejection, the media/`error`-event startup path and the startup stall guard.
+- `app/alpha/res/values/strings.xml`: two honest messages (container, codec).
+- `tests/browser/capabilities.spec.mjs`: real-engine classification assertions in Chromium using the fixture harness and the actual `HTMLVideoElement.canPlayType`.
+- `docs/PLAYBACK_QUALITY_MATRIX.md`, `docs/MVP_ACCEPTANCE.md`, this plan and `docs/agent-runs/CURRENT.md` for the recorded outcome.
+
+**Classifier contract.**
+
+```
+classifyStartupFailure({
+  descriptor,            // describeSource/normalizeSourceDescriptor output or null
+  nativePrediction,      // probeNativeSource output: probably|maybe|not-reported|unknown
+  engine,                // PlayerController.playbackEngine: native-file|hls.js|dash.js|none
+  mediaErrorCode,        // 0..4
+  detail,                // runtime error text, bounded
+  httpStatus,            // parsed HTTP status or 0
+  headerRequired,        // true only when notWebReady is true AND required request headers exist
+  timedOut,              // true only for the startup stall guard
+  sourceElementError     // true only for the element error-event path
+}) -> { reason, category, evidence, container, codec }
+```
+
+Ordered, evidence-gated rules (first match wins):
+
+1. `headerRequired` → `header-required` (`evidence: "provider-declared"`). Never masked by a media code, because the source cannot be requested correctly at all.
+2. `httpStatus > 0` → `network`. A transport failure is never relabelled as unsupported.
+3. Invalid-content markers in `detail` (`html`, `manifestparsingerror`, `invalid content`, …) → `invalid-content`.
+4. `mediaErrorCode === 2` → `network`; `=== 1` → `aborted`.
+5. Unsupported classification, only when the container is handled natively (`engine` is `native-file`/`none` and `transportHint` is not `hls`/`dash`, so an adaptive library is never second-guessed) **and** there is a definitive engine signal: `nativePrediction === "not-reported"` (the engine affirmatively declined the declared type) or the engine raised a media error 3/4 with no transport or parse evidence.
+   - Container evidence (`descriptor.container === "matroska"`, or a declared content type that maps to no web container) → `unsupported-container`.
+   - Otherwise declared codec evidence (`descriptor.video.codec`) → `unsupported-codec`.
+   - A predicted-playable source (`probably`/`maybe`) is never classified unsupported, so the iPhone MP4 and Dolby Vision stalls stay honest generic stalls.
+6. `mediaErrorCode === 3` without descriptor evidence → `decode-error`.
+7. `timedOut` → `startup-stall` (genuine, retry behaviour unchanged).
+8. `sourceElementError` → `startup-source-error`; otherwise `startup-media-error`; empty input → `startup-unknown`.
+
+**Non-goals.** Making Safari play MKV/HEVC/DV, converting or remuxing media, claiming HDR or multitrack support, changing source ordering/selection, adding a new overlay action button, or reclassifying mid-playback failures. `Go Back` already returns to the stream/source list, so the return path is unchanged and only asserted.
+
+**Threats and mitigations.** (a) Over-claiming: only `not-reported` or a media 3/4 rejection with no transport/parse evidence can produce an unsupported reason; predicted-playable and unknown sources cannot. (b) Masking real network faults: HTTP status, media code 2/1 and invalid-content text short-circuit before any unsupported rule. (c) Engine mismatch: adaptive engines are excluded from container claims. (d) Unbounded/unsafe input: the classifier truncates and token-validates text, and the screen escapes all overlay values. (e) Regression in the message path: `mediaErrorMessage` keeps its existing HTTP/debrid branches and only adds classified branches.
+
+**Test commands.** `node --test app/alpha/js/core/player/startupFailure.test.mjs`; `node --test app/alpha/js/ui/screens/player/playerScreen.browser.test.mjs`; `npx playwright test tests/browser/capabilities.spec.mjs --project=chromium`; `npm test --prefix app/alpha`; `npm run lint`; `node scripts/check-alpha-build.mjs`; `npx playwright test`; `node scripts/check-docs.mjs`; `node --test scripts/check-docs.test.mjs scripts/governance.test.mjs scripts/prepare-static-preview.test.mjs`.
+
+**Rollback.** Protected revert of the merge commit; the classifier is additive, no remote state, no migration, no flag.
+
+**Limits.** Synthetic/local evidence only. A WebKit-family classification assertion requires the Playwright WebKit project (next unit) or an owner-recorded observation; neither is claimed here.

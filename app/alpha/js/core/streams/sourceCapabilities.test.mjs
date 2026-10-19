@@ -4,7 +4,8 @@ import {
   describeSource,
   normalizeSourceDescriptor,
   probeNativeSource,
-  probeSourceCapabilities
+  probeSourceCapabilities,
+  selectSourceContentType
 } from "./sourceCapabilities.js";
 
 const declared = () =>
@@ -203,4 +204,28 @@ test("forged internal descriptors are normalized before rendering or capability 
   assert.equal(report.native, "unknown");
   assert.equal(probed, false);
   assert.equal(normalizeSourceDescriptor({ requiredHeaderCount: 100000 }).requiredHeaderCount, 256);
+});
+
+test("selectSourceContentType prefers a validated media type over provider aliases", () => {
+  // A short alias must not shadow the declared MIME type that carries the
+  // container declaration the startup classifier needs.
+  assert.equal(
+    selectSourceContentType(["mkv", 'video/x-matroska; codecs="hvc1"']),
+    'video/x-matroska; codecs="hvc1"'
+  );
+  assert.equal(
+    selectSourceContentType(["hls", "application/vnd.apple.mpegurl"]),
+    "application/vnd.apple.mpegurl"
+  );
+  assert.equal(
+    selectSourceContentType([null, undefined, "", "  ", 'video/mp4; codecs="avc1.640028"']),
+    'video/mp4; codecs="avc1.640028"'
+  );
+  // No validated type means no evidence at all, never a guess from an alias.
+  assert.equal(selectSourceContentType(["mkv", "hls", "mp4"]), "");
+  assert.equal(selectSourceContentType([]), "");
+  assert.equal(selectSourceContentType(null), "");
+  // Hostile values are rejected by the same validator describeSource uses.
+  assert.equal(selectSourceContentType(['video/mp4; codecs="<script>"', "video/mp4"]), "video/mp4");
+  assert.equal(selectSourceContentType(["javascript:alert(1)"]), "");
 });

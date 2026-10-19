@@ -273,3 +273,249 @@ test("raw provider descriptors cannot bypass flattening or direct card redaction
     ).toBeVisible();
   }
 });
+
+test("startup classification follows real engine evidence and never relabels a transport fault", async ({
+  page,
+}, testInfo) => {
+  await page.goto("/__fixture/harness");
+  const output = await page.evaluate(async () => {
+    const { describeSource } = await import(
+      "/__fixture/source/js/core/streams/sourceCapabilities.js"
+    );
+    const { classifyStartupFailure } = await import(
+      "/__fixture/source/js/core/player/startupFailure.js"
+    );
+    const video = document.createElement("video");
+    const predictionOf = (descriptor) => {
+      const result = video.canPlayType(descriptor.contentType);
+      if (result === "probably" || result === "maybe") return result;
+      return result === "" ? "not-reported" : "unknown";
+    };
+    const make = (mimeType, codec) =>
+      describeSource({
+        url: "https://media.example.invalid/probe",
+        mimeType,
+        video: { codec, width: 3840, height: 2160 },
+      });
+    const cases = {
+      matroska: make('video/x-matroska; codecs="hvc1"', "hvc1"),
+      mp4H264: make('video/mp4; codecs="avc1.640028"', "avc1.640028"),
+      mp4Hevc: make('video/mp4; codecs="hvc1"', "hvc1"),
+      hls: describeSource({
+        url: "https://media.example.invalid/master.m3u8",
+        mimeType: "application/vnd.apple.mpegurl",
+      }),
+    };
+    const report = {};
+    for (const [name, descriptor] of Object.entries(cases)) {
+      const nativePrediction = predictionOf(descriptor);
+      report[name] = {
+        contentType: descriptor.contentType,
+        nativePrediction,
+        stall: classifyStartupFailure({
+          descriptor,
+          nativePrediction,
+          engine: "native-file",
+          timedOut: true,
+        }),
+        mediaError: classifyStartupFailure({
+          descriptor,
+          nativePrediction,
+          engine: "native-file",
+          mediaErrorCode: 4,
+        }),
+        network: classifyStartupFailure({
+          descriptor,
+          nativePrediction,
+          engine: "native-file",
+          mediaErrorCode: 4,
+          httpStatus: 403,
+          timedOut: true,
+        }),
+      };
+    }
+    return report;
+  });
+
+  // Chromium does not report Matroska support, so the container claim is
+  // grounded in this engine's own answer rather than a hard-coded list.
+  expect(output.matroska.nativePrediction).toBe("not-reported");
+  expect(output.matroska.stall.reason).toBe("unsupported-container");
+  expect(output.matroska.stall.container).toBe("matroska");
+  expect(output.matroska.mediaError.reason).toBe("unsupported-container");
+
+  // A predicted-playable control source is never blamed for a stall.
+  expect(output.mp4H264.nativePrediction).toBe("probably");
+  expect(output.mp4H264.stall.reason).toBe("startup-stall");
+  expect(output.mp4H264.stall.category).toBe("stall");
+
+  // An adaptive manifest is never classified from a native container prediction.
+  expect(output.hls.stall.reason).toBe("startup-stall");
+
+  // Transport evidence always wins over a codec or container guess.
+  for (const name of ["matroska", "mp4H264", "mp4Hevc", "hls"]) {
+    expect(output[name].network.reason, name).toBe("network");
+    expect(output[name].network.category, name).toBe("network");
+  }
+
+  // HEVC depends on the engine build: report the observed prediction so the
+  // evidence stays falsifiable instead of assumed.
+  const hevcPrediction = output.mp4Hevc.nativePrediction;
+  expect(["not-reported", "unknown", "probably", "maybe"]).toContain(hevcPrediction);
+  expect(
+    output.mp4Hevc.stall.reason,
+    `observed HEVC prediction: ${hevcPrediction}`,
+  ).toBe(hevcPrediction === "not-reported" ? "unsupported-codec" : "startup-stall");
+  await testInfo.attach("startup-classification.json", {
+    body: JSON.stringify(output, null, 2),
+    contentType: "application/json",
+  });
+});
+
+test("a header-restricted source reports header-required with a working return path", async ({
+  page,
+  context,
+}) => {
+  test.setTimeout(90000);
+  await context.addInitScript(
+    ({ provider }) =>
+      localStorage.setItem(
+        "installedAddonUrls",
+        JSON.stringify({
+          __profileScoped: true,
+          version: 1,
+          profiles: { 1: [`${provider}/startup-header-required`] },
+        }),
+      ),
+    { provider },
+  );
+  await page.goto("/");
+  await page.locator('[data-action="continueGuest"]').click();
+  await page
+    .locator('#home .home-poster-card[data-item-id="fixture:original"]')
+    .first()
+    .click();
+  await page.locator('button[data-action="playDefault"]').click();
+  const source = page.locator('[data-action="playStream"]');
+  await expect(source).toHaveCount(1);
+  await expect(source).toContainText("Requires request headers");
+  await source.click();
+  const overlayBack = page.locator('[data-player-error-action="back"]');
+  await expect(overlayBack).toBeVisible({ timeout: 45000 });
+  await expect(page.locator(".player-startup-error-message")).toContainText(
+    "requires special request headers",
+  );
+  await expect(page.locator(".player-startup-error-details")).toContainText(
+    "Reason: header-required",
+  );
+  await expect(page.locator(".player-startup-error-details")).not.toContainText(
+    "Reason: startup-stall",
+  );
+  // The composed message must end exactly once, not with the old ".." append.
+  const message = await page.locator(".player-startup-error-message").innerText();
+  expect(message.endsWith("contact the add-on provider.")).toBe(true);
+  expect(message).not.toContain("..");
+  await overlayBack.click();
+  await expect
+    .poll(() => page.evaluate(() => window.__NUVIO_CURRENT_ROUTE__))
+    .toBe("stream");
+});
+
+test("player startup messages agree with the reported reason at runtime", async ({ page }) => {
+  await page.goto("/__fixture/harness");
+  const output = await page.evaluate(async () => {
+    // Importing the router first resolves the PlayerScreen import cycle.
+    await import("/__fixture/source/js/ui/navigation/router.js");
+    const { PlayerScreen } = await import(
+      "/__fixture/source/js/ui/screens/player/playerScreen.js"
+    );
+    const { describeSource } = await import(
+      "/__fixture/source/js/core/streams/sourceCapabilities.js"
+    );
+    // PlayerScreen is an object literal, so inherit from it and shadow per case.
+    const screen = Object.create(PlayerScreen);
+    const run = (descriptor, nativePrediction, options = {}) => {
+      screen.getStartupSourceDescriptor = () => descriptor;
+      screen.getStartupNativePrediction = () => nativePrediction;
+      return screen.resolveStartupFailure(options);
+    };
+    const matroska = describeSource({
+      url: "https://media.example.invalid/movie.mkv",
+      mimeType: 'video/x-matroska; codecs="hvc1"',
+      video: { codec: "hvc1" },
+    });
+    const mp4Hevc = describeSource({
+      url: "https://media.example.invalid/movie.mp4",
+      mimeType: 'video/mp4; codecs="hvc1"',
+    });
+    const mp4H264 = describeSource({
+      url: "https://media.example.invalid/movie.mp4",
+      mimeType: 'video/mp4; codecs="avc1.640028"',
+      video: { codec: "avc1.640028" },
+    });
+    const headerCandidate = {
+      url: "https://media.example.invalid/webdl.mkv",
+      behaviorHints: {
+        notWebReady: true,
+        proxyHeaders: { request: { "X-Required": "fixture-only" } },
+      },
+    };
+    const plain = (url) => ({ url });
+    return {
+      // A restricted source reports a header verdict even when the element
+      // detail also carries an HTTP status.
+      header: run(matroska, "not-reported", {
+        mediaErrorCode: 4,
+        detail: "HTTP 403",
+        streamCandidate: headerCandidate,
+        timedOut: true,
+      }),
+      // Without a classification the legacy ordering is unchanged.
+      headerUnclassified: screen.mediaErrorMessage(4, "HTTP 403", headerCandidate, null),
+      container: run(matroska, "not-reported", {
+        mediaErrorCode: 4,
+        streamCandidate: plain("https://media.example.invalid/movie.mkv"),
+        timedOut: true,
+      }),
+      codec: run(mp4Hevc, "not-reported", {
+        mediaErrorCode: 4,
+        streamCandidate: plain("https://media.example.invalid/movie.mp4"),
+      }),
+      network: run(matroska, "not-reported", {
+        mediaErrorCode: 4,
+        detail: "HTTP 403",
+        streamCandidate: plain("https://media.example.invalid/movie.mkv"),
+      }),
+      stall: run(mp4H264, "probably", {
+        streamCandidate: plain("https://media.example.invalid/movie.mp4"),
+        timedOut: true,
+      }),
+    };
+  });
+
+  expect(output.header.reason).toBe("header-required");
+  expect(output.header.message).toContain("requires special request headers");
+  expect(output.header.message).not.toContain("HTTP 403");
+  expect(output.header.message.endsWith("contact the add-on provider.")).toBe(true);
+  expect(output.header.message).not.toContain("..");
+
+  // The unclassified caller keeps the previous HTTP-first behaviour.
+  expect(output.headerUnclassified).toContain("403");
+
+  expect(output.container.reason).toBe("unsupported-container");
+  expect(output.container.message).toContain("(matroska)");
+  expect(output.container.message.endsWith("supports it.")).toBe(true);
+  expect(output.container.message).not.toContain("..");
+
+  expect(output.codec.reason).toBe("unsupported-codec");
+  expect(output.codec.message).toContain("(hvc1)");
+  expect(output.codec.message).not.toContain("..");
+
+  expect(output.network.reason).toBe("network");
+  expect(output.network.message).toContain("403");
+  expect(output.network.message).not.toContain("cannot play this video container");
+
+  expect(output.stall.reason).toBe("startup-stall");
+  expect(output.stall.message.endsWith(".")).toBe(true);
+  expect(output.stall.message).not.toContain("..");
+});

@@ -28,6 +28,18 @@ function contentType(value) {
     : null;
 }
 
+// Provider stream objects mix real media types with short aliases ("mkv",
+// "hls"). Only a validated media type is evidence; an alias must not shadow a
+// declared MIME type just because it appears first in the object.
+export function selectSourceContentType(values = []) {
+  const candidates = Array.isArray(values) ? values : [values];
+  for (const value of candidates) {
+    const clean = contentType(value);
+    if (clean) return clean;
+  }
+  return "";
+}
+
 function tracks(value, map) {
   return Array.isArray(value) ? value.slice(0, 32).map(map) : [];
 }
