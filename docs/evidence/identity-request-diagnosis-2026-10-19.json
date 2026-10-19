@@ -1,0 +1,230 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-19T08:20:42.665Z",
+  "candidateRevision": "6df6ebdf7027be3ac5c1768dd92c44348c82d74a",
+  "environment": "loopback candidate with live Nuvio API",
+  "publicDeployment": false,
+  "mode": "bounded request-completion diagnosis; no test-record mutation",
+  "results": [
+    {
+      "alias": "B-first",
+      "operation": "intended-login-and-library-pull",
+      "identityMatched": true,
+      "pullStatus": 200
+    },
+    {
+      "alias": "B-first",
+      "operation": "request-completion-snapshot",
+      "successfulLibraryPull": true,
+      "ui": {
+        "route": "library",
+        "visible": true,
+        "primaryProfileSelected": true,
+        "activationOverlayPresent": false,
+        "sessionPresent": true,
+        "localLibraryCount": 0
+      },
+      "operations": {
+        "owner": {
+          "started": 1,
+          "headers": 1,
+          "completedBodies": 1,
+          "failed": 0,
+          "httpStatuses": [
+            200
+          ],
+          "latestFinishSeconds": 1.2
+        },
+        "profiles": {
+          "started": 2,
+          "headers": 2,
+          "completedBodies": 2,
+          "failed": 0,
+          "httpStatuses": [
+            200,
+            200
+          ],
+          "latestFinishSeconds": 2.8
+        },
+        "criticalSettings": {
+          "started": 2,
+          "headers": 2,
+          "completedBodies": 2,
+          "failed": 0,
+          "httpStatuses": [
+            200,
+            200
+          ],
+          "latestFinishSeconds": 2.2
+        },
+        "criticalAddons": {
+          "started": 1,
+          "headers": 1,
+          "completedBodies": 1,
+          "failed": 0,
+          "httpStatuses": [
+            200
+          ],
+          "latestFinishSeconds": 2
+        },
+        "criticalHomeCatalog": {
+          "started": 3,
+          "headers": 3,
+          "completedBodies": 3,
+          "failed": 0,
+          "httpStatuses": [
+            200,
+            200,
+            200
+          ],
+          "latestFinishSeconds": 2.3
+        },
+        "watched": {
+          "started": 2,
+          "headers": 2,
+          "completedBodies": 2,
+          "failed": 0,
+          "httpStatuses": [
+            200,
+            200
+          ],
+          "latestFinishSeconds": 4.5
+        },
+        "library": {
+          "started": 1,
+          "headers": 1,
+          "completedBodies": 1,
+          "failed": 0,
+          "httpStatuses": [
+            200
+          ],
+          "latestFinishSeconds": 2.8
+        },
+        "progress": {
+          "started": 2,
+          "headers": 2,
+          "completedBodies": 2,
+          "failed": 0,
+          "httpStatuses": [
+            200,
+            200
+          ],
+          "latestFinishSeconds": 4.5
+        }
+      }
+    },
+    {
+      "alias": "B-independent",
+      "operation": "intended-login-and-library-pull",
+      "identityMatched": true,
+      "pullStatus": 200
+    },
+    {
+      "alias": "B-independent",
+      "operation": "request-completion-snapshot",
+      "successfulLibraryPull": true,
+      "ui": {
+        "route": "library",
+        "visible": true,
+        "primaryProfileSelected": true,
+        "activationOverlayPresent": false,
+        "sessionPresent": true,
+        "localLibraryCount": 0
+      },
+      "operations": {
+        "owner": {
+          "started": 1,
+          "headers": 1,
+          "completedBodies": 1,
+          "failed": 0,
+          "httpStatuses": [
+            200
+          ],
+          "latestFinishSeconds": 1.1
+        },
+        "profiles": {
+          "started": 2,
+          "headers": 1,
+          "completedBodies": 1,
+          "failed": 0,
+          "httpStatuses": [
+            200
+          ],
+          "latestFinishSeconds": 1.3
+        },
+        "criticalSettings": {
+          "started": 2,
+          "headers": 2,
+          "completedBodies": 2,
+          "failed": 0,
+          "httpStatuses": [
+            200,
+            200
+          ],
+          "latestFinishSeconds": 2.2
+        },
+        "criticalAddons": {
+          "started": 1,
+          "headers": 1,
+          "completedBodies": 1,
+          "failed": 0,
+          "httpStatuses": [
+            200
+          ],
+          "latestFinishSeconds": 1.9
+        },
+        "criticalHomeCatalog": {
+          "started": 3,
+          "headers": 3,
+          "completedBodies": 3,
+          "failed": 0,
+          "httpStatuses": [
+            200,
+            200,
+            200
+          ],
+          "latestFinishSeconds": 2.2
+        },
+        "watched": {
+          "started": 1,
+          "headers": 0,
+          "completedBodies": 0,
+          "failed": 0,
+          "httpStatuses": [],
+          "latestFinishSeconds": null
+        },
+        "library": {
+          "started": 1,
+          "headers": 1,
+          "completedBodies": 1,
+          "failed": 0,
+          "httpStatuses": [
+            200
+          ],
+          "latestFinishSeconds": 2.7
+        },
+        "progress": {
+          "started": 1,
+          "headers": 1,
+          "completedBodies": 1,
+          "failed": 0,
+          "httpStatuses": [
+            200
+          ],
+          "latestFinishSeconds": 2.7
+        }
+      }
+    }
+  ],
+  "limitations": [
+    "Two fresh B contexts only; empty Library cannot prove isolation",
+    "Normal application login/device/background work remains enabled",
+    "Legacy full-snapshot Library pushes and third parties blocked",
+    "No live expiry/revocation or cross-device claim"
+  ],
+  "browser": "156.0.8078.4",
+  "platform": "linux",
+  "architecture": "arm64",
+  "status": "passed-scoped-observations",
+  "blockedLegacySnapshotRequests": 0
+}
