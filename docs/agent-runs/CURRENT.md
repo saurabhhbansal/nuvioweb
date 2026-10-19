@@ -50,6 +50,7 @@ This file is the durable handoff. A new agent must be able to resume from it wit
 ## Known blockers
 
 - **Development-preview upload:** cached Wrangler 4.129.0 reports the Cloudflare OAuth token expired at `2026-10-19T10:05:01Z` and cannot refresh non-interactively. `wrangler pages project list --json` failed with "In a non-interactive environment, it's necessary to set a CLOUDFLARE_API_TOKEN environment variable". The owner must run `wrangler login` interactively on this host or provide a Pages-scoped `CLOUDFLARE_API_TOKEN`. Everything up to and including local candidate staging/verification is complete. Do not paste credentials or tokens into issues or chat.
+- **#7 live diagnosis material:** the owner-only disposable account file `/tmp/nuvioweb-test-accounts.json` no longer exists because `/tmp` is ephemeral in this execution environment. No real-account A/B login/switch evidence can be gathered until the owner re-provisions a 0600 file outside Git (never paste credentials in issues or chat). Synthetic coverage remains green but does not establish live backend behaviour.
 - **Codex CLI unavailable:** `codex: command not found` on this host. Planning and review therefore use the same written template executed by the primary agent and a separate reviewer pass; results are recorded as automated, never as independent human approval. See [planning record](2026-10-19-codex-unavailable.md).
 
 ## Required approvals
