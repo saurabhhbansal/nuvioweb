@@ -1,6 +1,6 @@
 # Agent continuity record — current state
 
-Last updated: 2026-10-19 (recovery session, new lead agent).
+Last updated: 2026-10-19, context-clear handoff. **Read this first after clearing context.**
 
 This file is the durable handoff. A new agent must be able to resume from it without the previous conversation. Update it at the checkpoints listed in the operating directive, and group updates into the PR that caused them where possible.
 
@@ -15,10 +15,10 @@ This file is the durable handoff. A new agent must be able to resume from it wit
 ## Current selection
 
 - Selected ticket: **#7** (real-account login/sync/profile isolation) and **#10** (source descriptors and browser playback capability reporting) remain the only in-progress MVP tickets. Governance/continuity work precedes them and is not a roadmap ticket.
-- Current branch: `main` at `1f67867` plus an uncommitted deployment/evidence docs unit.
-- Current PR: hosted preview refresh evidence and #7 diagnosis plan (to be opened).
-- Most recently completed atomic task: deployed current main to the authorized development preview as `b48de821-9034-49cc-8e1f-ab5c50e7fa3a` after 134/134 inventory verification and local preflight; hosted HTTPS/worker checks and the complete hosted guest journey PASS (install/catalog/play/pause/seek/subtitle/back/save/reload).
-- Next exact atomic task: bounded real-account #7 B→A Library switch diagnosis using the saved owner-only A/B file, per the ranked plan in issue-7.md. #10 remains open for named-device/audio/hosted-provider gates; #11 remains open for the runtime seam.
+- Current branch: clean `main` at `e6bed408ad0c7890cfae5c85caec88abc2d528fe`; no open PR.
+- Current PR: none (PR #61 hosted-evidence merged at `e6bed40`).
+- Most recently completed atomic task: deployed `1f67867` to the authorized development preview as `b48de821-9034-49cc-8e1f-ab5c50e7fa3a`; hosted HTTPS/worker and complete hosted guest journey PASS; recorded in PR #61.
+- Next exact atomic task: bounded real-account #7 B→A Library switch diagnosis, read-only first, exactly as planned in `docs/plans/issues/issue-7.md` (Codex-ranked, 2026-10-19). No mutation is required for the first run.
 
 ## Relevant plans and evidence
 
@@ -65,3 +65,18 @@ This file is the durable handoff. A new agent must be able to resume from it wit
 - Public development preview revision: `1f67867ebab7f426672886121d852a643a436414`, deployment `b48de821-9034-49cc-8e1f-ab5c50e7fa3a`; worker `nuvio-app-shell-0.1.5-f40b9237c1a8`, asset `888e32602070`. Hosted HTTPS/worker and complete hosted guest journey PASS.
 - Rollback: previous deployment `96f977f4` / revision `8edec42` is retained.
 - Builds are not bit-reproducible: the inherited bundle embeds a build timestamp, so ids change per rebuild of identical source. Verify uploads against their own staged inventory.
+
+
+## Context-clear quick start
+
+1. `git status` and `git log -1 --oneline`: expect clean `main` at or after `e6bed40`; no open PRs.
+2. Read this file, then `docs/plans/issues/issue-7.md` (Codex-ranked hosted diagnosis) and `docs/evidence/preview-refresh-2026-10-19.json`.
+3. Hosted preview is deployed at `1f67867` / deployment `b48de821`; rollback is `96f977f4` / `8edec42`. The complete hosted **guest** journey passes; account isolation does not.
+4. #7 accounts are at `/home/saurabh/.config/nuvioweb/test-accounts.json` (0600, outside Git). Never print, log, commit or forward its contents; rotate after verification.
+5. Tooling:
+   - Codex 0.163.0: `/home/saurabh/.local/share/mise/shims/codex`. Under the workspace-write sandbox it needs a writable home: `CODEX_HOME=$PWD/.codex-home` (already created and git-excluded, with `auth.json`/`config.toml` symlinked read-only). Run `codex exec --sandbox read-only --skip-git-repo-check --output-last-message <path> - < prompt`.
+   - Pinned Node: `export PATH=/home/saurabh/.local/share/mise/installs/node/22.23.1/bin:$PATH` (v22.23.1/npm10.9.8).
+   - Wrangler: `node /home/saurabh/.npm/_npx/d77349f55c2be1c0/node_modules/wrangler/bin/wrangler.js ...` with `WRANGLER_LOG_PATH` set inside the workspace.
+6. Do not run another equivalent live Library mutation retry. The first #7 run is read-mostly; stop at the 30-second barrier and preserve the incomplete result.
+7. #10 remains open for branded Edge/Safari/mobile, multitrack/audible audio, hosted external-provider CORS and 4K60/HDR. #11 remains open for the default-off runtime seam after the measured engine decision.
+8. Goal: keep the persisted objective active; do not mark complete until #7/#10 and the roadmap gates are genuinely satisfied.
