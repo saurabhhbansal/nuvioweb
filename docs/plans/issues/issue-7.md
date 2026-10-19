@@ -360,3 +360,14 @@ Stop conditions: rejected login, unexpected destination, shared owner, nonempty 
 Commands: `node --check <driver>`; run once with the owner-only file path and a receipt path under `docs/evidence/`; docs/governance/preview tests, links/ledger/ancestry/whitespace and protected PR CI for the evidence PR. No full application/browser rerun is needed if runtime stays unchanged.
 
 Non-goals: app Save/remove propagation into this path, remote-empty local policy, offline outbox, concurrent full-snapshot writers, cross-device deletion timing, expiry/revocation, QR, named-browser claims. Nonempty Library isolation across A/B is the only positive claim sought; deletion-after-reload may be recorded separately without turning a stale receiver into a cleanup exception.
+
+
+### Executed marker and round-trip results
+
+Commands: `node dist/tools/issue7-marker-diagnosis.mjs <owner-only-file> dist/tools/marker-diagnosis-raw.json` exit0, status `marker-isolation-failed`; `node dist/tools/issue7-switch-roundtrip.mjs <owner-only-file> dist/tools/roundtrip-raw.json` exit0, status `roundtrip-b-return-observed`. Receipts: [marker](../../evidence/identity-marker-diagnosis-2026-10-19.json), [round trip](../../evidence/identity-roundtrip-diagnosis-2026-10-19.json).
+
+Marker run: B cloud Library started count0; empty contract probes204; one incremental insert204; post-insert cloud count1; independent B local+UI present; A local absent and cloud count0. B→A→B did not restore the marker; in that A→B epoch Library/watched/progress started and failed before response headers (category not captured). Exact-key delete204, cloud back to count0, original key set unchanged, note removed.
+
+Immediate read-only round trip: all three Library pulls (B, A, returning B) completed200; returning-B at about6.7s; no Library/watched/progress failures. Four unrelated critical reads failed with category `FAILED`.
+
+Interpretation: scoped evidence that A does not receive B's synthetic Library item and that returning B can hydrate, but switch restoration is nondeterministic (one fail, one pass) and the marker failure category is unknown. No product fix is justified. Stop live marker writes permanently; any future live switch observation must record failure categories and must not be an unchanged repeat. Synthetic fixture work would need a deterministic reproduction first.
