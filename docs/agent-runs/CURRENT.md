@@ -15,10 +15,10 @@ This file is the durable handoff. A new agent must be able to resume from it wit
 ## Current selection
 
 - Selected ticket: **#7** (real-account login/sync/profile isolation) and **#10** (source descriptors and browser playback capability reporting) remain the only in-progress MVP tickets. Governance/continuity work precedes them and is not a roadmap ticket.
-- Current branch: `m2/issue-11-sandbox-abuse` (from `main` `fab7e6c`).
-- Current PR: issue #11 unit 4 — abuse corpus and quota hardening.
-- Most recently completed atomic task: PR #58 merged at `fab7e6c` (broker-bound sandbox); unit 4 abuse corpus implemented: oversized code, memory bomb, recursion, log flood, undefined output, plugin exceptions, huge input, repeated-failure isolation, request flood, redirect loop, timeout recovery; tests 11/11, app suite 1226/1226, lint/build pass. The corpus caught an `/oom/`-inside-“boom” classifier bug and a missing completion flag.
-- Next exact atomic task: merge unit 4, then unit 5 — default-off runtime seam, persistent quota/allowlist source, browser-bundle measurement and the security/dependency review package. #7 live work and the #10 hosted gate remain owner-blocked.
+- Current branch: `m2/issue-11-engine-evaluation` (from `main` `9d426a8`).
+- Current PR: issue #11 unit 5 — engine browser-bundle measurement and shipping decision.
+- Most recently completed atomic task: PR #59 merged at `9d426a8` (abuse corpus); unit 5 measured both QuickJS variants with esbuild: async 1,083,888 B raw/≈377,955 B gzip plus external WASM; decision recorded for async variant, external asset, lazy default-off loading, no shipping yet; app suite 1229/1229, lint/build pass.
+- Next exact atomic task: merge unit 5, then unit 6 — default-off lazy engine seam, build/stager WASM emission with `application/wasm`/hash/cache rules, and an in-browser fixture journey before the security/dependency review package. #7 live work and the #10 hosted gate remain owner-blocked.
 
 ## Relevant plans and evidence
 
