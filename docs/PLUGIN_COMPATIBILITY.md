@@ -42,7 +42,7 @@ Unknown fields are dropped. Failures return bounded reason codes (`descriptor`, 
 
 1. **Contract and fixture (this unit).** Pure normalization, hostile-input tests and an original `tests/fixtures/plugins/representative-plugin.js`. No execution.
 2. **Engine decision and dependency review (prototype complete).** QuickJS/WASM with only injected bindings was selected for evaluation: MIT-licensed `quickjs-emscripten` 0.32.0 (QuickJS itself MIT), installed as an `app/alpha` **devDependency**, not imported by shipped code and therefore absent from the browser bundle. A test-only prototype executes the representative fixture, enforces memory/time/output budgets and exposes no host networking or process globals. See the prototype section below.
-3. **Sandbox runtime.** Hard wall-clock/CPU budget, memory and output caps, ≤N brokered network requests to `allowedHosts` only, no credentials/headers, cancellation and worker teardown, default-off feature flag. The broker policy half is implemented and tested (below); the QuickJS binding and cancellation half is next.
+3. **Sandbox runtime.** Hard wall-clock/CPU budget, memory and output caps, ≤N brokered network requests to `allowedHosts` only, no credentials/headers, cancellation and teardown, default-off feature flag. The broker policy and its QuickJS binding (below) are prototyped in tests; a shipped runtime, real cancellation propagation and the default-off flag remain.
 4. **Parity and abuse corpus.** Representative plugin fixtures, malformed output, redirects/private addresses, huge code/output, hangs, cancellation and repeated-failure limits.
 
 ## Engine prototype (test-only, 2026-10-19)
@@ -71,6 +71,22 @@ Observed with pinned Node 22.23.1 (`node --test app/alpha/scripts/pluginSandboxP
 - Failures are bounded codes (`url`, `scheme`, `credentials`, `ip`, `port`, `host`, `method`, `requests`, `redirect-limit`, `redirect-url`, `response-size`, `response-body`, `transport`) with no raw exception text.
 
 Focused tests (`node --test app/alpha/js/core/plugins/pluginBroker.test.mjs`, 10/10) cover allowlisted success, every denial class, method/request caps, same-host redirects, cross-host redirect rejection, redirect loops, oversized bodies, transport failure leakage and defensive allowlist normalization. No real network is used.
+
+## Broker-bound sandbox prototype (test-only, 2026-10-19)
+
+`app/alpha/scripts/pluginSandboxNetworkPrototype.mjs` binds the broker to QuickJS: `api.fetch` is an asyncified host function that calls `createPluginNetworkBroker` and returns a bounded envelope. The VM has no global `fetch`; headers, credentials and destination selection never cross the boundary. A host-side deadline races every broker call so a slow exchange cannot outlive the budget, and the context is not disposed while a host call is suspended.
+
+Observed with `node --test app/alpha/scripts/pluginSandboxNetworkPrototype.test.mjs` (7/7):
+
+- Allowlisted fetch returns the body, the transport receives only `(url, {method:"GET"})`, and streams are normalized.
+- A non-allowlisted destination fails with `host` and never reaches the transport.
+- The broker request cap is enforced across plugin calls (`requests`).
+- A slow host request is cut off by the execution deadline (`timeout`).
+- Oversized and redirected-away responses fail closed (`response-size`, `host`).
+- A plugin can catch a denial and continue; the host does not crash.
+- The VM still has no global `fetch` — only the brokered `api.fetch`.
+
+**Limits:** test-only, not wired to the app; no default-off runtime seam, no AbortSignal propagation into a real transport, no persistent per-account quotas, no user-facing cancellation, and no independent security/dependency review yet. The asyncified WASM build is larger and slower than the sync variant, which matters for the future browser-bundle decision. No compatibility or sandbox claim follows.
 
 ## Guarantees and limits
 

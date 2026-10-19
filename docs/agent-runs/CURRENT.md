@@ -15,10 +15,10 @@ This file is the durable handoff. A new agent must be able to resume from it wit
 ## Current selection
 
 - Selected ticket: **#7** (real-account login/sync/profile isolation) and **#10** (source descriptors and browser playback capability reporting) remain the only in-progress MVP tickets. Governance/continuity work precedes them and is not a roadmap ticket.
-- Current branch: `m2/issue-11-plugin-network-policy` (from `main` `09d6cdc`).
-- Current PR: issue #11 unit 3a — bounded network broker policy.
-- Most recently completed atomic task: PR #56 merged at `09d6cdc` (QuickJS prototype); unit 3a broker policy implemented: HTTPS exact-host allowlist, per-hop redirect re-authorization, no headers/credentials, request/response caps, tests 10/10, app suite 1208/1208, lint/build pass.
-- Next exact atomic task: merge unit 3a, then unit 3b — bind the broker as the sandbox's only network primitive with cancellation/teardown and a default-off runtime seam. #7 live work and the #10 hosted gate remain owner-blocked.
+- Current branch: `m2/issue-11-plugin-network-binding` (from `main` `236999d`).
+- Current PR: issue #11 unit 3b — broker-bound sandbox with deadline cancellation.
+- Most recently completed atomic task: PR #57 merged at `236999d` (broker policy); unit 3b implemented: asyncified `api.fetch` bound to the broker, host-side deadline cancellation, no global fetch, bounded denial codes, tests 7/7, app suite 1215/1215, lint/build pass.
+- Next exact atomic task: merge unit 3b, then unit 4 — default-off runtime seam, persistent quotas/allowlist source and abuse corpus, followed by independent security/dependency review and bundle measurement. #7 live work and the #10 hosted gate remain owner-blocked.
 
 ## Relevant plans and evidence
 
