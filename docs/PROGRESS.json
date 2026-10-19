@@ -115,16 +115,19 @@
         3
       ],
       "progress": {
-        "branch": "m1/issue-7-live-verification",
+        "branch": "m1/issue-7-library-verification",
         "documents": [
           "docs/IDENTITY_VERIFICATION.md",
           "docs/plans/issues/issue-7.md"
         ],
         "verification": [
           "Owner Windows/Edge initial3checks reported passed; exact browser version/session setup unknown.",
-          "Live Chromium deployed8edec42:13 scoped assertions pass for intended distinct A/B logins, reload, independent A profiles and completed A-B-A profile controls/local logout. No Library/history/expiry claim."
+          "Live Chromium deployed8edec42:13 scoped assertions pass for intended distinct A/B logins, reload, independent A profiles and completed A-B-A profile controls/local logout. No Library/history/expiry claim.",
+          "Owner approved PR44 at35d36cb; protected merge e674c0e after all required CI, no override. Candidate1127 app/31 browser/32 focused and scoped live existing-data replay passed; public preview remains8edec42.",
+          "Nonempty B incremental marker reached an independent B app Library/local store. Distinct sync owners verified privately. Isolation sequence did not complete: first harness exception, reduced receiver no observed successful Library pull within30s. Both temporary markers removed with exact-key cleanup and verified empty B cloud Library.",
+          "Separate activation regression reproduced Home first paint delaying background sync; scoped source b629a30 now1131 application/31 browser/36 focused/17 governance passes, lint/build/assets pass and automated Standards/Spec0 findings. Changed local6df6ebd live marker replay still fails receiver Library pull barrier; exact-key cleanup succeeds. No live isolation/removal pass."
         ],
-        "remaining": "Old public preview fails B-to-A hydration; reviewed local candidate8650d85 passes the corresponding live-service A-B-A existing-data controls. Both Libraries empty, so Library/new-data isolation remains unverified. PR44 fixes refresh/sync lifecycle races (1127 application/31 browser/32 focused passes), awaiting final CI/owner auth review; new-write/removal, measured live expiry/revocation, cross-tab/QR/offline/device and public post-merge checks remain. No credential details in evidence."
+        "remaining": "Issue7 remains open. PR44 is integrated; public preview/post-merge check still8edec42. Draft PR45 fixes the separately reproduced Home-paint scheduling barrier and awaits final-head CI/explicit owner remote-fetch/auth review. Its changed-source live replay still observes no successful receiver Library pull within30s; further unchanged-source write retries stopped, exact-key cleanup verified. Nonempty Library account-switch isolation, Save/removal, broader negative/QR/offline/device and measured live expiry/revocation remain unverified."
       }
     },
     {

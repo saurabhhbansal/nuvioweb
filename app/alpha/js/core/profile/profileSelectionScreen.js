@@ -2336,15 +2336,17 @@ export const ProfileSelectionScreen = {
       // own loading skeleton takes over for the remainder of the fetch,
       // which reads as two different loading states stacked back to back.
       const criticalHydration = await criticalHydrationPromise;
-      if (HomeScreen.initialLoadPromise) {
-        await HomeScreen.initialLoadPromise;
-      }
-      hideProfileActivationTransitionOverlay(transitionOverlay);
+      // Library/history sync must not wait for a slow catalog or hero paint.
+      // Keep only the visual transition dependent on Home's first load.
       if (criticalHydration.current) {
         void StartupSyncService.requestSyncNow({ criticalHydration }).catch((error) => {
           console.warn("Profile background sync failed", error);
         });
       }
+      if (HomeScreen.initialLoadPromise) {
+        await HomeScreen.initialLoadPromise;
+      }
+      hideProfileActivationTransitionOverlay(transitionOverlay);
     } catch (error) {
       console.warn("Failed to activate profile", error);
       hideProfileActivationTransitionOverlay(transitionOverlay);

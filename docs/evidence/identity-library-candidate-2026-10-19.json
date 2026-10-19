@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-19T07:45:38.911Z",
+  "candidateRevision": "6df6ebdf7027be3ac5c1768dd92c44348c82d74a",
+  "environment": "loopback candidate with live Nuvio API",
+  "publicDeployment": false,
+  "mode": "one reversible incremental Library marker",
+  "results": [
+    {
+      "alias": "B-writer",
+      "operation": "intended-login-and-library-pull",
+      "identityMatched": true,
+      "pullStatus": 200
+    },
+    {
+      "alias": "A-control",
+      "operation": "intended-login-and-library-pull",
+      "identityMatched": true,
+      "pullStatus": 200
+    },
+    {
+      "alias": "A/B",
+      "operation": "preflight",
+      "distinctAuthoritativeIdentities": true,
+      "distinctSyncOwners": true,
+      "startingBCount": 0,
+      "markerCollision": false,
+      "emptyContractProbesPassed": true
+    },
+    {
+      "alias": "B",
+      "operation": "incremental-marker-insert",
+      "markerOnly": true,
+      "remoteCount": 1
+    },
+    {
+      "alias": "B",
+      "operation": "targeted-cleanup",
+      "targetedDelete": true,
+      "remoteMarkerAbsent": true,
+      "originalBKeysUnchanged": true
+    }
+  ],
+  "limitations": [
+    "Single Linux Chromium environment",
+    "All third-party providers and legacy full-snapshot Library pushes blocked",
+    "API insertion does not verify app Save button or push path",
+    "No media playback, QR, measured expiry or remote revocation claim"
+  ],
+  "browser": "156.0.8078.4",
+  "platform": "linux",
+  "architecture": "arm64",
+  "errorCategory": "OTHER",
+  "status": "blocked-or-failed",
+  "failedStage": "B-receiver-hydrate",
+  "failureCode": "LIBRARY_PULL_NOT_OBSERVED",
+  "cleanup": {
+    "targetedDelete": true,
+    "remoteMarkerAbsent": true,
+    "originalBKeysUnchanged": true
+  },
+  "blockedLegacySnapshotRequests": 0
+}
