@@ -889,22 +889,25 @@ Status: the pure budget layer is implemented and tested. The hls.js loader imple
 
 ### Recovery policy executed (2026-10-19)
 
-Status: the pure planner exists; nothing calls it yet and no recovery operation is wired.
+Status: the pure planner exists and was hardened after review; nothing calls it yet and no recovery operation is wired.
 
-**What exists.** `app/alpha/js/core/player/playbackRecoveryPolicy.js` implements the §5 contract — `planAudioRecovery({generation, currentGeneration, tracks, failedTrackKey, lastConfirmedTrackKey, failure, attempts, userChoice}) → {action, trackKey, reason}` — with a fixed `action` (`offer-track` | `restore-track` | `unsupported` | `none`) and a fixed `reason` enum. Pure: no fetch, mutation, persistence or logging, inputs are not written to, and hostile input is bounded rather than thrown at.
+**Contract change recorded in review.** The plan's draft contract had a `userChoice` input. Review found that it let an explicit choice bypass attribution, container rejection and the attempt caps. `userChoice` is therefore **removed**: explicit selection is not automatic recovery, it may cross language and role, and it belongs to the selection path (`resolveAudioSelectionRequest` in `browserAudioTracks.js`) with its own pending-selection state. The planner now answers only "what may be offered automatically?".
+
+**What exists.** `app/alpha/js/core/player/playbackRecoveryPolicy.js` — `planAudioRecovery({generation, currentGeneration, tracks, failedTrackKey, lastConfirmedTrackKey, failure, attempts}) → {action, trackKey, reason}` with fixed `action` (`offer-track` | `restore-track` | `unsupported` | `none`) and a fixed reason enum. Pure: no fetch, mutation, persistence or logging; every field it relies on is read as an own data property; hostile input is bounded or rejected rather than thrown at.
 
 **Rules it enforces.**
 
-- A stale generation yields no action.
-- A failure is only recoverable as an audio failure when `failure.audioAttributable === true`; a generic or unknown media error returns `none`/`audio-not-attributable`, never a track offer.
-- An explicit `userChoice` wins, but only for a selectable, unambiguous track that is not the failed one; anything else is rejected as `user-choice-unavailable`.
-- A failed *selection* restores the last confirmed rendition first, once; a failed *playback* offers a compatible alternate first, then a restore once. Both attempts are capped, so no loop is possible.
-- Automatic matching requires the **same role and same language**: commentary is never offered for main (or vice versa), another language is never substituted, and an unspecified language only matches another unspecified language.
-- A container failure is `unsupported`/`unsupported-format`; an empty track list is `unsupported`/`no-tracks`; an ambiguous failed identity is `none`/`ambiguous-failed-track` rather than a guess.
-- "No compatible alternate" is distinguished from "an attempt was already tried" (`no-alternate` vs `alternate-tried`/`restore-tried`), so the UI can say something true.
+- No failure → `none`/`no-failure`; a stale generation or track snapshot → `none`/`generation-changed`.
+- A failure is only recoverable as audio when `failure.audioAttributable` is exactly `true`; a generic or unknown media error, a missing flag or a non-boolean flag never yields a track offer.
+- A container failure → `unsupported`/`unsupported-format`; an empty list → `unsupported`/`no-tracks`.
+- Lists are capped at 32; a duplicate or flagged-ambiguous failed identity, or a duplicated alternate/restore key, fails closed instead of guessing; keys are validated without truncation, so an oversized key cannot alias a shorter one.
+- Counters must be own non-negative integers ≤ 1000; a malformed counter is invalid state, not zero, so bad state cannot re-open the budget.
+- Automatic matching requires the **same role and same language**, and an unspecified language only matches another unspecified language. A playback failure may not fall back across language or role; restoring the previous user-selected rendition after a *selection* failure is the documented, capped exception.
+- One alternate offer and one restore attempt per operation, distinguished in the reason (`no-alternate` vs `alternate-tried`/`restore-tried`).
+- Replay protection and operation identity are the caller's responsibility; a pure planner cannot prevent identical inputs being planned again, and the module says so.
 
-**Verification.** `node --test app/alpha/js/core/player/playbackRecoveryPolicy.test.mjs` 14/14 (no failure, generic-vs-audio attribution, stale generation, same-language alternate, cross-language rejection, commentary rejection both directions, unspecified-language matching, restore-once, alternate-then-restore, attempt exhaustion, container failure, empty list, ambiguous identity, user choice accepted/rejected, purity and hostile input). `npm test --prefix app/alpha` 1305/1305; lint pass.
+**Verification.** `node --test app/alpha/js/core/player/playbackRecoveryPolicy.test.mjs` 16/16, including the review's discriminating cases: a valid unknown→unknown match, simultaneous alternate/restore eligibility, a colliding 160/168-character prefix pair, duplicate candidate/restore keys, accessor-backed and inherited inputs, malformed counters, the 32-track boundary, and purity under frozen inputs. `npm test --prefix app/alpha` 1307/1307; lint pass.
 
-**Not done.** No controller or UI integration, no presentation strings, no audio-recovery browser spec, and no recovery session. Those need the loader rebuild and the blocked AAC fixtures.
+**Not done.** No controller or UI integration, no presentation strings, no audio-recovery browser spec, no recovery session. Those need the loader rebuild and the blocked AAC fixtures.
 
-**Rollback.** Revert the module, its test and this record; nothing imports it.
+**Rollback.** Revert the module, its test and these records; nothing imports it.
