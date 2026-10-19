@@ -119,10 +119,11 @@ test("guest browses the legal catalog, opens detail and starts original fixture 
 test("settings visibly rejects CORS, malformed, invalid-shape and unsafe-looking provider errors",async ({ page,context })=> {
   await context.addInitScript(()=>localStorage.setItem("installedAddonUrls",JSON.stringify({__profileScoped:true,version:1,profiles:{"1":[]}})));
   await openAddonSettings(page);
-  for (const [scenario,message] of [["cors-denied",/Failed to fetch/i],["malformed",/JSON|Expected|Unexpected/i],["shape",/map|function/i],["failure",/Fixture provider unavailable/]]) {
+  for (const [scenario,message] of [["cors-denied",/Could not reach the add-on server/i],["malformed",/invalid JSON response/i],["shape",/manifest is not valid/i],["failure",/Fixture provider unavailable/]]) {
     await page.locator("#desktop-addon-url").fill(`${provider}/${scenario}/manifest.json`);
     await page.getByRole("button",{name:"Add Addon",exact:true}).click();
     await expect(page.getByRole("alert")).toContainText(message);
+    await expect(page.getByRole("alert")).not.toContainText(/Failed to fetch|NetworkError|is not a function|Cannot read propert/i);
     await expect(page.getByRole("status")).toHaveText("The addon was not added.");
     await expect(page.getByRole("button",{name:"Add Addon",exact:true})).toBeEnabled();
     await expect(page.locator("[data-addon-card]")).toHaveCount(0);
