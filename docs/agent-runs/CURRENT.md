@@ -1,6 +1,6 @@
 # Agent continuity record — current state
 
-Last updated: 2026-10-19, after the startup-failure classification unit (#10). **Read this first after clearing context.**
+Last updated: 2026-10-19, after the startup-classification and WebKit-coverage units (#10). **Read this first after clearing context.**
 
 This file is the durable handoff. A new agent must be able to resume from it without the previous conversation. Update it at the checkpoints listed in the operating directive, and group updates into the PR that caused them where possible.
 
@@ -14,8 +14,8 @@ This file is the durable handoff. A new agent must be able to resume from it wit
 
 ## Current selection
 
-- Selected ticket: **#10** (hosted browser MVP playback). Startup classification merged in [PR #77](https://github.com/saurabhhbansal/nuvioweb/pull/77) (`d2a6acd`); WebKit engine coverage is in the PR for this unit. The next unit is **synthetic multitrack/HDR fixtures or #11 unit 6b-2**, whichever is unblocked first. **#23 PR C** is owner-gated because it introduces `issues: write`. #7 remains environment-gated.
-- Current branch: `test/issue-10-webkit-coverage` (see its PR for the exact head).
+- Selected ticket: **#10** (hosted browser MVP playback). Startup classification merged in [PR #77](https://github.com/saurabhhbansal/nuvioweb/pull/77) (`d2a6acd`); WebKit engine coverage merged in [PR #79](https://github.com/saurabhhbansal/nuvioweb/pull/79) (`91d0b81`). The next unit is **synthetic multitrack/HDR fixtures or #11 unit 6b-2**, whichever is unblocked first. **#23 PR C** is owner-gated because it introduces `issues: write`. #7 remains environment-gated.
+- Current branch: none; clean `main` at `91d0b81`.
 - Last completed atomic tasks: #66 unit 6a; #67 pre-code plans; #70 #23 PR A+B; #72 unit 6b-1; #76 final Safari observations; startup-failure classification (#10, this PR); hosted nonempty Library B→A; owner manual device checks (Windows11 Edge155 guest checklist PASS, audible audio; iPhone17Pro/iOS27 Safari VP8/Opus demo PASS but native MKV/HEVC/DV/HDR sources fail) and owner app-removal evidence (B cloud1 item vs A2 after removal; one transient switch failure then a successful read-only round trip).
 - Next exact atomic task: **synthetic multitrack/HDR fixtures** for #10 (generated original media only, capability-honest assertions, no provider media) or **#11 unit 6b-2** (default-off app seam, flag source, CSP decision). WebKit coverage is done: the `webkit` project is env-gated by `NUVIO_PLAYWRIGHT_WEBKIT=1` and runs inside the required browser job on Playwright WebKit 27.2; do not add an unconditional project or rename the required context. Do not implement #23 PR C without explicit owner review of the `issues: write` boundary. Do not repeat the live B→A→B probe; any sync runtime change first needs a deterministic synthetic reproduction.
 - **Build prerequisite learned this round:** `npm run build --prefix app/alpha` needs `NUVIO_LOCAL_PROPERTIES=<repo>/tests/fixtures/build.properties` for tests (CI does the same). Without it the build falls back to `local.example.properties`, bakes an empty backend URL and fails `scripts/envProperties.test.mjs` / `check-alpha-build.mjs`. Never bake the live backend into a local test build.
