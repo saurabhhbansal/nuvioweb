@@ -420,3 +420,13 @@ Status: design approved before code. No media decode, no codec support claim, no
 **Rollback.** Protected revert of the merge commit; the workflow job and project gate are additive and remove cleanly.
 
 **Limits.** WebKit on Linux is not iOS Safari: it is the same engine family with a different media stack. Local verification of the WebKit project is impossible on this host; the PR's CI run is the first execution and must be green before integration.
+
+#### HDR declaration honesty (2026-10-19)
+
+An HDR gate remains open in #10 because no supported HDR source and no device observation exist. What can be established without either is that declared HDR metadata is never presented as a capability claim:
+
+- A source declaring `video.hdr: "dolby-vision"` renders as `HDR: dolby-vision (unverified)`; the card never emits "verified support", "HDR verified" or "supported HDR".
+- HDR metadata does not change the capability verdict: the same descriptor is classified by the engine's own `canPlayType` answer, so an unplayable declaration is `unsupported-codec` and a predicted-playable one stays a stall.
+- A hostile HDR string (`<script>alert(1)</script>`) fails token validation and renders as `HDR unknown`, with no markup in the output.
+
+Verified in `tests/browser/capabilities.spec.mjs` (Chromium 156). This is honesty evidence about labels and classification only: **HDR rendering, tone mapping, HDR10/HLG/DV output and any display claim remain NOT OBSERVED**, and the HDR gate stays open.

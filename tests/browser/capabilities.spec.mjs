@@ -519,3 +519,92 @@ test("player startup messages agree with the reported reason at runtime", async 
   expect(output.stall.message.endsWith(".")).toBe(true);
   expect(output.stall.message).not.toContain("..");
 });
+
+test("declared HDR metadata is labelled unverified and does not change the verdict", async ({
+  page,
+}) => {
+  await page.goto("/__fixture/harness");
+  const output = await page.evaluate(async () => {
+    const { describeSource } = await import(
+      "/__fixture/source/js/core/streams/sourceCapabilities.js"
+    );
+    const { classifyStartupFailure } = await import(
+      "/__fixture/source/js/core/player/startupFailure.js"
+    );
+    const { normalizeSourceForDisplay, renderBrowserSourceCardContent } = await import(
+      "/__fixture/source/js/ui/components/browserStreamSourceCard.js"
+    );
+    const make = (hdr) => {
+      const source = {
+        name: "Declared HDR fixture",
+        url: "https://media.example.invalid/hdr.mp4",
+        mimeType: 'video/mp4; codecs="hvc1.2.4.L153.B0"',
+        video: { codec: "hvc1.2.4.L153.B0", width: 3840, height: 2160, ...(hdr === null ? {} : { hdr }) },
+      };
+      source.sourceDescriptor = describeSource(source);
+      return {
+        descriptor: source.sourceDescriptor,
+        html: renderBrowserSourceCardContent(
+          normalizeSourceForDisplay(source, {
+            badgeSettings: { showAddonLogo: false },
+            streamBadgesEnabled: false,
+          }),
+        ),
+      };
+    };
+    const video = document.createElement("video");
+    const probe = (descriptor) => {
+      const answer = video.canPlayType(descriptor.contentType);
+      const nativePrediction =
+        answer === "probably" || answer === "maybe"
+          ? answer
+          : answer === ""
+            ? "not-reported"
+            : "unknown";
+      return {
+        nativePrediction,
+        reason: classifyStartupFailure({
+          descriptor,
+          nativePrediction,
+          engine: "native-file",
+          mediaErrorCode: 4,
+          timedOut: true,
+        }).reason,
+      };
+    };
+    const withHdr = make("dolby-vision");
+    const withoutHdr = make(null);
+    const hostile = make("<script>alert(1)</script>");
+    return {
+      declared: withHdr.descriptor,
+      declaredHtml: withHdr.html,
+      plain: withoutHdr.descriptor,
+      hostile: hostile.descriptor,
+      hostileHtml: hostile.html,
+      withHdrProbe: probe(withHdr.descriptor),
+      withoutHdrProbe: probe(withoutHdr.descriptor),
+    };
+  });
+
+  // The declared token is shown exactly once, labelled unverified.
+  expect(output.declared.video.hdr).toBe("dolby-vision");
+  expect(output.declaredHtml).toContain("HDR: dolby-vision (unverified)");
+  // Exactly one HDR label exists, and it carries the unverified qualifier. The
+  // fixture name also contains "HDR", so a bare word match would be wrong here.
+  expect(output.declaredHtml).not.toMatch(/HDR unknown/);
+  const hdrLabels = output.declaredHtml.split("HDR:").slice(1);
+  expect(hdrLabels).toHaveLength(1);
+  expect(hdrLabels[0].slice(0, 120)).toContain("(unverified)");
+  expect(output.declaredHtml).not.toMatch(/supports? HDR|HDR support|verified HDR|HDR verified|HDR ready/i);
+
+  // HDR metadata must not change the classification path: the otherwise
+  // identical descriptor without HDR must classify the same way.
+  expect(output.withHdrProbe.nativePrediction).toBe(output.withoutHdrProbe.nativePrediction);
+  expect(output.withHdrProbe.reason).toBe(output.withoutHdrProbe.reason);
+  expect(output.declared.contentType).toBe(output.plain.contentType);
+
+  // A hostile HDR string is rejected by token validation, not rendered.
+  expect(output.hostile.video.hdr).toBeNull();
+  expect(output.hostileHtml).toContain("HDR unknown");
+  expect(output.hostileHtml).not.toMatch(/<script|alert\(1\)/);
+});
