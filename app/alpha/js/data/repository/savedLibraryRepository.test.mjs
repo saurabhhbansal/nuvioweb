@@ -16,6 +16,7 @@ async function fixture(t, { guest = false } = {}) {
   let authenticated = !guest;
   const calls = [];
   const values = new Map();
+  const resetHandlers = [];
   const dependencies = {
     AuthManager: {
       get isAuthenticated() { return authenticated; },
@@ -27,15 +28,17 @@ async function fixture(t, { guest = false } = {}) {
     SavedLibrarySyncService: { push: async (profileId) => { calls.push({ profileId, generation }); return true; } }
   };
   globalThis.__savedLibraryRepoDeps__ = dependencies;
+  globalThis.__savedLibraryRepoResets__ = resetHandlers;
   const result = await build({
     entryPoints: [fileURLToPath(new URL("./savedLibraryRepository.js", import.meta.url))],
     bundle: true, format: "esm", platform: "node", write: false,
     plugins: [{ name: "saved-library-repository-boundaries", setup(buildApi) {
+      buildApi.onResolve({ filter: /accountLocalDataReset\.js$/ }, () => ({ path: "reset", namespace: "fixture" }));
       for (const name of Object.keys(dependencies)) {
         buildApi.onResolve({ filter: new RegExp(`${name}\\.js$`, "i") }, () => ({ path: name, namespace: "fixture" }));
       }
       buildApi.onLoad({ filter: /.*/, namespace: "fixture" }, ({ path }) => ({
-        contents: `export const ${path} = globalThis.__savedLibraryRepoDeps__.${path};`
+        contents: path === "reset" ? "export const registerAccountRuntimeResetHandler = (callback) => globalThis.__savedLibraryRepoResets__.push(callback);" : `export const ${path} = globalThis.__savedLibraryRepoDeps__.${path};`
       }));
     } }]
   });
@@ -50,11 +53,12 @@ async function fixture(t, { guest = false } = {}) {
     globalThis.setTimeout = realSetTimeout;
     globalThis.clearTimeout = realClearTimeout;
     delete globalThis.__savedLibraryRepoDeps__;
+    delete globalThis.__savedLibraryRepoResets__;
   });
   return {
     repository, dependencies, calls, timers,
-    switchAccount: () => { generation++; authenticated = true; values.clear(); },
-    signOut: () => { generation++; authenticated = false; values.clear(); },
+    switchAccount: () => { generation++; authenticated = true; values.clear(); resetHandlers.forEach((reset) => reset()); },
+    signOut: () => { generation++; authenticated = false; values.clear(); resetHandlers.forEach((reset) => reset()); },
     flush: async () => { await turn(); await turn(); },
     runTimers: async () => {
       const callbacks = [...timers.values()]; timers.clear();
@@ -188,4 +192,29 @@ test("old account completion cannot detach the new account's pending push", asyn
     current.resolve(true);
     await f.flush();
   }
+});
+
+test("real local mutations mark pending metadata and old acknowledgements cannot clear newer edits", async (t) => {
+  const f = await fixture(t);
+  await f.repository.save({ contentId: "first" });
+  const first = f.repository.getSyncState("1");
+  assert.equal(first.pending, true);
+  await f.repository.remove("first");
+  const removed = f.repository.getSyncState("1");
+  assert.notEqual(removed.revision, first.revision);
+  assert.equal(f.repository.acknowledgeSync("1", first.revision), false);
+  assert.equal(f.repository.getSyncState("1").pending, true);
+  assert.equal(f.repository.acknowledgeSync("1", removed.revision), true);
+  assert.equal(f.repository.getSyncState("1").pending, false);
+});
+
+test("guest edits never mark cloud intent and account reset drops old pending metadata", async (t) => {
+  const f = await fixture(t, { guest: true });
+  await f.repository.save({ contentId: "guest" });
+  assert.deepEqual(f.repository.getSyncState("1"), { revision: 0, pending: false });
+  f.switchAccount();
+  await f.repository.save({ contentId: "authenticated" });
+  assert.equal(f.repository.getSyncState("1").pending, true);
+  f.switchAccount();
+  assert.deepEqual(f.repository.getSyncState("1"), { revision: 0, pending: false });
 });

@@ -1,6 +1,7 @@
 import { SavedLibraryStore } from "../local/savedLibraryStore.js";
 import { ProfileManager } from "../../core/profile/profileManager.js";
 import { AuthManager } from "../../core/auth/authManager.js";
+import { SavedLibrarySyncState } from "../local/savedLibrarySyncState.js";
 
 function activeProfileId() {
   return String(ProfileManager.getActiveProfileId() || "1");
@@ -11,6 +12,7 @@ const savedLibrarySyncInFlightByProfile = new Map();
 
 function queueSavedLibraryCloudSync(profileId = activeProfileId(), delayMs = 500) {
   if (!AuthManager.isAuthenticated) return;
+  SavedLibrarySyncState.markPending(profileId);
   const sessionGeneration = AuthManager.getSessionGeneration();
   const isCurrent = () => AuthManager.isSessionCurrent(sessionGeneration);
   // Repeated profile IDs belong to different queues after an account switch.
@@ -51,6 +53,14 @@ function queueSavedLibraryCloudSync(profileId = activeProfileId(), delayMs = 500
 }
 
 class SavedLibraryRepository {
+  getSyncState(profileId = activeProfileId()) {
+    return SavedLibrarySyncState.get(profileId);
+  }
+
+  acknowledgeSync(profileId, revision) {
+    return SavedLibrarySyncState.acknowledge(profileId, revision);
+  }
+
   async getAll(limit = 200, profileId = activeProfileId()) {
     return SavedLibraryStore.listForProfile(profileId).slice(0, limit);
   }
