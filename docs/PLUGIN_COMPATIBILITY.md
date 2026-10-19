@@ -116,3 +116,9 @@ The asyncified QuickJS variant — required because `api.fetch` must await a bro
 ## Rollback
 
 Revert the contract module, tests, fixture and this document through a protected PR. No user data, schema, persistence or deployment state is involved.
+
+## Browser engine execution (unit 6a, test-only)
+
+The opt-in asset builder and `tests/browser/plugin-engine.spec.mjs` execute the real broker-bound QuickJS prototype from bundled JS + external WASM in Chromium156.0.8078.4 on Linux ARM64. 9/9 browser scenarios pass: the representative fixture normalizes one group/one stream and drops its `javascript:` URL; host globals are absent; an allowed synthetic fetch works through the broker; a denied host dispatches nothing; timeout, memory and output-size budgets fail closed; an unexpected external request is blocked and recorded; no page errors. The builder rejects output paths that escape through a symlink, and the representative test asserts the browser's actual `application/wasm` response. Asset hashes, MIME types and sizes are recorded in [the engine evaluation](PLUGIN_ENGINE_EVALUATION.md).
+
+This remains test-only: the engine is not imported by the application, not exposed behind a feature flag, not emitted by the normal build or stager, and not part of the preview. No plugin is shipped, compatible or supported; a future default-off seam and independent security review are still required.

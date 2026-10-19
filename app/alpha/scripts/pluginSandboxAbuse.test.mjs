@@ -116,3 +116,19 @@ test("a timed-out network execution does not poison a later execution", async ()
   assert.equal(fast.ok, true, JSON.stringify(fast));
   assert.equal(fast.groups[0].streams[0].description, "B");
 });
+
+test("an in-VM allocation overshoot is classified as memory, while a plain boom stays plugin", async () => {
+  const allocation = await runNet({
+    code: 'async function resolve(){ return "x".repeat(64 * 1024 * 1024); }',
+    allowedHosts: okHosts,
+    transport: async () => ({ status: 200, body: "" }),
+    limits: { memoryBytes: 1024 * 1024, timeMs: 3000 }
+  });
+  assert.deepEqual({ ok: allocation.ok, error: allocation.error }, { ok: false, error: "memory" });
+  const boom = await runNet({
+    code: 'async function resolve(){ throw new Error("boom"); }',
+    allowedHosts: okHosts,
+    transport: async () => ({ status: 200, body: "" })
+  });
+  assert.deepEqual({ ok: boom.ok, error: boom.error }, { ok: false, error: "plugin" });
+});
