@@ -10,7 +10,8 @@ Status at 2026-10-19: **FAIL — a complete hosted browser MVP is not yet demons
 - **L2 local browser/HTTP fixtures:** actual bundled UI and redistributable generated media over loopback HTTP. These test local fetch/CORS/player behavior, using synthetic catalog records. They are not hosted HTTPS/provider or named-device evidence. [Existing quality matrix](PLAYBACK_QUALITY_MATRIX.md), [add-on evidence](ADDON_INTEROPERABILITY.md).
 - **S1 synthetic identity service:** bundled browser fixture intercepts API requests using synthetic identities/tokens; covers account/profile isolation, delayed old responses, final-item empty push, remote deletion and failed-write/pending reload. No real Nuvio service/CORS/session guarantee follows.
 
-PASS applies only to the stated seam. FAIL is an observed failed assertion or absent required behavior. NOT TESTED means no matching execution evidence; a different column's pass never fills that gap.
+- **C1 candidate, NOT deployed:** `80f739cf18eef5dca6d9e0fa54899357032f88bd` (current main after governance PR #50; runtime source identical to `a1629fe`). Clean static staging has134 verified hashes, GPL/notices and the optional same-host CC0 demo; loopback preflight passed hashes/headers/404s/demo resources/guest shell/reload/alias with0 page errors and third parties blocked. Cloudflare authorization is expired, so no upload occurred; every hosted cell below stays NOT TESTED. [Receipt](evidence/preview-candidate-2026-10-19.json).
+- PASS applies only to the stated seam. FAIL is an observed failed assertion or absent required behavior. NOT TESTED means no matching execution evidence; a different column's pass never fills that gap.
 
 ## Required journeys
 

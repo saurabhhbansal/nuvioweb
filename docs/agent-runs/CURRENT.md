@@ -15,10 +15,10 @@ This file is the durable handoff. A new agent must be able to resume from it wit
 ## Current selection
 
 - Selected ticket: **#7** (real-account login/sync/profile isolation) and **#10** (source descriptors and browser playback capability reporting) remain the only in-progress MVP tickets. Governance/continuity work precedes them and is not a roadmap ticket.
-- Current branch: `docs/autonomous-delegation` (from `main` `a1629fe`).
-- Current PR: opened for the governance/continuity change only.
-- Most recently completed atomic task: repository recovery inspection (git/PR/issue/CI/docs reconciliation) and creation of this continuity record.
-- Next exact atomic task: merge the governance delegation PR through protected CI, then revalidate the `a1629fe` preview candidate and attempt the authorized development-preview refresh.
+- Current branch: `docs/preview-candidate-80f739c` (from `main` `80f739c`).
+- Current PR: preview candidate revalidation and upload-blocker record (opened after governance PR #50 merged).
+- Most recently completed atomic task: governance delegation/continuity merged through protected PR #50 at `80f739cf18eef5dca6d9e0fa54899357032f88bd`; preview candidate restaged and locally revalidated at that exact revision.
+- Next exact atomic task: merge the candidate/blocker record, then continue independent work — hosted upload once the owner restores Cloudflare access; meanwhile run the #10 named-engine compatibility pass and the bounded #7 synthetic diagnosis.
 
 ## Relevant plans and evidence
 
@@ -31,13 +31,10 @@ This file is the durable handoff. A new agent must be able to resume from it wit
 
 ## Last verification performed
 
-Recovery inspection only; no repository test suite was rerun in this session yet.
-
-- `git status`, `git branch -vv`, `git log -5 --oneline`, `git remote -v`, `git worktree list`, `git stash list` — clean main, no stashes, no untracked work.
-- `git fetch --all --prune` — main unchanged; upstream `alpha` mirror advanced to `8a2c2fe` (new tag `v0.1.6`), not merged.
-- `gh pr list --state open` — none. `gh issue list --state open` — 15 issues (#7–#24).
-- `gh run list --branch main` — all four required contexts succeeded at `a1629fe`.
-- `gh api .../branches/main/protection` — strict checks, admin enforcement, no force push/deletion, zero required approvals.
+- Recovery: `git status`, `git branch -vv`, `git log -5 --oneline`, `git remote -v`, `git worktree list`, `git stash list` — clean main, no stashes, no untracked work. `git fetch --all --prune` — upstream `alpha` mirror advanced to `8a2c2fe` (new tag `v0.1.6`), not merged. 15 open issues (#7–#24), no open PRs. All four required contexts succeeded at `a1629fe`. Branch protection: strict checks, admin enforcement, no force push/deletion, zero required approvals.
+- Governance PR #50: `node scripts/check-docs.mjs` pass; `node --test scripts/check-docs.test.mjs scripts/governance.test.mjs` 15/15 pass; `node scripts/check-progress.mjs` valid. Merged at `80f739c` after all four required checks passed on exact head `8936214`.
+- Preview candidate at `80f739c` in clean detached worktree: `npm run preview:stage` pass (asset `53a3ebbd44cc`, worker `nuvio-app-shell-0.1.5-134fd4f07f67`); 134/134 inventory hashes independently matched, GPL matched, 10 demo files, 0 forbidden paths. Loopback preflight PASS: 10 hash/header checks, 404s, demo resources, guest navigation/reload/alias, 0 page errors, all third-party origins blocked. Receipt: [preview-candidate-2026-10-19.json](../evidence/preview-candidate-2026-10-19.json).
+- Cloudflare access check FAIL: `wrangler 4.129.0 pages project list --json` requires `CLOUDFLARE_API_TOKEN`; OAuth expired `2026-10-19T10:05:01Z`. No upload attempted.
 - Prior-agent receipts remain authoritative for their tested seams; see the files above.
 
 ## Known failures and limits
@@ -50,7 +47,7 @@ Recovery inspection only; no repository test suite was rerun in this session yet
 
 ## Known blockers
 
-- **Development-preview upload:** cached Wrangler 4.129.0 reports the Cloudflare OAuth token expired at `2026-10-19T10:05:01Z` and cannot refresh non-interactively (`wrangler whoami` exit 1, "Not logged in"). The owner must run `wrangler login` interactively or provide `CLOUDFLARE_API_TOKEN` in the environment. No upload is possible until then; everything up to and including local candidate staging/verification can proceed. Do not paste credentials or tokens into issues or chat.
+- **Development-preview upload:** cached Wrangler 4.129.0 reports the Cloudflare OAuth token expired at `2026-10-19T10:05:01Z` and cannot refresh non-interactively. `wrangler pages project list --json` failed with "In a non-interactive environment, it's necessary to set a CLOUDFLARE_API_TOKEN environment variable". The owner must run `wrangler login` interactively on this host or provide a Pages-scoped `CLOUDFLARE_API_TOKEN`. Everything up to and including local candidate staging/verification is complete. Do not paste credentials or tokens into issues or chat.
 - **Codex CLI unavailable:** `codex: command not found` on this host. Planning and review therefore use the same written template executed by the primary agent and a separate reviewer pass; results are recorded as automated, never as independent human approval. See [planning record](2026-10-19-codex-unavailable.md).
 
 ## Required approvals
@@ -61,5 +58,6 @@ Recovery inspection only; no repository test suite was rerun in this session yet
 
 ## Hosted preview
 
-- Public development preview revision: `8edec4248405d59f5b8639085a1e779e6878911b`, deployment `96f977f4`.
-- Authorized next candidate: current `main` (`a1629fe`), after local revalidation and protected CI confirmation. Candidate upload awaits the Cloudflare login blocker.
+- Public development preview revision: `8edec4248405d59f5b8639085a1e779e6878911b`, deployment `96f977f4` (unchanged; retained for rollback).
+- Revalidated candidate: `80f739cf18eef5dca6d9e0fa54899357032f88bd`, asset `53a3ebbd44cc`, worker `nuvio-app-shell-0.1.5-134fd4f07f67`, staged inventory 134 files / manifest `ec1fcf11…`. Not uploaded because Cloudflare authorization is expired.
+- Builds are not bit-reproducible: the inherited bundle embeds a build timestamp, so ids change per rebuild of identical source. Verify uploads against their own staged inventory.
