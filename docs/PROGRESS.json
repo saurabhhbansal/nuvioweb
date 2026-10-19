@@ -299,7 +299,9 @@
           "docs/agent-runs/2026-10-19-recovery-loader-review.md",
           "app/alpha/js/core/player/playbackRecoveryPolicy.js",
           "app/alpha/js/core/player/playbackRecoveryPolicy.test.mjs",
-          "docs/agent-runs/2026-10-19-recovery-policy-review.md"
+          "docs/agent-runs/2026-10-19-recovery-policy-review.md",
+          "app/alpha/js/core/player/recoveryOperation.js",
+          "app/alpha/js/core/player/recoveryOperation.test.mjs"
         ],
         "verifiedLocally": [
           "Unit0 (documentation only): scope, dependency and licence decisions recorded; no acceptance evidence",
@@ -307,7 +309,8 @@
           "Unit2 observation step: pure browserAudioTracks module (raw-metadata extraction, ambiguity fail-closed, evidence-only decode support, bounded values) plus controller getNormalizedBrowserAudioTracks; 10 module/15 controller tests and 1273 app tests pass; async selection confirmation, presentation copy and audio-recovery browser spec remain blocked on AAC fixtures",
           "Unit2 observation step after review: 8 findings fixed (collision-free identities, unstable-identity unselectable, stale-snapshot rejection, native-kind mapping, recognised-engine gate, enum-validated reasons, bounded role metadata, stronger assertions); 18 module/15 controller/1281 app tests pass",
           "Unit3 policy step: recovery budgets only (limits, pinned-context classification, session concurrency with bound release handles, all-observed-byte accounting, exhaustion latching); the hls.js loader was held back after a read-only review found 7 P1 + 9 P2 defects, recorded in the review note; 10/10 policy tests and 1291 app tests pass",
-          "Recovery policy step after review: pure planAudioRecovery without userChoice (explicit selection belongs to the selection path), attribution+format+generation gates, stale-snapshot and ambiguity fail-closed, no key truncation, strict counters, own-data-property reads, selection-only restore exception, 16/16 tests and 1307 app tests pass; not wired to the player"
+          "Recovery policy step after review: pure planAudioRecovery without userChoice (explicit selection belongs to the selection path), attribution+format+generation gates, stale-snapshot and ambiguity fail-closed, no key truncation, strict counters, own-data-property reads, selection-only restore exception, 16/16 tests and 1307 app tests pass; not wired to the player",
+          "Recovery operation state: caller-owned record enforces one operation per generation, one alternate and one restore attempt, no repeat track, no restore of the failed track, idempotent close, stale-caller refusal and non-forgeable snapshots; 11/11 tests and 1318 app tests pass; not wired"
         ],
         "integrationGate": "Unit0 is a documentation PR; AC1-AC3 stay unproven and the issue stays in progress",
         "currentUnit": {

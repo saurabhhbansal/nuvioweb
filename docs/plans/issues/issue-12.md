@@ -911,3 +911,19 @@ Status: the pure planner exists and was hardened after review; nothing calls it 
 **Not done.** No controller or UI integration, no presentation strings, no audio-recovery browser spec, no recovery session. Those need the loader rebuild and the blocked AAC fixtures.
 
 **Rollback.** Revert the module, its test and these records; nothing imports it.
+
+### Recovery operation state executed (2026-10-19)
+
+Status: the caller-side operation record exists; nothing calls it yet.
+
+**Why.** The loader review (see [record](../../agent-runs/2026-10-19-recovery-loader-review.md)) pointed out that a pure planner cannot prevent a caller from replaying identical plans, and that "one alternate, one restore" needs an owner. `app/alpha/js/core/player/recoveryOperation.js` is that owner.
+
+**Contract.** `createRecoveryOperation({generation, maxAlternate = 1, maxRestore = 1})` returns an operation with `begin(trackKey)`, `offerAlternate(trackKey)`, `offerRestore(trackKey)`, `canOffer(trackKey)`, `close(why)`, `invalidate(generation, why)`, `isCurrent(generation)` and `snapshot()`. Pure: no network, no player mutation, no persistence, no logging.
+
+**Rules.** A generation must be a number (not a numeric string), a positive integer, and limits must be non-negative integers; anything else refuses as `invalid-request`. `begin` records the failed track exactly once. An alternate may not be the failed track, may not repeat an already-attempted track, and is capped; a restore may not target the failed track either and is capped separately. Attempts are recorded in order with their kind, so "offer A, then restore A" is refused as `already-attempted`. `close` is idempotent and stops every later offer with `operation-closed`. `invalidate` refuses a stale caller rather than letting it close the current operation. Snapshots are copies (mutating one cannot forge state), keys are not truncated, and an oversized or non-string key is refused without consumption.
+
+**Verification.** `node --test app/alpha/js/core/player/recoveryOperation.test.mjs` 11/11; `npm test --prefix app/alpha` 1318/1318; lint pass.
+
+**Not done.** No controller or loader wiring, no timers/deadlines (those belong to the loader rebuild), no browser evidence.
+
+**Rollback.** Revert the module, its test and this record; nothing imports it.
