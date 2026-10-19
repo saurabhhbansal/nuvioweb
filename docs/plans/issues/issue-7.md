@@ -371,3 +371,9 @@ Marker run: B cloud Library started count0; empty contract probes204; one increm
 Immediate read-only round trip: all three Library pulls (B, A, returning B) completed200; returning-B at about6.7s; no Library/watched/progress failures. Four unrelated critical reads failed with category `FAILED`.
 
 Interpretation: scoped evidence that A does not receive B's synthetic Library item and that returning B can hydrate, but switch restoration is nondeterministic (one fail, one pass) and the marker failure category is unknown. No product fix is justified. Stop live marker writes permanently; any future live switch observation must record failure categories and must not be an unchanged repeat. Synthetic fixture work would need a deterministic reproduction first.
+
+### Owner-created nonempty Library evidence — 2026-10-19
+
+With one owner-created Library item in each disposable account, the existing read-mostly hosted switch driver recorded a complete nonempty control and B→A switch on `1f67867`/deployment `b48de821`: distinct owners, A/B each1 row, A watched164/progress156, B0/0. After actual Sign Out → A Sign In → primary profile → Library, a new A-epoch Library pull200 returned1 row at about4.95s, fingerprint-equal to fresh A and different from B; no B-only set; A local/UI count1; watched/progress unchanged;0 uncaught errors. No record was created, changed or deleted by the driver. [Receipt](../../evidence/identity-library-nonempty-switch-2026-10-19.json).
+
+This resolves the previous empty-Library limitation for a **single B→A switch**. Remaining: B→A→B reliability (previously flaky), app Save/remove and cross-client deletion propagation, live expiry/revocation/QR/offline, named-device observations (optional per owner direction), and a deterministic synthetic reproduction before any sync runtime change. Manual spot-check steps for the owner's Windows Edge/iPhone are in [DEVICE_VERIFICATION.md](../../DEVICE_VERIFICATION.md).

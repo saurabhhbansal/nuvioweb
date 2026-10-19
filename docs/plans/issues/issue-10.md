@@ -292,3 +292,16 @@ Limits: no branded Edge (no ARM64 Linux build or x64 device), Safari, iOS or phy
 Current main `1f67867` was deployed to the dedicated development preview as `b48de821-9034-49cc-8e1f-ab5c50e7fa3a` after134/134 inventory verification and local preflight. Actual HTTPS verification passed artifact/header/source/worker checks, and the complete hosted guest journey passed: legal same-host demo install → catalog → VP8/Opus640×360 playback → pause/seek/resume → active subtitle cue → Back → save → reload,0 uncaught errors, third parties blocked. Receipt: `docs/evidence/preview-refresh-2026-10-19.json`.
 
 This closes the hosted guest-media portion of #10's open gate, not the issue: branded Chrome/Edge/Safari, physical mobile, multitrack/audible audio, hosted external-provider CORS, 4K60/HDR and sustained-quality verification remain NOT TESTED, and real-account isolation belongs to #7.
+
+## Owner-directed device scope — 2026-10-19
+
+The owner clarified the browser/device requirement: Microsoft Edge is Chromium-based, so Chromium/Chrome engine coverage is accepted as sufficient for Edge; an exhaustive per-platform matrix is **not** a closure requirement. Users can report platform-specific issues later. This is an owner scope decision, not a measured branded-Edge pass: documentation must keep the distinction between tested Chromium/Chrome evidence and inferred Edge parity.
+
+The owner can run manual spot checks on a Windows PC (Microsoft Edge) and an iPhone 17 Pro running iOS 27. Exact steps and the report template are in [DEVICE_VERIFICATION.md](../../DEVICE_VERIFICATION.md). iPhone/Safari is WebKit, so its observations are evidence for Safari/iOS behavior only; they do not replace Chromium tests.
+
+Consequences for #10:
+
+- Baseline engine coverage: Chromium156 and Chrome for Testing155 pass; Playwright Firefox157 passes its scoped suite. Branded Edge/Safari/mobile are **optional spot checks**, not required gates.
+- Audible multitrack output and HDR rendering still require a real device observation before those specific claims are made; the iPhone is suitable for them, but a recorded observation is required.
+- Hosted external-provider CORS still needs a legal external origin; same-host demo playback does not establish it.
+- No claim changes without observed device results; the manual checklist results will be recorded in `docs/evidence/` with browser/OS versions and limits.
