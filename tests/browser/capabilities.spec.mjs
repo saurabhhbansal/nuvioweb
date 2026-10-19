@@ -520,7 +520,7 @@ test("player startup messages agree with the reported reason at runtime", async 
   expect(output.stall.message).not.toContain("..");
 });
 
-test("declared HDR metadata is labelled unverified and never becomes a support claim", async ({
+test("declared HDR metadata is labelled unverified and does not change the verdict", async ({
   page,
 }) => {
   await page.goto("/__fixture/harness");
@@ -539,7 +539,7 @@ test("declared HDR metadata is labelled unverified and never becomes a support c
         name: "Declared HDR fixture",
         url: "https://media.example.invalid/hdr.mp4",
         mimeType: 'video/mp4; codecs="hvc1.2.4.L153.B0"',
-        video: { codec: "hvc1.2.4.L153.B0", width: 3840, height: 2160, hdr },
+        video: { codec: "hvc1.2.4.L153.B0", width: 3840, height: 2160, ...(hdr === null ? {} : { hdr }) },
       };
       source.sourceDescriptor = describeSource(source);
       return {
@@ -553,43 +553,55 @@ test("declared HDR metadata is labelled unverified and never becomes a support c
       };
     };
     const video = document.createElement("video");
-    const predictionOf = (descriptor) => {
+    const probe = (descriptor) => {
       const answer = video.canPlayType(descriptor.contentType);
-      if (answer === "probably" || answer === "maybe") return answer;
-      return answer === "" ? "not-reported" : "unknown";
+      const nativePrediction =
+        answer === "probably" || answer === "maybe"
+          ? answer
+          : answer === ""
+            ? "not-reported"
+            : "unknown";
+      return {
+        nativePrediction,
+        reason: classifyStartupFailure({
+          descriptor,
+          nativePrediction,
+          engine: "native-file",
+          mediaErrorCode: 4,
+          timedOut: true,
+        }).reason,
+      };
     };
-    const declared = make("dolby-vision");
+    const withHdr = make("dolby-vision");
+    const withoutHdr = make(null);
     const hostile = make("<script>alert(1)</script>");
-    const nativePrediction = predictionOf(declared.descriptor);
     return {
-      declared: declared.descriptor,
-      declaredHtml: declared.html,
+      declared: withHdr.descriptor,
+      declaredHtml: withHdr.html,
+      plain: withoutHdr.descriptor,
       hostile: hostile.descriptor,
       hostileHtml: hostile.html,
-      nativePrediction,
-      classification: classifyStartupFailure({
-        descriptor: declared.descriptor,
-        nativePrediction,
-        engine: "native-file",
-        mediaErrorCode: 4,
-        timedOut: true,
-      }),
+      withHdrProbe: probe(withHdr.descriptor),
+      withoutHdrProbe: probe(withoutHdr.descriptor),
     };
   });
 
-  // The declared token is shown as unverified; no support or rendering claim.
+  // The declared token is shown exactly once, labelled unverified.
   expect(output.declared.video.hdr).toBe("dolby-vision");
   expect(output.declaredHtml).toContain("HDR: dolby-vision (unverified)");
+  // Exactly one HDR label exists, and it carries the unverified qualifier. The
+  // fixture name also contains "HDR", so a bare word match would be wrong here.
   expect(output.declaredHtml).not.toMatch(/HDR unknown/);
-  expect(output.declaredHtml).not.toMatch(/verified support|HDR verified|supported HDR/i);
+  const hdrLabels = output.declaredHtml.split("HDR:").slice(1);
+  expect(hdrLabels).toHaveLength(1);
+  expect(hdrLabels[0].slice(0, 120)).toContain("(unverified)");
+  expect(output.declaredHtml).not.toMatch(/supports? HDR|HDR support|verified HDR|HDR verified|HDR ready/i);
 
-  // HDR metadata does not change the capability verdict.
-  expect(output.classification.category).toBe(
-    output.nativePrediction === "not-reported" ? "unsupported" : "stall",
-  );
-  if (output.classification.category === "unsupported") {
-    expect(output.classification.reason).toBe("unsupported-codec");
-  }
+  // HDR metadata must not change the classification path: the otherwise
+  // identical descriptor without HDR must classify the same way.
+  expect(output.withHdrProbe.nativePrediction).toBe(output.withoutHdrProbe.nativePrediction);
+  expect(output.withHdrProbe.reason).toBe(output.withoutHdrProbe.reason);
+  expect(output.declared.contentType).toBe(output.plain.contentType);
 
   // A hostile HDR string is rejected by token validation, not rendered.
   expect(output.hostile.video.hdr).toBeNull();
