@@ -14193,6 +14193,14 @@ export const PlayerScreen = {
 
     const entries = this.getAudioEntries();
     const hasSupportedEntries = entries.some((entry) => entry?.supported !== false);
+    // The engine may be unable to switch tracks at all (no setter) or the list
+    // may be ambiguous. In those cases the dialog must not offer a selection
+    // that would silently fail; the reviewed copy contract decides.
+    const audioAvailability =
+      typeof PlayerController.getAudioTrackAvailabilityCopy === "function"
+        ? PlayerController.getAudioTrackAvailabilityCopy()
+        : null;
+    const audioSwitchBlocked = audioAvailability?.tone === "warning";
     const audioControls = [
       {
         id: "amplification",
@@ -14249,7 +14257,13 @@ export const PlayerScreen = {
     this.audioDialogIndex = clamp(this.audioDialogIndex, 0, entries.length - 1);
     dialog.innerHTML = `
       <div class="player-dialog-title">${escapeHtml(t("audio_dialog_title", {}, "Audio"))}</div>
-      ${hasSupportedEntries ? "" : `<div class="player-audio-support-message">${escapeHtml(t("player.audio.noSupportedTracks", {}, "No supported audio tracks available"))}</div>`}
+      ${
+        audioSwitchBlocked
+          ? `<div class="player-audio-support-message">${escapeHtml(audioAvailability.fallback)}</div>`
+          : hasSupportedEntries
+            ? ""
+            : `<div class="player-audio-support-message">${escapeHtml(t("player.audio.noSupportedTracks", {}, "No supported audio tracks available"))}</div>`
+      }
       <div class="player-audio-overlay-grid">
         <div class="player-dialog-list player-audio-track-list">
           ${entries
@@ -14257,7 +14271,7 @@ export const PlayerScreen = {
               const selected = entry.selected;
               const focused =
                 this.audioFocusedColumn === "tracks" && index === this.audioDialogIndex;
-              const disabled = entry.supported === false;
+              const disabled = entry.supported === false || audioSwitchBlocked;
               const label = disabled
                 ? `${entry.label || ""} · ${t("player.audio.unsupported", {}, "Unsupported")}`
                 : entry.label || "";

@@ -205,3 +205,24 @@ test("classified header-required guidance outranks an HTTP status and messages a
   assert.match(displayText, /export function ensureSentenceEnding/);
   assert.match(displayText, /\[\.!\?\]\$/);
 });
+
+test("the audio dialog refuses to offer tracks the engine cannot switch", async () => {
+  const source = await readFile(playerScreenUrl, "utf8");
+
+  // The dialog derives a block flag from the reviewed copy contract, not from a
+  // second guess about engine capability.
+  assert.match(
+    source,
+    /const audioAvailability =\s*\n?\s*typeof PlayerController\.getAudioTrackAvailabilityCopy === "function"/
+  );
+  assert.match(source, /const audioSwitchBlocked = audioAvailability\?\.tone === "warning";/);
+  // A blocked state shows the reviewed message and disables every row.
+  assert.match(source, /audioSwitchBlocked\s*\n?\s*\? `<div class="player-audio-support-message">\$\{escapeHtml\(audioAvailability\.fallback\)\}<\/div>`/);
+  assert.match(source, /const disabled = entry\.supported === false \|\| audioSwitchBlocked;/);
+  // Exactly one availability lookup per render: no divergent second decision.
+  assert.equal(
+    (source.match(/getAudioTrackAvailabilityCopy\(\)/g) || []).length,
+    2,
+    "one call in the dialog and one in the unavailable-message helper"
+  );
+});
