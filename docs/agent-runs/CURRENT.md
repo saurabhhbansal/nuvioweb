@@ -15,10 +15,10 @@ This file is the durable handoff. A new agent must be able to resume from it wit
 ## Current selection
 
 - Selected ticket: **#7** (real-account login/sync/profile isolation) and **#10** (source descriptors and browser playback capability reporting) remain the only in-progress MVP tickets. Governance/continuity work precedes them and is not a roadmap ticket.
-- Current branch: `m2/issue-11-engine-evaluation` (from `main` `9d426a8`).
-- Current PR: issue #11 unit 5 — engine browser-bundle measurement and shipping decision.
-- Most recently completed atomic task: PR #59 merged at `9d426a8` (abuse corpus); unit 5 measured both QuickJS variants with esbuild: async 1,083,888 B raw/≈377,955 B gzip plus external WASM; decision recorded for async variant, external asset, lazy default-off loading, no shipping yet; app suite 1229/1229, lint/build pass.
-- Next exact atomic task: merge unit 5, then unit 6 — default-off lazy engine seam, build/stager WASM emission with `application/wasm`/hash/cache rules, and an in-browser fixture journey before the security/dependency review package. #7 live work and the #10 hosted gate remain owner-blocked.
+- Current branch: `main` at `1f67867` plus an uncommitted deployment/evidence docs unit.
+- Current PR: hosted preview refresh evidence and #7 diagnosis plan (to be opened).
+- Most recently completed atomic task: deployed current main to the authorized development preview as `b48de821-9034-49cc-8e1f-ab5c50e7fa3a` after 134/134 inventory verification and local preflight; hosted HTTPS/worker checks and the complete hosted guest journey PASS (install/catalog/play/pause/seek/subtitle/back/save/reload).
+- Next exact atomic task: bounded real-account #7 B→A Library switch diagnosis using the saved owner-only A/B file, per the ranked plan in issue-7.md. #10 remains open for named-device/audio/hosted-provider gates; #11 remains open for the runtime seam.
 
 ## Relevant plans and evidence
 
@@ -37,6 +37,7 @@ This file is the durable handoff. A new agent must be able to resume from it wit
 - Cloudflare access check FAIL: `wrangler 4.129.0 pages project list --json` requires `CLOUDFLARE_API_TOKEN`; OAuth expired `2026-10-19T10:05:01Z`. No upload attempted.
 - Capability-aware unit at `11ddfa3`: Chromium `npx playwright test` 42/42; Chrome for Testing 155 40/40 + 2/2 PWA; Playwright Firefox 157 40/40; focused quality/source-preference 9/9 in both Firefox and Chromium. Evidence: [cross-engine capability](../evidence/cross-engine-capability-2026-10-19.json).
 - Cross-engine unit at `aff4f062`: `node --test app/alpha/js/data/remote/addonFailure.test.mjs` 6/6; `npm test --prefix app/alpha` 1181/1181; lint pass; inert build/12 assets pass; Chromium `npx playwright test` 42/42; Chrome for Testing 155 40/40 non-PWA plus 2/2 PWA; Playwright Firefox 157 33/40 (7 capability/test-brittleness differences documented in [cross-engine evidence](../evidence/cross-engine-2026-10-19.json)).
+- Deployment 2026-10-19: `npm run preview:stage` at `1f67867` (134/134 hashes, GPL, 10 demo files, 0 forbidden), loopback preflight PASS, `wrangler pages deploy` 19 uploaded/114 cached, `verify-live-preview.mjs` PASS (10 hashes, 404s, worker, guest) and `verify-mvp-preview.mjs` PASS (all7 guest journeys, 0 errors). Receipt: [preview-refresh-2026-10-19.json](../evidence/preview-refresh-2026-10-19.json).
 - Prior-agent receipts remain authoritative for their tested seams; see the files above.
 
 ## Known failures and limits
@@ -49,8 +50,8 @@ This file is the durable handoff. A new agent must be able to resume from it wit
 
 ## Known blockers
 
-- **Development-preview upload:** cached Wrangler 4.129.0 reports the Cloudflare OAuth token expired at `2026-10-19T10:05:01Z` and cannot refresh non-interactively. `wrangler pages project list --json` failed with "In a non-interactive environment, it's necessary to set a CLOUDFLARE_API_TOKEN environment variable". The owner must run `wrangler login` interactively on this host or provide a Pages-scoped `CLOUDFLARE_API_TOKEN`. Everything up to and including local candidate staging/verification is complete. Do not paste credentials or tokens into issues or chat.
-- **#7 live diagnosis material:** the owner-only disposable account file `/tmp/nuvioweb-test-accounts.json` no longer exists because `/tmp` is ephemeral in this execution environment. No real-account A/B login/switch evidence can be gathered until the owner re-provisions a 0600 file outside Git (never paste credentials in issues or chat). Synthetic coverage remains green but does not establish live backend behaviour.
+- **Development-preview upload:** resolved 2026-10-19 — owner completed `wrangler login`; `pages project list` confirmed the existing `nuvioweb-preview` project and deployment `b48de821` succeeded. Set `WRANGLER_LOG_PATH` to a workspace path to avoid harmless EROFS log warnings.
+- **#7 live diagnosis material:** resolved 2026-10-19 — owner supplied disposable A/B accounts, saved at `/home/saurabh/.config/nuvioweb/test-accounts.json` (mode 0600, outside Git). Never echo, log, commit or forward its contents; rotate after verification. Synthetic coverage remains green but does not establish live backend behaviour.
 - **Codex CLI unavailable:** `codex: command not found` on this host. Planning and review therefore use the same written template executed by the primary agent and a separate reviewer pass; results are recorded as automated, never as independent human approval. See [planning record](2026-10-19-codex-unavailable.md).
 
 ## Required approvals
@@ -61,6 +62,6 @@ This file is the durable handoff. A new agent must be able to resume from it wit
 
 ## Hosted preview
 
-- Public development preview revision: `8edec4248405d59f5b8639085a1e779e6878911b`, deployment `96f977f4` (unchanged; retained for rollback).
-- Revalidated candidate: `80f739cf18eef5dca6d9e0fa54899357032f88bd`, asset `53a3ebbd44cc`, worker `nuvio-app-shell-0.1.5-134fd4f07f67`, staged inventory 134 files / manifest `ec1fcf11…`. Not uploaded because Cloudflare authorization is expired.
+- Public development preview revision: `1f67867ebab7f426672886121d852a643a436414`, deployment `b48de821-9034-49cc-8e1f-ab5c50e7fa3a`; worker `nuvio-app-shell-0.1.5-f40b9237c1a8`, asset `888e32602070`. Hosted HTTPS/worker and complete hosted guest journey PASS.
+- Rollback: previous deployment `96f977f4` / revision `8edec42` is retained.
 - Builds are not bit-reproducible: the inherited bundle embeds a build timestamp, so ids change per rebuild of identical source. Verify uploads against their own staged inventory.
