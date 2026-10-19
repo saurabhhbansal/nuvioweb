@@ -26,7 +26,7 @@ test("no caller header is ever forwarded", () => {
     const result = validateRecoveryRequest({ url: "https://fixture.invalid/a.m3u8", headers });
     assert.equal(result.ok, false, JSON.stringify(headers));
     assert.equal(result.reason, RECOVERY_REQUEST_REASONS.CALLER_HEADERS_NOT_PERMITTED);
-    assert.deepEqual(result.headers, {});
+    assert.equal(result.headers, null);
   }
 });
 
@@ -34,7 +34,7 @@ test("a header-free request is accepted with no headers", () => {
   for (const headers of [null, undefined, {}, Object.create(null)]) {
     const result = validateRecoveryRequest({ url: "https://fixture.invalid/a.m3u8", headers });
     assert.equal(result.ok, true, JSON.stringify(headers ?? null));
-    assert.deepEqual(result.headers, {});
+    assert.equal(result.headers, null);
   }
 });
 
@@ -51,15 +51,15 @@ test("fetch options are fixed and require an abort signal", () => {
   const controller = new AbortController();
   const result = buildRecoveryFetchOptions({ signal: controller.signal });
   assert.equal(result.ok, true);
-  assert.deepEqual(result.options, {
-    method: "GET",
-    mode: "cors",
-    credentials: "omit",
-    redirect: "error",
-    signal: controller.signal
-  });
-  // No headers key at all: there is no path to attach one.
+  // The options object has a null prototype, so compare fields explicitly.
+  assert.equal(result.options.method, "GET");
+  assert.equal(result.options.mode, "cors");
+  assert.equal(result.options.credentials, "omit");
+  assert.equal(result.options.redirect, "error");
+  assert.equal(result.options.signal, controller.signal);
+  // No headers key at all, and a null prototype so pollution cannot add one.
   assert.equal("headers" in result.options, false);
+  assert.equal(Object.getPrototypeOf(result.options), null);
 
   for (const signal of [null, undefined, "signal", 42]) {
     assert.equal(buildRecoveryFetchOptions({ signal }).ok, false, String(signal));
@@ -84,4 +84,76 @@ test("hostile header objects cannot smuggle a value through", () => {
   const result = validateRecoveryRequest({ url: "https://fixture.invalid/a", headers: proxy });
   assert.equal(result.ok, false);
   assert.equal(result.reason, RECOVERY_REQUEST_REASONS.CALLER_HEADERS_NOT_PERMITTED);
+});
+
+test("Headers instances, tuple arrays and inherited headers are refused", () => {
+  const fromHeaders = validateRecoveryRequest({
+    url: "https://fixture.invalid/a.m3u8",
+    headers: new Headers({ Authorization: "synthetic" })
+  });
+  assert.equal(fromHeaders.ok, false);
+  assert.equal(fromHeaders.reason, RECOVERY_REQUEST_REASONS.CALLER_HEADERS_NOT_PERMITTED);
+
+  const fromTuples = validateRecoveryRequest({
+    url: "https://fixture.invalid/a.m3u8",
+    headers: [["Authorization", "synthetic"]]
+  });
+  assert.equal(fromTuples.ok, false);
+
+  const inherited = Object.create({ Cookie: "session=1" });
+  assert.equal(
+    validateRecoveryRequest({ url: "https://fixture.invalid/a", headers: inherited }).ok,
+    false
+  );
+
+  const nonEnumerable = {};
+  Object.defineProperty(nonEnumerable, "Authorization", {
+    value: "synthetic",
+    enumerable: false
+  });
+  assert.equal(
+    validateRecoveryRequest({ url: "https://fixture.invalid/a", headers: nonEnumerable }).ok,
+    false
+  );
+
+  // An empty Headers instance carries nothing and is allowed.
+  assert.equal(
+    validateRecoveryRequest({ url: "https://fixture.invalid/a", headers: new Headers() }).ok,
+    true
+  );
+});
+
+test("accessor-backed and revoked inputs fail closed instead of throwing", () => {
+  const throwing = {
+    get url() {
+      throw new Error("boom");
+    }
+  };
+  assert.doesNotThrow(() => validateRecoveryRequest(throwing));
+  assert.equal(validateRecoveryRequest(throwing).reason, RECOVERY_REQUEST_REASONS.INVALID_REQUEST);
+
+  const { proxy, revoke } = Proxy.revocable({}, {});
+  revoke();
+  assert.doesNotThrow(() =>
+    validateRecoveryRequest({ url: "https://fixture.invalid/a", headers: proxy })
+  );
+  assert.doesNotThrow(() => buildRecoveryFetchOptions(proxy));
+});
+
+test("polluted Object.prototype cannot inject outgoing headers", () => {
+  const original = Object.prototype.headers;
+  Object.prototype.headers = { Authorization: "synthetic" };
+  try {
+    const controller = new AbortController();
+    const { options } = buildRecoveryFetchOptions({ signal: controller.signal });
+    assert.equal("headers" in options, false);
+    // The guarantee this module owns: the options object carries no header key
+    // and no prototype chain to inherit one from. What a platform Request
+    // constructor does with a polluted global prototype is outside this module.
+    assert.equal(options.headers, undefined);
+    assert.equal(Object.getPrototypeOf(options), null);
+  } finally {
+    if (original === undefined) delete Object.prototype.headers;
+    else Object.prototype.headers = original;
+  }
 });

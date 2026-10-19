@@ -3,12 +3,15 @@
 // The held-back loader review found that caller-supplied headers were forwarded
 // verbatim, so `Authorization` or a Nuvio session header could ride along even
 // though `credentials: "omit"` was set. This module is the single place that
-// decides what a recovery-owned request may contain, so the rebuild cannot get
-// it wrong by accident.
+// decides what a recovery-owned request may contain.
 //
-// Policy: recovery-owned requests are anonymous and same-origin-safe. No caller
-// headers are ever forwarded, no credentials are sent, redirects are refused and
-// the mode is CORS. Pure: no fetch, no logging, no mutation.
+// Policy: recovery-owned requests are anonymous. No caller headers are ever
+// forwarded, no credentials are sent, redirects are refused and the mode is CORS.
+// A source that needs custom authorization is therefore refused *early* and
+// honestly instead of failing later.
+//
+// Pure: no fetch, no logging, no mutation. Every input is treated as hostile:
+// accessor-backed or proxied arguments must fail closed, not throw.
 
 export const RECOVERY_REQUEST_POLICY = Object.freeze({
   mode: "cors",
@@ -23,46 +26,72 @@ export const RECOVERY_REQUEST_REASONS = Object.freeze({
   INVALID_REQUEST: "invalid-request"
 });
 
-function hasAnyHeader(headers) {
-  if (!headers || typeof headers !== "object" || Array.isArray(headers)) return false;
+function headersPresent(value) {
+  if (value === null || value === undefined) return false;
+  if (Array.isArray(value)) return value.length > 0;
+  if (typeof value !== "object") return true;
+  // Headers instances and map-likes expose entries()/keys().
+  if (typeof value.keys === "function") {
+    try {
+      const iterator = value.keys();
+      const first = iterator.next();
+      return !first || first.done === false;
+    } catch (_) {
+      return true;
+    }
+  }
+  // Own names include non-enumerable keys; for..in covers inherited enumerable
+  // keys. Either is a header this path must not carry.
+  if (Object.getOwnPropertyNames(value).length > 0) return true;
+  if (Object.getOwnPropertySymbols(value).length > 0) return true;
+  for (const key in value) {
+    if (key) return true;
+  }
+  return false;
+}
+
+export function validateRecoveryRequest(input = {}) {
   try {
-    return Object.keys(headers).length > 0;
+    if (!input || typeof input !== "object") {
+      return { ok: false, reason: RECOVERY_REQUEST_REASONS.INVALID_REQUEST, headers: null };
+    }
+    const url = input.url;
+    const headers = input.headers;
+    if (typeof url !== "string" || !url.trim()) {
+      return { ok: false, reason: RECOVERY_REQUEST_REASONS.INVALID_REQUEST, headers: null };
+    }
+    if (headersPresent(headers)) {
+      return {
+        ok: false,
+        reason: RECOVERY_REQUEST_REASONS.CALLER_HEADERS_NOT_PERMITTED,
+        headers: null
+      };
+    }
+    return { ok: true, reason: RECOVERY_REQUEST_REASONS.OK, headers: null };
   } catch (_) {
-    return true;
+    return { ok: false, reason: RECOVERY_REQUEST_REASONS.INVALID_REQUEST, headers: null };
   }
 }
 
-// Validate a proposed request. Any caller header is refused: a recovery session
-// that needs authorization is out of scope and must not be attempted silently.
-export function validateRecoveryRequest({ url = "", headers = null } = {}) {
-  if (typeof url !== "string" || !url.trim()) {
-    return { ok: false, reason: RECOVERY_REQUEST_REASONS.INVALID_REQUEST, headers: {} };
-  }
-  if (hasAnyHeader(headers)) {
-    return {
-      ok: false,
-      reason: RECOVERY_REQUEST_REASONS.CALLER_HEADERS_NOT_PERMITTED,
-      headers: {}
-    };
-  }
-  return { ok: true, reason: RECOVERY_REQUEST_REASONS.OK, headers: {} };
-}
-
-// The only fetch options a recovery request may use. `signal` is required so a
-// caller cannot start an unabortable request through this path.
-export function buildRecoveryFetchOptions({ signal = null } = {}) {
-  if (!signal || typeof signal !== "object") {
+// Fixed fetch options with a null prototype, so pollution of Object.prototype
+// cannot inject an outgoing header, and no `headers` key is ever produced.
+export function buildRecoveryFetchOptions(input = {}) {
+  try {
+    if (!input || typeof input !== "object") {
+      return { ok: false, reason: RECOVERY_REQUEST_REASONS.INVALID_REQUEST, options: null };
+    }
+    const signal = input.signal;
+    if (!signal || typeof signal !== "object") {
+      return { ok: false, reason: RECOVERY_REQUEST_REASONS.INVALID_REQUEST, options: null };
+    }
+    const options = Object.create(null);
+    options.method = "GET";
+    options.mode = RECOVERY_REQUEST_POLICY.mode;
+    options.credentials = RECOVERY_REQUEST_POLICY.credentials;
+    options.redirect = RECOVERY_REQUEST_POLICY.redirect;
+    options.signal = signal;
+    return { ok: true, reason: RECOVERY_REQUEST_REASONS.OK, options };
+  } catch (_) {
     return { ok: false, reason: RECOVERY_REQUEST_REASONS.INVALID_REQUEST, options: null };
   }
-  return {
-    ok: true,
-    reason: RECOVERY_REQUEST_REASONS.OK,
-    options: {
-      method: "GET",
-      mode: RECOVERY_REQUEST_POLICY.mode,
-      credentials: RECOVERY_REQUEST_POLICY.credentials,
-      redirect: RECOVERY_REQUEST_POLICY.redirect,
-      signal
-    }
-  };
 }
