@@ -19,12 +19,22 @@ function hasHeader(headers, name) {
 export async function httpRequest(url, options = {}) {
   const method = String(options.method || "GET").toUpperCase();
   const includeSessionAuth = options.includeSessionAuth !== false;
+  const expectedSessionGeneration = options.expectedSessionGeneration;
+  const requireExpectedSession = () => {
+    if (expectedSessionGeneration !== undefined && !AuthManager.isSessionCurrent(expectedSessionGeneration)) {
+      const error = new Error("Session changed before request completed");
+      error.code = "SESSION_CHANGED";
+      throw error;
+    }
+  };
+  requireExpectedSession();
 
   const headers = toHeaderObject(options.headers);
 
   if (includeSessionAuth && SessionStore.refreshToken && AuthManager.isAccessTokenExpired()) {
     await AuthManager.refreshSessionIfNeeded();
   }
+  requireExpectedSession();
 
   if (includeSessionAuth && SessionStore.accessToken && !hasHeader(headers, "Authorization")) {
     headers["Authorization"] = `Bearer ${SessionStore.accessToken}`;
@@ -39,7 +49,7 @@ export async function httpRequest(url, options = {}) {
     headers["Content-Type"] = "application/json";
   }
 
-  const { includeSessionAuth: _ignoredIncludeSessionAuth, ...fetchOptions } = options;
+  const { includeSessionAuth: _ignoredIncludeSessionAuth, expectedSessionGeneration: _ignoredSessionGeneration, ...fetchOptions } = options;
   const fetchInit = {
     ...fetchOptions,
     method,
@@ -48,9 +58,11 @@ export async function httpRequest(url, options = {}) {
   };
 
   let response = await fetch(url, fetchInit);
+  requireExpectedSession();
 
   if (response.status === 401 && includeSessionAuth && SessionStore.refreshToken) {
     const refreshed = await AuthManager.refreshSessionIfNeeded({ force: true });
+    requireExpectedSession();
     if (refreshed && SessionStore.accessToken) {
       const retryInit = {
         ...fetchInit,
@@ -61,6 +73,7 @@ export async function httpRequest(url, options = {}) {
         }
       };
       response = await fetch(url, retryInit);
+      requireExpectedSession();
     }
   }
 

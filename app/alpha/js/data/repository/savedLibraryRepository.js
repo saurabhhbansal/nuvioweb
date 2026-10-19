@@ -1,5 +1,6 @@
 import { SavedLibraryStore } from "../local/savedLibraryStore.js";
 import { ProfileManager } from "../../core/profile/profileManager.js";
+import { AuthManager } from "../../core/auth/authManager.js";
 
 function activeProfileId() {
   return String(ProfileManager.getActiveProfileId() || "1");
@@ -9,7 +10,11 @@ let savedLibrarySyncTimers = null;
 const savedLibrarySyncInFlightByProfile = new Map();
 
 function queueSavedLibraryCloudSync(profileId = activeProfileId(), delayMs = 500) {
-  const profileKey = String(profileId || "1");
+  if (!AuthManager.isAuthenticated) return;
+  const sessionGeneration = AuthManager.getSessionGeneration();
+  const isCurrent = () => AuthManager.isSessionCurrent(sessionGeneration);
+  // Repeated profile IDs belong to different queues after an account switch.
+  const profileKey = `${sessionGeneration}:${String(profileId || "1")}`;
   if (savedLibrarySyncTimers) {
     const existingTimer = savedLibrarySyncTimers.get(profileKey);
     if (existingTimer) {
@@ -21,26 +26,26 @@ function queueSavedLibraryCloudSync(profileId = activeProfileId(), delayMs = 500
   }
   const timerId = setTimeout(() => {
     savedLibrarySyncTimers.delete(profileKey);
-    const runPush = async () => {
-      const inFlight = savedLibrarySyncInFlightByProfile.get(profileKey);
-      if (inFlight) {
-        await inFlight.catch(() => false);
-      }
-      const pushPromise = import("../../core/profile/savedLibrarySyncService.js")
-        .then(({ SavedLibrarySyncService }) => SavedLibrarySyncService.push(profileId))
-        .catch((error) => {
-          console.warn("Saved library cloud sync enqueue failed", error);
-          return false;
-        })
-        .finally(() => {
-          if (savedLibrarySyncInFlightByProfile.get(profileKey) === pushPromise) {
-            savedLibrarySyncInFlightByProfile.delete(profileKey);
-          }
-        });
-      savedLibrarySyncInFlightByProfile.set(profileKey, pushPromise);
-      await pushPromise;
-    };
-    void runPush();
+    if (!isCurrent()) return;
+    const inFlight = savedLibrarySyncInFlightByProfile.get(profileKey);
+    // Publish the queue tail before awaiting it so later work stays serialized.
+    const pushPromise = Promise.resolve(inFlight)
+      .catch(() => false)
+      .then(async () => {
+        if (!isCurrent()) return false;
+        const { SavedLibrarySyncService } = await import("../../core/profile/savedLibrarySyncService.js");
+        return isCurrent() ? SavedLibrarySyncService.push(profileId) : false;
+      })
+      .catch((error) => {
+        console.warn("Saved library cloud sync enqueue failed", error);
+        return false;
+      })
+      .finally(() => {
+        if (savedLibrarySyncInFlightByProfile.get(profileKey) === pushPromise) {
+          savedLibrarySyncInFlightByProfile.delete(profileKey);
+        }
+      });
+    savedLibrarySyncInFlightByProfile.set(profileKey, pushPromise);
   }, delayMs);
   savedLibrarySyncTimers.set(profileKey, timerId);
 }

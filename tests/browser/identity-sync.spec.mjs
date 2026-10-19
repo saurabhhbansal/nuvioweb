@@ -19,10 +19,12 @@ function token(alias) {
   return `${Buffer.from('{"alg":"none"}').toString("base64url")}.${Buffer.from(JSON.stringify(payload)).toString("base64url")}.synthetic`;
 }
 
-async function installIdentityFixture(context, { criticalGate = null, withCatalog = false, catalogGate = null, libraryGates = {} } = {}) {
+async function installIdentityFixture(context, { criticalGate = null, withCatalog = false, catalogGate = null, libraryGates = {}, allowLibraryWrites = false } = {}) {
   const requests = [];
   const unexpected = [];
   const settings = new Map();
+  const libraries = new Map(Object.keys(accounts).map((alias) => [alias, library(alias)]));
+  const libraryWrites = [];
   const provider = "https://catalog.example.invalid";
   let catalogRequested = false;
   const emptyReads = new Set([
@@ -71,7 +73,15 @@ async function installIdentityFixture(context, { criticalGate = null, withCatalo
     if (operation === "sync_pull_profiles") return json([{ profile_index: 1, name: `Fixture ${alias}`, is_primary: true }]);
     if (operation === "sync_pull_library") {
       if (libraryGates[alias]) await libraryGates[alias].promise;
-      return json(library(alias));
+      return json(libraries.get(alias));
+    }
+    if (allowLibraryWrites && operation === "sync_push_library" && request.method() === "POST") {
+      const body = request.postDataJSON();
+      expect(body.p_profile_id).toBe(1);
+      expect(Array.isArray(body.p_items)).toBe(true);
+      libraryWrites.push({ alias, profileId: body.p_profile_id, items: body.p_items });
+      libraries.set(alias, body.p_items);
+      return json(null);
     }
     if (operation === "sync_pull_profile_settings_blob") {
       if (criticalGate) await criticalGate.promise;
@@ -99,7 +109,7 @@ async function installIdentityFixture(context, { criticalGate = null, withCatalo
     unexpected.push({ operation, method: request.method() });
     return json({ error: "unimplemented fixture operation" }, 400);
   });
-  return { requests, unexpected, catalogRequested: () => catalogRequested };
+  return { requests, unexpected, libraryWrites, catalogRequested: () => catalogRequested };
 }
 
 function gate() {
@@ -242,5 +252,18 @@ test("reload rehydrates the same nonempty Library through a retained synthetic s
   await expectLibrary(page, "B");
   await expect.poll(() => fixture.requests.slice(start).some((entry) => entry.operation === "sync_pull_library")).toBe(true);
   expect(fixture.requests.slice(start).some((entry) => entry.operation === "password-login")).toBe(false);
+  expect(fixture.unexpected).toEqual([]);
+});
+
+test("removing the final saved item sends an empty current-account snapshot from the bundled UI", async ({ context, page }) => {
+  const fixture = await installIdentityFixture(context, { allowLibraryWrites: true });
+  await page.goto("/");
+  await signIn(page, "B");
+  await expectLibrary(page, "B");
+  await page.locator('#library .library-grid-card[data-item-id="fixture-library-b"]').click({ button: "right" });
+  await page.getByRole("menuitem", { name: "Remove from Library", exact: true }).click();
+  await expect(page.locator('#library .library-grid-card[data-item-id="fixture-library-b"]')).toHaveCount(0);
+  await expect.poll(() => fixture.libraryWrites).toEqual([{ alias: "B", profileId: 1, items: [] }]);
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem("savedLibraryItems") || "[]"))).toEqual([]);
   expect(fixture.unexpected).toEqual([]);
 });

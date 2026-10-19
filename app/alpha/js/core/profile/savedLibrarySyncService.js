@@ -117,16 +117,16 @@ export const SavedLibrarySyncService = {
       const sessionGeneration = AuthManager.getSessionGeneration();
       const resolvedProfileId = resolveProfileId(profileId);
       const items = await savedLibraryRepository.getAll(1000, resolvedProfileId);
-      if (!items.length) {
-        return true;
-      }
+      if (!AuthManager.isSessionCurrent(sessionGeneration)) return false;
+      // An explicit final-item removal is an intentionally empty snapshot.
       await SupabaseApi.rpc(
         PUSH_RPC,
         {
           p_profile_id: resolvedProfileId,
           p_items: items.map((item) => toRemoteItem(item))
         },
-        true
+        true,
+        { expectedSessionGeneration: sessionGeneration }
       );
       if (!AuthManager.isSessionCurrent(sessionGeneration)) return false;
       return true;
