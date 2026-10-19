@@ -97,6 +97,7 @@ class AuthManagerClass {
   // BOOTSTRAP (equivalente observeSessionStatus)
   // ------------------------------------
   async bootstrap() {
+    const sessionGeneration = this.sessionGeneration;
     const token = SessionStore.accessToken;
 
     if (!token) {
@@ -110,6 +111,7 @@ class AuthManagerClass {
     }
 
     const refreshed = await this.refreshSessionIfNeeded();
+    if (sessionGeneration !== this.sessionGeneration) return;
     if (!refreshed) {
       // Signing out here stops every cloud pull and push for the rest of the
       // run, and nothing retries afterwards -- so a session lost to a bad
@@ -166,6 +168,7 @@ class AuthManagerClass {
 
   async signOut() {
     this.sessionGeneration += 1;
+    this.refreshPromise = null;
     SessionStore.clear();
     this.cachedEffectiveUserId = null;
     this.cachedEffectiveUserSourceUserId = null;
@@ -234,6 +237,11 @@ class AuthManagerClass {
     this.lastRefreshFailureKind = null;
     const accessToken = SessionStore.accessToken;
     const refreshToken = SessionStore.refreshToken;
+    const sessionGeneration = this.sessionGeneration;
+    const ownsSession = () =>
+      sessionGeneration === this.sessionGeneration &&
+      SessionStore.accessToken === accessToken &&
+      SessionStore.refreshToken === refreshToken;
     if (!refreshToken) {
       return Boolean(accessToken) && !isJwtExpired(accessToken, 0);
     }
@@ -242,7 +250,7 @@ class AuthManagerClass {
       return true;
     }
 
-    this.refreshPromise = (async () => {
+    const refreshPromise = (async () => {
       try {
         const res = await fetchSupabaseAuth("/auth/v1/token?grant_type=refresh_token", {
           method: "POST",
@@ -252,11 +260,13 @@ class AuthManagerClass {
           },
           body: JSON.stringify({ refresh_token: refreshToken })
         });
+        if (!ownsSession()) return false;
         if (!res.ok) {
           this.lastRefreshFailureKind = "rejected";
           return false;
         }
         const data = await res.json();
+        if (!ownsSession()) return false;
         if (!data?.access_token) {
           this.lastRefreshFailureKind = "invalid";
           return false;
@@ -268,6 +278,7 @@ class AuthManagerClass {
         this.lastRefreshFailureKind = null;
         return true;
       } catch (error) {
+        if (!ownsSession()) return false;
         console.warn("Session refresh failed", error);
         if (isTransientNetworkError(error) && accessToken) {
           this.lastRefreshFailureKind = "transient";
@@ -276,11 +287,12 @@ class AuthManagerClass {
         this.lastRefreshFailureKind = "failed";
         return false;
       } finally {
-        this.refreshPromise = null;
+        if (this.refreshPromise === refreshPromise) this.refreshPromise = null;
       }
     })();
+    this.refreshPromise = refreshPromise;
 
-    return this.refreshPromise;
+    return refreshPromise;
   }
 
   // ------------------------------------

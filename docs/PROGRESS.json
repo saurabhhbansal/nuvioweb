@@ -109,12 +109,23 @@
     {
       "number": 7,
       "title": "[M1][P0] Validate existing Nuvio login, sync and profile isolation",
-      "status": "blocked_external",
+      "status": "in_progress",
       "dependencies": [
         6,
         3
       ],
-      "blocker": "Live acceptance requires two owner-authorized disposable Nuvio accounts/browser sessions for sync and account-switch isolation. Owner reports sign-in, reload persistence and same-account profiles across sessions passed; Windows/Edge reported; exact version/session details, new Library/add-on/history sync, account-switch isolation and negative/refresh checks pending. Checklist in docs/ISSUE_7_OWNER_CHECKS.md; never credentials in chat. Public API documentation permission is already accepted."
+      "progress": {
+        "branch": "m1/issue-7-live-verification",
+        "documents": [
+          "docs/IDENTITY_VERIFICATION.md",
+          "docs/plans/issues/issue-7.md"
+        ],
+        "verification": [
+          "Owner Windows/Edge initial3checks reported passed; exact browser version/session setup unknown.",
+          "Live Chromium deployed8edec42:13 scoped assertions pass for intended distinct A/B logins, reload, independent A profiles and completed A-B-A profile controls/local logout. No Library/history/expiry claim."
+        ],
+        "remaining": "Library/add-on/history sync/isolation, delayed-response and refresh/offline/QR cases, required auth review. Owner supplied secure local test inputs; no credential details in evidence."
+      }
     },
     {
       "number": 8,

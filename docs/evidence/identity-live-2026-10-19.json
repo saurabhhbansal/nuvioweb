@@ -1,0 +1,113 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-19T06:52:13.293Z",
+  "deployedRevision": "8edec4248405d59f5b8639085a1e779e6878911b",
+  "mode": "read-only live browser",
+  "results": [
+    {
+      "alias": "A",
+      "operation": "password-sign-in",
+      "status": 200,
+      "identityMatched": true,
+      "authenticatedRoute": true,
+      "profileCount": 3
+    },
+    {
+      "alias": "A",
+      "operation": "reload-persistence",
+      "sessionPresent": true,
+      "profileCount": 3
+    },
+    {
+      "alias": "A-independent",
+      "operation": "password-sign-in",
+      "status": 200,
+      "identityMatched": true,
+      "authenticatedRoute": true,
+      "profileCount": 3
+    },
+    {
+      "alias": "A",
+      "operation": "independent-context",
+      "sameIdentity": true,
+      "profilesEqual": true,
+      "profileCount": 3
+    },
+    {
+      "alias": "B-control",
+      "operation": "password-sign-in",
+      "status": 200,
+      "identityMatched": true,
+      "authenticatedRoute": true,
+      "profileCount": 1
+    },
+    {
+      "alias": "B-control",
+      "operation": "reload-persistence",
+      "sessionPresent": true,
+      "profileCount": 1
+    },
+    {
+      "alias": "A",
+      "operation": "client-sign-out",
+      "accessAbsent": true,
+      "refreshAbsent": true,
+      "signInVisible": true
+    },
+    {
+      "alias": "A-to-B",
+      "operation": "password-sign-in",
+      "status": 200,
+      "identityMatched": true,
+      "authenticatedRoute": true,
+      "profileCount": 1
+    },
+    {
+      "alias": "A-to-B",
+      "operation": "profile-control",
+      "identityMatchedB": true,
+      "profilesMatchFreshB": true,
+      "controlsHaveDifferentProfiles": true,
+      "libraryIsolation": "not-tested"
+    },
+    {
+      "alias": "B-switched",
+      "operation": "reload-persistence",
+      "sessionPresent": true,
+      "profileCount": 1
+    },
+    {
+      "alias": "B",
+      "operation": "client-sign-out",
+      "accessAbsent": true,
+      "refreshAbsent": true,
+      "signInVisible": true
+    },
+    {
+      "alias": "B-to-A",
+      "operation": "password-sign-in",
+      "status": 200,
+      "identityMatched": true,
+      "authenticatedRoute": true,
+      "profileCount": 3
+    },
+    {
+      "alias": "B-to-A",
+      "operation": "profile-control",
+      "identityMatchedA": true,
+      "profilesMatchFreshA": true,
+      "libraryIsolation": "not-tested"
+    }
+  ],
+  "limitations": [
+    "Third-party providers blocked",
+    "No measured token expiry or revocation",
+    "No library/add-on/history writes or sync proof",
+    "No QR/PIN approval",
+    "Single Linux Chromium environment; owner Windows/Edge report is separate"
+  ],
+  "browser": "156.0.8078.4",
+  "platform": "linux",
+  "architecture": "arm64",
+  "status": "passed-scoped-checks"
+}
