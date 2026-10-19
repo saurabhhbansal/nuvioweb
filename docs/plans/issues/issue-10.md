@@ -305,3 +305,18 @@ Consequences for #10:
 - Audible multitrack output and HDR rendering still require a real device observation before those specific claims are made; the iPhone is suitable for them, but a recorded observation is required.
 - Hosted external-provider CORS still needs a legal external origin; same-host demo playback does not establish it.
 - No claim changes without observed device results; the manual checklist results will be recorded in `docs/evidence/` with browser/OS versions and limits.
+
+
+## Manual device results and next capability unit — 2026-10-19
+
+Windows 11 25H2 + Edge155.0.4283.62/Chromium155.0.8059.85: owner completed the guest checklist (demo add-on install, catalog, VP8/Opus playback with audible sound, pause/seek, English subtitle, Back, save/reload) with all steps passing; account isolation was not attempted. iPhone 17 Pro/iOS27 Safari: the VP8/Opus demo played, but native 4K MKV/HEVC/Dolby Vision/HDR sources failed. One surfaced `startup-media-error` with media code4; the other surfaced `startup-stall` despite an unsupported Matroska/HEVC configuration. Multitrack audio was not testable (no multi-audio source); HDR rendering was not observed. Evidence: [device verification](../../evidence/device-verification-2026-10-19.md).
+
+**Next unit — honest unsupported-container/codec classification (pre-code plan).**
+
+Targets: the player startup classifier currently producing `startup-media-error`/`startup-stall` (`app/alpha/js/ui/screens/player/playerScreen.js`), existing source descriptor/capability helpers, its browser/unit tests and `PLAYBACK_QUALITY_MATRIX.md`. No transcoding, demuxer, proxy or new codec.
+
+Behavior: when startup fails and the source descriptor or a definitive `canPlayType` check establishes that the container/codec/audio layout is unsupported on this engine (for example Matroska or HEVC/Dolby Vision on Safari without support), show a specific unsupported-container/codec reason and a clear “choose another source or go back” action instead of waiting for a generic stall. Preserve transient network/startup retry behavior; never relabel a network failure or an unknown source as unsupported. Keep clear unsupported messaging for encrypted/restricted sources.
+
+Tests: synthetic source descriptors for MKV/HEVC/DV/DDP and supported H.264/HLS controls; simulate media error4/stall events in the bundled player fixture; assert reason, message and return path; no real provider media or live credentials. Manual iPhone re-check after integration on a supported source and, if available, an HDR/HLS source.
+
+Non-goals: making Safari play MKV/HEVC/DV, converting media, claiming HDR or multitrack support, or changing source selection ordering. Rollback: protected revert; no remote state. Verification: focused player/capability tests, full application/browser suites, lint/build/docs checks, and a recorded manual iPhone observation.
