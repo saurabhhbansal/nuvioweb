@@ -4,7 +4,7 @@ Owner-directed spot checks for issues #7 and #10. These are **manual observation
 
 ## Shared preparation
 
-- Hosted preview: https://nuvioweb-preview.pages.dev (revision `1f67867`, deployment `b48de821`).
+- Hosted preview: https://nuvioweb-preview.pages.dev (revision `7dcc371`, deployment `b6451df5`; rollback `b48de821`/`1f67867`).
 - Use a normal browser window with extensions disabled where practical.
 - Record: OS name/build, browser name/version, network type, and the exact step result.
 - If a check fails, record the visible error text and whether Back/reload recovers. Do not delete Library items or change account passwords.

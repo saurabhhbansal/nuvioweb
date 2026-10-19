@@ -142,3 +142,18 @@ Hosted verification on actual HTTPS, Chromium156.0.8078.4/Linux ARM64:
 - `scripts/verify-mvp-preview.mjs`: **all guest journeys PASS** — entry, same-host legal add-on install/catalog, VP8/Opus640×360 playback, pause/seek/resume, active subtitle cue, Back to browsing, save and reload persistence.0 uncaught errors; third parties blocked.
 
 [Sanitized receipt](evidence/preview-refresh-2026-10-19.json). This is guest-only hosted evidence: no real account login, sync, account switching, Library isolation, external-provider CORS, named Chrome/Edge/Safari/mobile, audible/multitrack audio, 4K60/HDR or complete-offline claim. `#7` and `#10` remain open; rollback is the previous deployment above.
+
+## Hosted refresh at current main `7dcc371` — 2026-10-19
+
+The standing development-preview delegation was exercised again after twenty-one merged changes since `1f67867` (startup classification, WebKit CI, #12 units 0/1a/2/3 and the recovery planner). Deployed the exact clean `main` revision to the existing dedicated project only; no project, billing, domain or binding change.
+
+Preparation: clean working tree at `7dcc371`, pinned Node22.23.1/npm10.9.8, `npm run preview:stage` against `deploy/cloudflare/build.properties` (asset `6ec3164fc673`, worker `nuvio-app-shell-0.1.5-ec38947e5d39`), **134/134 manifest hashes independently recomputed with zero mismatches**, 135 files on disk (the manifest itself is unlisted), 11,496,420 bytes, largest asset `app.bundle.js` at 2,610,808 B, 16 notice files, 19 same-host CC0 demo files, GPL/`SOURCE.txt`/`UPSTREAM_SOURCES.md` present, no test or backend artifacts.
+
+Deployment `b6451df5-53cb-45d3-9312-361254bf3463` (branch `main`, 6 uploaded/127 reused). **Rollback retained:** deployment `b48de821` / revision `1f67867`.
+
+Hosted verification on actual HTTPS, Chromium156.0.8078.4/Linux ARM64:
+
+- `scripts/verify-live-preview.mjs`: asset and source hashes match, revalidation/no-store/nosniff rules hold, missing asset and API return 404, the matching source tree is reachable, the automatic worker controller cache is `nuvio-app-shell-0.1.5-ec38947e5d39`, guest navigation/reload and the alias route work, 0 page errors.
+- `scripts/verify-mvp-preview.mjs`: **all seven guest journeys PASS** — entry, same-host legal add-on install/catalog, VP8/Opus 640×360 playback, pause/seek/resume, active subtitle cue, return to browsing, and save/reload persistence; 0 uncaught page errors; third parties blocked.
+
+[Sanitized receipt](evidence/preview-refresh-7dcc371-2026-10-19.json). This is guest-only hosted evidence: no real account login, sync, account switching, Library isolation, external-provider CORS, audible/multitrack output, named Chrome/Edge/Safari/mobile, 4K60/HDR or complete-offline claim. `#7` and `#10` remain open; rollback is the deployment above.
