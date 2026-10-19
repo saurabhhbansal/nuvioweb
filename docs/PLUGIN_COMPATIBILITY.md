@@ -103,6 +103,10 @@ Observed with `node --test app/alpha/scripts/pluginSandboxNetworkPrototype.test.
 
 This corpus caught a real classifier bug: `/oom/` matched inside the word "boom", misreporting ordinary plugin exceptions as memory exhaustion; the pattern now uses a word boundary. Completion is tracked with an explicit done flag so `undefined`/unserializable results cannot be mistaken for timeouts.
 
+## Engine bundle cost (measured 2026-10-19)
+
+The asyncified QuickJS variant — required because `api.fetch` must await a brokered host call — measures **1,083,888 B raw / ≈377,955 B gzip** as JavaScript plus its `emscripten-module.wasm` asset; inlining the WASM as base64 would cost ≈464,960 B gzip. The sync variant is smaller (554,608 B raw) but cannot await host requests. Decision: async variant, external WASM asset, lazy-loaded only when the default-off plugin feature is explicitly enabled, never in the initial bundle. Full numbers, method and shipping requirements: [engine evaluation](PLUGIN_ENGINE_EVALUATION.md).
+
 ## Guarantees and limits
 
 - The contract module is pure: no I/O, timers, storage, DOM, network or evaluation.

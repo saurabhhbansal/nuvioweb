@@ -162,3 +162,17 @@ Executed: abuse tests11/11 pass,0 skipped (oversized code, 64MiB allocation unde
 **Next unit (5).** Default-off runtime seam consuming the contract + broker, persistent quota/allowlist source, bundle-size measurement of the engine in the browser build, and the security/dependency review package. No shipping claim until those are reviewed.
 
 **Rollback.** Protected revert removes the abuse suite and guards; no runtime or data change.
+
+### Unit 5 results — engine bundle measurement and shipping decision (2026-10-19)
+
+Added `app/alpha/scripts/measurePluginEngineBundle.mjs` (+3 unit tests for metafile accounting) and [PLUGIN_ENGINE_EVALUATION.md](../../PLUGIN_ENGINE_EVALUATION.md). Bundled both QuickJS variants with esbuild0.28.2 for the browser and measured JavaScript, the external `emscripten-module.wasm`, and an inlined-base64 alternative.
+
+Measured: sync554,608B raw (JS51,474B + WASM503,134B; gzip parts247,846B); **async1,083,888B raw** (JS56,365B + WASM1,027,523B; gzip parts≈377,955B); inline-base64 async1,370,032B raw/≈464,960B gzip. Both bundles reference the WASM as an external asset.
+
+Decision: asyncify variant only (the broker's `api.fetch` must await a host call); external WASM asset over base64; **lazy, explicit opt-in only**, never in the initial 12-asset bundle; no shipping claim until in-browser execution, build/stager emission of the WASM with `application/wasm` and cache/hash rules, quota wiring, browser tests and independent security/dependency review exist. Current preview sets no CSP; any future CSP must allow `wasm-unsafe-eval` for this feature only.
+
+**Limits.** Measurement only; no bundled engine executed in a browser, no build/stager change, no default-off seam. Numbers are raw/gzip sums of parts for `quickjs-emscripten`0.32.0 and require re-measurement on upgrade.
+
+**Next unit (6).** Implement the default-off lazy engine seam + build/stager WASM emission and an in-browser fixture journey, then the security/dependency review package.
+
+**Rollback.** Protected revert removes the measurement tooling/tests/doc; no shipped artifact changes.
