@@ -52,6 +52,24 @@ Before this change that path reported the generic `startup-source-error` reason,
 - network → HTTP message, never the container message;
 - stall → generic message with one full stop.
 
+## WebKit engine-family evidence (CI, first automatic execution)
+
+Playwright WebKit 27.2 (build v2370) on the ubuntu CI runner, run inside the required browser job via `NUVIO_PLAYWRIGHT_WEBKIT=1 npx playwright test --project=webkit` against `tests/browser/engine-capabilities.spec.mjs`. The spec asserts invariants against the engine's own answer, so it is honest on either engine. Observed predictions:
+
+| Engine | Matroska+HEVC | MP4+HEVC | MP4+H.264 | HLS manifest |
+| --- | --- | --- | --- | --- |
+| Chromium 156.0.8078.4 | not reported | not reported | probably | maybe |
+| Playwright WebKit 27.2 | probably | probably | probably | not reported |
+
+Consequences actually asserted in CI:
+
+- On WebKit every declared container/codec was predicted playable, so the classifier did **not** claim unsupported for them — a Matroska stall stays `startup-stall`. A classifier that ignored the engine and always claimed unsupported would fail this.
+- On WebKit the HLS MIME type is "not reported"; the adaptive-transport rule keeps it out of container classification, so no unsupported claim is made from a native prediction for an `hls.js`/native-HLS source.
+- `HTTP 403` → `network` and `notWebReady`+headers → `header-required` held on both engines.
+- The startup overlay showed header guidance (not an HTTP verdict) and ended with one full stop on both engines.
+
+This is engine-family evidence. It is not a claim about iOS Safari's media stack, any iOS version, or any device, and the WebKit run does not play media.
+
 ## Tests and checks (exact commands)
 
 | Command | Result |
@@ -64,7 +82,8 @@ Before this change that path reported the generic `startup-source-error` reason,
 | `npm run lint --prefix app/alpha` | pass |
 | `node scripts/check-alpha-build.mjs` | 12 assets, inert config, no privileged fields |
 | `npx playwright test tests/browser/capabilities.spec.mjs --project=chromium` | 9 pass, 0 fail |
-| `npx playwright test` | 54 pass, 0 fail (baseline 51) |
+| `npx playwright test` (local, Chromium only) | 56 pass, 0 fail (baseline 51; +2 engine-agreement tests) |
+| `NUVIO_PLAYWRIGHT_WEBKIT=1 npx playwright test --project=webkit` (CI) | 2 pass, 0 fail on WebKit 27.2 |
 | `node scripts/check-docs.mjs` | pass |
 | `node --test scripts/check-docs.test.mjs scripts/governance.test.mjs scripts/prepare-static-preview.test.mjs` | 19 pass, 0 fail |
 | `node scripts/check-progress.mjs` | pass |
