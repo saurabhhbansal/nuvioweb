@@ -1,0 +1,76 @@
+{
+  "asOf": "2026-10-19",
+  "sourceRevision": "aff4f062d96c8bbcce57ffa042fb25fe98932a26",
+  "sourceNote": "Runtime and test commit for the add-on failure normalization unit. Any later commit in the same PR is documentation/evidence only and does not change the tested runtime.",
+  "environment": {
+    "host": "Linux aarch64 (ARM64)",
+    "node": "22.23.1",
+    "npm": "10.9.8",
+    "playwright": "1.64.0",
+    "applicationBuild": "inert fixture configuration, 12 nonempty assets, no privileged fields"
+  },
+  "engines": [
+    {
+      "name": "Chromium",
+      "version": "156.0.8078.4",
+      "source": "Playwright bundled Chromium headless",
+      "label": "Existing CI engine"
+    },
+    {
+      "name": "Google Chrome for Testing",
+      "version": "155.0.8059.84",
+      "source": "Official chrome-for-testing linux-arm64 portable build, launched via Playwright executablePath with a workspace HOME",
+      "label": "Real Chrome binary; not a user-profile installation"
+    },
+    {
+      "name": "Firefox (Playwright build)",
+      "version": "157.0",
+      "source": "Playwright firefox-1555 build; user agent reports x86_64 under this ARM64 host, so it runs emulated",
+      "label": "Real Gecko engine, not branded-Firefox certification and not a physical device"
+    }
+  ],
+  "results": {
+    "chromium": { "total": 42, "passed": 42, "failed": 0, "skipped": 0, "command": "npx playwright test" },
+    "chrome": { "total": 42, "passed": 42, "failed": 0, "skipped": 0, "breakdown": "40 non-PWA cases plus 2 PWA/service-worker cases" },
+    "firefox": { "total": 40, "passed": 33, "failed": 7, "skipped": 0, "note": "PWA project is not part of this count; Firefox non-PWA cases only" }
+  },
+  "addonFailureNormalization": {
+    "unitTests": { "file": "app/alpha/js/data/remote/addonFailure.test.mjs", "total": 6, "passed": 6 },
+    "browserCase": "settings visibly rejects CORS, malformed, invalid-shape and unsafe-looking provider errors",
+    "browserResults": { "chromium": "PASS", "chrome": "PASS", "firefox": "PASS" },
+    "behavior": "Network/CORS, invalid JSON and manifest-shape failures now present fixed, actionable messages; provider HTTP status text is preserved. Raw engine text is asserted absent from the alert."
+  },
+  "firefoxDifferences": [
+    {
+      "test": "bundled quality-1080/2160/hls/dash",
+      "classification": "ENGINE_CODEC_GAP",
+      "detail": "This Playwright Firefox build reports no H.264 support: video.canPlayType('video/mp4; codecs=\"avc1.42c02a\"') is empty and MediaCapabilities decodingInfo reports supported=false. The bundled quality fixtures are H.264 MP4/HLS/DASH, so decoding cannot occur. The app does surface the startup playback error overlay with a nonempty reason instead of hanging."
+    },
+    {
+      "test": "bundled quality-hls-cors",
+      "classification": "TEST_EVENT_BRITTLENESS",
+      "detail": "All overlay/title/message/engine-switch assertions passed. The failing assertion is the Chromium-specific expectation that the manifest URL appears in requestfailed; Firefox reports the blocked request differently."
+    },
+    {
+      "test": "bundled native preference ordering and provider-order autoplay",
+      "classification": "EXPECTED_CAPABILITY_DIFFERENCE",
+      "detail": "Because H.264 is unsupported here, the declared 4K H.264 source moves to the last prediction bucket while the VP8/Opus source is ranked first. The tests hardcode Chromium's prediction order instead of deriving it from the engine's own canPlayType results."
+    }
+  ],
+  "codecProbe": {
+    "firefox": {
+      "video/mp4; codecs=avc1.42c02a": "",
+      "video/mp4": "maybe",
+      "video/webm; codecs=vp8, opus": "probably",
+      "mediaCapabilities.avc1.supported": false
+    },
+    "note": "Chromium/Chrome predict H.264 support and decode the same fixtures, which is why the existing journey remains a Chromium-family result."
+  },
+  "passedInFirefox": "The complete guest journey (install legal add-on -> catalog -> save -> VP8/Opus playback -> pause/seek/resume -> subtitle -> Back -> browse -> reload), add-on install/toggle, synthetic identity/Library, source capabilities, sidecars, smoke and PWA-independent shell cases.",
+  "limits": [
+    "No branded Edge, Safari, physical mobile or user-installed branded Chrome/Firefox result.",
+    "Firefox PWA/service-worker behavior was not run in this unit.",
+    "No hosted HTTPS, live Nuvio service, audible-audio, multitrack or 4K60/HDR claim.",
+    "Playwright Firefox on this host is an emulated x86_64 build and lacks H.264; the H.264 quality matrix remains a Chromium-family result."
+  ]
+}

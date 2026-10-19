@@ -15,10 +15,10 @@ This file is the durable handoff. A new agent must be able to resume from it wit
 ## Current selection
 
 - Selected ticket: **#7** (real-account login/sync/profile isolation) and **#10** (source descriptors and browser playback capability reporting) remain the only in-progress MVP tickets. Governance/continuity work precedes them and is not a roadmap ticket.
-- Current branch: `docs/preview-candidate-80f739c` (from `main` `80f739c`).
-- Current PR: preview candidate revalidation and upload-blocker record (opened after governance PR #50 merged).
-- Most recently completed atomic task: governance delegation/continuity merged through protected PR #50 at `80f739cf18eef5dca6d9e0fa54899357032f88bd`; preview candidate restaged and locally revalidated at that exact revision.
-- Next exact atomic task: merge the candidate/blocker record, then continue independent work — hosted upload once the owner restores Cloudflare access; meanwhile run the #10 named-engine compatibility pass and the bounded #7 synthetic diagnosis.
+- Current branch: `m2/issue-10-addon-error-normalization` (from `main` `dd5a836`).
+- Current PR: cross-engine add-on failure normalization (issue #10 unit).
+- Most recently completed atomic task: governance PR #50 merged at `80f739c`; preview candidate revalidation PR #51 merged at `dd5a836`; add-on failure normalization implemented and verified at `aff4f062` (Chromium 42/42, Chrome for Testing 155 42/42, Playwright Firefox 33/40 capability-limited).
+- Next exact atomic task: merge this unit, then make codec-dependent/prediction-order browser tests capability-aware (separate #10 unit) so Firefox H.264 absence is asserted as an explicit error rather than a decode expectation.
 
 ## Relevant plans and evidence
 
@@ -35,12 +35,13 @@ This file is the durable handoff. A new agent must be able to resume from it wit
 - Governance PR #50: `node scripts/check-docs.mjs` pass; `node --test scripts/check-docs.test.mjs scripts/governance.test.mjs` 15/15 pass; `node scripts/check-progress.mjs` valid. Merged at `80f739c` after all four required checks passed on exact head `8936214`.
 - Preview candidate at `80f739c` in clean detached worktree: `npm run preview:stage` pass (asset `53a3ebbd44cc`, worker `nuvio-app-shell-0.1.5-134fd4f07f67`); 134/134 inventory hashes independently matched, GPL matched, 10 demo files, 0 forbidden paths. Loopback preflight PASS: 10 hash/header checks, 404s, demo resources, guest navigation/reload/alias, 0 page errors, all third-party origins blocked. Receipt: [preview-candidate-2026-10-19.json](../evidence/preview-candidate-2026-10-19.json).
 - Cloudflare access check FAIL: `wrangler 4.129.0 pages project list --json` requires `CLOUDFLARE_API_TOKEN`; OAuth expired `2026-10-19T10:05:01Z`. No upload attempted.
+- Cross-engine unit at `aff4f062`: `node --test app/alpha/js/data/remote/addonFailure.test.mjs` 6/6; `npm test --prefix app/alpha` 1181/1181; lint pass; inert build/12 assets pass; Chromium `npx playwright test` 42/42; Chrome for Testing 155 40/40 non-PWA plus 2/2 PWA; Playwright Firefox 157 33/40 (7 capability/test-brittleness differences documented in [cross-engine evidence](../evidence/cross-engine-2026-10-19.json)).
 - Prior-agent receipts remain authoritative for their tested seams; see the files above.
 
 ## Known failures and limits
 
 - **#7:** B→A Library hydration produced no successful new Library response within 30s (`LIBRARY_PULL_NOT_OBSERVED`). Request failures/cancellations were observed but not classified; cause unestablished. No leak observed. No new live mutation retry is planned without a new testable diagnosis.
-- **#10:** No hosted HTTPS playback, no named Chrome/Edge/Firefox/Safari/mobile journey, no multitrack/audible-audio claim, no 4K60/HDR certification.
+- **#10:** No hosted HTTPS playback, no branded Edge/Safari/mobile journey, no multitrack/audible-audio claim, no 4K60/HDR certification. Chrome for Testing 155 now passes the complete suite; Playwright Firefox 157 passes the guest journey but its build has no H.264, so H.264 quality and Chromium-hardcoded ordering tests fail there (capability, not product regression). WebKit could not be installed (missing host libraries); Microsoft Edge has no ARM64 Linux build on this host.
 - Local guest playback (install → catalog → save → play/pause/seek/resume → subtitle → Back → browse → reload) passes in Chromium headless 156.0.8078.4 on Linux ARM64 only.
 - Pending/legacy Library edits lack automatic retry/conflict UI; inherited full-snapshot writes can overwrite concurrent writers.
 - Account tokens remain XSS-readable in the inherited browser architecture.

@@ -245,3 +245,17 @@ Cloudflare OAuth expired at `2026-10-19T10:05:01Z` and cannot refresh non-intera
 **Verification.** Focused `node --test app/alpha/js/data/repository/addonRepository.test.mjs`; complete `npm test --prefix app/alpha`; lint; inert build/12-asset check; focused add-on browser cases and then the complete Chromium suite; also run the same add-on case in Playwright Firefox 157 and Chrome for Testing 155 to prove engine-independent text. Record engine versions and the fact that Playwright Firefox is not branded-Firefox certification and Chrome for Testing is not a user-profile Chrome installation.
 
 **Threats.** Over-broad matching could mask a real provider error; therefore classification applies only when `code` is absent and HTTP statusText is always preserved. No secrets, no network, no deployment. **Rollback:** protected revert restores raw messages; tests revert with it.
+
+### Cross-engine failure-normalization results (source `aff4f062`)
+
+Red first: the new `addonFailure.test.mjs` failed because the classifier module did not exist. After implementing `js/data/remote/addonFailure.js` and wiring it into `addonRepository.fetchAddon` (transport failures and `mapManifest` shape throws, provider HTTP status text preserved), the focused unit suite passed6/6 and the real Settings case passed in Chromium, Chrome for Testing and Firefox.
+
+Verification at `aff4f062d96c8bbcce57ffa042fb25fe98932a26` (inert build, 12 assets, no privileged fields):
+
+- `npm test --prefix app/alpha` —1181/1181 pass,0 skipped,15.7s.
+- `npm run lint --prefix app/alpha` — pass.
+- `npx playwright test` (Chromium) —42/42 pass,0 skipped.
+- Chrome for Testing155.0.8059.84 (linux-arm64, workspace HOME) —40/40 non-PWA plus2/2 PWA pass.
+- Playwright Firefox157.0 (x86_64 build under this ARM64 host) —33/40 pass. The7 differences are capability/engine-event driven, not product regressions: five H.264 quality fixtures cannot decode because this Firefox build reports no H.264, two source-ordering tests hardcode Chromium's native-prediction order, and the HLS-CORS case's overlay/engine-switch assertions passed while only a Chromium-specific `requestfailed` observation differed. The complete guest journey (VP8/Opus playback, controls, subtitle, Back, save/reload) passed in Firefox.
+
+Limits: no branded Edge/Safari/physical mobile, no Firefox PWA run, no hosted/live-service claim. Chrome for Testing is a real Chrome binary but not a user-profile installation; Playwright Firefox is not branded-Firefox certification. Evidence: `docs/evidence/cross-engine-2026-10-19.json`. Follow-up unit: make codec-dependent and prediction-order browser tests capability-aware while keeping Chromium assertions strict.
