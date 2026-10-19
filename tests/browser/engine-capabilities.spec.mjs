@@ -167,16 +167,17 @@ test("the startup overlay shows engine-honest guidance in this engine", async ({
     );
     const screen = Object.create(PlayerScreen);
     const video = document.createElement("video");
+    const predictionOf = (descriptor) => {
+      const answer = video.canPlayType(descriptor.contentType);
+      return answer === "probably" || answer === "maybe"
+        ? answer
+        : answer === ""
+          ? "not-reported"
+          : "unknown";
+    };
     const run = (descriptor, options = {}) => {
       screen.getStartupSourceDescriptor = () => descriptor;
-      screen.getStartupNativePrediction = () => {
-        const answer = video.canPlayType(descriptor.contentType);
-        return answer === "probably" || answer === "maybe"
-          ? answer
-          : answer === ""
-            ? "not-reported"
-            : "unknown";
-      };
+      screen.getStartupNativePrediction = () => predictionOf(descriptor);
       return screen.resolveStartupFailure(options);
     };
     const matroska = describeSource({
@@ -192,6 +193,9 @@ test("the startup overlay shows engine-honest guidance in this engine", async ({
       },
     };
     return {
+      // Measured outside the classification so the expectation below does not
+      // come from the value it is checking.
+      matroskaPrediction: predictionOf(matroska),
       header: run(matroska, {
         mediaErrorCode: 4,
         detail: "HTTP 403",
@@ -212,11 +216,14 @@ test("the startup overlay shows engine-honest guidance in this engine", async ({
   expect(output.header.message.endsWith("contact the add-on provider.")).toBe(true);
   expect(output.header.message).not.toContain("..");
 
-  // The container message only appears when this engine actually declined the
-  // declaration; otherwise the honest generic message is shown instead.
-  if (output.container.classification.category === "unsupported") {
+  // The expectation is derived from this engine's measured answer, not from the
+  // classification being checked, so a classifier that ignored the engine and
+  // always claimed "unsupported" would fail here.
+  if (output.matroskaPrediction === "not-reported") {
+    expect(output.container.reason).toBe("unsupported-container");
     expect(output.container.message).toContain("(matroska)");
   } else {
+    expect(output.container.category).not.toBe("unsupported");
     expect(output.container.message).not.toContain("(matroska)");
   }
   expect(output.container.message.endsWith(".")).toBe(true);
