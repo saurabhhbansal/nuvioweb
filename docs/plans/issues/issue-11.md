@@ -1,6 +1,6 @@
 # Issue #11: [M2][P1] Prototype sandboxed Nuvio JavaScript plugin compatibility
 
-**Plan status:** Proposed for agent review — no implementation/test evidence recorded.  
+**Plan status:** In progress — bounded contract/normalization unit implemented and tested; sandbox runtime, quotas and network broker outstanding.  
 **Milestone:** M2 · **Priority:** P1  
 **GitHub issue:** https://github.com/saurabhhbansal/nuvioweb/issues/11  
 **Workstream:** [M2 roadmap](https://github.com/saurabhhbansal/nuvioweb/blob/main/docs/ROADMAP.md) · **Agent rules:** [AGENTS.md](https://github.com/saurabhhbansal/nuvioweb/blob/main/AGENTS.md)
@@ -63,3 +63,36 @@ Capture bounded, redacted failure counters and trace IDs without exposing access
 - [ ] Negative/security/budget cases covered as relevant.
 - [ ] Docs, compatibility notes and source provenance updated.
 - [ ] Reviewed pull request linked to issue, with rollout and rollback evidence.
+
+## Inspected implementation and first unit — 2026-10-19
+
+**Verified current state.** The imported "plugin" layer is not a JavaScript runtime at all: `core/player/pluginRuntime.js` stores `{name,urlTemplate}` entries and substitutes `{tmdbId}/{mediaType}/{season}/{episode}` into a URL; `PluginManager.executeScrapersStreaming` simply maps those into `{sourceId,sourceName,streams}` groups, which `streamRepository.getPluginStreams` wraps as `kind:"plugin"` groups. There is no third-party code execution, no GYK/QuickJS integration, no network broker, no quota, and no sandbox today. No dependency or license for a JS engine has been reviewed or added.
+
+**Security constraint.** `docs/SECURITY_PRIVACY.md` explicitly states that a browser Worker alone is insufficient for arbitrary trusted isolation. A prototype must therefore not claim host-escape safety. The first unit deliberately implements only the bounded contract and result normalization that any later engine (QuickJS/WASM with injected bindings is the leading candidate) must satisfy; execution stays unimplemented and disabled.
+
+### Unit 1 — plugin descriptor and result contract (this unit)
+
+Targets: new `app/alpha/js/core/plugins/pluginContract.js`, its `.test.mjs`, and this plan plus the compatibility document. No runtime wiring, no feature flag change, no network, no dependency.
+
+Contract:
+- `normalizePluginDescriptor(input)` accepts `{id,name,version,apiVersion,code,allowedHosts}`. Bounds: code ≤256KiB UTF-8, id ≤80, name ≤120, version ≤40, apiVersion must be integer1, 1–20 allowed hostnames. Hostnames are lowercase DNS names, at least two labels, no scheme/port/path/wildcard/IP literal/`localhost`/`.local`. Control characters stripped from text; unknown fields dropped; unsupported apiVersion rejected.
+- `normalizePluginStreams(raw)` and `normalizePluginResult(raw)` bound groups ≤20 and streams ≤50 per group, text ≤200 chars, URL ≤4096. Media URLs must be absolute `http:`/`https:`, must not contain embedded credentials, and anything else is dropped and counted, never rewritten. Output objects are freshly constructed so unknown/prototype keys never propagate.
+- Errors are returned as bounded reason codes, not raw exception text or input echoes.
+
+Tests must cover oversized code, wildcard/IP/localhost/postal hostnames, `javascript:`/`data:`/protocol-relative/credential URLs, control characters, truncation, oversized groups/streams, malformed inputs, and a `__proto__` payload that must not pollute `Object.prototype`.
+
+**Non-goals.** No JS evaluation, no Worker, no fetch, no UI, no enabling the inherited template feature, no claim that any plugin is supported or sandboxed. Later units must choose and review the engine, add quotas/cancellation/network broker, and only then expose a default-off feature.
+
+**Verification.** `node --test app/alpha/js/core/plugins/pluginContract.test.mjs`, full `npm test --prefix app/alpha`, lint, inert build/artifact check, docs/governance/ledger checks. Rollback: protected revert deletes the contract module/tests/docs; no runtime behavior changes.
+
+### Unit 1 results — contract and fixture (2026-10-19)
+
+Implemented `app/alpha/js/core/plugins/pluginContract.js` (pure descriptor and result normalization), `pluginContract.test.mjs`, the original `tests/fixtures/plugins/representative-plugin.js`, and [PLUGIN_COMPATIBILITY.md](../../PLUGIN_COMPATIBILITY.md).
+
+Executed with pinned Node22.23.1: `node --test app/alpha/js/core/plugins/pluginContract.test.mjs` —10/10 pass,0 skipped. Cases cover oversized/empty code, unsupported API versions, wildcard/IP/localhost/postal host allowlists, duplicate collapse, `javascript:`/`data:`/`file:`/protocol-relative/credential/oversized URLs, control-character stripping and truncation, group/stream bounds with dropped counts, malformed inputs, a `__proto__` pollution payload, and the representative fixture's contract compliance. No execution, network, storage, DOM or runtime wiring was added; the inherited URL-template feature is untouched.
+
+**Limits.** This does not make any plugin compatible or sandboxed. Execution remains unimplemented pending an engine-level sandbox decision (QuickJS/WASM with injected bindings is the leading candidate), dependency/license review, quotas, a bounded network broker, cancellation and a default-off flag. No third-party code or dependency was added.
+
+**Next unit.** Engine decision + dependency/licence review; then a default-off sandbox runtime that consumes `normalizePluginResult` and a broker restricted to `allowedHosts`, with timeout/output/request quotas and abuse tests.
+
+**Rollback.** Protected revert of the contract module, tests, fixture and document; no runtime behavior or user data changes.
