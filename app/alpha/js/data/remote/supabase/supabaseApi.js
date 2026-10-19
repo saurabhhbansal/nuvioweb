@@ -49,11 +49,12 @@ function buildHeaders(extra = {}, useSession = true) {
 }
 
 export const SupabaseApi = {
-  rpc(functionName, body = {}, useSession = true) {
+  rpc(functionName, body = {}, useSession = true, { expectedSessionGeneration } = {}) {
     return request(`${SUPABASE_URL}/rest/v1/rpc/${functionName}`, {
       method: "POST",
       headers: buildHeaders({ "Content-Type": "application/json" }, useSession),
       includeSessionAuth: useSession,
+      expectedSessionGeneration,
       body: JSON.stringify(body)
     });
   },
