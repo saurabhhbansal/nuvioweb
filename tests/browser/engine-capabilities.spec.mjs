@@ -111,6 +111,16 @@ test("the classifier agrees with this engine's own capability answer", async ({ 
     return out;
   }, cases);
 
+  // Record what this engine actually answered, so the CI log carries the
+  // engine-family observations that back the classification.
+  console.log(
+    `ENGINE_PREDICTIONS ${JSON.stringify(
+      Object.fromEntries(
+        cases.map((entry) => [entry.name, report[entry.name].nativePrediction]),
+      ),
+    )}`,
+  );
+
   for (const entry of cases) {
     const observed = report[entry.name];
     // A transport fault and a restricted request are decided before any format
