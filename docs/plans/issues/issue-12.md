@@ -955,3 +955,20 @@ Status: the reviewed planner and operation record are now joined atomically; not
 **Not done.** No controller, UI, loader, timers or browser evidence. The coordinator is the seam the loader rebuild will call.
 
 **Rollback.** Revert the module, its test and this record; nothing imports it.
+
+### Honest availability copy (2026-10-19)
+
+Status: the copy contract exists; the audio dialog does not use it yet.
+
+`app/alpha/js/core/player/audioTrackAvailability.js` turns the observation summary into an i18n key plus an English fallback (the caller resolves it with `t()`), so the dialog can say something true without inventing a support claim:
+
+| Summary | Key | Tone |
+| --- | --- | --- |
+| No tracks (`trackCount: 0`) | `player_audio_no_tracks` | empty |
+| Any ambiguous identity | `player_audio_ambiguous` | warning |
+| At least one available track | `player_audio_available` (or `player_audio_available_predicted` when a prediction exists) | action |
+| None available, some unavailable | `player_audio_unavailable` | warning |
+| Only unknown selectability | `player_audio_unknown` | info |
+| Missing or malformed summary | `player_audio_unknown` (not "no tracks") | info |
+
+The available copy never states that a track is supported or that audio is audible; the predicted variant says "predicted, not verified" explicitly. `node --test app/alpha/js/core/player/audioTrackAvailability.test.mjs` 5/5; application suite 1339/1339; lint pass. Wiring the dialog and adding the `strings.xml` translations is the remaining half of this step.
