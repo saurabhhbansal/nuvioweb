@@ -2,19 +2,10 @@
 // Used by the artifact checker and the static-preview stager so both agree on
 // versioned layout, hashes, sizes and MIME. No network or execution.
 import { createHash } from "node:crypto";
-import { readFile, readdir, stat } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 
 export const ENGINE_FILE_NAMES = Object.freeze(["plugin-engine.js", "emscripten-module.wasm"]);
-
-async function exists(filePath) {
-  try {
-    await stat(filePath);
-    return true;
-  } catch {
-    return false;
-  }
-}
 
 export async function validatePluginEngineInstallation({ distDir, optIn }) {
   const pluginsRoot = path.join(distDir, "assets", "plugins");
