@@ -1,12 +1,12 @@
 # Agent continuity record — current state
 
-Last updated: 2026-10-19, after #12 unit 1a (native AAC fixture gate: BLOCKED). **Read this first after clearing context.**
+Last updated: 2026-10-19, after #12 unit 1a merged (native AAC fixture gate: BLOCKED, confirmed in CI). **Read this first after clearing context.**
 
 This file is the durable handoff. A new agent must be able to resume from it without the previous conversation. Update it at the checkpoints listed in the operating directive, and group updates into the PR that caused them where possible.
 
 ## Current state
 
-- Repository `saurabhhbansal/nuvioweb`: `main` at or after `d4b89ae` (#12 unit 0 merged), plus the unit 1a branch described below. No open PRs.
+- Repository `saurabhhbansal/nuvioweb`: `main` at or after `3da8f57` (#12 unit 1a merged; unit 0 at `d4b89ae`). No open PRs.
 - Hosted development preview: `1f67867ebab7f426672886121d852a643a436414`, deployment `b48de821-9034-49cc-8e1f-ab5c50e7fa3a`; rollback deployment `96f977f4` / `8edec42` retained.
 - Four required workflows passed on the merged heads `44cbdff` (#66), `c9e4325` (#67) and `38cf2c9` (#70). `docs/PROGRESS.json` reports 26 tickets: 10 verified, 4 in progress (#7, #10, #11, #23), remainder pending.
 - #7 and #10 remain open and environment-gated. #11 unit 6a is merged; unit 6b remains. #23 PR A/B (state contract + read-only collector) are merged; the issue-writing publisher and workflow remain.
@@ -14,7 +14,7 @@ This file is the durable handoff. A new agent must be able to resume from it wit
 
 ## Current selection
 
-- Selected ticket: **#12** (local audio/container recovery prototype). Unit 0 (scope/dependency/licence decisions) is merged. **Unit 1a executed: the native AAC fixture gate is BLOCKED** — WebCodecs `AudioEncoder` is absent in the pinned Playwright Chromium and `MediaRecorder` with `audio/mp4` really emits `audio/mp4;codecs=opus` with an `Opus` sample entry ([receipt](../evidence/audio-fixture-gate-2026-10-19.json)). The AAC fixture chain (units 1b–5) and AC1/AC2 are blocked; see the blocker in `docs/PROGRESS.json` and the three unblock options in the plan. Do not generate AAC fixtures from that Opus output or download AAC media.
+- Selected ticket: **#12** (local audio/container recovery prototype). Unit 0 (scope/dependency/licence decisions) is merged. **Unit 1a executed and merged; the native AAC fixture gate is BLOCKED** — WebCodecs `AudioEncoder` is absent in the pinned Playwright Chromium and `MediaRecorder` with `audio/mp4` really emits `audio/mp4;codecs=opus` with an `Opus` sample entry, reproduced independently in the required CI browser job ([receipt](../evidence/audio-fixture-gate-2026-10-19.json), [review](../agent-runs/2026-10-19-aac-gate-review.md)). The AAC fixture chain (units 1b–5) and AC1/AC2 are blocked; see the blocker in `docs/PROGRESS.json` and the three unblock options in the plan. Do not generate AAC fixtures from that Opus output or download AAC media.
 - #10 stays in progress with three open gates: multitrack audio, a supported HDR observation and hosted external-provider CORS. Its startup-classification (#77, `d2a6acd`) and WebKit coverage (#79, `91d0b81`) units are merged; do not re-open them or add an unconditional WebKit project.
 - #11 unit 6b-2 (default-off app seam, CSP/`wasm-unsafe-eval` decision, security review) remains the largest open security-sensitive unit. **#23 PR C** is owner-gated because it introduces `issues: write`. #7 stays environment-gated with no further live probe.
 - Current branch: none; clean `main` at or after `5de1bdf`.
