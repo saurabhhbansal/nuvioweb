@@ -6,7 +6,7 @@ This file is the durable handoff. A new agent must be able to resume from it wit
 
 ## Current state
 
-- Repository `saurabhhbansal/nuvioweb`: `main` at `775e18c44bf6711fb15228a125012d220af886ff` (PR #76 merged) plus the startup-classification branch described below. No other open PRs.
+- Repository `saurabhhbansal/nuvioweb`: `main` at the merge of PR #77 (`d2a6acd`, startup classification), which sits on top of PR #76 (`775e18c`). No open PRs.
 - Hosted development preview: `1f67867ebab7f426672886121d852a643a436414`, deployment `b48de821-9034-49cc-8e1f-ab5c50e7fa3a`; rollback deployment `96f977f4` / `8edec42` retained.
 - Four required workflows passed on the merged heads `44cbdff` (#66), `c9e4325` (#67) and `38cf2c9` (#70). `docs/PROGRESS.json` reports 26 tickets: 10 verified, 4 in progress (#7, #10, #11, #23), remainder pending.
 - #7 and #10 remain open and environment-gated. #11 unit 6a is merged; unit 6b remains. #23 PR A/B (state contract + read-only collector) are merged; the issue-writing publisher and workflow remain.
@@ -14,8 +14,8 @@ This file is the durable handoff. A new agent must be able to resume from it wit
 
 ## Current selection
 
-- Selected ticket: **#10** (hosted browser MVP playback). The startup-classification unit is implemented and awaiting protected integration in its PR; the next unit is **automated Playwright WebKit coverage in CI**. **#23 PR C** is owner-gated because it introduces `issues: write`. #7 remains environment-gated.
-- Current branch: `fix/issue-10-startup-classification` (see the PR for the exact head).
+- Selected ticket: **#10** (hosted browser MVP playback). The startup-classification unit merged in [PR #77](https://github.com/saurabhhbansal/nuvioweb/pull/77) (`d2a6acd`, all four required checks green at `9a2edff`); the next unit is **automated Playwright WebKit coverage in CI**. **#23 PR C** is owner-gated because it introduces `issues: write`. #7 remains environment-gated.
+- Current branch: none; clean `main` at `d2a6acd`.
 - Last completed atomic tasks: #66 unit 6a; #67 pre-code plans; #70 #23 PR A+B; #72 unit 6b-1; #76 final Safari observations; startup-failure classification (#10, this PR); hosted nonempty Library B→A; owner manual device checks (Windows11 Edge155 guest checklist PASS, audible audio; iPhone17Pro/iOS27 Safari VP8/Opus demo PASS but native MKV/HEVC/DV/HDR sources fail) and owner app-removal evidence (B cloud1 item vs A2 after removal; one transient switch failure then a successful read-only round trip).
 - Next exact atomic task: add Playwright **WebKit** to the browser workflow (an ubuntu runner can install it; this ARM64 host cannot) with synthetic fixtures for a supported H.264/MP4/HLS path, unsupported MKV/HEVC/DV descriptors, header-required messaging and capability-honest return, labelled as engine-family evidence rather than per-iOS-version proof. Do not implement #23 PR C without explicit owner review of the `issues: write` boundary. Do not repeat the live B→A→B probe; any sync runtime change first needs a deterministic synthetic reproduction.
 - **Build prerequisite learned this round:** `npm run build --prefix app/alpha` needs `NUVIO_LOCAL_PROPERTIES=<repo>/tests/fixtures/build.properties` for tests (CI does the same). Without it the build falls back to `local.example.properties`, bakes an empty backend URL and fails `scripts/envProperties.test.mjs` / `check-alpha-build.mjs`. Never bake the live backend into a local test build.

@@ -77,6 +77,10 @@ Before this change that path reported the generic `startup-source-error` reason,
 - Translating the two new strings is not done; other locales fall back to the inline English text.
 - Builds are not bit-reproducible (embedded build timestamp); this unit changes no hosted artifact by itself.
 
+## Integration
+
+Merged through the protected workflow as [PR #77](https://github.com/saurabhhbansal/nuvioweb/pull/77) at `d2a6acd`, after all four required contexts passed at head `9a2edff` with a clean merge state (no override, no force push). The merged tree is identical to the tested head. This unit did not deploy anything; the hosted preview still serves revision `1f67867` and its retained rollback remains valid.
+
 ## Review
 
 Automated read-only review with Codex CLI (0.163.0), not independent human approval. The first pass reported two P1 findings (a transport detail or an HTTP status could still produce a wrong verdict; the inspection bound could be bypassed) and two P2 findings (source-type aliases masking a declared MIME type; MIME-only codec declarations missed) plus one P3 (doubled full stop). A verification pass confirmed those and reported two further edges: non-string details counted as inspected, and the generic marker "load failed" producing a false `network` verdict next to a real codec rejection. All seven were fixed with regression tests before integration. The full record is in `docs/agent-runs/2026-10-19-startup-classification-review.md`.
