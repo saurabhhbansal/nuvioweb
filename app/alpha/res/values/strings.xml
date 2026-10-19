@@ -2388,6 +2388,12 @@
     <string name="player_error_source_invalid_content">Source error: The stream source returned invalid or unplayable content. The link may have expired or the server returned an error page instead of video.\n\nTry a different source. [%1$s]</string>
     <string name="player_error_web_headers_unsupported">This source is not compatible with this device's player because it requires special request headers. Try a different source or contact the add-on provider.</string>
     <string name="player_error_container_unsupported">This device's browser cannot play this video container (%1$s). Try a different source, or open this item on a device that supports it.</string>
+    <string name="player_audio_no_tracks">No audio tracks are available for this source.</string>
+    <string name="player_audio_unavailable">This player cannot change audio tracks for the current source.</string>
+    <string name="player_audio_ambiguous">This source declares duplicate audio tracks, so switching is disabled to avoid playing the wrong one.</string>
+    <string name="player_audio_unknown">Audio compatibility is unknown for this source.</string>
+    <string name="player_audio_available">Select an audio track.</string>
+    <string name="player_audio_available_predicted">Select an audio track. Browser support is predicted, not verified.</string>
     <string name="player_error_codec_unsupported">This device's browser cannot play this video format (%1$s). Try a different source, or open this item on a device that supports it.</string>
     <string name="player_error_decoder">Decoder error</string>
     <string name="player_error_unsupported_format">This stream uses a format your device may not support. Try a different source. [%1$s]</string>
