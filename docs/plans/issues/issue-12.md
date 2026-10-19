@@ -781,3 +781,25 @@ Create linked issues rather than silently expanding #12 for:
 - Mobile thermal/memory/backgrounding behavior and named-browser/device gaps.
 - Broader inherited playback-loader/header/CDN hardening beyond the bounded recovery profile.
 - User-owned compute under #13–#15; hosted conversion remains separately owner-gated.
+
+## Unit 0 — executed scope, dependency and licence decisions (2026-10-19)
+
+Status: Unit 0 complete. Documentation only: no runtime, fixture or test change, and AC1–AC3 remain unproven.
+
+**D1 — Scope interpretation accepted.** The prototype is bounded to two routes: (a) *audio recovery* by explicitly selecting a compatible alternate rendition while the selected video representation is pinned, and (b) *container recovery* demonstrated by the existing hls.js MPEG-TS → fragmented-MP4 transmux path with original H.264/AAC samples. AC-3/E-AC-3/DTS conversion is **not** part of this issue. If the issue's acceptance is read as requiring local decoding of an AC-3/DTS-only source, AC1 stays *partially satisfied* and that reading must be resolved explicitly (owner decision recorded on the issue), never by relabelling alternate-track recovery as codec conversion.
+
+**D2 — No new WASM dependency.** [UPSTREAM_LICENSE_AUDIT.md](../../UPSTREAM_LICENSE_AUDIT.md) records the Falcon reference and `@libmedia/avplayer@1.3.1` as LGPL-3.0-or-later with unreproduced WASM build obligations, which fails this task's permissive-WASM constraint. Consequence recorded as a support boundary: **no local demuxer or remuxer is added**. Container recovery is limited to engine-native paths, so MKV, AVI and standalone-TS repair stay unsupported and keep the existing honest message. A later WASM proposal needs its own amendment with exact revision, complete component licences, reproducible binaries, notices, delivered sizes, browser APIs, quotas, cancellation and quality effects; absent that evidence it is blocked.
+
+**D3 — Dependency decomposition.** #12 does **not** depend on #11: no plugin execution, no broker, no sandbox. #12 consumes the #10 descriptor/capability surface but satisfies **none** of #10's open gates (multitrack audio, supported HDR observation, hosted external-provider CORS), and #12's AC1 does not close #10. Dependencies recorded: #1 (verified baseline) and #10 (shared descriptor surface, still in progress). The ledger and TRACKER reflect this decomposition.
+
+**D4 — Fixture generation is a hard gate.** Unit 1a probes native browser AAC encoding. If the eligible test browser exposes no usable native `AudioEncoder`/recorder configuration, the AAC fixture units are **blocked**: recorded as blocked with the observed API state, never as a skipped pass, and never worked around with a downloaded sample, a new encoder dependency, or Opus relabelled as AAC.
+
+**D5 — Audio evidence method accepted.** Complementary observations only: confirmed engine track identity; requests attributed to the selected rendition's actual fixture payload; advancing video with no media error; and, where capture is available, a **test-only** Web Audio analyser tone check with a positive control before switching and post-switch windows after buffered old audio has passed. The analyser never ships and is not a silence detector. Zero signal is *inconclusive* until capture, CORS, context, mute/gain and timing are controlled. No combination of these proves that speakers produced audible sound; an audible claim still needs a named person, device and output route.
+
+**D6 — Environment reporting accepted.** Chromium desktop, Chrome for Testing, Firefox, Edge desktop, WebKit/Safari macOS, Android Chrome, iOS Safari and HDR hardware are reported separately. The repository's existing Chromium coverage and its new Playwright-WebKit CI job (`tests/browser/engine-capabilities.spec.mjs`) are engine-family evidence and do **not** satisfy the Safari, Edge or mobile rows. An unavailable environment is `NOT TESTED`.
+
+**D7 — Binding non-goals.** No central relay, CORS proxy, backend, native FFmpeg process, paid service or hosted compute; no DRM/EME key handling or restriction bypass; no video re-encode, scaling or tone mapping and no silent lower-quality fallback; no arbitrary MP4/MKV/AVI/standalone-TS repair, whole-file remux or multi-gigabyte buffering; no automatic "inaudible" inference from muted playback, missing track APIs or analyser silence; no surround passthrough, Atmos, lossless or hardware-decoding promise; no new authentication, credential forwarding or plugin execution.
+
+**Unit order and entry gate.** `1a` (native audio-fixture generation gate) → `1b` (fixtures) → `2` (track evidence and real selection) → `3` (bounded network/lifecycle) → `4` (audio recovery) → `5` (bounded MPEG-TS container recovery) → `6` (named-environment evidence and closure review). The next unit is `1a`; it must record the probe result before any fixture work, and a blocked probe stops the AAC chain rather than producing placeholder media.
+
+**Rollback.** Protected documentation revert. No runtime state, dependency, fixture or deployment is affected by this unit.
