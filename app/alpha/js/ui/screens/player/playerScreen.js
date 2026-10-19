@@ -8573,6 +8573,13 @@ export const PlayerScreen = {
     };
 
     const onError = async (event) => {
+      // Capture native SOURCE failures, which do not bubble or necessarily set
+      // video.error. TRACK failures belong to subtitle handling, not playback.
+      const sourceElementError =
+        event?.target?.tagName === "SOURCE" && event.target.parentElement === video;
+      if (event?.target !== video && !sourceElementError) {
+        return;
+      }
       if (this.isStartupErrorVisible()) {
         return;
       }
@@ -8594,11 +8601,6 @@ export const PlayerScreen = {
         detailErrorCode || Number(video?.error?.code || 0) || controllerErrorCode;
       const eventDetail = event?.detail && typeof event.detail === "object" ? event.detail : {};
       const playbackErrorDetail = this.getPlaybackEventErrorDetail(eventDetail);
-      // Native <source> failures do not bubble or necessarily set video.error.
-      // Treat the current child's failure as an unknown source-load error,
-      // without inventing a codec/HTTP cause or scheduling another request.
-      const sourceElementError =
-        event?.target?.tagName === "SOURCE" && event.target.parentElement === video;
       // The source this failure belongs to. Every message below reports it, and
       // it was referenced here without ever being declared -- so each branch
       // threw at its first mention instead of showing anything. This handler is

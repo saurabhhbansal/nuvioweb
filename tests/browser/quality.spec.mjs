@@ -108,6 +108,26 @@ for (const [scenario, width, height, file] of [
     expect(
       await video.evaluate((video) => video.error?.code || null),
     ).toBeNull();
+    if (scenario === "quality-1080") {
+      const playbackFailures = [];
+      page.on("console", (message) => {
+        if (message.type() === "warning" && message.text().startsWith("Playback failed"))
+          playbackFailures.push(message.text());
+      });
+      const timeBeforeTrackError = await video.evaluate((video) => video.currentTime);
+      await video.evaluate((video) => {
+        const track = document.createElement("track");
+        track.kind = "subtitles";
+        video.appendChild(track);
+        track.dispatchEvent(new Event("error", { bubbles: false }));
+        track.remove();
+      });
+      await expect.poll(() => video.evaluate((video) => video.currentTime))
+        .toBeGreaterThan(timeBeforeTrackError + 0.1);
+      expect(playbackFailures).toEqual([]);
+      await expect(page.locator('[data-action="playPause"] .player-control-icon')).toHaveAttribute("style", /ic_player_pause\.svg/);
+      expect(await video.evaluate((video) => video.error?.code || null)).toBeNull();
+    }
     expect(
       media.some(
         (entry) =>
