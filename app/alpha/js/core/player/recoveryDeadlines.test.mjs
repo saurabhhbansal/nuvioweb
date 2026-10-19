@@ -53,14 +53,26 @@ test("a timeout fires once and reports the elapsed time", () => {
   assert.equal(fired, 1);
 });
 
-test("success or error before the deadline suppresses it", () => {
-  const { deadline, timers, cleared } = harness();
-  deadline.arm();
-  assert.equal(deadline.settle(RECOVERY_DEADLINE_OUTCOMES.SUCCESS), true);
-  assert.equal(deadline.outcome, RECOVERY_DEADLINE_OUTCOMES.SUCCESS);
-  assert.equal(cleared.length, 1);
-  timers[0].callback();
-  assert.equal(deadline.outcome, RECOVERY_DEADLINE_OUTCOMES.SUCCESS);
+test("success, error and cancel before the deadline suppress the notification", () => {
+  for (const outcome of [
+    RECOVERY_DEADLINE_OUTCOMES.SUCCESS,
+    RECOVERY_DEADLINE_OUTCOMES.ERROR,
+    RECOVERY_DEADLINE_OUTCOMES.CANCELLED
+  ]) {
+    let notified = 0;
+    const { deadline, timers, cleared } = harness({ onTimeout: () => (notified += 1) });
+    deadline.arm();
+    const settle =
+      outcome === RECOVERY_DEADLINE_OUTCOMES.CANCELLED
+        ? deadline.cancel()
+        : deadline.settle(outcome);
+    assert.equal(settle, true, outcome);
+    assert.equal(deadline.outcome, outcome);
+    assert.equal(cleared.length, 1);
+    timers[0].callback();
+    assert.equal(deadline.outcome, outcome, outcome);
+    assert.equal(notified, 0, outcome);
+  }
 });
 
 test("settling twice is refused, so a request cannot be completed twice", () => {
@@ -109,12 +121,23 @@ test("a throwing timeout callback cannot escape or restore the request", () => {
   assert.equal(deadline.pending, false);
 });
 
-test("dispose clears a pending timer without claiming an outcome", () => {
-  const { deadline, timers, cleared } = harness();
+test("dispose is terminal: no resurrection, no late notification, no settle", () => {
+  let notified = 0;
+  const { deadline, timers, cleared } = harness({ onTimeout: () => (notified += 1) });
   deadline.arm();
   deadline.dispose();
   assert.equal(cleared.length, 1);
   assert.equal(deadline.settled, false);
+  assert.equal(deadline.disposed, true);
+  assert.equal(deadline.pending, false);
+  // A delivered stale callback changes nothing and does not notify.
   timers[0].callback();
-  assert.equal(deadline.outcome, RECOVERY_DEADLINE_OUTCOMES.TIMEOUT);
+  assert.equal(deadline.outcome, null);
+  assert.equal(notified, 0);
+  // Re-arming after disposal is refused, so no timer can overwrite a newer one.
+  assert.equal(deadline.arm(), false);
+  assert.equal(timers.length, 1);
+  // Settling a disposed deadline is refused too.
+  assert.equal(deadline.settle(RECOVERY_DEADLINE_OUTCOMES.SUCCESS), false);
+  assert.equal(deadline.outcome, null);
 });
