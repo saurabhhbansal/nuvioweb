@@ -197,16 +197,17 @@ Feasibility was spiked under ignored `dist/`: the asyncify QuickJS bundle plus e
 
 ### Unit 6a results — browser engine assets and in-browser fixture (2026-10-19)
 
-Implemented `pluginEngineAssets.mjs`, `buildPluginEngineAssets.mjs`, `pluginEngineBrowserEntry.mjs`, their focused test and `tests/browser/plugin-engine.spec.mjs`. The builder emits the asyncify JS + external WASM with a deterministic manifest (sizes, SHA-256, MIME, MIT/package versions, `defaultEnabled:false`). Built assets: `plugin-engine.js`64,623B / `emscripten-module.wasm`1,027,523B (total1,092,146B).
+Implemented `pluginEngineAssets.mjs`, `buildPluginEngineAssets.mjs`, `pluginEngineBrowserEntry.mjs`, their focused test and `tests/browser/plugin-engine.spec.mjs`. The builder emits the asyncify JS + external WASM with a deterministic manifest (sizes, SHA-256, MIME, MIT/package versions, `defaultEnabled:false`). Built assets: `plugin-engine.js`64,698B / `emscripten-module.wasm`1,027,523B (total1,092,221B).
 
 Executed with pinned Node22.23.1/Playwright1.64/Chromium156.0.8078.4/LinuxARM64:
 
-- `node --test app/alpha/scripts/pluginEngineAssets.test.mjs` —5/5 pass.
-- `npx playwright test tests/browser/plugin-engine.spec.mjs --project=chromium` —8/8 pass,0 skipped (3.8s): manifest/hash correspondence, 200 `application/wasm`, representative fixture one group/one stream with dropped `javascript:`, no ambient host globals, allowed synthetic fetch through the broker, denied host with zero dispatch, timeout, memory, output-size, no page errors.
-- `npm test --prefix app/alpha` —1235/1235 pass,0 skipped (14.9s).
+- `node --test app/alpha/scripts/pluginEngineAssets.test.mjs` —6/6 pass (including a symlink output-escape rejection).
+- `npx playwright test tests/browser/plugin-engine.spec.mjs --project=chromium` —9/9 pass,0 skipped (4.2s): manifest/hash correspondence, actual browser200 `application/wasm` response, representative fixture one group/one stream with dropped `javascript:`, no ambient host globals, allowed synthetic fetch through the broker, denied host with zero dispatch, timeout, memory, output-size, blocked/recorded unexpected external request, no page errors.
+- `npm test --prefix app/alpha` —1236/1236 pass,0 skipped (15.1s).
 - `npm run lint --prefix app/alpha` — pass.
 - Inert build + `node scripts/check-alpha-build.mjs` — pass, **12 assets**, no engine files in the app dist.
-- Full `npx playwright test` —50/50 pass (1.6min).
+- Full `npx playwright test` —51/51 pass (1.6min).
+- Read-only Codex review (`docs/agent-runs/2026-10-19-unit6a-review.md`): 2 P1 + 3 P2, all fixed (symlink output escape, missing cross-origin guard, server-side WASM assertion, stale JS hash, teardown guard); no P0 and no shipped-artifact exposure.
 
 The browser run exposed an in-VM OOM classification gap: allocations failing inside the VM surfaced as `plugin`. The network prototype now applies the same word-bounded OOM rule to rejections; abuse corpus12/12 and network prototype tests remain green, with a plain `"boom"` control still classified `plugin`.
 

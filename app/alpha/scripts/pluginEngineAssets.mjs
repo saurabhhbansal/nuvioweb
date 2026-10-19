@@ -4,7 +4,7 @@
 // never invoked by the normal app build, the stager or the application bundle,
 // so the deployed 12-asset preview is unchanged. The asyncify variant is used
 // because the broker's `api.fetch` awaits a host call.
-import { copyFile, mkdir, readFile, rm, stat, writeFile } from "node:fs/promises";
+import { copyFile, lstat, mkdir, readFile, realpath, rm, stat, writeFile } from "node:fs/promises";
 import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { createRequire } from "node:module";
@@ -88,11 +88,30 @@ async function sha256File(file) {
   return createHash("sha256").update(await readFile(file)).digest("hex");
 }
 
-export async function buildPluginEngineAssets({ outdir = defaultOutdir, entry = defaultEntry } = {}) {
-  const resolvedOutdir = path.resolve(outdir);
-  if (!resolvedOutdir.startsWith(path.join(alphaRoot, "dist") + path.sep)) {
+// Resolve the requested output directory without following symlinks out of the
+// ignored app/alpha/dist tree. The builder recursively deletes its output, so a
+// lexical prefix check is not enough when an ancestor is a symlink.
+async function resolveSafeOutdir(requested) {
+  const distRoot = path.join(alphaRoot, "dist");
+  await mkdir(distRoot, { recursive: true });
+  const allowedRoot = await realpath(distRoot);
+  const resolved = path.resolve(requested);
+  const parent = await realpath(path.dirname(resolved));
+  const candidate = path.join(parent, path.basename(resolved));
+  const relativeToRoot = path.relative(allowedRoot, candidate);
+  if (!relativeToRoot || relativeToRoot.startsWith("..") || path.isAbsolute(relativeToRoot)) {
     throw new Error("engine assets must be written under app/alpha/dist");
   }
+  try {
+    if ((await lstat(candidate)).isSymbolicLink()) throw new Error("engine assets output must not be a symlink");
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error;
+  }
+  return candidate;
+}
+
+export async function buildPluginEngineAssets({ outdir = defaultOutdir, entry = defaultEntry } = {}) {
+  const resolvedOutdir = await resolveSafeOutdir(outdir);
   await rm(resolvedOutdir, { recursive: true, force: true });
   await mkdir(resolvedOutdir, { recursive: true });
 

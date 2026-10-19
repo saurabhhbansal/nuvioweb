@@ -44,3 +44,22 @@ test("the manifest is deterministic and requires both versions", () => {
   assert.throws(() => buildEngineManifest({ engineVersion: "", variantVersion: "0.32.0", files: [jsFile, wasmFile] }), /engine version/);
   assert.throws(() => buildEngineManifest({ engineVersion: "0.32.0", variantVersion: "", files: [jsFile, wasmFile] }), /variant version/);
 });
+
+test("the builder rejects an output path that escapes through a symlink", async () => {
+  const { mkdtemp, readdir, rm, symlink } = await import("node:fs/promises");
+  const { tmpdir } = await import("node:os");
+  const { join } = await import("node:path");
+  const { fileURLToPath } = await import("node:url");
+  const { buildPluginEngineAssets } = await import("./pluginEngineAssets.mjs");
+  const alphaRoot = fileURLToPath(new URL("../", import.meta.url));
+  const outside = await mkdtemp(join(tmpdir(), "nuvioweb-engine-"));
+  const link = join(alphaRoot, "dist", `symlink-${process.pid}-${Date.now()}`);
+  await symlink(outside, link, "dir");
+  try {
+    await assert.rejects(buildPluginEngineAssets({ outdir: join(link, "engine") }), /written under app\/alpha\/dist/);
+    assert.deepEqual(await readdir(outside), []);
+  } finally {
+    await rm(link, { force: true });
+    await rm(outside, { recursive: true, force: true });
+  }
+});

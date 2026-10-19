@@ -21,7 +21,7 @@ let server;
 let baseUrl;
 let manifest;
 let assetBytes;
-const wasmResponses = [];
+let networkViolations = [];
 
 test.beforeAll(async () => {
   const result = await buildPluginEngineAssets({ outdir });
@@ -44,7 +44,6 @@ test.beforeAll(async () => {
       return;
     }
     if (pathname === `/${ENGINE_ASSET_NAMES.wasm}`) {
-      wasmResponses.push({ status: 200, type: "application/wasm" });
       response.writeHead(200, { "content-type": "application/wasm" });
       response.end(assetBytes.wasm);
       return;
@@ -57,15 +56,27 @@ test.beforeAll(async () => {
 });
 
 test.afterAll(async () => {
+  if (!server) return;
   // Chromium can hold keep-alive sockets to the loopback fixture origin, which
   // would make server.close() wait forever during runner cleanup.
   server.closeAllConnections?.();
-  await Promise.race([new Promise((resolve) => server.close(resolve)), new Promise((resolve) => setTimeout(resolve, 2000))]);
+  let timer;
+  await Promise.race([new Promise((resolve) => server.close(resolve)), new Promise((resolve) => (timer = setTimeout(resolve, 2000)))]);
+  clearTimeout(timer);
 });
 
 async function openEngine(page) {
   const pageErrors = [];
+  networkViolations = [];
   page.on("pageerror", (error) => pageErrors.push(String(error.message).slice(0, 120)));
+  // Only the ephemeral fixture origin may be contacted; any other origin is an
+  // unexpected remote code/asset load and fails the test.
+  await page.context().route("**/*", async (route) => {
+    const url = new URL(route.request().url());
+    if (url.origin === baseUrl) return route.continue();
+    networkViolations.push(url.origin);
+    return route.abort("blockedbyclient");
+  });
   await page.goto(`${baseUrl}/`, { waitUntil: "domcontentloaded" });
   await page.waitForFunction(() => Boolean(globalThis.__nuvioPluginEngine), null, { timeout: 20_000 });
   return pageErrors;
@@ -84,16 +95,27 @@ test("manifest matches the served bytes and declares explicit opt-in", () => {
 });
 
 test("the representative fixture executes in Chromium and normalizes its output", async ({ page }) => {
+  const requestedPaths = [];
+  page.on("request", (request) => {
+    const url = new URL(request.url());
+    if (url.origin === baseUrl) requestedPaths.push(url.pathname);
+  });
   const pageErrors = await openEngine(page);
+  const wasmResponse = page.waitForResponse((response) => response.url().endsWith(`/${ENGINE_ASSET_NAMES.wasm}`), { timeout: 20_000 });
   const result = await runEngine(page, { code: representativeCode, input: { tmdbId: 603, mediaType: "movie" }, allowedHosts: [] });
+  const response = await wasmResponse;
   expect(result.ok).toBe(true);
   expect(result.groups).toHaveLength(1);
   expect(result.groups[0].sourceId).toBe("fixture-plugin");
   expect(result.groups[0].streams).toHaveLength(1);
   expect(result.groups[0].streams[0].url).toBe("https://media.example.com/fixture-1080.mp4");
   expect(result.dropped).toBeGreaterThanOrEqual(1);
+  expect(response.status()).toBe(200);
+  expect(response.headers()["content-type"]).toBe("application/wasm");
+  expect(requestedPaths).toContain(`/${ENGINE_ASSET_NAMES.js}`);
+  expect(requestedPaths).toContain(`/${ENGINE_ASSET_NAMES.wasm}`);
   expect(pageErrors).toEqual([]);
-  expect(wasmResponses.some((entry) => entry.status === 200 && entry.type === "application/wasm")).toBe(true);
+  expect(networkViolations).toEqual([]);
 });
 
 test("the VM has no ambient host globals", async ({ page }) => {
@@ -107,6 +129,7 @@ test("the VM has no ambient host globals", async ({ page }) => {
   expect(result.ok).toBe(true);
   expect(result.groups[0].streams[0].description).toBe("undefined,undefined,undefined,undefined,undefined,undefined");
   expect(pageErrors).toEqual([]);
+  expect(networkViolations).toEqual([]);
 });
 
 test("an allowed synthetic fetch crosses only the broker transport", async ({ page }) => {
@@ -124,6 +147,7 @@ test("an allowed synthetic fetch crosses only the broker transport", async ({ pa
   expect(result.groups[0].streams[0].description).toBe("200:42");
   expect(result.transportCalls).toBe(1);
   expect(pageErrors).toEqual([]);
+  expect(networkViolations).toEqual([]);
 });
 
 test("a denied host is rejected before any transport dispatch", async ({ page }) => {
@@ -137,6 +161,7 @@ test("a denied host is rejected before any transport dispatch", async ({ page })
   expect(result.error).toBe("host");
   expect(result.transportCalls).toBe(0);
   expect(pageErrors).toEqual([]);
+  expect(networkViolations).toEqual([]);
 });
 
 test("the wall-clock deadline stops an infinite loop", async ({ page }) => {
@@ -145,6 +170,7 @@ test("the wall-clock deadline stops an infinite loop", async ({ page }) => {
   expect(result.ok).toBe(false);
   expect(result.error).toBe("timeout");
   expect(pageErrors).toEqual([]);
+  expect(networkViolations).toEqual([]);
 });
 
 test("the memory budget bounds an allocation bomb", async ({ page }) => {
@@ -153,6 +179,7 @@ test("the memory budget bounds an allocation bomb", async ({ page }) => {
   expect(result.ok).toBe(false);
   expect(result.error).toBe("memory");
   expect(pageErrors).toEqual([]);
+  expect(networkViolations).toEqual([]);
 });
 
 test("an oversized result is rejected by the output budget", async ({ page }) => {
@@ -165,4 +192,11 @@ test("an oversized result is rejected by the output budget", async ({ page }) =>
   expect(result.ok).toBe(false);
   expect(result.error).toBe("output-size");
   expect(pageErrors).toEqual([]);
+  expect(networkViolations).toEqual([]);
+});
+
+test("an unexpected external request is blocked and recorded", async ({ page }) => {
+  await openEngine(page);
+  await page.evaluate(() => fetch("https://example.com/probe").catch(() => {}));
+  expect(networkViolations).toEqual(["https://example.com"]);
 });
