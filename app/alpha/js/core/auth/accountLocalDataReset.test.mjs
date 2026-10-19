@@ -26,6 +26,7 @@ function storage(entries = {}) {
 test("account reset removes profile-colliding progress, collections, addons, and credentials", () => {
   const local = storage({
     watchProgressItems: "[]",
+    savedLibrarySyncState: JSON.stringify({ __profileScoped: true, version: 1, profiles: { "1": { revision: 3, pending: true } } }),
     collectionsState: JSON.stringify({ __profileScoped: true, version: 1, profiles: { "1": {} } }),
     debridSettings: JSON.stringify({ __profileScoped: true, version: 1, profiles: { "1": {} } }),
     installedAddonUrls: JSON.stringify({ __profileScoped: true, version: 1, profiles: { "1": [] } }),
@@ -39,6 +40,7 @@ test("account reset removes profile-colliding progress, collections, addons, and
   clearAccountLocalData(local, storage({ homeReturnFocusState: "old" }));
 
   assert.equal(hasAccountLocalData(local), false);
+  assert.equal(local.getItem("savedLibrarySyncState"), null);
   assert.equal(local.getItem("nuvioAccountOwnerMarker"), "owner-marker");
   assert.equal(local.getItem("nuvio_web_installation_id"), "device-identity");
   // Torrent settings used to be kept, as a device preference rather than an

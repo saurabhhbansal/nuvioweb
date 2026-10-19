@@ -8,6 +8,11 @@ async function fixture(t) {
   let generation = 1;
   let authenticated = true;
   const calls = [];
+  let local = [];
+  let syncState = { revision: 0, pending: false };
+  const warnings = [];
+  const originalWarn = console.warn;
+  console.warn = (message) => warnings.push(message);
   const dependencies = {
     AuthManager: {
       get isAuthenticated() { return authenticated; },
@@ -15,7 +20,12 @@ async function fixture(t) {
       isSessionCurrent: (expected) => authenticated && expected === generation
     },
     ProfileManager: { getActiveProfileId: () => "2" },
-    savedLibraryRepository: { getAll: async () => [], replaceAll: async () => {} },
+    savedLibraryRepository: {
+      getAll: async () => [...local],
+      replaceAll: async (items) => { local = items; },
+      getSyncState: () => ({ ...syncState }),
+      acknowledgeSync: (_profileId, revision) => { if (syncState.revision === revision) syncState.pending = false; }
+    },
     SupabaseApi: { rpc: async (...args) => { calls.push(args); return null; } }
   };
   globalThis.__savedLibrarySyncDeps__ = dependencies;
@@ -32,9 +42,131 @@ async function fixture(t) {
     } }]
   });
   const service = (await import(`data:text/javascript;base64,${Buffer.from(result.outputFiles[0].contents).toString("base64")}#${revision++}`)).SavedLibrarySyncService;
-  t.after(() => { delete globalThis.__savedLibrarySyncDeps__; });
-  return { service, dependencies, calls, switchAccount: () => { generation++; }, signOut: () => { generation++; authenticated = false; } };
+  t.after(() => { console.warn = originalWarn; delete globalThis.__savedLibrarySyncDeps__; });
+  return { service, dependencies, calls, warnings,
+    seedLocal: (items) => { local = items; },
+    local: () => local,
+    markPending: () => { syncState = { revision: syncState.revision + 1, pending: true }; },
+    state: () => ({ ...syncState }),
+    switchAccount: () => { generation++; }, signOut: () => { generation++; authenticated = false; }
+  };
 }
+
+test("successful empty remote Library removes clean cached items", async (t) => {
+  const f = await fixture(t);
+  f.seedLocal([{ contentId: "deleted-remotely" }]);
+  f.dependencies.SupabaseApi.rpc = async () => [];
+  assert.deepEqual(await f.service.pull(2), []);
+  assert.deepEqual(f.local(), []);
+});
+
+test("nonempty remote Library replaces clean cache", async (t) => {
+  const f = await fixture(t);
+  f.seedLocal([{ contentId: "old-cache" }]);
+  f.dependencies.SupabaseApi.rpc = async () => [{ content_id: "remote-current", name: "Synthetic" }];
+  await f.service.pull(2);
+  assert.deepEqual(f.local().map((item) => item.contentId), ["remote-current"]);
+});
+
+for (const remote of [[], [{ content_id: "remote-current" }]]) {
+  test(`pending local edit survives ${remote.length ? "nonempty" : "empty"} cloud snapshot`, async (t) => {
+    const f = await fixture(t);
+    f.seedLocal([{ contentId: "pending-local" }]);
+    f.markPending();
+    f.dependencies.SupabaseApi.rpc = async () => remote;
+    assert.deepEqual((await f.service.pull(2)).map((item) => item.contentId), ["pending-local"]);
+    assert.deepEqual(f.local().map((item) => item.contentId), ["pending-local"]);
+    assert.equal(f.state().pending, true);
+  });
+}
+
+test("local edit made while cloud pull waits cannot be overwritten or returned as an older snapshot", async (t) => {
+  const f = await fixture(t);
+  f.seedLocal([{ contentId: "old-cache" }]);
+  let release;
+  f.dependencies.SupabaseApi.rpc = () => new Promise((resolve) => { release = resolve; });
+  const pending = f.service.pull(2);
+  await turn();
+  f.markPending();
+  f.seedLocal([{ contentId: "new-local" }]);
+  release([{ content_id: "remote-old" }]);
+  assert.deepEqual((await pending).map((item) => item.contentId), ["new-local"]);
+  assert.deepEqual(f.local().map((item) => item.contentId), ["new-local"]);
+});
+
+for (const malformed of [null, {}, [{ name: "missing content identity" }]]) {
+  test(`malformed cloud snapshot ${JSON.stringify(malformed)} is not a deletion`, async (t) => {
+    const f = await fixture(t);
+    f.seedLocal([{ contentId: "keep-cache" }]);
+    f.dependencies.SupabaseApi.rpc = async () => malformed;
+    let replacements = 0;
+    f.dependencies.savedLibraryRepository.replaceAll = async () => { replacements++; };
+    await f.service.pull(2);
+    assert.equal(replacements, 0);
+    assert.deepEqual(f.local().map((item) => item.contentId), ["keep-cache"]);
+    assert.deepEqual(f.warnings, ["Saved library sync pull failed"]);
+  });
+}
+
+test("successful push acknowledges its current pending revision", async (t) => {
+  const f = await fixture(t);
+  f.markPending();
+  assert.equal(await f.service.push(2), true);
+  assert.deepEqual(f.state(), { revision: 1, pending: false });
+});
+
+test("old successful push cannot acknowledge a newer local edit", async (t) => {
+  const f = await fixture(t);
+  f.markPending();
+  let release;
+  f.dependencies.SupabaseApi.rpc = () => new Promise((resolve) => { release = resolve; });
+  const pending = f.service.push(2);
+  await turn();
+  f.markPending();
+  release(null);
+  assert.equal(await pending, true);
+  assert.deepEqual(f.state(), { revision: 2, pending: true });
+});
+
+test("pull started with pending edits cannot publish an older snapshot after those edits are acknowledged", async (t) => {
+  const f = await fixture(t);
+  f.seedLocal([{ contentId: "local-edit" }]);
+  f.markPending();
+  let release;
+  f.dependencies.SupabaseApi.rpc = (name) => name === "sync_pull_library"
+    ? new Promise((resolve) => { release = resolve; }) : Promise.resolve(null);
+  const pulling = f.service.pull(2);
+  await turn();
+  assert.equal(await f.service.push(2), true);
+  assert.equal(f.state().pending, false);
+  release([{ content_id: "cloud-before-push" }]);
+  assert.deepEqual((await pulling).map((item) => item.contentId), ["local-edit"]);
+  assert.deepEqual(f.local().map((item) => item.contentId), ["local-edit"]);
+});
+
+test("failed reads and writes preserve local cache and pending revision", async (t) => {
+  const f = await fixture(t);
+  f.seedLocal([{ contentId: "offline-local" }]);
+  f.markPending();
+  f.dependencies.SupabaseApi.rpc = async () => { throw new Error("synthetic offline"); };
+  assert.deepEqual(await f.service.pull(2), []);
+  assert.equal(await f.service.push(2), false);
+  assert.deepEqual(f.local().map((item) => item.contentId), ["offline-local"]);
+  assert.deepEqual(f.state(), { revision: 1, pending: true });
+});
+
+test("old account pull cannot publish into a later session", async (t) => {
+  const f = await fixture(t);
+  let release;
+  f.dependencies.SupabaseApi.rpc = () => new Promise((resolve) => { release = resolve; });
+  const pending = f.service.pull(2);
+  await turn();
+  f.switchAccount();
+  f.seedLocal([{ contentId: "new-account-cache" }]);
+  release([{ content_id: "old-account-remote" }]);
+  assert.deepEqual(await pending, []);
+  assert.deepEqual(f.local().map((item) => item.contentId), ["new-account-cache"]);
+});
 
 test("empty explicit Library snapshot reaches the existing API to remove the final remote item", async (t) => {
   const f = await fixture(t);
@@ -92,7 +224,7 @@ async function transportFixture(t) {
     },
     SessionStore: session,
     ProfileManager: { getActiveProfileId: () => "1" },
-    savedLibraryRepository: { getAll: async () => [] }
+    savedLibraryRepository: { getAll: async () => [], getSyncState: () => ({ revision: 0, pending: false }), acknowledgeSync: () => {} }
   };
   globalThis.__savedLibraryTransportDeps__ = dependencies;
   const result = await build({

@@ -19,12 +19,12 @@ function token(alias) {
   return `${Buffer.from('{"alg":"none"}').toString("base64url")}.${Buffer.from(JSON.stringify(payload)).toString("base64url")}.synthetic`;
 }
 
-async function installIdentityFixture(context, { criticalGate = null, withCatalog = false, catalogGate = null, libraryGates = {}, allowLibraryWrites = false } = {}) {
+async function installIdentityFixture(context, { criticalGate = null, withCatalog = false, catalogGate = null, libraryGates = {}, allowLibraryWrites = false, backend = null, rejectLibraryWrites = false } = {}) {
   const requests = [];
   const unexpected = [];
   const settings = new Map();
-  const libraries = new Map(Object.keys(accounts).map((alias) => [alias, library(alias)]));
-  const libraryWrites = [];
+  const libraries = backend?.libraries || new Map(Object.keys(accounts).map((alias) => [alias, library(alias)]));
+  const libraryWrites = backend?.libraryWrites || [];
   const provider = "https://catalog.example.invalid";
   let catalogRequested = false;
   const emptyReads = new Set([
@@ -80,6 +80,7 @@ async function installIdentityFixture(context, { criticalGate = null, withCatalo
       expect(body.p_profile_id).toBe(1);
       expect(Array.isArray(body.p_items)).toBe(true);
       libraryWrites.push({ alias, profileId: body.p_profile_id, items: body.p_items });
+      if (rejectLibraryWrites) return json({ error: "synthetic write unavailable" }, 503);
       libraries.set(alias, body.p_items);
       return json(null);
     }
@@ -265,5 +266,54 @@ test("removing the final saved item sends an empty current-account snapshot from
   await expect(page.locator('#library .library-grid-card[data-item-id="fixture-library-b"]')).toHaveCount(0);
   await expect.poll(() => fixture.libraryWrites).toEqual([{ alias: "B", profileId: 1, items: [] }]);
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem("savedLibraryItems") || "[]"))).toEqual([]);
+  expect(fixture.unexpected).toEqual([]);
+});
+
+test("clean independent receiver reflects deletion of the final cloud item on reload", async ({ browser, context, page }) => {
+  const backend = { libraries: new Map(Object.keys(accounts).map((alias) => [alias, library(alias)])), libraryWrites: [] };
+  const writer = await installIdentityFixture(context, { allowLibraryWrites: true, backend });
+  await page.goto("/");
+  await signIn(page, "B");
+  await expectLibrary(page, "B");
+  const receiverContext = await browser.newContext({ serviceWorkers: "block" });
+  try {
+    const observer = await installIdentityFixture(receiverContext, { backend });
+    const receiver = await receiverContext.newPage();
+    await receiver.goto("http://127.0.0.1:4371");
+    await signIn(receiver, "B");
+    await expectLibrary(receiver, "B");
+    await page.locator('#library .library-grid-card[data-item-id="fixture-library-b"]').click({ button: "right" });
+    await page.getByRole("menuitem", { name: "Remove from Library", exact: true }).click();
+    await expect.poll(() => backend.libraryWrites).toEqual([{ alias: "B", profileId: 1, items: [] }]);
+    expect(backend.libraries.get("B")).toEqual([]);
+    expect(backend.libraries.get("A")).toEqual(library("A"));
+    const start = observer.requests.length;
+    await receiver.reload();
+    await openLibrary(receiver);
+    await expect.poll(() => observer.requests.slice(start).some((entry) => entry.operation === "sync_pull_library")).toBe(true);
+    await expect(receiver.locator('#library .library-grid-card[data-item-id="fixture-library-b"]')).toHaveCount(0);
+    expect(await receiver.evaluate(() => JSON.parse(localStorage.getItem("savedLibraryItems") || "[]"))).toEqual([]);
+    expect(writer.unexpected).toEqual([]);
+    expect(observer.unexpected).toEqual([]);
+  } finally { await receiverContext.close(); }
+});
+
+test("failed local removal stays pending across reload and a competing nonempty cloud pull", async ({ context, page }) => {
+  const fixture = await installIdentityFixture(context, { allowLibraryWrites: true, rejectLibraryWrites: true });
+  await page.goto("/");
+  await signIn(page, "B");
+  await expectLibrary(page, "B");
+  await page.locator('#library .library-grid-card[data-item-id="fixture-library-b"]').click({ button: "right" });
+  const rejected = page.waitForResponse((response) => new URL(response.url()).pathname === "/rest/v1/rpc/sync_push_library");
+  await page.getByRole("menuitem", { name: "Remove from Library", exact: true }).click();
+  expect((await rejected).status()).toBe(503);
+  await expect(page.locator('#library .library-grid-card[data-item-id="fixture-library-b"]')).toHaveCount(0);
+  const start = fixture.requests.length;
+  await page.reload();
+  await openLibrary(page);
+  await expect.poll(() => fixture.requests.slice(start).some((entry) => entry.operation === "sync_pull_library")).toBe(true);
+  await expect(page.locator('#library .library-grid-card[data-item-id="fixture-library-b"]')).toHaveCount(0);
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem("savedLibraryItems") || "[]"))).toEqual([]);
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem("savedLibrarySyncState")).profiles["1"].pending)).toBe(true);
   expect(fixture.unexpected).toEqual([]);
 });

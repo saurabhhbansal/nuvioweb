@@ -75,7 +75,8 @@ export const SavedLibrarySyncService = {
       }
       const sessionGeneration = AuthManager.getSessionGeneration();
       const resolvedProfileId = resolveProfileId(profileId);
-      const localItems = await savedLibraryRepository.getAll(1000, resolvedProfileId);
+      const initialState = savedLibraryRepository.getSyncState(resolvedProfileId);
+      const revision = initialState.revision;
       const rows = [];
       for (let offset = 0; ; offset += PULL_PAGE_SIZE) {
         const page = await SupabaseApi.rpc(
@@ -85,22 +86,30 @@ export const SavedLibrarySyncService = {
             p_limit: PULL_PAGE_SIZE,
             p_offset: offset
           },
-          true
+          true,
+          { expectedSessionGeneration: sessionGeneration }
         );
         if (!AuthManager.isSessionCurrent(sessionGeneration)) return [];
-        const pageRows = Array.isArray(page) ? page : [];
-        rows.push(...pageRows);
-        if (pageRows.length < PULL_PAGE_SIZE) {
+        if (!Array.isArray(page) || page.some((row) => {
+          const id = row?.content_id || row?.contentId || row?.id;
+          return typeof id !== "string" || !id.trim();
+        })) throw new Error("Invalid Library snapshot");
+        rows.push(...page);
+        if (page.length < PULL_PAGE_SIZE) {
           break;
         }
       }
       const remoteItems = (rows || [])
         .map((row) => mapRemoteItem(row))
         .filter((item) => Boolean(item.contentId));
-      if (!remoteItems.length && localItems.length) {
-        return localItems;
-      }
       if (!AuthManager.isSessionCurrent(sessionGeneration)) return [];
+      const current = savedLibraryRepository.getSyncState(resolvedProfileId);
+      if (initialState.pending || current.pending || current.revision !== revision) {
+        const localItems = await savedLibraryRepository.getAll(1000, resolvedProfileId);
+        return AuthManager.isSessionCurrent(sessionGeneration) ? localItems : [];
+      }
+      // Validation and the repository's synchronous store write have no await
+      // between them, so a newer local edit cannot slip into this publication.
       await savedLibraryRepository.replaceAll(remoteItems, resolvedProfileId);
       return remoteItems;
     } catch (error) {
@@ -116,6 +125,7 @@ export const SavedLibrarySyncService = {
       }
       const sessionGeneration = AuthManager.getSessionGeneration();
       const resolvedProfileId = resolveProfileId(profileId);
+      const revision = savedLibraryRepository.getSyncState(resolvedProfileId).revision;
       const items = await savedLibraryRepository.getAll(1000, resolvedProfileId);
       if (!AuthManager.isSessionCurrent(sessionGeneration)) return false;
       // An explicit final-item removal is an intentionally empty snapshot.
@@ -129,6 +139,7 @@ export const SavedLibrarySyncService = {
         { expectedSessionGeneration: sessionGeneration }
       );
       if (!AuthManager.isSessionCurrent(sessionGeneration)) return false;
+      savedLibraryRepository.acknowledgeSync(resolvedProfileId, revision);
       return true;
     } catch (error) {
       console.warn("Saved library sync push failed", error);
