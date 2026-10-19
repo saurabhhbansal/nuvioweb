@@ -14,6 +14,7 @@
 | ADR-010 Scope and test gates per PR | Approved | Agent development must be auditable and reversible |
 | ADR-011 Upstream sync by review, not blind merge | Approved | Divergent forks / regressions |
 | ADR-012 Authorized media only, no DRM circumvention | Approved | Safety, rights and platform constraints |
+| ADR-013 Standing autonomous delegation | Approved | Owner authorized routine autonomous execution 2026-10-19 under a documented integration gate; sensitive privileges, payment and production launch remain owner-gated |
 
 ## Open validation questions
 
@@ -34,3 +35,9 @@ The owner supplied the official documentation, accepted documented public-client
 ## Identity documentation acceptance — 2026-10-18
 
 The owner reviewed and approved PR #34 for issue #3's documentation scope and authorized its protected integration after passing checks. The contract is preserved byte-for-byte from `7693878`; this acceptance supersedes its historical pending-review annotations. Existing account identity, consent requirements, guest fallback and all unlisted endpoint/session/compute release gates remain unchanged. Live auth/sync, pairing and entitlements verification remain #7/#14/#20. No implementation, hosted-service exception or production launch is approved by documentation acceptance.
+
+## Standing autonomous development delegation — 2026-10-19
+
+The owner authorized an autonomous development workflow so the roadmap can progress without routine per-PR confirmation. The full delegation, authorized and prohibited actions, and the integration gate are recorded in [AGENTS.md](../AGENTS.md); the quality-gate wording is reconciled in [QUALITY_GATES.md](QUALITY_GATES.md). This supersedes the earlier requirement for routine human approval of every change, not the security, licensing, release or branch-protection requirements themselves.
+
+Routine verified changes may be integrated through the protected PR workflow after a documented plan, passing required checks, a separate technical review pass and explicit security/regression evidence. Authentication and remote-fetch changes additionally need targeted negative/security tests and a review recorded honestly as automated. New privileges, new credential recipients, payment access, dangerous network behaviour, production deployment and unresolved material security or legal risk still require owner escalation; automated review is never presented as independent human approval. Codex CLI is currently unavailable on the execution host, so planning and review use the documented substitute recorded in [the planning record](agent-runs/2026-10-19-codex-unavailable.md).
