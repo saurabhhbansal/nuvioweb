@@ -228,3 +228,20 @@ The owner's standing autonomous delegation now recorded in [AGENTS.md](../../../
 Current main `80f739cf18eef5dca6d9e0fa54899357032f88bd` (governance PR #50; runtime source identical to `a1629fe`) was staged cleanly with `npm run preview:stage`: asset `53a3ebbd44cc`, worker `nuvio-app-shell-0.1.5-134fd4f07f67`, 134 independently verified inventory hashes, GPL/notices matched, 10 optional demo files, no forbidden paths. A loopback server modelling the checked-in host rules passed 10 hash/header checks, 404 checks, demo resource reachability and Chromium guest navigation/reload/alias with zero page errors and all third-party origins blocked. Receipt: `docs/evidence/preview-candidate-2026-10-19.json`.
 
 Cloudflare OAuth expired at `2026-10-19T10:05:01Z` and cannot refresh non-interactively; `wrangler pages project list --json` requires `CLOUDFLARE_API_TOKEN`. No upload occurred and no hosted cell of the MVP gate changed. Hosted playback and named Chrome/Edge/Firefox/Safari evidence therefore remain NOT TESTED; #10 stays open. Builds are not bit-reproducible because the inherited bundle embeds a build timestamp, so each rebuild yields new asset/worker ids and upload integrity must be checked against that build's own staged inventory.
+
+## Cross-engine unit: stable add-on failure messages (planned 2026-10-19)
+
+**Finding.** Running the existing browser suite in Playwright Firefox 157 revealed that the Settings add-on install form shows the browser's raw fetch text: Chromium throws `Failed to fetch`, Firefox throws `NetworkError when attempting to fetch resource.`. Parse/shape failures likewise surface engine-specific internals. The UI is safe (escaped, no injected markup) but not explainable or stable across browsers, and the existing browser assertion only matches Chromium text. Real Chrome for Testing 155 passes the same case as Chromium.
+
+**Targets.**
+1. `app/alpha/js/data/repository/addonRepository.js`: add one exported pure classifier and apply it only to `fetchAddon` failures that carry no HTTP status code (network/CORS, JSON parse, manifest-shape). HTTP errors that carry a provider status keep the provider's status text.
+2. New `app/alpha/js/data/repository/addonRepository.test.mjs`: deterministic unit cases for Chromium, Firefox and Safari network phrasings, malformed JSON, manifest-shape TypeErrors, a provider HTTP error that must be preserved, and an unknown message that must not be swallowed.
+3. `tests/browser/addons.spec.mjs`: replace the Chromium-only `/Failed to fetch/i` expectation with the stable user-facing message in the real install form.
+
+**Contract.** Classification is pure, bounded, case-insensitive and returns fixed strings: network/CORS → a reachability message naming URL/CORS/connection; invalid JSON → an invalid-JSON message; manifest shape → an invalid-manifest message. No URL, header, token, response body or raw engine exception text is rendered. No request, retry, destination, auth, timeout, cache-key or install-policy change.
+
+**Red evidence before runtime edits.** The new unit file imports the classifier, which does not exist yet, so the focused command must fail. Then implement and rerun.
+
+**Verification.** Focused `node --test app/alpha/js/data/repository/addonRepository.test.mjs`; complete `npm test --prefix app/alpha`; lint; inert build/12-asset check; focused add-on browser cases and then the complete Chromium suite; also run the same add-on case in Playwright Firefox 157 and Chrome for Testing 155 to prove engine-independent text. Record engine versions and the fact that Playwright Firefox is not branded-Firefox certification and Chrome for Testing is not a user-profile Chrome installation.
+
+**Threats.** Over-broad matching could mask a real provider error; therefore classification applies only when `code` is absent and HTTP statusText is always preserved. No secrets, no network, no deployment. **Rollback:** protected revert restores raw messages; tests revert with it.

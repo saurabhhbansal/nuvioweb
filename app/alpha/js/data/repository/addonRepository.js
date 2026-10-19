@@ -2,6 +2,7 @@ import { safeApiCall } from "../../core/network/safeApiCall.js";
 import { LocalStore } from "../../core/storage/localStore.js";
 import { ProfileManager } from "../../core/profile/profileManager.js";
 import { AddonApi } from "../remote/api/addonApi.js";
+import { describeAddonFetchFailure } from "../remote/addonFailure.js";
 import { buildConfiguredAddonEntry } from "../../core/addons/addonRuntimeState.js";
 
 const ADDON_URLS_KEY = "installedAddonUrls";
@@ -335,7 +336,21 @@ export class AddonRepository {
     const request = (async () => {
       const result = await safeApiCall(() => AddonApi.getManifest(manifestUrl));
       if (result.status === "success") {
-        const addon = this.mapManifest(result.data, cleanBaseUrl);
+        let addon;
+        try {
+          addon = this.mapManifest(result.data, cleanBaseUrl);
+        } catch (error) {
+          // Malformed manifest shapes throw inside mapping, not inside the fetch.
+          // Normalize that failure at the same boundary instead of leaking a
+          // browser-specific TypeError to the install form.
+          const failure = {
+            status: "error",
+            message: describeAddonFetchFailure({ status: "error", message: error?.message, code: null }),
+            code: null
+          };
+          this.manifestErrorCache.set(cleanBaseUrl, failure);
+          return failure;
+        }
         this.manifestCache.set(cleanBaseUrl, addon);
         this.manifestErrorCache.delete(cleanBaseUrl);
         return { status: "success", data: this.withDisplayNameOverride(addon) };
@@ -353,8 +368,9 @@ export class AddonRepository {
         return { status: "success", data: this.withDisplayNameOverride(fallback) };
       }
 
-      this.manifestErrorCache.set(cleanBaseUrl, result);
-      return result;
+      const failure = { ...result, message: describeAddonFetchFailure(result) };
+      this.manifestErrorCache.set(cleanBaseUrl, failure);
+      return failure;
     })();
 
     this.manifestRequests.set(cleanBaseUrl, request);
