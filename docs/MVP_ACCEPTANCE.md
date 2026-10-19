@@ -31,7 +31,7 @@ PASS applies only to the stated seam. FAIL is an observed failed assertion or ab
 
 | Gate | Current result and boundary |
 | --- | --- |
-| Subtitle selection | Local focused MVP run observes a showing native English text track with an active original cue; full journey still fails later at navigation. Hosted/named browser NOT TESTED |
+| Subtitle selection | PASS locally after Router correction: showing native English text track with an active original cue, followed by successful return/browse/reload. Hosted/named browser NOT TESTED |
 | Audio selection | Local fixture has one Opus track. Menu reports no selectable tracks. Multitrack selection and audible device output NOT TESTED; no multitrack support claim |
 | Remote-empty/final-item deletion | PASS synthetic browser/service controls; live application push/delete/receiver deletion NOT TESTED |
 | Offline and conflict handling | Synthetic failed-write reload preserves pending edits. Automatic retry/resolution UI is absent; concurrent full-snapshot cloud writers remain unsafe to claim conflict-free. Complete offline/PWA journey NOT TESTED |

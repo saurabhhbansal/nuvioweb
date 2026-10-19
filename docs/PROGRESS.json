@@ -208,14 +208,15 @@
           "verifiedLocally": [
             "Confirmed panel Escape\u2192immediate Back navigation bug;2 actual-Router cases failed before6-line fix;70 Router/focus cases pass afterward.",
             "Complete real bundled guest install/catalog/save/play/pause/seek/resume/subtitle/back/reload and fresh-return control:2/2pass in9.0s; native English active cue visually inspected; audio-track menu reports no selectable tracks, no multitrack/audible output claim.",
-            "Final inert build1f6602975d2f/worker4cf247398dd9/assets/lint pass;1173 application cases and42 browser/PWA journeys pass,0skips. Static-demo plus preview config3/3pass; full final docs/governance/review/CI pending."
+            "Final inert build1f6602975d2f/worker4cf247398dd9/assets/lint pass;1173 application and42 browser/PWA journeys,0skips;70 Router/focus and18 docs/governance/static-preview cases pass.134-file public staging verified including10 optional CC0 demo files; no upload."
           ],
-          "integrationGate": "Unmerged current MVP unit; protected exact-head CI and automated review required. No public upload. Current main25ce335 and deployed8edec42 remain separate.",
+          "integrationGate": "PR49 scoped navigation/static-demo/acceptance unit awaits final-head protected CI. Automated Standards/Spec found one shared stale subtitle-status sentence, corrected; no other actionable findings. No independent approval claimed. Current main25ce335 and deployed8edec42 remain separate.",
           "remaining": [
             "Live account-switch Library hydration FAIL under #7, no equivalent retry; exact-key cleanup verified.",
             "Hosted optional demo/media/save/subtitle journey NOT TESTED; prepare merged candidate and obtain exact owner upload approval.",
             "Named Chrome/Edge first then Firefox/Safari/mobile; multitrack/audible output and complete offline; advanced4K60/HDR separate later gates."
-          ]
+          ],
+          "pr": 49
         },
         "preview": {
           "sourceRevision": "8edec4248405d59f5b8639085a1e779e6878911b",
