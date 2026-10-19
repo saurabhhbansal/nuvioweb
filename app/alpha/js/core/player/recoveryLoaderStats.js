@@ -31,22 +31,41 @@ export function createLoaderStats({ now = defaultNow() } = {}) {
     parsing: { start: 0, end: 0 },
     buffering: { start: 0, first: 0, end: 0 }
   };
-  let firstByteAt = 0;
-  let endAt = 0;
+  // Timestamps use explicit null sentinels (0 is a valid monotonic reading) and
+  // every reading is validated: numeric, finite, non-negative and never
+  // decreasing, so an injected clock cannot produce negative durations.
+  let lastTimestamp = null;
+  let firstByteAt = null;
+  let endAt = null;
+
+  const read = () => {
+    let value = null;
+    try {
+      value = now();
+    } catch (_) {
+      value = null;
+    }
+    if (typeof value !== "number" || !Number.isFinite(value) || value < 0) {
+      return lastTimestamp;
+    }
+    if (lastTimestamp !== null && value < lastTimestamp) return lastTimestamp;
+    lastTimestamp = value;
+    return value;
+  };
 
   return {
     get stats() {
       return stats;
     },
     begin() {
-      stats.loading.start = now();
+      stats.loading.start = read() ?? 0;
       return stats;
     },
     // The first byte also opens buffering, so `buffering.first` is never left
     // out of a response that actually started arriving.
     firstByte(bytes = 0) {
-      const at = now();
-      if (!firstByteAt) {
+      const at = read() ?? 0;
+      if (firstByteAt === null) {
         firstByteAt = at;
         stats.loading.first = at;
         stats.buffering.start = at;
@@ -64,31 +83,34 @@ export function createLoaderStats({ now = defaultNow() } = {}) {
       return this.updateBandwidth();
     },
     updateBandwidth() {
-      if (!firstByteAt) return stats;
-      const end = endAt || now();
+      if (firstByteAt === null) return stats;
+      const end = endAt ?? read() ?? firstByteAt;
       const elapsedMs = end - firstByteAt;
       // Bits per second from elapsed time, not from a fixed divisor.
       stats.bwEstimate = elapsedMs > 0 ? (stats.loaded * 8 * 1000) / elapsedMs : 0;
       return stats;
     },
     end({ total = stats.loaded } = {}) {
-      endAt = now();
+      endAt = read() ?? firstByteAt ?? 0;
       stats.loading.end = endAt;
+      if (firstByteAt !== null && stats.buffering.first === 0 && firstByteAt === 0) {
+        stats.buffering.first = 0;
+      }
       stats.buffering.end = endAt;
       const size = Number(total);
       stats.total = Number.isFinite(size) && size >= 0 ? size : stats.loaded;
       return this.updateBandwidth();
     },
     parseStart() {
-      stats.parsing.start = now();
+      stats.parsing.start = read() ?? 0;
       return stats;
     },
     parseEnd() {
-      stats.parsing.end = now();
+      stats.parsing.end = read() ?? 0;
       return stats;
     },
     fail() {
-      endAt = now();
+      endAt = read() ?? firstByteAt ?? 0;
       stats.loading.end = endAt;
       return stats;
     },

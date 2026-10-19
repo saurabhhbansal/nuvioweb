@@ -92,3 +92,63 @@ test("parsing timestamps are recorded independently", () => {
   assert.ok(stats.stats.parsing.start > 0);
   assert.ok(stats.stats.parsing.end >= stats.stats.parsing.start);
 });
+
+test("a zero first-byte timestamp still measures bandwidth", () => {
+  const stats = createLoaderStats({ now: clock([0, 0, 1000]) });
+  stats.begin();
+  stats.firstByte(250);
+  stats.end({ total: 250 });
+  assert.equal(stats.stats.loading.first, 0);
+  assert.equal(stats.stats.bwEstimate, 2000);
+});
+
+test("bandwidth scales with elapsed duration", () => {
+  const fast = createLoaderStats({ now: clock([0, 0, 500]) });
+  fast.begin();
+  fast.firstByte(1000);
+  fast.end({ total: 1000 });
+  assert.equal(fast.stats.bwEstimate, 16000);
+
+  const slow = createLoaderStats({ now: clock([0, 0, 2000]) });
+  slow.begin();
+  slow.firstByte(1000);
+  slow.end({ total: 1000 });
+  assert.equal(slow.stats.bwEstimate, 4000);
+});
+
+test("an invalid or decreasing clock cannot produce negative durations", () => {
+  for (const values of [
+    [100, 90, 70],
+    [0, Number.NaN, 50],
+    [0, Number.POSITIVE_INFINITY, 50],
+    [0, -5, 50],
+    [0, "50", 60]
+  ]) {
+    const stats = createLoaderStats({ now: clock(values) });
+    stats.begin();
+    stats.firstByte(10);
+    stats.end({ total: 10 });
+    assert.ok(stats.stats.loading.start >= 0);
+    assert.ok(stats.stats.loading.first >= stats.stats.loading.start, JSON.stringify(values));
+    assert.ok(stats.stats.loading.end >= stats.stats.loading.first, JSON.stringify(values));
+    assert.equal(typeof stats.stats.bwEstimate, "number");
+    assert.ok(Number.isFinite(stats.stats.bwEstimate));
+  }
+});
+
+test("a throwing clock keeps the previous reading instead of failing", () => {
+  let calls = 0;
+  const stats = createLoaderStats({
+    now: () => {
+      calls += 1;
+      if (calls > 1) throw new Error("boom");
+      return 10;
+    }
+  });
+  assert.doesNotThrow(() => {
+    stats.begin();
+    stats.firstByte(10);
+    stats.end({ total: 10 });
+  });
+  assert.equal(stats.stats.loading.first, 10);
+});
