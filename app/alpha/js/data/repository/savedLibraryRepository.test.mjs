@@ -57,6 +57,7 @@ async function fixture(t, { guest = false } = {}) {
   });
   return {
     repository, dependencies, calls, timers,
+    seedLegacy: (items) => values.set("savedLibraryItems", items),
     switchAccount: () => { generation++; authenticated = true; values.clear(); resetHandlers.forEach((reset) => reset()); },
     signOut: () => { generation++; authenticated = false; values.clear(); resetHandlers.forEach((reset) => reset()); },
     flush: async () => { await turn(); await turn(); },
@@ -217,4 +218,20 @@ test("guest edits never mark cloud intent and account reset drops old pending me
   assert.equal(f.repository.getSyncState("1").pending, true);
   f.switchAccount();
   assert.deepEqual(f.repository.getSyncState("1"), { revision: 0, pending: false });
+});
+
+test("unmarked authenticated legacy cache is preserved as pending rather than assumed clean", async (t) => {
+  const f = await fixture(t);
+  f.seedLegacy([{ profileId: "1", contentId: "legacy-unsynced", contentType: "movie" }]);
+  assert.equal(f.repository.getSyncState("1").pending, true);
+  assert.deepEqual((await f.repository.getAll()).map((item) => item.contentId), ["legacy-unsynced"]);
+  assert.equal(f.timers.size, 0, "migration never schedules a cloud snapshot");
+});
+
+test("fresh remote hydration establishes clean metadata before cache publication", async (t) => {
+  const f = await fixture(t);
+  await f.repository.replaceAll([{ contentId: "remote-clean", contentType: "movie" }], "1");
+  assert.deepEqual(f.repository.getSyncState("1"), { revision: 0, pending: false });
+  assert.deepEqual((await f.repository.getAll()).map((item) => item.contentId), ["remote-clean"]);
+  assert.equal(f.timers.size, 0);
 });

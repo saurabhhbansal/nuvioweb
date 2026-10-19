@@ -54,6 +54,11 @@ function queueSavedLibraryCloudSync(profileId = activeProfileId(), delayMs = 500
 
 class SavedLibraryRepository {
   getSyncState(profileId = activeProfileId()) {
+    if (AuthManager.isAuthenticated && !SavedLibrarySyncState.has(profileId) &&
+      SavedLibraryStore.listForProfile(profileId).length) {
+      // An older cache may contain unsynced edits; never infer that it is clean.
+      return SavedLibrarySyncState.markPending(profileId);
+    }
     return SavedLibrarySyncState.get(profileId);
   }
 
@@ -98,6 +103,10 @@ class SavedLibraryRepository {
   }
 
   async replaceAll(items, profileId = activeProfileId()) {
+    if (!SavedLibrarySyncState.has(profileId)) {
+      // Establish a clean baseline before store notifications can trigger reads.
+      SavedLibrarySyncState.acknowledge(profileId, 0);
+    }
     SavedLibraryStore.replaceForProfile(profileId, items || []);
   }
 }

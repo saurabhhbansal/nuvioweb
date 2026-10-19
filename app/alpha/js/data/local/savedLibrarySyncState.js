@@ -28,6 +28,11 @@ function write(profileId, state) {
 }
 
 export const SavedLibrarySyncState = {
+  has(profileId) {
+    const key = String(profileId || "1");
+    return runtimeStates.has(key) || Object.prototype.hasOwnProperty.call(readEnvelope().profiles, key);
+  },
+
   get(profileId) {
     const key = String(profileId || "1");
     return { ...(runtimeStates.get(key) || normalize(readEnvelope().profiles[key])) };
