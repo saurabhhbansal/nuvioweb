@@ -2952,4 +2952,5 @@
     <string name="source_headers_declared">Requires request headers; native playback may be restricted</string>
     <string name="source_expiry_declared">Provider-declared link expiry has passed; refresh sources</string>
     <string name="source_provider_label">Provider label: %1$s</string>
+    <string name="player_error_source_load_unknown">The browser could not load this source. The link, access, network or format may be responsible. Refresh sources or choose another source.</string>
 </resources>

@@ -1032,7 +1032,12 @@ export const PlayerController = {
           scheduleTransientLevelNotFoundRetry();
           return;
         }
-        if (isTerminalHlsHttpStatus(responseCode)) {
+        // startLoad cannot recover a manifest that never loaded. Surface the
+        // fatal result after hls.js has exhausted its manifest load policy.
+        const manifestFailure = ["manifestLoadError", "manifestLoadTimeOut"].includes(
+          String(data?.details || "")
+        );
+        if (manifestFailure || isTerminalHlsHttpStatus(responseCode)) {
           emitFatalHlsNetworkError(data, responseCode);
           return;
         }

@@ -1,0 +1,219 @@
+{
+  "sourceCommit": "7eb81470bb6cb5b49c5d033dd3b35cf111c09f7b",
+  "pullRequest": 39,
+  "runStartedAt": "2026-10-19T03:15:26.496Z",
+  "browser": "Playwright1.64.0 Chromium156.0.8078.4",
+  "environment": "Linux ARM64 local fixture environment; Node22.23.1/npm10.9.8",
+  "stats": {
+    "startTime": "2026-10-19T03:15:26.496Z",
+    "duration": 54361.669,
+    "expected": 27,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "cases": [
+    {
+      "test": "bundled quality-1080 preserves original dimensions and supports seek",
+      "status": "passed",
+      "observation": {
+        "scenario": "quality-1080",
+        "initial": {
+          "width": 1920,
+          "height": 1080,
+          "src": "http://127.0.0.1:4373/media/quality/original-1080p.mp4",
+          "duration": 3.845867,
+          "error": null
+        },
+        "media": [
+          {
+            "path": "/media/quality/original-1080p.mp4",
+            "status": 206
+          }
+        ],
+        "engineEvents": []
+      }
+    },
+    {
+      "test": "bundled quality-2160 preserves original dimensions and supports seek",
+      "status": "passed",
+      "observation": {
+        "scenario": "quality-2160",
+        "initial": {
+          "width": 3840,
+          "height": 2160,
+          "src": "http://127.0.0.1:4373/media/quality/original-2160p.mp4",
+          "duration": 3.633967,
+          "error": null
+        },
+        "media": [
+          {
+            "path": "/media/quality/original-2160p.mp4",
+            "status": 206
+          }
+        ],
+        "engineEvents": []
+      }
+    },
+    {
+      "test": "bundled quality-hls preserves original dimensions and supports seek",
+      "status": "passed",
+      "observation": {
+        "scenario": "quality-hls",
+        "initial": {
+          "width": 3840,
+          "height": 2160,
+          "src": "blob:http://127.0.0.1:4371/20482240-9844-4378-ba69-18cbd0ca62a2",
+          "duration": 3.633966,
+          "error": null
+        },
+        "media": [
+          {
+            "path": "/media/quality/2160p/stream.m3u8",
+            "status": 200
+          },
+          {
+            "path": "/media/quality/2160p/stream.m3u8",
+            "status": 200
+          },
+          {
+            "path": "/media/quality/2160p/init.mp4",
+            "status": 200
+          },
+          {
+            "path": "/media/quality/2160p/segment.m4s",
+            "status": 200
+          },
+          {
+            "path": "/media/quality/2160p/stream.m3u8",
+            "status": 200
+          }
+        ],
+        "engineEvents": []
+      }
+    },
+    {
+      "test": "bundled quality-dash preserves original dimensions and supports seek",
+      "status": "passed",
+      "observation": {
+        "scenario": "quality-dash",
+        "initial": {
+          "width": 3840,
+          "height": 2160,
+          "src": "blob:http://127.0.0.1:4371/d7b7a596-ebad-4d6c-9421-ca23c602a8d4",
+          "duration": 3.633966,
+          "error": null
+        },
+        "media": [
+          {
+            "path": "/media/quality/2160p/manifest.mpd",
+            "status": 200
+          },
+          {
+            "path": "/media/quality/2160p/manifest.mpd",
+            "status": 200
+          },
+          {
+            "path": "/media/quality/2160p/init.mp4",
+            "status": 200
+          },
+          {
+            "path": "/media/quality/2160p/segment.m4s",
+            "status": 200
+          },
+          {
+            "path": "/media/quality/2160p/manifest.mpd",
+            "status": 200
+          }
+        ],
+        "engineEvents": [
+          "dash.js",
+          "dash.js",
+          "dash.js",
+          "dash.js",
+          "dash.js"
+        ]
+      }
+    },
+    {
+      "test": "bundled quality-expired surfaces playback failure and allows return",
+      "status": "passed",
+      "observation": {
+        "scenario": "quality-expired",
+        "failed": [
+          {
+            "path": "/media/quality/expired.mp4",
+            "status": 410
+          }
+        ],
+        "rejected": [],
+        "message": "Playback Error\nThe browser could not load this source. The link, access, network or format may be responsible. Refresh sources or choose another source.\nPlatform: browser\nReason: startup-source-error\nHTTP status: unavailable\nVideo readyState: 0\nVideo networkState: 3\nCurrent source: 127.0.0.1 \u2022 .mp4\nPlayback engine: native-file\nSource: Legal Fixture / Original 2160p MP4 fixture / Legal Fixture-0-[redacted]\nSource endpoint: 127.0.0.1 \u2022 .mp4\nGo Back"
+      }
+    },
+    {
+      "test": "bundled quality-restricted surfaces playback failure and allows return",
+      "status": "passed",
+      "observation": {
+        "scenario": "quality-restricted",
+        "failed": [
+          {
+            "path": "/media/quality/restricted.mp4",
+            "status": 403
+          }
+        ],
+        "rejected": [],
+        "message": "Playback Error\nThe browser could not load this source. The link, access, network or format may be responsible. Refresh sources or choose another source.\nPlatform: browser\nReason: startup-source-error\nHTTP status: unavailable\nVideo readyState: 0\nVideo networkState: 3\nCurrent source: 127.0.0.1 \u2022 .mp4\nPlayback engine: native-file\nSource: Legal Fixture / Original 2160p MP4 fixture / Legal Fixture-0-[redacted]\nSource endpoint: 127.0.0.1 \u2022 .mp4\nGo Back"
+      }
+    },
+    {
+      "test": "bundled quality-hls-cors surfaces playback failure and allows return",
+      "status": "passed",
+      "observation": {
+        "scenario": "quality-hls-cors",
+        "failed": [
+          {
+            "path": "/media/quality/cors-denied/stream.m3u8",
+            "status": 200
+          }
+        ],
+        "rejected": [
+          {
+            "path": "/media/quality/cors-denied/stream.m3u8",
+            "error": "net::ERR_FAILED"
+          },
+          {
+            "path": "/media/quality/cors-denied/stream.m3u8",
+            "error": "net::ERR_FAILED"
+          },
+          {
+            "path": "/media/quality/cors-denied/stream.m3u8",
+            "error": "net::ERR_FAILED"
+          },
+          {
+            "path": "/media/quality/cors-denied/stream.m3u8",
+            "error": "net::ERR_FAILED"
+          },
+          {
+            "path": "/media/quality/cors-denied/stream.m3u8",
+            "error": "net::ERR_FAILED"
+          },
+          {
+            "path": "/media/quality/cors-denied/init.mp4",
+            "error": "net::ERR_BLOCKED_BY_ORB"
+          },
+          {
+            "path": "/media/quality/cors-denied/segment.m4s",
+            "error": "net::ERR_BLOCKED_BY_ORB"
+          }
+        ],
+        "message": "Playback Error\nThe browser could not load this source. The link, access, network or format may be responsible. Refresh sources or choose another source.\nPlatform: browser\nReason: startup-source-error\nHTTP status: unavailable\nVideo readyState: 0\nVideo networkState: 3\nCurrent source: 127.0.0.1 \u2022 .m3u8\nPlayback engine: native-hls\nSource: Legal Fixture / Original 2160p MP4 fixture / Legal Fixture-0-[redacted]\nSource endpoint: 127.0.0.1 \u2022 .m3u8\nGo Back"
+      }
+    }
+  ],
+  "limits": [
+    "Original short, video-only, single-rendition local fixtures; no external network allowed",
+    "No live auth/sync/provider, audio/subtitle selection, HDR/4K60/high-bitrate or other browser/device claim",
+    "Synthetic TRACK error asserts player error isolation, not real subtitle loading/selection",
+    "HLS fetch-recovery change requires owner review; this branch is unmerged and not deployed"
+  ]
+}

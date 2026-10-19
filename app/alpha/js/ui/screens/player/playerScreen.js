@@ -8573,6 +8573,13 @@ export const PlayerScreen = {
     };
 
     const onError = async (event) => {
+      // Capture native SOURCE failures, which do not bubble or necessarily set
+      // video.error. TRACK failures belong to subtitle handling, not playback.
+      const sourceElementError =
+        event?.target?.tagName === "SOURCE" && event.target.parentElement === video;
+      if (event?.target !== video && !sourceElementError) {
+        return;
+      }
       if (this.isStartupErrorVisible()) {
         return;
       }
@@ -8608,10 +8615,11 @@ export const PlayerScreen = {
       const terminalHlsHttpFailure = isTerminalHlsHttpStatus(eventDetail.hlsResponseCode);
       if (
         !this.hasPresentedPlaybackFrame &&
-        (mediaErrorCode === 2 || mediaErrorCode === 3 || mediaErrorCode === 4)
+        (sourceElementError || mediaErrorCode === 2 || mediaErrorCode === 3 || mediaErrorCode === 4)
       ) {
         this.markPlaybackSourceFailed(this.activePlaybackUrl);
         const targetEngine =
+          !sourceElementError &&
           !terminalHlsHttpFailure &&
           typeof PlayerController.getAlternativePlaybackEngine === "function"
             ? PlayerController.getAlternativePlaybackEngine(this.activePlaybackUrl)
@@ -8623,7 +8631,7 @@ export const PlayerScreen = {
           this.sourcesError = null;
           this.updateLoadingVisibility();
           console.warn("Playback failed during startup; switching player engine", {
-            url: this.activePlaybackUrl,
+            endpoint: describeSafePlaybackEndpoint(this.activePlaybackUrl),
             mediaErrorCode,
             from: PlayerController.playbackEngine,
             to: targetEngine
@@ -8637,7 +8645,11 @@ export const PlayerScreen = {
           return;
         }
         this.markPlaybackSourceFailed(this.activePlaybackUrl);
-        const startupErrorMessage = this.getStartupErrorMessage(
+        const startupErrorMessage = sourceElementError ? t(
+          "player_error_source_load_unknown",
+          {},
+          "The browser could not load this source. The link, access, network or format may be responsible. Refresh sources or choose another source."
+        ) : this.getStartupErrorMessage(
           mediaErrorCode,
           playbackErrorDetail,
           currentSourceCandidate
@@ -8650,10 +8662,10 @@ export const PlayerScreen = {
           eventDetail,
           streamCandidate: currentSourceCandidate,
           playbackUrl: this.activePlaybackUrl,
-          reason: "startup-media-error"
+          reason: sourceElementError ? "startup-source-error" : "startup-media-error"
         });
         console.warn("Playback failed during startup", {
-          url: this.activePlaybackUrl,
+          endpoint: describeSafePlaybackEndpoint(this.activePlaybackUrl),
           mediaErrorCode
         });
         return;
@@ -8706,8 +8718,9 @@ export const PlayerScreen = {
     ];
 
     bindings.forEach(([eventName, handler]) => {
-      video.addEventListener(eventName, handler);
-      this.videoListeners.push({ target: video, eventName, handler });
+      const capture = eventName === "error";
+      video.addEventListener(eventName, handler, capture);
+      this.videoListeners.push({ target: video, eventName, handler, capture });
     });
 
     const trackTargets = [this.getVideoTextTrackList(), this.getVideoAudioTrackList()].filter(
@@ -8725,8 +8738,8 @@ export const PlayerScreen = {
   },
 
   unbindVideoEvents() {
-    this.videoListeners.forEach(({ target, eventName, handler }) => {
-      target?.removeEventListener?.(eventName, handler);
+    this.videoListeners.forEach(({ target, eventName, handler, capture = false }) => {
+      target?.removeEventListener?.(eventName, handler, capture);
     });
     this.videoListeners = [];
   },

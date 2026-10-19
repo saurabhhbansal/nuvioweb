@@ -98,3 +98,7 @@ The original pin/import history/tag and GPL notices remain intact. Issue #9 chan
 ## Local source-capability projection — issue #10 (in progress)
 
 Adds `app/alpha/js/core/streams/sourceCapabilities.js` and its `.test.mjs`, modifies `js/data/repository/streamRepository.js`, `js/core/streams/streamList.js` and `js/ui/components/browserStreamSourceCard.js` under the same subtree, and extends the existing #9 CSS/default-string paths. These eleven total local Alpha paths include #29 metadata, #9 UI and #10 declarations/predictions/tests. No original history/license rewrite or transport/auth/engine policy change. [Contract and evidence](docs/SOURCE_CAPABILITIES.md) distinguish provider metadata, browser predictions and actual playback. #10 remains incomplete pending realistic quality/adaptive/device evidence.
+
+## Second source-capability unit — original quality/failure fixtures (in progress)
+
+Adds local patches to `app/alpha/js/ui/screens/player/playerScreen.js`, `app/alpha/js/core/player/playerController.js` and its `.browser.test.mjs`, plus the already patched default strings. Native child-source error presentation/capture cleanup and fatal HLS manifest error propagation address actual fixture regressions. This brings the Alpha patch inventory to fourteen paths; original pin/import/history/GPL remain intact. HLS fetch-recovery behavior requires owner review before this unit merges. [Quality matrix, exact bytes and limits](docs/PLAYBACK_QUALITY_MATRIX.md). No source URL/header/auth/paid processing policy is broadened.

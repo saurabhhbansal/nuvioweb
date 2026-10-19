@@ -302,3 +302,67 @@ test("changing the adaptive playback source clears browser audio tracks", () => 
   PlayerController.teardownAdaptiveInstances();
   assert.deepEqual(PlayerController.getBrowserAudioTracks(), []);
 });
+
+function withHlsNetworkFixture(run) {
+  const saved = {
+    constructor: globalThis.Hls, video: PlayerController.video,
+    hls: PlayerController.hlsInstance, dash: PlayerController.dashInstance,
+    engine: PlayerController.playbackEngine, url: PlayerController.currentPlaybackUrl,
+    code: PlayerController.lastPlaybackErrorCode, diagnostic: PlayerController.lastHlsErrorDiagnostic
+  };
+  const handlers = new Map(); const emitted = [];
+  const calls = { startLoad: 0, destroyed: 0 };
+  class FixtureHls {
+    static Events = { ERROR: "error", LEVEL_LOADED: "levelLoaded", MEDIA_ATTACHED: "mediaAttached", MANIFEST_PARSED: "manifestParsed" };
+    static ErrorTypes = { NETWORK_ERROR: "networkError", MEDIA_ERROR: "mediaError" };
+    static isSupported() { return true; }
+    on(name, callback) { handlers.set(name, callback); }
+    attachMedia() {}
+    startLoad() { calls.startLoad += 1; }
+    destroy() { calls.destroyed += 1; }
+  }
+  try {
+    globalThis.Hls = FixtureHls;
+    PlayerController.video = { removeAttribute() {}, dispatchEvent(event) { emitted.push(event.detail); } };
+    PlayerController.hlsInstance = null; PlayerController.dashInstance = null;
+    PlayerController.currentPlaybackUrl = "https://media.example/fixture.m3u8";
+    assert.equal(PlayerController.playWithHlsJs(PlayerController.currentPlaybackUrl), true);
+    return run({ calls, emitted, error: data => handlers.get("error")("error", { type: "networkError", fatal: true, ...data }) });
+  } finally {
+    PlayerController.teardownHlsInstance();
+    globalThis.Hls = saved.constructor; PlayerController.video = saved.video;
+    PlayerController.hlsInstance = saved.hls; PlayerController.dashInstance = saved.dash;
+    PlayerController.playbackEngine = saved.engine; PlayerController.currentPlaybackUrl = saved.url;
+    PlayerController.lastPlaybackErrorCode = saved.code; PlayerController.lastHlsErrorDiagnostic = saved.diagnostic;
+  }
+}
+
+for (const details of ["manifestLoadError", "manifestLoadTimeOut"]) {
+  test(`fatal HLS ${details} reaches UI instead of recovering an absent manifest`, () => {
+    withHlsNetworkFixture(({ calls, emitted, error }) => {
+      error({ details, response: { code: 0 } });
+      assert.equal(calls.startLoad, 0);
+      assert.equal(calls.destroyed, 1);
+      assert.equal(emitted.length, 1);
+      assert.equal(emitted[0].mediaErrorCode, 2);
+      assert.equal(emitted[0].hlsResponseCode, null);
+    });
+  });
+}
+
+test("fatal HLS segment network recovery remains bounded to one startLoad", () => {
+  withHlsNetworkFixture(({ calls, emitted, error }) => {
+    error({ details: "fragLoadError", response: { code: 503 } });
+    assert.equal(calls.startLoad, 1); assert.equal(calls.destroyed, 0); assert.equal(emitted.length, 0);
+    error({ details: "fragLoadError", response: { code: 503 } });
+    assert.equal(calls.startLoad, 1); assert.equal(calls.destroyed, 1); assert.equal(emitted[0].mediaErrorCode, 2);
+  });
+});
+
+test("terminal HLS access failure still reports actual status without stream recovery", () => {
+  withHlsNetworkFixture(({ calls, emitted, error }) => {
+    error({ details: "fragLoadError", response: { code: 403 } });
+    assert.equal(calls.startLoad, 0); assert.equal(calls.destroyed, 1);
+    assert.equal(emitted[0].hlsResponseCode, 403);
+  });
+});
