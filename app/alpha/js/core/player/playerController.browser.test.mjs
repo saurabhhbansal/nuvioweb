@@ -426,8 +426,10 @@ test("normalized audio tracks expose engine evidence for the current generation"
   const originalToken = PlayerController.playRequestToken;
   const originalHlsTracks = PlayerController.getHlsAudioTracks;
   const originalSelectedHlsTrack = PlayerController.getSelectedHlsAudioTrackIndex;
+  const originalHlsInstance = PlayerController.hlsInstance;
   try {
     PlayerController.playbackEngine = "hls.js";
+    PlayerController.hlsInstance = { audioTracks: [] };
     PlayerController.playRequestToken = 12;
     PlayerController.getHlsAudioTracks = () => [
       { id: 0, name: "English", lang: "en", attrs: { CHANNELS: "2", CODECS: "mp4a.40.2" } },
@@ -460,6 +462,7 @@ test("normalized audio tracks expose engine evidence for the current generation"
   } finally {
     PlayerController.playbackEngine = originalEngine;
     PlayerController.playRequestToken = originalToken;
+    PlayerController.hlsInstance = originalHlsInstance;
     // Restore rather than delete: these are real controller methods.
     if (originalHlsTracks === undefined) delete PlayerController.getHlsAudioTracks;
     else PlayerController.getHlsAudioTracks = originalHlsTracks;
@@ -474,8 +477,10 @@ test("the controller exposes honest availability copy for the current tracks", (
   const originalToken = PlayerController.playRequestToken;
   const originalHlsTracks = PlayerController.getHlsAudioTracks;
   const originalSelectedHlsTrack = PlayerController.getSelectedHlsAudioTrackIndex;
+  const originalHlsInstance = PlayerController.hlsInstance;
   try {
     PlayerController.playbackEngine = "hls.js";
+    PlayerController.hlsInstance = { audioTracks: [] };
     PlayerController.playRequestToken = 9;
     PlayerController.getSelectedHlsAudioTrackIndex = () => -1;
 
@@ -502,12 +507,32 @@ test("the controller exposes honest availability copy for the current tracks", (
     const ambiguous = PlayerController.getAudioTrackAvailabilityCopy();
     assert.equal(ambiguous.key, "player_audio_ambiguous");
     assert.equal(ambiguous.tone, "warning");
+
+    PlayerController.hlsInstance = originalHlsInstance;
+
+    // A DASH engine that can list tracks but not switch them must not promise
+    // an action: the copy reports "unavailable" and the setter is refused.
+    PlayerController.playbackEngine = "dash.js";
+    const originalDashInstance = PlayerController.dashInstance;
+    PlayerController.dashInstance = { getTracksFor: () => [{ id: "aud1", lang: "en" }] };
+    PlayerController.getDashAudioTracks = () => [
+      { id: "aud1", index: 0, label: "English", language: "en" }
+    ];
+    PlayerController.getSelectedDashAudioTrackIndex = () => 0;
+    const unavailable = PlayerController.getAudioTrackAvailabilityCopy();
+    assert.equal(unavailable.key, "player_audio_unavailable");
+    assert.equal(unavailable.tone, "warning");
+    assert.equal(PlayerController.setBrowserAudioTrack(0), false);
+    PlayerController.dashInstance = originalDashInstance;
+    delete PlayerController.getDashAudioTracks;
+    delete PlayerController.getSelectedDashAudioTrackIndex;
   } finally {
     PlayerController.playbackEngine = originalEngine;
     PlayerController.playRequestToken = originalToken;
     if (originalHlsTracks === undefined) delete PlayerController.getHlsAudioTracks;
     else PlayerController.getHlsAudioTracks = originalHlsTracks;
-    if (originalSelectedHlsTrack === undefined) delete PlayerController.getSelectedHlsAudioTrackIndex;
+    if (originalSelectedHlsTrack === undefined)
+      delete PlayerController.getSelectedHlsAudioTrackIndex;
     else PlayerController.getSelectedHlsAudioTrackIndex = originalSelectedHlsTrack;
   }
 });
