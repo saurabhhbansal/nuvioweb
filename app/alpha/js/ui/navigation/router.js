@@ -362,7 +362,16 @@ export const Router = {
       const departingBrowserHistoryIndex = this.browserHistoryIndex;
       this.browserHistoryIndex = getNuvioHistoryIndex(state);
       this.browserHistoryProvenance = getNuvioHistoryProvenance(state);
-      const shouldSkipConsume = Boolean(this.skipConsumeNextPopstate);
+      // The dedicated player Back already stopped playback and requested this
+      // proven parent. An overlay must not consume its matching traversal and
+      // force a fallback that duplicates the Stream entry.
+      const isRequestedParent = Boolean(
+        hasValidHistoryTarget &&
+        this.pendingPreviousRouteBack &&
+        state?.route === this.pendingPreviousRouteBack.expectedRoute &&
+        this.browserHistoryIndex === this.pendingPreviousRouteBack.expectedIndex
+      );
+      const shouldSkipConsume = Boolean(this.skipConsumeNextPopstate || isRequestedParent);
       this.skipConsumeNextPopstate = false;
       const currentScreen = this.getCurrentScreen();
       const shouldLetPlayerReturnToStream =

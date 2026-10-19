@@ -2053,3 +2053,43 @@ test("explicit source Back supersedes stale overlay guards and reaches its detai
   await flushNavigation();
   assert.equal(Router.getCurrent(), "detail");
 });
+
+
+test("explicit proven Player Back traverses the parent despite dismissable player UI", async () => {
+  const detail = makeDetailScreen();
+  const stream = makeStreamScreen();
+  const player = makePlayerBackScreen();
+  player.audioDialogVisible = true;
+  player.controlsVisible = true;
+  player.closeAudioDialog = function () { this.audioDialogVisible = false; };
+  resetRouter({ detail, stream, player });
+  Router.init();
+  await Router.navigate("detail", { itemId: "movie-1", itemType: "movie" });
+  await Router.navigate("stream", { itemId: "movie-1", itemType: "movie" });
+  await Router.navigate("player", { itemId: "movie-1", itemType: "movie", returnToStreamOnBack: true });
+  const pending = Router.backToPreviousNuvioRoute("stream");
+  await history.whenSettled();
+  await flushNavigation();
+  assert.equal(await pending.settled, true);
+  assert.equal(Router.getCurrent(), "stream");
+  await Router.back();
+  await history.whenSettled();
+  await flushNavigation();
+  assert.equal(Router.getCurrent(), "detail");
+});
+
+test("unsolicited browser Back still dismisses player UI instead of traversing", async () => {
+  const stream = makeStreamScreen();
+  const player = makePlayerBackScreen();
+  player.audioDialogVisible = true;
+  player.closeAudioDialog = function () { this.audioDialogVisible = false; };
+  resetRouter({ stream, player });
+  Router.init();
+  await Router.navigate("stream", { itemId: "movie-1", itemType: "movie" });
+  await Router.navigate("player", { itemId: "movie-1", itemType: "movie", returnToStreamOnBack: true });
+  history.back();
+  await history.whenSettled();
+  await flushNavigation();
+  assert.equal(player.audioDialogVisible, false);
+  assert.equal(Router.getCurrent(), "player");
+});

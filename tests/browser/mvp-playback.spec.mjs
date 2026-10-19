@@ -10,6 +10,8 @@ test("guest installs a legal add-on, saves its item, uses player controls and re
     else await route.abort("blockedbyclient");
   });
   await context.addInitScript(() => {
+    globalThis.__mvpBackEvents = [];
+    window.addEventListener("popstate", event => globalThis.__mvpBackEvents.push({ route: event.state?.route, marker: event.state?.__nuvioHistory }));
     if (!localStorage.getItem("installedAddonUrls")) localStorage.setItem("installedAddonUrls", JSON.stringify({ __profileScoped: true, version: 1, profiles: { "1": [] } }));
   });
   await page.goto("/");
@@ -62,12 +64,14 @@ test("guest installs a legal add-on, saves its item, uses player controls and re
   await expect(audio.locator(".player-dialog-empty")).toHaveText("No audio tracks available.");
   await page.keyboard.press("Escape");
   await testInfo.attach("before-player-back", { body: JSON.stringify(await page.evaluate(() => ({ current: window.__NUVIO_CURRENT_ROUTE__, history: history.state, length: history.length }))), contentType: "application/json" });
+  const expectedStreamIndex = await page.evaluate(() => history.state?.__nuvioHistory?.previousIndex);
   await page.locator("[data-player-desktop-back]").click();
   await expect.poll(() => page.evaluate(() => window.__NUVIO_CURRENT_ROUTE__)).toBe("stream");
+  await expect.poll(() => page.evaluate(() => history.state?.__nuvioHistory?.index)).toBe(expectedStreamIndex);
   await expect(page.locator('[data-action="playStream"]')).toBeVisible();
   await testInfo.attach("before-stream-back", { body: JSON.stringify(await page.evaluate(() => ({ current: window.__NUVIO_CURRENT_ROUTE__, history: history.state, length: history.length, handler: String(document.querySelector('[data-stream-desktop-back]').onclick) }))), contentType: "application/json" });
   await page.locator("[data-stream-desktop-back]").click();
-  await expect.poll(() => page.evaluate(() => window.__NUVIO_CURRENT_ROUTE__)).toBe("detail");
+  await expect.poll(() => page.evaluate(() => ({ route: window.__NUVIO_CURRENT_ROUTE__, historyRoute: history.state?.route, marker: history.state?.__nuvioHistory, events: globalThis.__mvpBackEvents }))).toMatchObject({ route: "detail" });
   await expect(page.locator('[data-action="toggleLibrary"]')).toBeVisible();
   await page.locator("[data-detail-back]").click();
   await expect.poll(() => page.evaluate(() => window.__NUVIO_CURRENT_ROUTE__)).toBe("home");

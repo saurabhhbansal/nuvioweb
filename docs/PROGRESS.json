@@ -206,11 +206,11 @@
           "branch": "m1/issue-7-reconciliation-live",
           "scope": "Owner-requested MVP correction: live acceptance status, explicit Back navigation fix, complete local guest playback/save journey and optional same-host CC0 demo in static staging; no auth/fetch policy change",
           "verifiedLocally": [
-            "Confirmed panel Escape\u2192immediate Back navigation bug;2 actual-Router cases failed before6-line fix;70 Router/focus cases pass afterward.",
-            "Complete real bundled guest install/catalog/save/play/pause/seek/resume/subtitle/back/reload and fresh-return control:2/2pass in9.0s; native English active cue visually inspected; audio-track menu reports no selectable tracks, no multitrack/audible output claim.",
-            "Final inert build1f6602975d2f/worker4cf247398dd9/assets/lint pass;1173 application and42 browser/PWA journeys,0skips;70 Router/focus and18 docs/governance/static-preview cases pass.134-file public staging verified including10 optional CC0 demo files; no upload."
+            "Initial stale-guard correction passed one local suite but failed protected CI and4/5 bounded replays; trace showed Player consumed its explicit proven-parent traversal, forcing duplicate fallback Stream. Actual-player explicit/native Back controls failed1/2 before final fix.",
+            "Final pending-parent route/index/registered-target consumption guard preserves unsolicited browser overlay dismissal.72 Router/focus cases pass;5 complete real bundled guest install/catalog/save/play/pause/seek/resume/subtitle/back/reload repeats pass34.6s. Final full browser asserts original Stream history entry; no arbitrary waits/extra clicks.",
+            "Final inert build773710e26262/workerb7f5924e6152/assets/lint pass;1175 application and42 browser/PWA journeys,0skips;18 docs/governance/static-preview cases pass.134-file earlier public staging verified including10 optional CC0 demo files; final merged candidate remains to prepare, no upload."
           ],
-          "integrationGate": "PR49 carries scoped navigation/static-demo/acceptance changes; its protected PR records exact-head CI and integration. This entry is proposed until that PR merges. Automated Standards/Spec review corrected one shared stale subtitle sentence; follow-up0 actionable findings, not independent approval. Audited baseline25ce335 and deployed8edec42 remain separate; no upload.",
+          "integrationGate": "PR49 carries scoped navigation/static-demo/acceptance changes; its protected PR records exact-head CI and integration. This entry is proposed until merge. Automated Standards/Spec reviewed the CI-driven consumption correction with0 actionable findings; not independent approval. Earlier CI failures remain historical; require new final-head CI. Audited baseline25ce335 and deployed8edec42 are separate; no upload.",
           "remaining": [
             "Live account-switch Library hydration FAIL under #7, no equivalent retry; exact-key cleanup verified.",
             "Hosted optional demo/media/save/subtitle journey NOT TESTED; prepare merged candidate and obtain exact owner upload approval.",
