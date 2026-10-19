@@ -307,3 +307,26 @@ Bounded replay completed exit1: fresh B writer, fresh A control and independent 
 Owner's 2026-10-19 execution correction explicitly permits independent #10 verification in parallel, prioritizes native browser MVP, and requires an explicit preview-refresh checkpoint unless specifically authorized. No M3–M5 implementation is selected. Consolidate current status rather than creating repetitive standalone evidence PRs: central records must say PR47/48 merged, #7/#10 open and deployed8edec42 distinct from main25ce335. Add `docs/MVP_ACCEPTANCE.md` with PASS/FAIL/NOT TESTED per required journey, exact environments and separate synthetic/local/hosted/live-service evidence; local tests never certify hosted or named desktop/mobile browsers.
 
 Prepare a candidate from exact pushed/reviewed main25ce335ec870d1f31dbed557d11fd7e6a08d3faa in the existing clean detached `/tmp/nuvioweb-preview` checkout. Preserve the previous immutable8edec42 artifact. Rebuild/stage only existing static public configuration, independently verify manifest/source/GPL/host rules/no backend or private fixtures, then loopback guest rendering/navigation/reload smoke with third-party traffic blocked. Check the installed cached Wrangler/version/deployment CLI help and read-only project/deployment access using Cloudflare/Wrangler skills; do not install/upgrade dependencies or create a service. Record the unresolved #7 failure as a candidate limitation, not a passed MVP gate. Candidate preparation/upload are separate: no public upload until owner approves this exact candidate. Post-approval verification must check HTTPS hashes/source/headers/automatic worker plus hosted guest journeys and separately scoped legal add-on/playback where feasible. Rollback retains deployment96f977f4 and8edec42 artifact; no history/deployment deletion or new costs.
+
+## Codex-ranked hosted switch diagnosis — planned 2026-10-19
+
+Read-only Codex CLI 0.163.0 reviewed the current source and the prior receipts (full plan kept in the run record). Unit A (hosted preview refresh) is complete; this section covers Unit B only. No live account run has been executed for this plan yet.
+
+**Premise.** The prior receipt established nonempty B arrival followed by no successful new A Library response within30s. It does not distinguish missing dispatch, cancellation, incomplete body or withheld publication. A single read-mostly B→A switch with request-epoch observations is the next useful experiment; another marker write would not explain a missing read.
+
+Ranked hypotheses and smallest discriminating observation:
+
+1. Critical hydration gates request creation — observe settings/home/add-on reads to completion, then count Library starts in the new A epoch.
+2. Lifecycle leaves sync stopped/unscoped/obsolete/behind old work — if critical reads finish but Library never starts, inspect only existing `started`, profile scoping, `inFlight`, generation and critical-hydration ownership after a reproduced failure.
+3. Request starts but is cancelled/blocked — correlate one request ID through start, headers and terminal failure; `ERR_ABORTED` alone does not identify a canceller.
+4. Auth generation/refresh or retry loses ownership — observe owner-match booleans, refresh sequence and Library attempts in the same epoch.
+5. Headers arrive but body never completes — a200 without `requestfinished`/completed response before the deadline supports this.
+6. Expected retry does not apply — Library pull catches failures and returns `[]`; a missing startup retry is not automatically a defect.
+7. Valid response completes but publication is withheld — compare current generation, revision, pending state and validated snapshot after reproduction.
+8. Local state publishes but navigation/rendering is stale — compare private in-browser identity sets with visible Library/route/overlay.
+
+Execution order: validate the owner-only file metadata without printing contents; use fresh nonpersistent contexts; allow only the exact preview origin and `https://api.nuvio.tv`; block third parties, service workers and legacy full-snapshot Library pushes; establish fresh A/B read controls and distinct sync owners with booleans only; perform actual Sign Out → A Sign In → primary profile → Library without clearing storage; assign request IDs/epochs so late B responses cannot count as A; keep the30s barrier and record starts/headers/completions/statuses/categorical failures/UI booleans; if reproduced, inspect only implicated existing state via debugger reads and label timing effects.
+
+Stop conditions: rejected login, unexpected destination, identity mismatch, potential cross-account publication, unexpected mutation, throttling or uncertain cleanup; preserve incomplete results at the barrier; no repeated unchanged experiment, forced sync loop or equivalent live mutation; a nonreproduction or empty Library is not isolation evidence; stop before any runtime change and reproduce synthetically first.
+
+**Conditional write:** none is required for this diagnosis. A synthetic B marker remains a later, separately justified step only if a distinct nonempty publication question is otherwise untestable, with collision checks, private cleanup record, unchanged unrelated keys and verified exact-key deletion in `finally`.

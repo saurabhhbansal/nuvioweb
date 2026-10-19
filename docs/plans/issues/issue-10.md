@@ -286,3 +286,9 @@ Executed at `11ddfa3af9081101309c25425dea2ecc8042ecb7` with the inert build:
 - Focused Firefox quality/source-preference9/9 and Chromium9/9 pass.
 
 Limits: no branded Edge (no ARM64 Linux build or x64 device), Safari, iOS or physical mobile; Chrome for Testing is not a user-profile installation; Playwright Firefox is not branded-Firefox certification; Firefox PWA not run; no hosted/live-service/audible-audio/4K60/HDR claim. Evidence: `docs/evidence/cross-engine-capability-2026-10-19.json`. #10 stays open for hosted, branded-device and audio/quality gates.
+
+## Hosted guest journey result (2026-10-19)
+
+Current main `1f67867` was deployed to the dedicated development preview as `b48de821-9034-49cc-8e1f-ab5c50e7fa3a` after134/134 inventory verification and local preflight. Actual HTTPS verification passed artifact/header/source/worker checks, and the complete hosted guest journey passed: legal same-host demo install → catalog → VP8/Opus640×360 playback → pause/seek/resume → active subtitle cue → Back → save → reload,0 uncaught errors, third parties blocked. Receipt: `docs/evidence/preview-refresh-2026-10-19.json`.
+
+This closes the hosted guest-media portion of #10's open gate, not the issue: branded Chrome/Edge/Safari, physical mobile, multitrack/audible audio, hosted external-provider CORS, 4K60/HDR and sustained-quality verification remain NOT TESTED, and real-account isolation belongs to #7.

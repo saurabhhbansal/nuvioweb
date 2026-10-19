@@ -1,0 +1,76 @@
+{
+  "asOf": "2026-10-19",
+  "environment": "HOSTED_HTTPS + LOCAL_STAGED_ARTIFACT",
+  "sourceRevision": "1f67867ebab7f426672886121d852a643a436414",
+  "sourceNote": "Current main after PR #60. Shipped runtime includes PR #52 add-on failure normalization; plugin prototypes are not in the shipped entry graph.",
+  "deployment": {
+    "project": "nuvioweb-preview",
+    "id": "b48de821-9034-49cc-8e1f-ab5c50e7fa3a",
+    "branch": "main",
+    "environment": "Production label of the dedicated DEVELOPMENT preview project",
+    "url": "https://nuvioweb-preview.pages.dev",
+    "uploadedFiles": 19,
+    "alreadyUploadedFiles": 114,
+    "previousDeployment": "96f977f4-fbd0-4484-b75c-906a70a0d9ba",
+    "previousRevision": "8edec4248405d59f5b8639085a1e779e6878911b"
+  },
+  "build": {
+    "assetBuildId": "888e32602070",
+    "workerCacheId": "nuvio-app-shell-0.1.5-f40b9237c1a8",
+    "node": "22.23.1",
+    "npm": "10.9.8",
+    "reproducibility": "Not bit-reproducible: the inherited bundle embeds a build timestamp, so asset/worker ids change per rebuild of identical source."
+  },
+  "inventory": {
+    "files": 134,
+    "actualFiles": 135,
+    "mismatches": 0,
+    "extra": ["preview-manifest.json"],
+    "manifestSha256": "f09b4166ce62e311233cdf8d1a7a3302ec934eafb06294d380bf9f418342c6ab",
+    "gplMatch": true,
+    "demoFiles": 10,
+    "forbiddenPaths": 0,
+    "largestAssetBytes": 2596393,
+    "publicConfigPrimaryOnly": true
+  },
+  "localPreflight": {
+    "result": "PASS",
+    "browser": "Chromium 156.0.8078.4, Linux ARM64",
+    "hashesAndHeaders": "10 remote asset/source/notice hashes matched; no-cache/no-store/nosniff rules matched",
+    "missingAssetAndApi404": true,
+    "demoResourcesReachable": true,
+    "guestNavigationReloadAlias": true,
+    "pageErrors": []
+  },
+  "hostedVerification": {
+    "result": "PASS",
+    "httpsHashesMatched": 10,
+    "missingAssetApi404": true,
+    "matchingSourceReachable": true,
+    "automaticWorkerController": true,
+    "cacheNames": ["nuvio-app-shell-0.1.5-f40b9237c1a8"],
+    "guestNavigationReloadAlias": true,
+    "pageErrors": 0,
+    "blockedExternalOrigins": ["https://fonts.googleapis.com", "https://api.nuvio.tv", "https://v3-cinemeta.strem.io", "https://opensubtitles-v3.strem.io"]
+  },
+  "hostedGuestJourney": {
+    "result": "PASS",
+    "mode": "actual hosted HTTPS app with optional same-host legal demo; guest; third parties blocked",
+    "journeys": {
+      "guestEntry": "PASS",
+      "addonInstallCatalog": "PASS",
+      "sourcePlayback": "PASS",
+      "pauseSeekResume": "PASS",
+      "subtitleActiveCue": "PASS",
+      "returnToBrowsing": "PASS",
+      "saveReloadPersistence": "PASS"
+    },
+    "decodedDimensions": [640, 360],
+    "uncaughtPageErrors": 0
+  },
+  "limits": [
+    "Guest-only: no real Nuvio account login, sync, account switching or Library isolation claim.",
+    "No named Chrome/Edge/Safari/mobile, external-provider CORS, audible/multitrack audio, 4K60/HDR, hosted account isolation or complete offline claim.",
+    "Automatic-worker verification is separate from the guest media journey."
+  ]
+}

@@ -127,3 +127,18 @@ A loopback static server modelling the checked-in `_headers`/`_redirects` served
 **Build reproducibility limit:** the inherited bundle embeds a build timestamp in a diagnostic string, so `app.bundle.js`, the asset build id and the worker cache id change on every rebuild of identical source. Do not treat differing ids between rebuilds as a source difference, and verify an upload against its own staged inventory rather than a previous build's ids.
 
 **Upload blocker:** cached Wrangler4.129.0 reports the Cloudflare OAuth token expired at `2026-10-19T10:05:01Z` and cannot refresh non-interactively; `pages project list --json` failed with "In a non-interactive environment, it's necessary to set a CLOUDFLARE_API_TOKEN environment variable". No upload, project/domain/billing change or deployment occurred. The owner must run `wrangler login` interactively on this host or provide a Pages-scoped `CLOUDFLARE_API_TOKEN`, then the authorized refresh can proceed against this exact candidate. Rollback remains deployment96f977f4 / revision8edec42, which are untouched.
+
+## Hosted guest MVP refresh at current main — 2026-10-19
+
+Cloudflare authorization was restored by the owner and the standing development-preview delegation was exercised. Deployed the exact reviewed current main `1f67867ebab7f426672886121d852a643a436414` to the existing dedicated project only.
+
+Preparation: clean detached worktree, pinned Node22.23.1/npm10.9.8, locked installs, focused preview/add-on tests3/3 and6/6, `npm run preview:stage` (asset `888e32602070`, worker `nuvio-app-shell-0.1.5-f40b9237c1a8`),134/134 inventory hashes independently recomputed with0 mismatches, GPL/notices matched,10 optional CC0 demo files, no test/backend/private artifacts, largest asset2,596,393B. Loopback preflight passed hashes/headers/404s/demo resources/guest shell/reload/alias with0 page errors.
+
+Deployment `b48de821-9034-49cc-8e1f-ab5c50e7fa3a` (branch main, 19 uploaded/114 cached). Rollback retained: deployment `96f977f4` / revision `8edec42`.
+
+Hosted verification on actual HTTPS, Chromium156.0.8078.4/Linux ARM64:
+
+- `scripts/verify-live-preview.mjs`: ten asset/source/notice hashes match, cache/no-store/nosniff rules, missing asset/API404, matching-source200, automatic worker `nuvio-app-shell-0.1.5-f40b9237c1a8`, guest navigation/reload/alias,0 page errors.
+- `scripts/verify-mvp-preview.mjs`: **all guest journeys PASS** — entry, same-host legal add-on install/catalog, VP8/Opus640×360 playback, pause/seek/resume, active subtitle cue, Back to browsing, save and reload persistence.0 uncaught errors; third parties blocked.
+
+[Sanitized receipt](evidence/preview-refresh-2026-10-19.json). This is guest-only hosted evidence: no real account login, sync, account switching, Library isolation, external-provider CORS, named Chrome/Edge/Safari/mobile, audible/multitrack audio, 4K60/HDR or complete-offline claim. `#7` and `#10` remain open; rollback is the previous deployment above.
