@@ -844,3 +844,23 @@ The corrected probe still reports **BLOCKED** on Chromium 156.0.8078.4, now read
 **CI confirmation.** The required browser job now runs `npm run probe:audio-fixtures` and `npm run test:audio-recovery-gate`. Its first run reproduced the same verdict independently on the ubuntu runner: `"status": "blocked"`, `RESULT: BLOCKED — this browser recorded no inspectable AAC-LC sample entry on the tested path`, and 11/11 parser tests. The gate therefore fails closed on a toolchain that does expose AAC encoding (the probe would report SUPPORTED) and reports rather than skips when it does not.
 
 **Rollback.** Revert the probe script, its test, the npm/CI wiring and this record. No media, dependency or runtime state exists to unwind.
+
+### Unit 2 — first step executed: normalized track evidence (2026-10-19)
+
+Status: the observation half of unit 2 is implemented; the async selection seam and the presentation strings are not.
+
+**What exists.** `app/alpha/js/core/player/browserAudioTracks.js` is a pure module (no DOM, network, storage or logging) implementing the §5 observation contract:
+
+- `normalizeEngineAudioTracks({engine, generation, tracks, selectedIndex, decodePredictions, hasSetter})` returns per-track `{generation, key, engine, engineTrackId, index, language, role, label, codec, channels, selected, selectability, decodeSupport, metadataEvidence, ambiguous}` plus `{trackCount, availableCount, unavailableCount, unknownCount, ambiguousCount, predictedCount, selectedKey}`.
+- Metadata is read from the **raw** engine track (HLS `attrs.CHANNELS/CODECS/CHARACTERISTICS`, DASH `labels/roles`, native `label/language/kind`), because the player's wrapper objects do not carry those fields. Values are bounded; a codec string must match a codec token or a media type with a codecs parameter, so markup is not carried as codec evidence.
+- Duplicate engine identities are detected before keys are built and fail closed: every duplicate becomes `selectability: "unavailable"` with `ambiguous: true`.
+- Predictions stay predictions: `decodeSupport` is only `predicted` | `not-reported` | `unknown`, and the module contains no "verified"/"supported" wording.
+- `resolveAudioSelectionRequest` rejects non-string keys, non-positive/non-integer generations, stale generations, unknown keys, ambiguous identities and non-selectable tracks, and reports which pending key a new request supersedes.
+- `createAudioSelectionTracker({deadlineMs})` keeps one pending selection: a newer request cancels the earlier as `superseded`, the deadline resolves `timed-out`, and `invalidate()` cancels as `stale-generation`. Settling twice is a no-op.
+- `playerController.getNormalizedBrowserAudioTracks()` exposes the observation for the current `playRequestToken`, additively; the legacy `getBrowserAudioTracks()` wrapper keeps its shape. Two existing crash paths were hardened while wiring it: an adapter returning `undefined` from `getHlsAudioTracks()`/`getDashAudioTracks()` no longer throws.
+
+**Verification.** `node --test app/alpha/js/core/player/browserAudioTracks.test.mjs` 10/10; `node --test app/alpha/js/core/player/playerController.browser.test.mjs` 15/15 (new case covers generation, HLS metadata, role, selectability, the no-certification wording rule and the missing-API path); `npm test --prefix app/alpha` 1273/1273; lint pass.
+
+**Not done yet, and why.** The async `selectBrowserAudioTrack` confirmation (HLS SDK callbacks, DASH rendered-track events, native re-read), the honest presentation copy in `strings.xml`, the audio-dialog wiring and `tests/browser/audio-recovery.spec.mjs` need a real two-audio HLS/DASH fixture to be meaningful. Those fixtures are blocked by the unit 1a AAC gate. Mocked-adapter tests alone would not satisfy AC1, so this step does not claim it.
+
+**Rollback.** Protected revert of the module, its tests, the controller accessor and this record. No preference-schema migration and no persisted state.

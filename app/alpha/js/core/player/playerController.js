@@ -6,6 +6,7 @@ import { TrackingScrobbleService } from "../../data/repository/trackingScrobbleS
 import { WatchProgressSyncService } from "../profile/watchProgressSyncService.js";
 import { nativeVideoEngine } from "./engines/nativeVideoEngine.js";
 import { hlsJsEngine } from "./engines/hlsJsEngine.js";
+import { normalizeEngineAudioTracks } from "./browserAudioTracks.js";
 import { dashJsEngine } from "./engines/dashJsEngine.js";
 import { isTerminalHlsHttpStatus } from "./hlsNetworkErrorPolicy.js";
 import { loadStreamingLibs } from "../../runtime/loadStreamingLibs.js";
@@ -282,7 +283,7 @@ export const PlayerController = {
   getBrowserAudioTracks() {
     if (this.playbackEngine === "hls.js") {
       const selectedIndex = this.getSelectedHlsAudioTrackIndex();
-      return this.getHlsAudioTracks().map((track, index) => ({
+      return (this.getHlsAudioTracks() || []).map((track, index) => ({
         id: String(track?.id ?? track?.name ?? `hls-audio-${index}`),
         index,
         label: String(track?.name || track?.label || track?.lang || `Audio ${index + 1}`),
@@ -294,7 +295,7 @@ export const PlayerController = {
     }
     if (this.playbackEngine === "dash.js") {
       const selectedIndex = this.getSelectedDashAudioTrackIndex();
-      return this.getDashAudioTracks().map((track, index) => ({
+      return (this.getDashAudioTracks() || []).map((track, index) => ({
         ...track,
         index,
         selected: index === selectedIndex,
@@ -302,6 +303,18 @@ export const PlayerController = {
       }));
     }
     return this.getNativeAudioTracks();
+  },
+
+  // Evidence-aware observation for the current playback generation. Purely
+  // additive: the legacy getBrowserAudioTracks() wrapper keeps its shape.
+  getNormalizedBrowserAudioTracks() {
+    const tracks = this.getBrowserAudioTracks();
+    return normalizeEngineAudioTracks({
+      engine: this.playbackEngine || "none",
+      generation: Number(this.playRequestToken || 0) || 1,
+      tracks,
+      selectedIndex: this.getSelectedBrowserAudioTrackIndex()
+    });
   },
 
   getSelectedBrowserAudioTrackIndex() {
