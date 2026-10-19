@@ -1,0 +1,43 @@
+{
+  "unit": "issue-12/1a",
+  "probe": "native-aac-encoding",
+  "status": "blocked",
+  "reasons": [
+    "WebCodecs AudioEncoder is not exposed",
+    "the MediaRecorder output carried Opus rather than mp4a"
+  ],
+  "toneHz": 440,
+  "mediaRecorderTypes": [
+    {
+      "mimeType": "audio/mp4;codecs=mp4a.40.2",
+      "supported": false
+    },
+    {
+      "mimeType": "audio/mp4",
+      "supported": true
+    },
+    {
+      "mimeType": "audio/webm;codecs=opus",
+      "supported": true
+    }
+  ],
+  "sampleEntries": [
+    "Opus"
+  ],
+  "aacConfig": null,
+  "recording": {
+    "requestedMimeType": "audio/mp4",
+    "actualMimeType": "audio/mp4;codecs=opus",
+    "bytes": 11778,
+    "withinByteLimit": true
+  },
+  "environment": {
+    "browserVersion": "156.0.8078.4",
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36"
+  },
+  "limits": [
+    "Probe only: no fixture was generated and no media was downloaded.",
+    "One short synthesised tone in a headless browser; audibility is not measured.",
+    "Recording bounded to 12000 ms of wall-clock work and 16777216 bytes."
+  ]
+}

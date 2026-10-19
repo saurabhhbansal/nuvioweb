@@ -287,25 +287,34 @@
       "work": {
         "documents": [
           "docs/plans/issues/issue-12.md",
-          "docs/PLAYBACK_QUALITY_MATRIX.md"
+          "docs/PLAYBACK_QUALITY_MATRIX.md",
+          "docs/evidence/audio-fixture-gate-2026-10-19.json",
+          "scripts/generate-audio-recovery-media.mjs",
+          "scripts/generate-audio-recovery-media.test.mjs"
         ],
         "verifiedLocally": [
-          "Unit0 (documentation only): scope, dependency and licence decisions recorded in the plan and the playback matrix; no runtime, fixture or test change and no acceptance evidence"
+          "Unit0 (documentation only): scope, dependency and licence decisions recorded; no acceptance evidence",
+          "Unit1a gate executed on Chromium156.0.8078.4 headless/Linux x86_64: WebCodecs AudioEncoder absent, MediaRecorder audio/mp4 actually emits audio/mp4;codecs=opus with an Opus sample entry, no parseable AAC config -> BLOCKED; parser tests 7/7 with synthetic MP4 bytes including an mp4a-in-mdat decoy and malformed boxes"
         ],
         "integrationGate": "Unit0 is a documentation PR; AC1-AC3 stay unproven and the issue stays in progress",
         "currentUnit": {
-          "scope": "Unit0: accept the bounded alternate-audio plus hls.js TS->fMP4 interpretation, reject a new WASM demuxer on licence grounds, decompose dependencies from #10/#11 and define the fixture gate and audio-evidence method",
-          "next": "Unit1a: probe native browser AAC encoding before any fixture work; a blocked probe stops the AAC chain and must be recorded as blocked, not skipped"
+          "scope": "Unit1a: probe native browser AAC encoding before any fixture work, parse the real sample entry and record an exact blocked result",
+          "result": "BLOCKED, recorded in the plan and receipt; the gate now runs in the required browser job"
         },
         "remaining": [
-          "Unit1a fixture-generation gate (native AAC probe)",
-          "Unit1b committed multitrack/transport fixtures",
+          "Resolve the AAC fixture blocker (environment, approved encoder/fixture source, or evidenced Opus re-scope)",
+          "Unit1b fixtures (blocked until the above)",
           "Unit2 track evidence and real selection",
           "Unit3 bounded network/lifecycle work",
-          "Unit4 alternate-audio recovery with pinned video",
-          "Unit5 bounded MPEG-TS container recovery",
-          "Unit6 named-environment evidence and closure review; no Safari/Edge/mobile row is satisfied by Chromium or Playwright WebKit"
-        ]
+          "Unit4 alternate-audio recovery with pinned video (blocked)",
+          "Unit5 bounded MPEG-TS container recovery (blocked)",
+          "Unit6 named-environment evidence and closure review"
+        ],
+        "blocker": {
+          "kind": "environment-and-decision",
+          "detail": "Native AAC encoding is unavailable in the pinned Playwright Chromium: WebCodecs AudioEncoder is not exposed and MediaRecorder audio/mp4 emits Opus. The AAC fixture chain (units 1b-5) and therefore AC1/AC2 cannot proceed until one of: a native-AAC environment generates fixtures, the owner approves a permissive AAC encoder or CC0 AAC fixture source, or the prototype is re-scoped to Opus renditions with MSE/engine evidence.",
+          "receipt": "docs/evidence/audio-fixture-gate-2026-10-19.json"
+        }
       }
     },
     {

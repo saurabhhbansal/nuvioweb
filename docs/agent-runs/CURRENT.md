@@ -1,12 +1,12 @@
 # Agent continuity record — current state
 
-Last updated: 2026-10-19, after #12 unit 0 (scope/dependency decisions). **Read this first after clearing context.**
+Last updated: 2026-10-19, after #12 unit 1a (native AAC fixture gate: BLOCKED). **Read this first after clearing context.**
 
 This file is the durable handoff. A new agent must be able to resume from it without the previous conversation. Update it at the checkpoints listed in the operating directive, and group updates into the PR that caused them where possible.
 
 ## Current state
 
-- Repository `saurabhhbansal/nuvioweb`: `main` at or after `5de1bdf` (merge of PR #80, which closed out the startup-classification #77 and WebKit #79 units). No open PRs.
+- Repository `saurabhhbansal/nuvioweb`: `main` at or after `d4b89ae` (#12 unit 0 merged), plus the unit 1a branch described below. No open PRs.
 - Hosted development preview: `1f67867ebab7f426672886121d852a643a436414`, deployment `b48de821-9034-49cc-8e1f-ab5c50e7fa3a`; rollback deployment `96f977f4` / `8edec42` retained.
 - Four required workflows passed on the merged heads `44cbdff` (#66), `c9e4325` (#67) and `38cf2c9` (#70). `docs/PROGRESS.json` reports 26 tickets: 10 verified, 4 in progress (#7, #10, #11, #23), remainder pending.
 - #7 and #10 remain open and environment-gated. #11 unit 6a is merged; unit 6b remains. #23 PR A/B (state contract + read-only collector) are merged; the issue-writing publisher and workflow remain.
@@ -14,12 +14,12 @@ This file is the durable handoff. A new agent must be able to resume from it wit
 
 ## Current selection
 
-- Selected ticket: **#12** (local audio/container recovery prototype), unit 0 done: scope, dependency and licence decisions are recorded in the [plan](../plans/issues/issue-12.md) and the [playback boundary](../PLAYBACK_QUALITY_MATRIX.md). The next unit is **#12 unit 1a**, the native AAC fixture-generation probe; a blocked probe stops the AAC chain and must be recorded as blocked, never skipped.
+- Selected ticket: **#12** (local audio/container recovery prototype). Unit 0 (scope/dependency/licence decisions) is merged. **Unit 1a executed: the native AAC fixture gate is BLOCKED** — WebCodecs `AudioEncoder` is absent in the pinned Playwright Chromium and `MediaRecorder` with `audio/mp4` really emits `audio/mp4;codecs=opus` with an `Opus` sample entry ([receipt](../evidence/audio-fixture-gate-2026-10-19.json)). The AAC fixture chain (units 1b–5) and AC1/AC2 are blocked; see the blocker in `docs/PROGRESS.json` and the three unblock options in the plan. Do not generate AAC fixtures from that Opus output or download AAC media.
 - #10 stays in progress with three open gates: multitrack audio, a supported HDR observation and hosted external-provider CORS. Its startup-classification (#77, `d2a6acd`) and WebKit coverage (#79, `91d0b81`) units are merged; do not re-open them or add an unconditional WebKit project.
 - #11 unit 6b-2 (default-off app seam, CSP/`wasm-unsafe-eval` decision, security review) remains the largest open security-sensitive unit. **#23 PR C** is owner-gated because it introduces `issues: write`. #7 stays environment-gated with no further live probe.
 - Current branch: none; clean `main` at or after `5de1bdf`.
 - Last completed atomic tasks: #66 unit 6a; #67 pre-code plans; #70 #23 PR A+B; #72 unit 6b-1; #76 final Safari observations; startup-failure classification (#10, this PR); hosted nonempty Library B→A; owner manual device checks (Windows11 Edge155 guest checklist PASS, audible audio; iPhone17Pro/iOS27 Safari VP8/Opus demo PASS but native MKV/HEVC/DV/HDR sources fail) and owner app-removal evidence (B cloud1 item vs A2 after removal; one transient switch failure then a successful read-only round trip).
-- Next exact atomic task: **#12 unit 1a** — add `scripts/generate-audio-recovery-media.mjs --probe` (or the smallest equivalent), run it in a real browser, and record the exact native AAC encoding support: encoder configuration, captured decoder config, sample rate/channel count, encoder priming, and a precise BLOCKED result when unavailable. No fixture files, no new dependency and no downloaded media in that unit. Then unit 1b commits the fixtures it can actually generate. Do not implement #23 PR C without explicit owner review of the `issues: write` boundary. Do not repeat the live B→A→B probe; any sync runtime change first needs a deterministic synthetic reproduction.
+- Next exact atomic task: **resolve the AAC fixture blocker or proceed with the unblocked part of #12**. Unblocked: unit 2 (normalize track evidence and confirm real selection using synthetic engine track objects) and unit 3 (bounded network/lifecycle work). Blocked: units 1b, 4, 5 and AC1/AC2 evidence. Resolving the blocker needs an owner decision (AAC-capable environment, an approved encoder/CC0 AAC fixture source, or an evidenced Opus re-scope with MSE/engine support); do not silently substitute Opus fixtures for AAC ones. Do not implement #23 PR C without explicit owner review of the `issues: write` boundary. Do not repeat the live B→A→B probe; any sync runtime change first needs a deterministic synthetic reproduction.
 - **Build prerequisite learned this round:** `npm run build --prefix app/alpha` needs `NUVIO_LOCAL_PROPERTIES=<repo>/tests/fixtures/build.properties` for tests (CI does the same). Without it the build falls back to `local.example.properties`, bakes an empty backend URL and fails `scripts/envProperties.test.mjs` / `check-alpha-build.mjs`. Never bake the live backend into a local test build.
 
 ## Relevant plans and evidence
