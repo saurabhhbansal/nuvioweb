@@ -198,17 +198,25 @@
           "docs/evidence/quality-2026-10-19.json",
           "docs/plans/issues/issue-10.md",
           "docs/MVP_ACCEPTANCE.md",
-          "docs/evidence/browser-mvp-playback-2026-10-19.md"
+          "docs/evidence/browser-mvp-playback-2026-10-19.md",
+          "docs/evidence/startup-classification-2026-10-19.md",
+          "docs/agent-runs/2026-10-19-startup-classification-review.md",
+          "docs/agent-runs/2026-10-19-webkit-coverage-review.md",
+          "tests/browser/engine-capabilities.spec.mjs",
+          "app/alpha/js/core/player/startupFailure.js"
         ],
         "verifiedLocally": [
           "Original1080p/4K MP4 and4K HLS/DASH bundled playback and seek;403/410/CORS failure and return",
           "Subtitle TRACK errors isolated from playback; signed startup/fallback URLs redacted",
-          "Full27 browser and1089 application tests pass after review corrections; packaging4,HTTP5,preview1,docs/governance15,artifact12 pass"
+          "Full27 browser and1089 application tests pass after review corrections; packaging4,HTTP5,preview1,docs/governance15,artifact12 pass",
+          "Startup classification (PR77, d2a6acd): distinct machine-readable reasons from descriptor+engine evidence; Chromium real canPlayType matrix, bundled-player header-required journey (was startup-source-error), runtime reason/message parity; 1262 application and 56 browser tests; two automated Codex passes found 2P1+5P2, all fixed",
+          "WebKit coverage (PR79, 91d0b81): Playwright WebKit 27.2 runs engine-agreement invariants inside the required browser job; observed WebKit predictions matroska/hevc/h264=probably, hls=not-reported vs Chromium not-reported/probably/maybe, so no unsupported claim is made on WebKit; engine-family evidence only"
         ],
-        "integrationGate": "PR39 owner-approved and merged at0cf8876 after all protected checks passed; no deployment or issue completion",
+        "integrationGate": "PR39, PR77 and PR79 merged through the protected workflow with all four contexts green; no deployment and no issue closure",
         "remaining": [
-          "Chrome/Edge/Firefox/Safari and device evidence",
-          "Sustained high-bitrate/4K60/HDR and broader failure fixtures"
+          "Multitrack audio selection and audible-output observation",
+          "Supported HDR source plus a named device or engine observation",
+          "Hosted external-provider CORS with a legal external origin"
         ],
         "currentUnit": {
           "branch": "m1/issue-7-reconciliation-live",
@@ -271,11 +279,34 @@
     {
       "number": 12,
       "title": "[M2][P1] Prototype quality-preserving local audio and container recovery",
-      "status": "pending",
+      "status": "in_progress",
       "dependencies": [
         10,
         1
-      ]
+      ],
+      "work": {
+        "documents": [
+          "docs/plans/issues/issue-12.md",
+          "docs/PLAYBACK_QUALITY_MATRIX.md"
+        ],
+        "verifiedLocally": [
+          "Unit0 (documentation only): scope, dependency and licence decisions recorded in the plan and the playback matrix; no runtime, fixture or test change and no acceptance evidence"
+        ],
+        "integrationGate": "Unit0 is a documentation PR; AC1-AC3 stay unproven and the issue stays in progress",
+        "currentUnit": {
+          "scope": "Unit0: accept the bounded alternate-audio plus hls.js TS->fMP4 interpretation, reject a new WASM demuxer on licence grounds, decompose dependencies from #10/#11 and define the fixture gate and audio-evidence method",
+          "next": "Unit1a: probe native browser AAC encoding before any fixture work; a blocked probe stops the AAC chain and must be recorded as blocked, not skipped"
+        },
+        "remaining": [
+          "Unit1a fixture-generation gate (native AAC probe)",
+          "Unit1b committed multitrack/transport fixtures",
+          "Unit2 track evidence and real selection",
+          "Unit3 bounded network/lifecycle work",
+          "Unit4 alternate-audio recovery with pinned video",
+          "Unit5 bounded MPEG-TS container recovery",
+          "Unit6 named-environment evidence and closure review; no Safari/Edge/mobile row is satisfied by Chromium or Playwright WebKit"
+        ]
+      }
     },
     {
       "number": 13,
@@ -389,7 +420,7 @@
           "PR A/B merged through protection at38cf2c9 (head10b3b21) after #67 plans and #66 unit6a; PR #68/#69 were folded after review fixes crossed both layers.",
           "State validator10/10 pass and exit0 on the seeded state; collector17/17 offline tests pass with injected fetch/clock; no live GitHub call, workflow, issue write or parity decision.",
           "Read-only Codex review found1P1+12P2; P1 report-path symlink containment and11 P2 contract/budget/licensing/fingerprint/validation issues fixed with regressions; streamed-cancellation/CLI exit coverage documented as remaining.",
-          "Collector enforces state-derived request/byte/time/tree/commit/tag/release/report ceilings, rejects malformed upstream responses, compares import→observed and reviewed→observed, and reports baseline-review-required while the observation baseline is absent."
+          "Collector enforces state-derived request/byte/time/tree/commit/tag/release/report ceilings, rejects malformed upstream responses, compares import\u2192observed and reviewed\u2192observed, and reports baseline-review-required while the observation baseline is absent."
         ],
         "remaining": "PR C publisher requires explicit owner review of the new issues:write permission boundary; PR D workflow wiring and a controlled live read-only smoke are not implemented. Observation baseline, decisions and ports remain unapproved/empty; no monitoring, licensing-completeness or parity claim yet."
       }

@@ -98,3 +98,14 @@ Exact commands, counts and limits are in the [classification evidence](evidence/
 `tests/browser/engine-capabilities.spec.mjs` now runs on Chromium locally and inside the required browser job, and on Playwright WebKit 27.2 in CI via `NUVIO_PLAYWRIGHT_WEBKIT=1 npx playwright test --project=webkit`. Because the spec derives every expectation from the engine's own `canPlayType` answer, the two engines produce different but each-honest results: Chromium reports `not reported` for Matroska/HEVC and `probably` for H.264, while WebKit reports `probably` for all three and `not reported` for the HLS MIME type. The classifier therefore claims unsupported formats on Chromium and does not on WebKit, which is the intended behavior rather than a per-engine expectation baked into the test.
 
 This is not a playback claim: the WebKit project decodes no media. iOS Safari behavior remains an owner observation, not a CI result. [Review record](agent-runs/2026-10-19-webkit-coverage-review.md) · [evidence](evidence/startup-classification-2026-10-19.md)
+
+### Local audio/container recovery boundary (#12 unit 0) — 2026-10-19
+
+Recorded before any recovery code, so later evidence is judged against a published boundary:
+
+- **What the prototype will attempt:** (a) recovery by explicitly selecting a compatible alternate audio rendition while the selected video representation is pinned, and (b) demonstrating the existing hls.js MPEG-TS → fragmented-MP4 transmux with original H.264/AAC samples. [Plan and decisions](plans/issues/issue-12.md).
+- **What it will not do:** decode AC-3/E-AC-3/DTS/TrueHD, add a WASM demuxer or remuxer, repair arbitrary MKV/AVI/standalone-TS files, re-encode or scale video, relay media through any operator service, or bypass DRM. A local decoder is unavailable by decision, not by accident: the audited permissive-WASM path has no eligible candidate, so container support stays engine-native.
+- **What counts as evidence:** engine track identity plus requests attributed to the selected rendition's own fixture payload plus advancing video with no media error, and — where capture is available — a test-only Web Audio analyser tone check with a positive control and post-switch windows. An analyser signal proves decoded digital audio reached that point, not that speakers were audible; audible claims remain named human observations.
+- **What stays unproven meanwhile:** multitrack selection, HDR preservation, surround/Atmos/lossless output, and every Safari/Edge/mobile row. Chromium coverage and the Playwright WebKit CI job are engine-family evidence only.
+
+No support claim changes in this unit; #10's open gates and #12's acceptance remain outstanding.
