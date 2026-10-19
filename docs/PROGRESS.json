@@ -369,11 +369,28 @@
     {
       "number": 23,
       "title": "[M5][P1] Automate upstream change monitoring and reviewed parity tracking",
-      "status": "ready",
+      "status": "in_progress",
       "dependencies": [
         4,
         5
-      ]
+      ],
+      "progress": {
+        "documents": [
+          "docs/plans/issues/issue-23.md",
+          "docs/upstream/state.json",
+          "docs/upstream/report.schema.json",
+          "scripts/check-upstream-state.mjs",
+          "scripts/upstream-watch.mjs",
+          "docs/agent-runs/2026-10-19-upstream-watch-review.md"
+        ],
+        "verification": [
+          "PR A/B merged through protection at38cf2c9 (head10b3b21) after #67 plans and #66 unit6a; PR #68/#69 were folded after review fixes crossed both layers.",
+          "State validator10/10 pass and exit0 on the seeded state; collector17/17 offline tests pass with injected fetch/clock; no live GitHub call, workflow, issue write or parity decision.",
+          "Read-only Codex review found1P1+12P2; P1 report-path symlink containment and11 P2 contract/budget/licensing/fingerprint/validation issues fixed with regressions; streamed-cancellation/CLI exit coverage documented as remaining.",
+          "Collector enforces state-derived request/byte/time/tree/commit/tag/release/report ceilings, rejects malformed upstream responses, compares import→observed and reviewed→observed, and reports baseline-review-required while the observation baseline is absent."
+        ],
+        "remaining": "PR C publisher requires explicit owner review of the new issues:write permission boundary; PR D workflow wiring and a controlled live read-only smoke are not implemented. Observation baseline, decisions and ports remain unapproved/empty; no monitoring, licensing-completeness or parity claim yet."
+      }
     },
     {
       "number": 24,

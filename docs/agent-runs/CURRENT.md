@@ -8,17 +8,17 @@ This file is the durable handoff. A new agent must be able to resume from it wit
 
 - Repository `saurabhhbansal/nuvioweb`: clean `main` at `ea54e69f95381de98f05e1c73c1f739a7d830d44` (PR #62 merged). No open PRs at the start of this unit.
 - Hosted development preview: `1f67867ebab7f426672886121d852a643a436414`, deployment `b48de821-9034-49cc-8e1f-ab5c50e7fa3a`; rollback deployment `96f977f4` / `8edec42` retained.
-- Four required workflows pass at `ea54e69`. `docs/PROGRESS.json` reports 26 tickets: 10 verified, 3 in progress (#7, #10, #11), remainder pending/ready.
-- #7 and #10 remain open. #11 remains open for the default-off runtime seam after its measured engine decision.
+- Four required workflows passed on the merged heads `44cbdff` (#66), `c9e4325` (#67) and `38cf2c9` (#70). `docs/PROGRESS.json` reports 26 tickets: 10 verified, 4 in progress (#7, #10, #11, #23), remainder pending.
+- #7 and #10 remain open and environment-gated. #11 unit 6a is merged; unit 6b remains. #23 PR A/B (state contract + read-only collector) are merged; the issue-writing publisher and workflow remain.
 - Private tooling and credentials are outside Git: `dist/tools/` (git-excluded) and `/home/saurabh/.config/nuvioweb/test-accounts.json` (0600). The file was recovered after a tooling incident; see below.
 
 ## Current selection
 
-- Selected ticket: **#11** (sandboxed plugin compatibility), unit 6b; #7/#10 remain open and environment-gated (live account nondeterminism, named devices/audio).
-- Current branch: `m2/issue-11-browser-engine` (unit 6a implementation/evidence).
-- Current PR: **#66** (unit 6a). Head has all code/docs; GitHub Actions `degraded_performance` has left required checks queued and one earlier run stuck after its steps completed. Do not merge without all four required checks green; no override. Rerun when Actions is healthy.
-- Last completed atomic task: unit 6a — opt-in asyncify engine asset builder with deterministic SHA-256 manifest (JS64,698B + WASM1,027,523B), symlink output-escape rejection, in-browser Chromium fixture9/9 (representative normalization, browser-observed application/wasm, no ambient globals, broker fetch/denial, timeout/memory/output budgets, external request blocked), in-VM OOM classifier fix, read-only Codex review 2P1+3P2 all fixed plus re-review containment/clean-checkout fixes, app1237/1237, lint, inert12-asset build and full browser51/51.
-- Next exact atomic task: after this PR merges, write the unit 6b pre-code plan amendment (default-off app seam, hashed stager emission with `application/wasm`, CSP/`wasm-unsafe-eval` decision, Firefox/WebKit coverage, independent security/dependency review package) before any application or stager change. Do not repeat the live B→A→B probe; any sync runtime change first needs a deterministic synthetic reproduction.
+- Selected ticket: **#11 unit 6b** (default-off app seam/stager emission) next; **#23 PR C** is owner-gated because it introduces `issues: write`. #7/#10 remain environment-gated.
+- Current branch: none yet; clean `main` at `38cf2c9` after merging #66, #67 and #70.
+- Current PR: none open.
+- Last completed atomic tasks: #66 unit 6a (opt-in engine assets + Chromium fixture, review fixes, app1237/1237, browser51/51); #67 pre-code plans for #12/#13/#23; #70 #23 PR A+B (state contract/validator + read-only collector, validator10/10 and collector17/17 offline, Codex review 1P1+12P2 with P1+11 fixed). All merged through protection after GitHub Actions recovered.
+- Next exact atomic task: write the unit 6b pre-code plan amendment (default-off app seam, hashed stager emission with `application/wasm`, CSP/`wasm-unsafe-eval` decision, Firefox/WebKit coverage, security/dependency review package) before any application or stager change. Do not implement #23 PR C without explicit owner review of the `issues: write` boundary. Do not repeat the live B→A→B probe; any sync runtime change first needs a deterministic synthetic reproduction.
 
 ## Relevant plans and evidence
 
@@ -28,6 +28,7 @@ This file is the durable handoff. A new agent must be able to resume from it wit
 - Preview: [STATIC_PREVIEW.md](../STATIC_PREVIEW.md), [preview-refresh-2026-10-19.json](../evidence/preview-refresh-2026-10-19.json).
 - Playback/quality: [PLAYBACK_QUALITY_MATRIX.md](../PLAYBACK_QUALITY_MATRIX.md), [browser-mvp-playback-2026-10-19.md](../evidence/browser-mvp-playback-2026-10-19.md).
 - Plugin engine: [issue #11 plan](../plans/issues/issue-11.md), [PLUGIN_COMPATIBILITY.md](../PLUGIN_COMPATIBILITY.md), [PLUGIN_ENGINE_EVALUATION.md](../PLUGIN_ENGINE_EVALUATION.md).
+- Upstream watch: [issue #23 plan](../plans/issues/issue-23.md), [state contract](../upstream/state.json), [report schema](../upstream/report.schema.json), [review record](2026-10-19-upstream-watch-review.md).
 - Governing sources: [AGENTS.md](../../AGENTS.md), [PROJECT_CHARTER.md](../PROJECT_CHARTER.md), [PRD.md](../PRD.md), [DECISIONS.md](../DECISIONS.md), [ROADMAP.md](../ROADMAP.md), [QUALITY_GATES.md](../QUALITY_GATES.md), [SECURITY_PRIVACY.md](../SECURITY_PRIVACY.md), [PROGRESS.json](../PROGRESS.json), [TRACKER.md](../../TRACKER.md).
 
 ## Last verification performed
@@ -43,7 +44,8 @@ This file is the durable handoff. A new agent must be able to resume from it wit
 
 - **#7:** the older `LIBRARY_PULL_NOT_OBSERVED` receipts (`8edec42`, loopback `f800920`) are preserved and are **not** explained by the new run; the new run did not reproduce the barrier. During this session, navigating to Library while profile activation was still in progress and stale screens remained mounted reproduced a similar no-navigation/no-pull symptom, so the older failures remain consistent with a harness timing barrier as well as a client/scheduling issue. Root cause unestablished.
 - **#7:** one synthetic marker showed B arrival and no marker in A (scoped isolation support), but returning-B restoration failed once with pre-header Library/watched/progress request failures; an immediate read-only repeat passed. The failure category was not captured in the marker run, and the failure is not deterministic. No further marker write will be made. App Save/remove, receiver deletion, live push, add-on identity comparison, measured expiry/revocation/QR, offline recovery and named-device evidence remain open.
-- **#11:** unit6a proves in-browser execution of opt-in engine assets in Chromium only. No application seam, flag exposure, stager/preview emission, CSP decision, Firefox/WebKit coverage, real-network use or independent security/dependency review yet; no plugin is shipped, compatible or supported.
+- **#11:** unit 6a (merged PR #66) proves in-browser execution of opt-in engine assets in Chromium only. Unit 6b still needs the default-off app seam, flag exposure, stager/preview emission, CSP decision, Firefox/WebKit coverage, real-network use and independent security/dependency review; no plugin is shipped, compatible or supported.
+- **#23:** PR A/B are merged; no live GitHub call, workflow, issue publication, parity decision or observation baseline exists yet. The publisher's `issues: write` permission requires explicit owner review. Decisions/ports remain empty and the tag/release baseline is unapproved.
 - **#10:** hosted guest journey PASS at `1f67867`; branded Edge/Safari/mobile, multitrack/audible output, hosted external-provider CORS and 4K60/HDR remain NOT TESTED or unverified. Chrome for Testing155 and Playwright Firefox157 pass their scoped suites; WebKit cannot be installed on this host; Edge has no ARM64 Linux build.
 - Tokens remain XSS-readable in the inherited browser architecture. Local logout is not proof of remote revocation. Snapshot writes still carry concurrent-writer risk.
 
@@ -52,7 +54,7 @@ This file is the durable handoff. A new agent must be able to resume from it wit
 - **Credential-file overwrite (recovered).** A private diagnostic driver was invoked with swapped positional arguments; its failure handler wrote a sanitized receipt over the owner-only credentials file. No secret was exposed: the receipt contained only revision/status/limits. The original 167-byte file was reconstructed byte-exact from the local session transcript's original `write` event, validated against the owner's credential message and structure, and restored mode0600 with values never printed. Both private tools now reject receipt paths outside `dist/` or `docs/evidence/` and paths equal to the credentials file; the guard was verified with the file hash unchanged. Details: [incident note](2026-10-19-private-tooling-incident.md). Rotate or replace the disposable accounts after the marker verification.
 - **Cloudflare:** owner completed `wrangler login`; preview uploads and rollback work. Set `WRANGLER_LOG_PATH` inside the workspace.
 - **Codex CLI:** available as `codex-cli 0.163.0` at `/home/saurabh/.local/share/mise/shims/codex`; needs a writable home (`CODEX_HOME=$PWD/.codex-home`) plus `--sandbox read-only`. Use it for planning/review; never send credentials or real account state.
-- No open blocker requires owner action for the next synthetic/private diagnosis. Owner action remains recommended for credential rotation and later named-device observations; any new live write beyond the bounded marker plan needs a committed plan amendment.
+- GitHub Actions recovered after the critical incident; no queued-check blocker remains. Owner action is required only for credential rotation, named-device observations, any new live write beyond the bounded marker plan, and the #23 publisher permission boundary.
 
 ## Hosted preview
 
@@ -62,8 +64,8 @@ This file is the durable handoff. A new agent must be able to resume from it wit
 
 ## Context-clear quick start
 
-1. `git status` and `git log -1 --oneline`: expect clean `main` at or after `2cf2fc5`, then the current evidence/feature branch.
-2. Read this file, `docs/plans/issues/issue-11.md` (unit 6a results and 6b next steps) and the plugin engine documents; for any #7 work, `docs/plans/issues/issue-7.md` and the switch receipts.
+1. `git status` and `git log -1 --oneline`: expect clean `main` at or after `38cf2c9`, then the current evidence/feature branch.
+2. Read this file, `docs/plans/issues/issue-11.md` (unit 6a merged, 6b next) and the plugin engine documents; for #23, `docs/plans/issues/issue-23.md` and the upstream-watch review record; for #7, `docs/plans/issues/issue-7.md` and the switch receipts.
 3. Hosted preview is `1f67867`/`b48de821`; rollback `96f977f4`/`8edec42`.
 4. Credentials: `/home/saurabh/.config/nuvioweb/test-accounts.json` (0600, outside Git). Never print, log, commit, echo to reviewers or pass as a positional value; pass only its path. Recommend rotation after the marker run.
 5. Tooling: pinned Node `export PATH=/home/saurabh/.local/share/mise/installs/node/22.23.1/bin:$PATH` (v22.23.1/npm10.9.8); Wrangler `node /home/saurabh/.npm/_npx/d77349f55c2be1c0/node_modules/wrangler/bin/wrangler.js`; Codex per above.
