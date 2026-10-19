@@ -1,6 +1,6 @@
 # Issue #8: [M1][P1] Inventory and safely isolate upstream sidecar-dependent routes
 
-**Plan status:** Implemented on feature branch; required verification/review in progress, not merged or closed.  
+**Plan status:** Implemented on feature branch; required verification/review in progress, not merged or closed.
 **Milestone:** M1 · **Priority:** P1  
 **GitHub issue:** https://github.com/saurabhhbansal/nuvioweb/issues/8  
 **Workstream:** [M1 roadmap](https://github.com/saurabhhbansal/nuvioweb/blob/main/docs/ROADMAP.md) · **Agent rules:** [AGENTS.md](https://github.com/saurabhhbansal/nuvioweb/blob/main/AGENTS.md)
@@ -107,4 +107,6 @@ Commands use pinned Node22.23.1/npm10.9.8 (`export PATH=/home/saurabh/.local/sha
 - `node --test scripts/check-docs.test.mjs scripts/governance.test.mjs scripts/prepare-static-preview.test.mjs` —17/17 pass,0 failures/skips. A restricted runner invocation failed at test-file wrappers; only the authorized individual-test run is evidence.
 - `node scripts/check-docs.mjs`, `node scripts/check-progress.mjs`, `git diff --check` — exit0. Ledger26 tickets,9 verified; #7 external test dependency, #8 in progress. GitHub #7 blocker explanation posted without credentials.
 
-Full Chromium regression, final staging/ancestry checks, automated review and protected CI still pending at this checkpoint. Actual bundled/API boundary tests cover disabled requests, manual return and notification avoidance with synthetic credentials only; Chromium156.0.8078.4 LinuxARM64/1280px and390px viewports. No live Nuvio sync, provider playback, Safari/iPhone/external-player or deployed sidecar claim. Issue8 stays open until evidence merges; owner human review remains required by AGENTS/QUALITY_GATES.
+Full Chromium regression subsequently passed: `npx playwright test` —31/31 pass,0 failures/skips (1.1 minutes), including final wording and both sidecar cases. One batched inspection of four desktop/narrow screenshots confirmed readable wrapped guidance and no text clipping; no visual correction needed. A trailing-whitespace finding on the plan status was corrected. Final staging/ancestry checks, automated review and protected CI still pending at this checkpoint. Actual bundled/API boundary tests cover disabled requests, manual return and notification avoidance with synthetic credentials only; Chromium156.0.8078.4 LinuxARM64/1280px and390px viewports. No live Nuvio sync, provider playback, Safari/iPhone/external-player or deployed sidecar claim. Issue8 stays open until evidence merges; owner human review remains required by AGENTS/QUALITY_GATES.
+
+Follow-up: owner elected to run issue7 live checks personally. Provide the [owner checklist](../../ISSUE_7_OWNER_CHECKS.md); no credentials requested. Automated Standards/Spec reviewers did not complete because of an account usage limit; do not describe either review as passed. The subsequent staging/ancestry command was not executed: automatic approval review failed because of the same usage limit, not a finding that the action was unsafe. No bypass attempted, upload performed or PR created at that checkpoint.
