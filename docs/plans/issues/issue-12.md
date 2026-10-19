@@ -886,3 +886,25 @@ Status: the pure budget layer is implemented and tested. The hls.js loader imple
 **Deferred unit.** A dedicated loader unit will start from the review and must cover: no caller-supplied headers, fixed error codes with no URL, per-request attempt records with a terminal guard, init classification via the pinned shapes, ownership-safe release, `onAbort`, `Range` handling, monotonic stats matching the pinned `LoaderStats`, bounded streaming with no unbounded fallback, HTTP status checks, overlapping-load rejection, and tests that assert observed transfer, controller cancellation, timer removal and exactly-once settlement.
 
 **Rollback.** Revert the policy module, its tests and these records. Nothing imports the module.
+
+### Recovery policy executed (2026-10-19)
+
+Status: the pure planner exists; nothing calls it yet and no recovery operation is wired.
+
+**What exists.** `app/alpha/js/core/player/playbackRecoveryPolicy.js` implements the §5 contract — `planAudioRecovery({generation, currentGeneration, tracks, failedTrackKey, lastConfirmedTrackKey, failure, attempts, userChoice}) → {action, trackKey, reason}` — with a fixed `action` (`offer-track` | `restore-track` | `unsupported` | `none`) and a fixed `reason` enum. Pure: no fetch, mutation, persistence or logging, inputs are not written to, and hostile input is bounded rather than thrown at.
+
+**Rules it enforces.**
+
+- A stale generation yields no action.
+- A failure is only recoverable as an audio failure when `failure.audioAttributable === true`; a generic or unknown media error returns `none`/`audio-not-attributable`, never a track offer.
+- An explicit `userChoice` wins, but only for a selectable, unambiguous track that is not the failed one; anything else is rejected as `user-choice-unavailable`.
+- A failed *selection* restores the last confirmed rendition first, once; a failed *playback* offers a compatible alternate first, then a restore once. Both attempts are capped, so no loop is possible.
+- Automatic matching requires the **same role and same language**: commentary is never offered for main (or vice versa), another language is never substituted, and an unspecified language only matches another unspecified language.
+- A container failure is `unsupported`/`unsupported-format`; an empty track list is `unsupported`/`no-tracks`; an ambiguous failed identity is `none`/`ambiguous-failed-track` rather than a guess.
+- "No compatible alternate" is distinguished from "an attempt was already tried" (`no-alternate` vs `alternate-tried`/`restore-tried`), so the UI can say something true.
+
+**Verification.** `node --test app/alpha/js/core/player/playbackRecoveryPolicy.test.mjs` 14/14 (no failure, generic-vs-audio attribution, stale generation, same-language alternate, cross-language rejection, commentary rejection both directions, unspecified-language matching, restore-once, alternate-then-restore, attempt exhaustion, container failure, empty list, ambiguous identity, user choice accepted/rejected, purity and hostile input). `npm test --prefix app/alpha` 1305/1305; lint pass.
+
+**Not done.** No controller or UI integration, no presentation strings, no audio-recovery browser spec, and no recovery session. Those need the loader rebuild and the blocked AAC fixtures.
+
+**Rollback.** Revert the module, its test and this record; nothing imports it.
