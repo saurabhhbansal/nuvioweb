@@ -150,3 +150,15 @@ Executed: focused tests7/7 pass,0 skipped (allowlisted fetch and normalization, 
 **Next unit (4).** Default-off runtime seam consuming the contract + broker, persistent quota/allowlist source, abuse corpus (hangs, repeated failures, malformed output, huge inputs), then independent security/dependency review and bundle measurement.
 
 **Rollback.** Protected revert deletes the network prototype and tests; no runtime or data change.
+
+### Unit 4 results — abuse corpus and quota hardening (2026-10-19)
+
+Added `app/alpha/scripts/pluginSandboxAbuse.test.mjs` over both prototypes and two corrective guards: source bytes >256KiB are rejected before engine start (`code-size`), and an explicit completion flag makes `undefined`/unserializable results an `output` failure instead of a false timeout. The corpus also exposed a real classifier bug — `/oom/` matched inside the word "boom" and misreported ordinary plugin exceptions as memory exhaustion; the pattern now uses a word boundary.
+
+Executed: abuse tests11/11 pass,0 skipped (oversized code, 64MiB allocation under1MiB budget→`memory`, unbounded recursion fails closed, 5,000 logs capped, `undefined`→`output`, thrown error→`plugin`, 512KiB input bounded, three repeated failures isolated with a later success, 25-request flood capped at4, redirect loop bounded, timed-out execution does not poison a later one). Full `npm test --prefix app/alpha`1226/1226 pass; lint and inert build/12-asset check pass. Test-only; no runtime wiring, feature flag or real network.
+
+**Limits.** Deadline cancellation remains host-race based; no persistent per-account quotas, user-facing cancellation, default-off runtime seam, independent security/dependency review or browser-bundle measurement.
+
+**Next unit (5).** Default-off runtime seam consuming the contract + broker, persistent quota/allowlist source, bundle-size measurement of the engine in the browser build, and the security/dependency review package. No shipping claim until those are reviewed.
+
+**Rollback.** Protected revert removes the abuse suite and guards; no runtime or data change.

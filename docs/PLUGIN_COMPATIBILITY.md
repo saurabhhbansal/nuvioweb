@@ -88,6 +88,21 @@ Observed with `node --test app/alpha/scripts/pluginSandboxNetworkPrototype.test.
 
 **Limits:** test-only, not wired to the app; no default-off runtime seam, no AbortSignal propagation into a real transport, no persistent per-account quotas, no user-facing cancellation, and no independent security/dependency review yet. The asyncified WASM build is larger and slower than the sync variant, which matters for the future browser-bundle decision. No compatibility or sandbox claim follows.
 
+## Abuse corpus (test-only, 2026-10-19)
+
+`app/alpha/scripts/pluginSandboxAbuse.test.mjs` exercises both prototypes against hostile input and repeated use (11/11, `node --test`):
+
+- Oversized source (>256 KiB) is rejected before any engine starts (`code-size`) in both prototypes.
+- A 64 MiB allocation under a 1 MiB memory budget fails closed (`memory`).
+- Unbounded recursion fails closed without escaping the sandbox.
+- 5,000 `api.log` calls are capped at the configured log limit.
+- Returning `undefined` is an explicit `output` failure rather than a hang; a thrown plugin error is `plugin`, not a host crash.
+- A 512 KiB input is bounded and still executes.
+- Three repeated failing executions stay isolated and a later execution succeeds.
+- A 25-request flood is capped at the broker limit; a redirect loop is bounded; a timed-out network execution does not poison a later one.
+
+This corpus caught a real classifier bug: `/oom/` matched inside the word "boom", misreporting ordinary plugin exceptions as memory exhaustion; the pattern now uses a word boundary. Completion is tracked with an explicit done flag so `undefined`/unserializable results cannot be mistaken for timeouts.
+
 ## Guarantees and limits
 
 - The contract module is pure: no I/O, timers, storage, DOM, network or evaluation.

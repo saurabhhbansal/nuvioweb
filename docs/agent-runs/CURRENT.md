@@ -15,10 +15,10 @@ This file is the durable handoff. A new agent must be able to resume from it wit
 ## Current selection
 
 - Selected ticket: **#7** (real-account login/sync/profile isolation) and **#10** (source descriptors and browser playback capability reporting) remain the only in-progress MVP tickets. Governance/continuity work precedes them and is not a roadmap ticket.
-- Current branch: `m2/issue-11-plugin-network-binding` (from `main` `236999d`).
-- Current PR: issue #11 unit 3b — broker-bound sandbox with deadline cancellation.
-- Most recently completed atomic task: PR #57 merged at `236999d` (broker policy); unit 3b implemented: asyncified `api.fetch` bound to the broker, host-side deadline cancellation, no global fetch, bounded denial codes, tests 7/7, app suite 1215/1215, lint/build pass.
-- Next exact atomic task: merge unit 3b, then unit 4 — default-off runtime seam, persistent quotas/allowlist source and abuse corpus, followed by independent security/dependency review and bundle measurement. #7 live work and the #10 hosted gate remain owner-blocked.
+- Current branch: `m2/issue-11-sandbox-abuse` (from `main` `fab7e6c`).
+- Current PR: issue #11 unit 4 — abuse corpus and quota hardening.
+- Most recently completed atomic task: PR #58 merged at `fab7e6c` (broker-bound sandbox); unit 4 abuse corpus implemented: oversized code, memory bomb, recursion, log flood, undefined output, plugin exceptions, huge input, repeated-failure isolation, request flood, redirect loop, timeout recovery; tests 11/11, app suite 1226/1226, lint/build pass. The corpus caught an `/oom/`-inside-“boom” classifier bug and a missing completion flag.
+- Next exact atomic task: merge unit 4, then unit 5 — default-off runtime seam, persistent quota/allowlist source, browser-bundle measurement and the security/dependency review package. #7 live work and the #10 hosted gate remain owner-blocked.
 
 ## Relevant plans and evidence
 
