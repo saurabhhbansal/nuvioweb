@@ -140,3 +140,58 @@ test("limits cannot exceed the implementation hard ceilings", async () => {
   assert.ok(codes(await run((state) => delete state.limits.reportBytes)).includes("LIMIT_VALUE"));
   assert.ok(codes(await run((state) => (state.limits.enabledSources = 2))).includes("LIMIT_ENABLED_SOURCES"));
 });
+
+test("the enabled source must match the import source and refs must be valid", async () => {
+  assert.ok(
+    codes(
+      await run((state) => {
+        state.sources[0].enabled = false;
+        state.sources[1].enabled = true;
+      })
+    ).includes("ENABLED_SOURCE_MISMATCH")
+  );
+  assert.ok(codes(await run((state) => (state.sources[0].ref = "bad..ref"))).includes("SOURCE_REF"));
+  assert.ok(codes(await run((state) => (state.import.tag = "bad//tag"))).includes("IMPORT_TAG"));
+});
+
+test("duplicate release ids and malformed evidence are rejected", async () => {
+  assert.ok(
+    codes(
+      await run((state) => {
+        state.observationBaseline = {
+          tags: {},
+          releases: [
+            { id: 1, tagName: "v1" },
+            { id: 1, tagName: "v2" }
+          ]
+        };
+      })
+    ).includes("DUPLICATE_RELEASE_ID")
+  );
+  assert.ok(
+    codes(
+      await run((state) => {
+        state.decisions = [{ id: "decision-1", from: "a".repeat(40), to: "b".repeat(40), disposition: "deferred", rationale: "reason", evidence: [] }];
+      })
+    ).includes("DECISION_EVIDENCE")
+  );
+  assert.ok(
+    codes(
+      await run((state) => {
+        state.ports = [
+          {
+            id: "port-1",
+            upstreamSha: "a".repeat(40),
+            upstreamPath: "js/example.js",
+            localPath: "app/alpha/LICENSE",
+            pr: 1,
+            commit: "b".repeat(40),
+            attribution: "example",
+            tests: [null],
+            limits: "none"
+          }
+        ];
+      })
+    ).includes("PORT_TESTS")
+  );
+});

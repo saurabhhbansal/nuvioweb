@@ -34,6 +34,7 @@ function makeFetch(routes) {
       if (key === prefix || key.startsWith(prefix)) {
         if (handler instanceof Error) throw handler;
         if (typeof handler === "function") return handler(parsed);
+        if (handler && typeof handler === "object" && handler.headers && typeof handler.text === "function") return handler;
         if (handler.status && handler.text !== undefined) return response(handler.body, handler.status, handler.text);
         return response(handler);
       }
@@ -174,7 +175,7 @@ test("approved tag and release baselines produce added, removed and retargeted r
   assert.deepEqual(report.sources[0].tags.added, ["new"]);
   assert.deepEqual(report.sources[0].tags.removed, ["old"]);
   assert.deepEqual(report.sources[0].releases.changed, [1]);
-  assert.deepEqual(report.sources[0].releases.added, [2]);
+  assert.deepEqual(report.sources[0].releases.added, [{ id: 2, tagName: "new" }]);
   assert.ok(!report.findings.some((finding) => finding.id === "baseline-review-required"));
 });
 
@@ -278,4 +279,83 @@ test("tag inventory overflow is partial and an unresolved ref is an error", asyn
   assert.equal(missing.report.status, "error");
   assert.ok(codes(missing.report).includes("http-404"));
   assert.equal(missing.report.sources[0].refs.observed, null);
+});
+
+test("malformed comparison data cannot produce a complete report", async () => {
+  const { report } = await run({
+    routes: defaultRoutes().map(([prefix, handler]) => (prefix.includes("/compare/") ? [prefix, {}] : [prefix, handler]))
+  });
+  assert.equal(report.status, "partial");
+  assert.ok(codes(report).includes("invalid-compare-response"));
+});
+
+test("validated state limits are applied without caller overrides", async () => {
+  const { report } = await run({
+    mutate: (state) => {
+      state.limits.collectorRequests = 1;
+    }
+  });
+  assert.equal(report.status, "partial");
+  assert.ok(codes(report).includes("budget-requests"));
+});
+
+test("newly added licensing inventory is drift, not unchanged", async () => {
+  const entries = [...baseEntries, ["vendor/NEW-LICENSE", OTHER]];
+  const { report } = await run({
+    routes: defaultRoutes().map(([prefix, handler]) =>
+      prefix.includes("/git/trees/") && prefix.endsWith(OBSERVED) ? [prefix, treeBody(entries)] : [prefix, handler]
+    )
+  });
+  assert.equal(report.sources[0].license.status, "drift-detected");
+  assert.ok(report.sources[0].license.findings.includes("added:vendor/NEW-LICENSE"));
+  assert.ok(report.findings.some((finding) => finding.kind === "license-drift"));
+});
+
+test("equivalent tag inventories produce the same fingerprint", async () => {
+  const baseline = { tags: { alpha: IMPORT, beta: OTHER }, releases: [] };
+  const first = await run({
+    mutate: (state) => {
+      state.observationBaseline = baseline;
+    },
+    routes: defaultRoutes().map(([prefix, handler]) =>
+      prefix.endsWith("/tags") ? [prefix, [{ name: "alpha", commit: { sha: IMPORT } }, { name: "beta", commit: { sha: OTHER } }]] : [prefix, handler]
+    )
+  });
+  const second = await run({
+    mutate: (state) => {
+      state.observationBaseline = baseline;
+    },
+    routes: defaultRoutes().map(([prefix, handler]) =>
+      prefix.endsWith("/tags") ? [prefix, [{ name: "beta", commit: { sha: OTHER } }, { name: "alpha", commit: { sha: IMPORT } }]] : [prefix, handler]
+    )
+  });
+  assert.equal(first.report.fingerprint, second.report.fingerprint);
+});
+
+test("the report writer rejects a symlinked output path", async () => {
+  const { assertSafeReportPath } = await import("./upstream-watch.mjs");
+  const { mkdtemp, symlink } = await import("node:fs/promises");
+  const root = await mkdtemp(path.join(tmpdir(), "nuvioweb-report-"));
+  const outside = await mkdtemp(path.join(tmpdir(), "nuvioweb-report-outside-"));
+  try {
+    await symlink(outside, path.join(root, "link"), "dir");
+    await assert.rejects(assertSafeReportPath(path.join(root, "link", "report.json"), root), /report-path-rejected/);
+    const safe = await assertSafeReportPath(path.join(root, "nested", "report.json"), root);
+    assert.equal(safe, path.join(root, "nested", "report.json"));
+  } finally {
+    await rm(root, { recursive: true, force: true });
+    await rm(outside, { recursive: true, force: true });
+  }
+});
+
+test("a declared oversized content length fails before reading the body", async () => {
+  const { report } = await run({
+    routes: defaultRoutes().map(([prefix, handler]) =>
+      prefix.includes("/compare/")
+        ? [prefix, { status: 200, headers: { get: (name) => (name === "content-length" ? String(COLLECTOR_LIMITS.responseBytes + 1) : null) }, text: async () => "{}" }]
+        : [prefix, handler]
+    )
+  });
+  assert.equal(report.status, "partial");
+  assert.ok(codes(report).includes("response-too-large"));
 });

@@ -27,7 +27,16 @@ const TOP_LEVEL_KEYS = new Set(["schemaVersion", "sources", "import", "reviewedT
 const SOURCE_ID = /^[a-z0-9][a-z0-9-]{1,31}$/;
 const REPOSITORY = /^https:\/\/github\.com\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
 const TRACKING_REPOSITORY = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
-const REF = /^[A-Za-z0-9._/-]{1,128}$/;
+const BRANCH_REF = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/;
+const TAG_REF = /^[A-Za-z0-9][A-Za-z0-9._/-]{0,127}$/;
+const validBranch = (value) => typeof value === "string" && BRANCH_REF.test(value) && !value.includes("..") && !value.endsWith(".");
+const validTag = (value) =>
+  typeof value === "string" &&
+  TAG_REF.test(value) &&
+  !value.includes("..") &&
+  !value.endsWith(".") &&
+  !value.endsWith("/") &&
+  !value.includes("//");
 const SHA40 = /^[a-f0-9]{40}$/;
 const SHA256 = /^[a-f0-9]{64}$/;
 const PORT_ID = /^[a-z0-9][a-z0-9-]{2,63}$/;
@@ -112,7 +121,7 @@ function validateSources(state, errors) {
     else if (ids.has(source.id)) push(errors, "DUPLICATE_SOURCE_ID", `${at}.id`);
     else ids.add(source.id);
     if (typeof source.repository !== "string" || !REPOSITORY.test(source.repository)) push(errors, "SOURCE_REPOSITORY", `${at}.repository`);
-    if (typeof source.ref !== "string" || !REF.test(source.ref)) push(errors, "SOURCE_REF", `${at}.ref`);
+    if (!validBranch(source.ref)) push(errors, "SOURCE_REF", `${at}.ref`);
     if (typeof source.enabled !== "boolean") push(errors, "SOURCE_ENABLED", `${at}.enabled`);
     if (typeof source.reuseBoundary !== "string" || !REUSE_BOUNDARIES.has(source.reuseBoundary)) push(errors, "SOURCE_BOUNDARY", `${at}.reuseBoundary`);
     if (source.enabled === true) enabled.push(source.id);
@@ -132,7 +141,7 @@ async function validateImport(state, errors, root, sourceIds) {
   if (typeof value.commit !== "string" || !SHA40.test(value.commit)) push(errors, "SHA", "import.commit");
   if (typeof value.tree !== "string" || !SHA40.test(value.tree)) push(errors, "SHA", "import.tree");
   if (typeof value.importCommit !== "string" || !SHA40.test(value.importCommit)) push(errors, "SHA", "import.importCommit");
-  if (typeof value.tag !== "string" || !REF.test(value.tag)) push(errors, "IMPORT_TAG", "import.tag");
+  if (!validTag(value.tag)) push(errors, "IMPORT_TAG", "import.tag");
   if (typeof value.destination !== "string" || !value.destination.startsWith("app/")) push(errors, "IMPORT_DESTINATION", "import.destination");
   else await checkRepoPath(root, value.destination, errors, "import.destination", "directory");
   if (!Array.isArray(value.provenance) || value.provenance.length === 0 || value.provenance.length > 5) {
@@ -194,7 +203,7 @@ function validateObservationBaseline(state, errors) {
     push(errors, "OBSERVATION_TAGS", "observationBaseline.tags");
   } else {
     for (const [name, sha] of Object.entries(value.tags)) {
-      if (!REF.test(name)) push(errors, "OBSERVATION_TAG_NAME", `observationBaseline.tags.${name}`);
+      if (!validTag(name)) push(errors, "OBSERVATION_TAG_NAME", `observationBaseline.tags.${name}`);
       if (typeof sha !== "string" || !SHA40.test(sha)) push(errors, "SHA", `observationBaseline.tags.${name}`);
     }
   }
@@ -202,6 +211,7 @@ function validateObservationBaseline(state, errors) {
     push(errors, "OBSERVATION_RELEASES", "observationBaseline.releases");
     return;
   }
+  const releaseIds = new Set();
   for (let index = 0; index < value.releases.length; index += 1) {
     const entry = value.releases[index];
     const at = `observationBaseline.releases[${index}]`;
@@ -211,7 +221,9 @@ function validateObservationBaseline(state, errors) {
     }
     checkKeys(errors, entry, at, new Set(["id", "tagName"]));
     if (!Number.isInteger(entry.id) || entry.id < 1) push(errors, "OBSERVATION_RELEASE_ID", `${at}.id`);
-    if (typeof entry.tagName !== "string" || !REF.test(entry.tagName)) push(errors, "OBSERVATION_RELEASE_TAG", `${at}.tagName`);
+    else if (releaseIds.has(entry.id)) push(errors, "DUPLICATE_RELEASE_ID", `${at}.id`);
+    else releaseIds.add(entry.id);
+    if (!validTag(entry.tagName)) push(errors, "OBSERVATION_RELEASE_TAG", `${at}.tagName`);
   }
 }
 
@@ -235,7 +247,7 @@ async function validateDecisions(state, errors, root) {
     if (typeof entry.to !== "string" || !SHA40.test(entry.to)) push(errors, "SHA", `${at}.to`);
     if (typeof entry.disposition !== "string" || !DISPOSITIONS.has(entry.disposition)) push(errors, "DECISION_DISPOSITION", `${at}.disposition`);
     if (typeof entry.rationale !== "string" || entry.rationale.trim().length < 3 || entry.rationale.length > 500) push(errors, "DECISION_RATIONALE", `${at}.rationale`);
-    if (!Array.isArray(entry.evidence) || entry.evidence.length > 10) {
+    if (!Array.isArray(entry.evidence) || entry.evidence.length === 0 || entry.evidence.length > 10) {
       push(errors, "DECISION_EVIDENCE", `${at}.evidence`);
       continue;
     }
@@ -271,7 +283,7 @@ async function validatePorts(state, errors, root) {
     if (!Number.isInteger(entry.pr) || entry.pr < 1) push(errors, "PORT_PR", `${at}.pr`);
     if (typeof entry.commit !== "string" || !SHA40.test(entry.commit)) push(errors, "SHA", `${at}.commit`);
     if (typeof entry.attribution !== "string" || entry.attribution.trim().length < 3 || entry.attribution.length > 300) push(errors, "PORT_ATTRIBUTION", `${at}.attribution`);
-    if (!Array.isArray(entry.tests) || entry.tests.length === 0 || entry.tests.length > 20) push(errors, "PORT_TESTS", `${at}.tests`);
+    if (!Array.isArray(entry.tests) || entry.tests.length === 0 || entry.tests.length > 20 || entry.tests.some((item) => typeof item !== "string" || item.trim().length < 3 || item.length > 300)) push(errors, "PORT_TESTS", `${at}.tests`);
     if (typeof entry.limits !== "string" || entry.limits.length > 500) push(errors, "PORT_LIMITS", `${at}.limits`);
   }
 }
@@ -313,6 +325,8 @@ export async function validateUpstreamState(state, { root = REPO_ROOT } = {}) {
   if (state.schemaVersion !== 1) push(errors, "SCHEMA_VERSION", "schemaVersion");
   const { ids } = validateSources(state, errors);
   await validateImport(state, errors, root, ids);
+  const enabledSources = Array.isArray(state.sources) ? state.sources.filter((source) => source?.enabled === true) : [];
+  if (enabledSources.length === 1 && state.import?.sourceId !== enabledSources[0].id) push(errors, "ENABLED_SOURCE_MISMATCH", "sources");
   if (typeof state.reviewedThroughSha !== "string" || !SHA40.test(state.reviewedThroughSha)) push(errors, "SHA", "reviewedThroughSha");
   await validateLicenseBaseline(state, errors, root);
   validateObservationBaseline(state, errors);
