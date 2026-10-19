@@ -18,27 +18,33 @@ async function exists(filePath) {
 
 export async function validatePluginEngineInstallation({ distDir, optIn }) {
   const pluginsRoot = path.join(distDir, "assets", "plugins");
-  const manifestPath = path.join(pluginsRoot, "plugin-engine.json");
-  const hasAssets = await exists(manifestPath);
-  if (hasAssets !== Boolean(optIn)) {
-    throw new Error(
-      hasAssets
-        ? "Engine assets are present without NUVIO_PLUGIN_ENGINE_ASSETS=1; remove them or opt in explicitly."
-        : "NUVIO_PLUGIN_ENGINE_ASSETS=1 was set but no engine assets were emitted."
-    );
+  let entries = [];
+  try {
+    entries = (await readdir(pluginsRoot)).sort();
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error;
   }
-  if (!hasAssets) return null;
+  const manifestName = "plugin-engine.json";
+  const hasManifest = entries.includes(manifestName);
+  if (entries.length === 0) {
+    if (optIn) throw new Error("NUVIO_PLUGIN_ENGINE_ASSETS=1 was set but no engine assets were emitted.");
+    return null;
+  }
+  if (!hasManifest) throw new Error("Engine assets are present without a readable plugin-engine.json manifest.");
+  if (!optIn) throw new Error("Engine assets are present without NUVIO_PLUGIN_ENGINE_ASSETS=1; remove them or opt in explicitly.");
 
-  const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
+  const manifest = JSON.parse(await readFile(path.join(pluginsRoot, manifestName), "utf8"));
   if (manifest.schemaVersion !== 1) throw new Error("engine manifest schema is unsupported");
   if (manifest.defaultEnabled !== false) throw new Error("engine manifest must default to disabled");
   if (manifest.loadPolicy !== "explicit-opt-in-lazy") throw new Error("engine manifest load policy is invalid");
   if (manifest.license !== "MIT") throw new Error("engine manifest license is invalid");
   const match = /^\/assets\/plugins\/([a-f0-9]{16})$/.exec(String(manifest.directory || ""));
   if (!match) throw new Error("engine directory must be a 16-hex versioned path");
+  const extra = entries.filter((entry) => entry !== manifestName && entry !== match[1]);
+  if (extra.length) throw new Error("engine plugins root must contain only the manifest and the selected version directory");
   const engineDir = path.join(pluginsRoot, match[1]);
-  const entries = (await readdir(engineDir)).sort();
-  if (JSON.stringify(entries) !== JSON.stringify([...ENGINE_FILE_NAMES].sort())) {
+  const directoryEntries = (await readdir(engineDir)).sort();
+  if (JSON.stringify(directoryEntries) !== JSON.stringify([...ENGINE_FILE_NAMES].sort())) {
     throw new Error("engine directory must contain only the JS and WASM assets");
   }
   const files = new Map();
@@ -59,5 +65,7 @@ export async function validatePluginEngineInstallation({ distDir, optIn }) {
   const js = files.get("plugin-engine.js");
   const wasm = files.get("emscripten-module.wasm");
   if (manifest.totalBytes !== js.bytes + wasm.bytes) throw new Error("engine manifest total is invalid");
+  const expectedDirectory = createHash("sha256").update(`${js.sha256}:${wasm.sha256}`).digest("hex").slice(0, 16);
+  if (expectedDirectory !== match[1]) throw new Error("engine directory does not match the content hashes");
   return manifest;
 }

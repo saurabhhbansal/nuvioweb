@@ -4,7 +4,7 @@
 // never invoked by the normal app build, the stager or the application bundle,
 // so the deployed 12-asset preview is unchanged. The asyncify variant is used
 // because the broker's `api.fetch` awaits a host call.
-import { copyFile, lstat, mkdir, readFile, realpath, rename, rm, stat, writeFile } from "node:fs/promises";
+import { copyFile, lstat, mkdir, readFile, readdir, realpath, rename, rm, stat, writeFile } from "node:fs/promises";
 import { randomBytes } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
@@ -175,8 +175,14 @@ export async function installPluginEngineAssets({ distDir = path.join(alphaRoot,
   const realAlpha = await realpath(alphaRoot);
   const realDist = await realpath(resolvedDist);
   if (realDist !== path.join(realAlpha, "dist")) throw new Error("app/alpha/dist must not be a symlink");
+  for (const component of ["assets", "assets/plugins"]) {
+    const absolute = path.join(realDist, component);
+    const info = await lstat(absolute).catch(() => null);
+    if (info?.isSymbolicLink()) throw new Error("engine asset directories must not be symlinks");
+  }
   const pluginsRoot = path.join(realDist, "assets", "plugins");
   await mkdir(pluginsRoot, { recursive: true });
+  if (!(await lstat(pluginsRoot)).isDirectory()) throw new Error("engine plugins root is not a directory");
   const staging = path.join(pluginsRoot, `.staging-${randomBytes(6).toString("hex")}`);
   try {
     const { manifest } = await buildPluginEngineAssets({ outdir: staging });
@@ -188,8 +194,19 @@ export async function installPluginEngineAssets({ distDir = path.join(alphaRoot,
     await mkdir(target, { recursive: true });
     await rename(path.join(staging, ENGINE_ASSET_NAMES.js), path.join(target, ENGINE_ASSET_NAMES.js));
     await rename(path.join(staging, ENGINE_ASSET_NAMES.wasm), path.join(target, ENGINE_ASSET_NAMES.wasm));
+    for (const entry of await readdir(pluginsRoot)) {
+      if (entry === ENGINE_ASSET_NAMES.manifest || entry === directoryName || entry.startsWith(".staging-")) continue;
+      if (/^[a-f0-9]{16}$/.test(entry)) {
+        await rm(path.join(pluginsRoot, entry), { recursive: true, force: true });
+        continue;
+      }
+      throw new Error("unexpected content under the engine plugins root");
+    }
     const installed = buildInstalledManifest(manifest, `/assets/plugins/${directoryName}`);
-    await writeFile(path.join(pluginsRoot, ENGINE_ASSET_NAMES.manifest), `${JSON.stringify(installed, null, 2)}\n`);
+    const manifestPath = path.join(pluginsRoot, ENGINE_ASSET_NAMES.manifest);
+    const temporaryManifest = path.join(pluginsRoot, `.plugin-engine-${randomBytes(6).toString("hex")}.json`);
+    await writeFile(temporaryManifest, `${JSON.stringify(installed, null, 2)}\n`, { flag: "wx" });
+    await rename(temporaryManifest, manifestPath);
     return installed;
   } finally {
     await rm(staging, { recursive: true, force: true });
