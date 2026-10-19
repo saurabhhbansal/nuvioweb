@@ -955,3 +955,22 @@ Status: the reviewed planner and operation record are now joined atomically; not
 **Not done.** No controller, UI, loader, timers or browser evidence. The coordinator is the seam the loader rebuild will call.
 
 **Rollback.** Revert the module, its test and this record; nothing imports it.
+
+### Honest availability copy (2026-10-19)
+
+Status: the copy contract exists and was hardened after review; the audio dialog does not use it yet.
+
+`app/alpha/js/core/player/audioTrackAvailability.js` turns the observation summary into an i18n key plus an English fallback (the caller resolves it with `t()`). The input contract is a plain object whose count fields are primitive, non-negative **safe integers**; every field is read as its own data property (no getters, no coercion, no `valueOf()`).
+
+| Summary | Key | Tone |
+| --- | --- | --- |
+| Explicit `trackCount: 0` with no classified tracks | `player_audio_no_tracks` | empty |
+| Any ambiguous identity | `player_audio_ambiguous` | warning |
+| At least one available track | `player_audio_available` (or `player_audio_available_predicted` when a prediction exists) | action |
+| None available, some unavailable | `player_audio_unavailable` | warning |
+| Only unknown selectability | `player_audio_unknown` | info |
+| Missing `trackCount`, malformed count, accessor-backed count, contradictory totals (`classified > trackCount`, `ambiguous > trackCount`, `predicted > available`) or tracks with no classification | `player_audio_unknown` | info |
+
+The available copy never states that a track is supported, audible or verified; the predicted variant says "predicted, not verified". Ambiguity outranks availability, so a track that cannot be identified is never offered.
+
+**Verification.** `node --test app/alpha/js/core/player/audioTrackAvailability.test.mjs` 9/9, including per-field malformed values, accessor-backed and null-prototype inputs, symbol counts, contradictory totals, ambiguity precedence and a reviewed-fallback check on every branch; `npm test --prefix app/alpha` 1343/1343; lint pass. Wiring the dialog and adding the `strings.xml` translations is the remaining half of this step.
