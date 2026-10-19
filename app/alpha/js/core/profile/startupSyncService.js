@@ -274,6 +274,9 @@ export const StartupSyncService = {
       return {};
     }
     const generation = lifecycleGeneration;
+    const dispatchCurrent = (operation) => Promise.resolve().then(() =>
+      generation === lifecycleGeneration ? operation() : null
+    );
     const pullResults = {};
     const syncStartedAt = syncNow();
     const activeProfileId = ProfileManager.getActiveProfileId();
@@ -293,9 +296,11 @@ export const StartupSyncService = {
         // Every background branch starts now. SIMKL retains its credential →
         // refresh dependency inside its own branch, so it cannot delay
         // collections, library, watched/progress, plugins, or Home.
-        const profilesTask = Promise.resolve().then(() => ProfileSyncService.pull()).then(async (profiles) => {
+        const profilesTask = dispatchCurrent(() => ProfileSyncService.pull()).then(async (profiles) => {
+          if (generation !== lifecycleGeneration) return [];
           logSyncTiming("background-profile-pull", syncStartedAt);
           const profileIds = await collectKnownProfileIds(profiles);
+          if (generation !== lifecycleGeneration) return [];
           await Promise.allSettled(
             profileIds
               .filter((profileId) => normalizeProfileId(profileId) !== normalizeProfileId(activeProfileId))
@@ -304,34 +309,34 @@ export const StartupSyncService = {
           logSyncTiming("background-inactive-profile-settings-pull", syncStartedAt);
           return profiles;
         });
-        const traktCredentialsTask = Promise.resolve().then(() =>
+        const traktCredentialsTask = dispatchCurrent(() =>
           TraktCredentialSyncService.pullFromRemote(activeProfileId)
         );
-        const providerCredentialsTask = Promise.resolve().then(() =>
+        const providerCredentialsTask = dispatchCurrent(() =>
           ProviderCredentialSyncService.syncFromRemote(activeProfileId)
         );
-        const simklTask = Promise.resolve().then(() =>
+        const simklTask = dispatchCurrent(() =>
           SimklCredentialSyncService.pullFromRemote(activeProfileId)
         )
-          .then(() => SimklSyncService.refresh())
+          .then(() => generation === lifecycleGeneration ? SimklSyncService.refresh() : false)
           .catch((error) => {
             console.warn("Simkl automatic refresh failed", error);
             return false;
           })
           .finally(() => logSyncTiming("background-simkl-refresh", syncStartedAt));
         const watchedItemsTask = includeProfileScoped
-          ? Promise.resolve().then(() => WatchedItemsSyncService.pull())
+          ? dispatchCurrent(() => WatchedItemsSyncService.pull())
           : null;
         const scopedTasks = includeProfileScoped
           ? {
-              collections: Promise.resolve().then(() => CollectionSyncService.pull(activeProfileId)),
-              plugins: Promise.resolve().then(() => PluginSyncService.pull()),
-              savedLibrary: Promise.resolve().then(() => SavedLibrarySyncService.pull(activeProfileId)),
+              collections: dispatchCurrent(() => CollectionSyncService.pull(activeProfileId)),
+              plugins: dispatchCurrent(() => PluginSyncService.pull()),
+              savedLibrary: dispatchCurrent(() => SavedLibrarySyncService.pull(activeProfileId)),
               watchedItems: watchedItemsTask,
               // Both requests still go out together; only the progress merge
               // waits, because a completion made on another device arrives as a
               // watched record and as the absence of a progress row.
-              watchProgress: Promise.resolve().then(() =>
+              watchProgress: dispatchCurrent(() =>
                 WatchProgressSyncService.pull({ watchedItemsReady: watchedItemsTask })
               )
             }

@@ -453,3 +453,106 @@ test("account teardown during language loading cannot apply stale profile presen
     await pending;
   }
 });
+
+test("old profile results cannot launch inactive-profile pulls under the next account", async () => {
+  installDependencies();
+  const profiles = deferred();
+  const started = deferred();
+  const inactive = [];
+  globalThis.__startupSyncDeps__.ProfileSyncService.pull = () => { started.resolve(); return profiles.promise; };
+  globalThis.__startupSyncDeps__.ProfileSettingsSyncService.pull = async (id) => { inactive.push(id); };
+  const { StartupSyncService: service } = await loadStartupSyncService();
+  let pending;
+  try {
+    await service.start({ runInitialPull: false, profileScopedSyncEnabled: true });
+    pending = service.requestSyncNow({ criticalHydration: { profileId: "1", current: true } });
+    await started.promise;
+    service.stop();
+    await service.start({ runInitialPull: false });
+    profiles.resolve([{ id: "9" }]);
+    await pending;
+    assert.deepEqual(inactive, []);
+  } finally {
+    service.stop();
+    profiles.resolve([]);
+    await pending;
+  }
+});
+
+test("account teardown while collecting inactive profile IDs cannot launch their pulls", async () => {
+  installDependencies();
+  const localProfiles = deferred();
+  const started = deferred();
+  const inactive = [];
+  globalThis.__startupSyncDeps__.ProfileSyncService.pull = async () => [];
+  globalThis.__startupSyncDeps__.ProfileManager.getProfiles = () => { started.resolve(); return localProfiles.promise; };
+  globalThis.__startupSyncDeps__.ProfileSettingsSyncService.pull = async (id) => { inactive.push(id); };
+  const { StartupSyncService: service } = await loadStartupSyncService();
+  let pending;
+  try {
+    await service.start({ runInitialPull: false, profileScopedSyncEnabled: true });
+    pending = service.requestSyncNow({ criticalHydration: { profileId: "1", current: true } });
+    await started.promise;
+    service.stop();
+    await service.start({ runInitialPull: false });
+    localProfiles.resolve([{ id: "9" }]);
+    await pending;
+    assert.deepEqual(inactive, []);
+  } finally {
+    service.stop();
+    localProfiles.resolve([{ id: "9" }]);
+    await pending;
+  }
+});
+
+test("old Simkl credential completion cannot start refresh in the new lifecycle", async () => {
+  installDependencies();
+  const credentials = deferred();
+  const started = deferred();
+  let refreshes = 0;
+  globalThis.__startupSyncDeps__.SimklCredentialSyncService.pullFromRemote = () => { started.resolve(); return credentials.promise; };
+  globalThis.__startupSyncDeps__.SimklSyncService.refresh = async () => { refreshes++; };
+  const { StartupSyncService: service } = await loadStartupSyncService();
+  let pending;
+  try {
+    await service.start({ runInitialPull: false });
+    pending = service.requestSyncNow({ criticalHydration: { profileId: "1", current: true } });
+    await started.promise;
+    service.stop();
+    await service.start({ runInitialPull: false });
+    credentials.resolve(true);
+    await pending;
+    assert.equal(refreshes, 0);
+  } finally {
+    service.stop();
+    credentials.resolve(true);
+    await pending;
+  }
+});
+
+test("queued old-cycle domain dispatch cannot start after synchronous teardown", async () => {
+  installDependencies();
+  const called = [];
+  for (const [name, method] of [
+    ["ProfileSyncService", "pull"], ["TraktCredentialSyncService", "pullFromRemote"],
+    ["ProviderCredentialSyncService", "syncFromRemote"], ["SimklCredentialSyncService", "pullFromRemote"],
+    ["CollectionSyncService", "pull"], ["PluginSyncService", "pull"],
+    ["SavedLibrarySyncService", "pull"], ["WatchedItemsSyncService", "pull"],
+    ["WatchProgressSyncService", "pull"]
+  ]) {
+    globalThis.__startupSyncDeps__[name][method] = async () => { called.push(name); return []; };
+  }
+  const { StartupSyncService: service } = await loadStartupSyncService();
+  let pending;
+  try {
+    await service.start({ runInitialPull: false, profileScopedSyncEnabled: true });
+    pending = service.requestSyncNow({ criticalHydration: { profileId: "1", current: true } });
+    service.stop();
+    await service.start({ runInitialPull: false });
+    await pending;
+    assert.deepEqual(called, []);
+  } finally {
+    service.stop();
+    await pending;
+  }
+});
