@@ -61,3 +61,18 @@ Remaining #10 gates: compatible-source ranking/unknown policy; named Chrome/Edge
 The complete local run on source3297e09 passed **27/27**,0fail/0skip/0flaky,2.3minutes. [Structured observations](evidence/quality-2026-10-18.json) retain actual dimensions, duration, requests, error guidance and emitted engine events. DASH emitted dash.js events; HLS emitted no track event in this video-only fixture, so its evidence is MSE playback plus HLS manifest/init/segment requests rather than a fabricated engine event. Artifact12 and docs/governance15/15 checks passed, as did links/ledger/ancestry/whitespace. Original Alpha GPL and #9 media hashes remain unchanged.
 
 Standards review found a second startup warning reachable through HLS fallback still logged the complete URL. A signed-query CORS regression reproduced the synthetic secret in serialized warning arguments (red); both startup warnings now use the existing redacted endpoint helper. The regression explicitly requires observing the switching-engine warning, avoiding an empty-log false pass. Focused native/HLS privacy results and final exact-head CI will be recorded on the PR. The first Spec review attempt was interrupted by an account usage limit and is not represented as completed review. Human remote-fetch review remains mandatory before merge.
+
+## Final correction verification — 2026-10-19, draft PR39
+
+[PR39](https://github.com/saurabhhbansal/nuvioweb/pull/39) remains a draft pending owner review of fatal HLS manifest recovery. Automated Spec review also identified that the capturing listener received unrelated TRACK errors. A bundled regression reproduced a false `Playback failed` warning with code0 while native video time advanced. Filtering VIDEO/current direct-child SOURCE at handler entry now preserves playback and the pause control without reporting a false source failure. This synthetic event verifies error isolation, not subtitle loading/selection. Both automated review follow-ups report no remaining actionable findings; neither is human approval.
+
+Final local checks on source7eb8147, pinned Node22.23.1/npm10.9.8:
+
+- `NUVIO_LOCAL_PROPERTIES=../../tests/fixtures/build.properties npm run build --prefix app/alpha` and `npm run lint --prefix app/alpha`: pass.
+- `npm test --prefix app/alpha`:1089/1089 pass,0fail/0skip,18.7seconds.
+- `PLAYWRIGHT_JSON_OUTPUT_NAME=/tmp/nuvioweb-issue-10-browser-final-2026-10-19.json npx playwright test --reporter=list,json`:27/27 pass,0fail/0skip/0flaky,54.4seconds. [Structured actual observations](evidence/quality-2026-10-19.json) retain seven quality/failure cases, exact source SHA and limits. Includes the signed native/HLS fallback warning and subtitle-isolation assertions.
+- `npm run test:quality-fixtures`, `npm run test:addon-fixtures`, `npm run test:preview`:4/4,5/5,1/1 pass.
+- `node scripts/check-alpha-build.mjs`:12 assets/inert configuration pass.
+- `node --test scripts/check-docs.test.mjs scripts/governance.test.mjs`:15/15 pass. `node scripts/check-docs.mjs`, `node scripts/check-progress.mjs`, `node scripts/check-commit-references.mjs origin/main HEAD`, `git diff --check`: pass.
+
+Initial focused runs encountered sandbox loopback binding restrictions and incorrect test-driver assumptions (Sources navigates away; primary pause control uses a CSS mask, not IMG). The final regression directly dispatches TRACK error during playback and asserts no false warning, advancing time, actual pause mask and no media error. No failing assertion was weakened to accept a spinner or playback error. Required exact-head GitHub checks remain the PR's integration gate. #10 stays in progress; public preview is unchanged.

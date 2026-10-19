@@ -1,5 +1,5 @@
 {
-  "asOf": "2026-10-18",
+  "asOf": "2026-10-19",
   "sourceOfTruth": "Acceptance evidence and protected PRs; GitHub issue labels alone are insufficient",
   "tickets": [
     {
@@ -151,7 +151,26 @@
       "dependencies": [
         9,
         5
-      ]
+      ],
+      "work": {
+        "pr": 39,
+        "documents": [
+          "docs/PLAYBACK_QUALITY_MATRIX.md",
+          "docs/evidence/quality-2026-10-19.json",
+          "docs/plans/issues/issue-10.md"
+        ],
+        "verifiedLocally": [
+          "Original1080p/4K MP4 and4K HLS/DASH bundled playback and seek;403/410/CORS failure and return",
+          "Subtitle TRACK errors isolated from playback; signed startup/fallback URLs redacted",
+          "Full27 browser and1089 application tests pass after review corrections; packaging4,HTTP5,preview1,docs/governance15,artifact12 pass"
+        ],
+        "integrationGate": "Draft PR39: owner review required for fatal HLS manifest fetch recovery; protected exact-head CI required; no merge/deployment or completion claimed",
+        "remaining": [
+          "Compatible-source ranking and unknown policy",
+          "Chrome/Edge/Firefox/Safari and device evidence",
+          "Sustained high-bitrate/4K60/HDR and broader failure fixtures"
+        ]
+      }
     },
     {
       "number": 11,
