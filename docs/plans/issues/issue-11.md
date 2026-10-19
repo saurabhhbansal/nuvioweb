@@ -216,3 +216,30 @@ The browser run exposed an in-VM OOM classification gap: allocations failing ins
 **Next unit (6b).** App default-off lazy seam consuming the contract + broker with an explicit opt-in source, stager emission of the hashed WASM/JS with `application/wasm` and cache rules, CSP/`wasm-unsafe-eval` decision, Firefox/WebKit coverage where available, and the independent security/dependency review package. Owner-gated rollout; no shipping default.
 
 **Rollback.** Protected revert deletes the new scripts/spec/docs and the prototype classifier line; no app runtime, preview, storage or user-data change.
+
+### Unit 6b split and 6b-1 plan — opt-in asset emission (2026-10-19, before code)
+
+Unit 6b is split so the deployable asset plumbing can be reviewed independently from application execution:
+
+- **6b-1 (this unit): opt-in build/stager emission.** No application import, feature flag, runtime execution or preview upload. Produces a versioned engine directory and manifest, validates hashes/MIME through the build artifact check and the stager, and refuses accidental inclusion unless `NUVIO_PLUGIN_ENGINE_ASSETS=1` is explicitly set for both build and stage.
+- **6b-2 (later): default-off lazy app seam.** Adds the opt-in flag source, lazy same-origin dynamic import, quota/cancellation wiring, browser app-level fixture, CSP decision and security/dependency review package. It cannot ship before independent review.
+
+**6b-1 targets.** `app/alpha/scripts/pluginEngineAssets.mjs` (installed layout + manifest), `app/alpha/scripts/build.mjs` (opt-in hook), `scripts/check-alpha-build.mjs` (optional-asset validation), `scripts/prepare-static-preview.mjs` (+ tests), `deploy/cloudflare/_headers` (MIME/cache only when the assets exist), and this plan.
+
+**Layout contract.** When enabled, build emits:
+
+- `assets/plugins/<16-hex-content-hash>/plugin-engine.js`
+- `assets/plugins/<16-hex-content-hash>/emscripten-module.wasm`
+- `assets/plugins/plugin-engine.json` — `{schemaVersion:1,directory:"/assets/plugins/<hash>",defaultEnabled:false,loadPolicy:"explicit-opt-in-lazy",enginePackage,engineVersion,variantPackage,variantVersion,license:"MIT",files:[{name,mime,bytes,sha256}],totalBytes}`.
+
+The directory hash is derived from the JS and WASM SHA-256 values so identical inputs produce the same directory. The manifest is not immutable-cached; the versioned directory is. The normal build remains 12 assets with no `assets/plugins` output. The stager rejects engine assets unless the opt-in environment flag is set, and validates the manifest, directory, file sizes, hashes and MIME mapping before copying.
+
+**Header contract (Cloudflare Pages).** The manifest is `no-store`; the versioned JS is `text/javascript` and the WASM `application/wasm`, both immutable with `X-Content-Type-Options: nosniff`. Rules are scoped under `/assets/plugins/`, so a preview without engine assets is unaffected.
+
+**Threats and controls.** WASM/JS are same-origin and only loaded by a future explicit opt-in; no remote URL or user-supplied path is introduced. Versioned content hashes prevent cache confusion. The stager refuses opt-in mismatch and hash drift. No CSP is added here; a future CSP must scope `wasm-unsafe-eval` to this feature only. No secrets, network, provider fetch or new dependency.
+
+**Non-goals.** No app import, flag exposure, UI, execution, stager upload, preview deployment, CSP change, service-worker caching of engine assets, compatibility claim or security-review waiver. The engine assets are inert files until a separately reviewed seam uses them.
+
+**Verification.** `node --test app/alpha/scripts/pluginEngineAssets.test.mjs` and `scripts/prepare-static-preview.test.mjs` (+ `stage-legal-demo`), inert default build + `node scripts/check-alpha-build.mjs` (12 assets, no engine files), opt-in build with `NUVIO_PLUGIN_ENGINE_ASSETS=1` + artifact check (versioned dir/manifest/hashes/MIME), stager rejection without the flag, `npm test --prefix app/alpha`, lint, docs/governance/preview/links/ledger/ancestry/whitespace. Record exact asset hash/dir in evidence. No upload.
+
+**Rollback.** Protected revert of the opt-in hook, installed-layout helper, header rules and tests; default build/stager behavior and deployed preview remain unchanged.

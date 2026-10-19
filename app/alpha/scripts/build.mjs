@@ -12,6 +12,7 @@ import { browserCompatibilityPolicy } from "./browserCompatibilityPolicy.mjs";
 import { readEnvProperties, writeRuntimeEnvScriptFile } from "./envProperties.mjs";
 import { buildServiceWorkerCacheId } from "./serviceWorkerCacheId.mjs";
 import { assetBuildId, versionAssetUrls } from "./assetVersions.mjs";
+import { installPluginEngineAssets } from "./pluginEngineAssets.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, "..");
@@ -593,6 +594,13 @@ async function runBuild() {
       console.warn("WARNING: generated default runtime env (unconfigured).");
     } else if (envSourceBaseName === "local.example.properties") {
       console.warn("WARNING: using local.example.properties as fallback.");
+    }
+
+    // Opt-in only: the normal 12-asset build never emits or references engine
+    // assets. The future default-off seam (unit 6b-2) still needs security review.
+    if (/^(1|true|yes|on)$/i.test(String(process.env.NUVIO_PLUGIN_ENGINE_ASSETS || ""))) {
+      const engineManifest = await installPluginEngineAssets({ distDir });
+      console.log(`plugin engine assets: ${engineManifest.directory} (explicit opt-in)`);
     }
 
     console.log(`\nbuild finished successfully in: ${distDir}`);

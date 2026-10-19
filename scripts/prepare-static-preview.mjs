@@ -5,6 +5,7 @@ import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { ENV_PROPERTY_KEYS } from "../app/alpha/scripts/envProperties.mjs";
 import { stageLegalDemo } from "./stage-legal-demo.mjs";
+import { validatePluginEngineInstallation } from "../app/alpha/scripts/pluginEngineManifest.mjs";
 
 export function validatePublicConfig(source) {
   const json = source.match(/var values = (\{[\s\S]*?\n\});/)?.[1];
@@ -40,6 +41,9 @@ export async function preparePreview() {
     stdio:"inherit"
   });
   const source = join(root,"app/alpha/dist");
+  const engineOptIn = /^(1|true|yes|on)$/i.test(String(process.env.NUVIO_PLUGIN_ENGINE_ASSETS || ""));
+  const engineManifest = await validatePluginEngineInstallation({ distDir: source, optIn: engineOptIn });
+  if (engineManifest) console.log(`Plugin engine assets (opt-in): ${engineManifest.directory}`);
   validatePublicConfig(await readFile(join(source,"nuvio.env.js"),"utf8"));
   const files = await readdir(source,{recursive:true,withFileTypes:true});
   for (const entry of files) {

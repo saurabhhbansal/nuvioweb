@@ -4,7 +4,8 @@
 // never invoked by the normal app build, the stager or the application bundle,
 // so the deployed 12-asset preview is unchanged. The asyncify variant is used
 // because the broker's `api.fetch` awaits a host call.
-import { copyFile, lstat, mkdir, readFile, realpath, rm, stat, writeFile } from "node:fs/promises";
+import { copyFile, lstat, mkdir, readFile, realpath, rename, rm, stat, writeFile } from "node:fs/promises";
+import { randomBytes } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { createRequire } from "node:module";
@@ -157,4 +158,40 @@ export async function buildPluginEngineAssets({ outdir = defaultOutdir, entry = 
   });
   await writeFile(path.join(resolvedOutdir, ENGINE_ASSET_NAMES.manifest), `${JSON.stringify(manifest, null, 2)}\n`);
   return { outdir: resolvedOutdir, manifest };
+}
+
+export function buildInstalledManifest(manifest, directory) {
+  if (!/^\/assets\/plugins\/[a-f0-9]{16}$/.test(directory)) throw new Error("invalid engine asset directory");
+  return { ...manifest, directory };
+}
+
+// Installs the built engine into a content-versioned directory under
+// app/alpha/dist and writes the non-immutable manifest that points at it. Only
+// called by the explicit opt-in build hook; the normal build never touches it.
+export async function installPluginEngineAssets({ distDir = path.join(alphaRoot, "dist") } = {}) {
+  const expected = path.join(alphaRoot, "dist");
+  const resolvedDist = path.resolve(distDir);
+  if (resolvedDist !== expected) throw new Error("engine assets must be installed under app/alpha/dist");
+  const realAlpha = await realpath(alphaRoot);
+  const realDist = await realpath(resolvedDist);
+  if (realDist !== path.join(realAlpha, "dist")) throw new Error("app/alpha/dist must not be a symlink");
+  const pluginsRoot = path.join(realDist, "assets", "plugins");
+  await mkdir(pluginsRoot, { recursive: true });
+  const staging = path.join(pluginsRoot, `.staging-${randomBytes(6).toString("hex")}`);
+  try {
+    const { manifest } = await buildPluginEngineAssets({ outdir: staging });
+    const jsSha = manifest.files.find((file) => file.name === ENGINE_ASSET_NAMES.js).sha256;
+    const wasmSha = manifest.files.find((file) => file.name === ENGINE_ASSET_NAMES.wasm).sha256;
+    const directoryName = createHash("sha256").update(`${jsSha}:${wasmSha}`).digest("hex").slice(0, 16);
+    const target = path.join(pluginsRoot, directoryName);
+    await rm(target, { recursive: true, force: true });
+    await mkdir(target, { recursive: true });
+    await rename(path.join(staging, ENGINE_ASSET_NAMES.js), path.join(target, ENGINE_ASSET_NAMES.js));
+    await rename(path.join(staging, ENGINE_ASSET_NAMES.wasm), path.join(target, ENGINE_ASSET_NAMES.wasm));
+    const installed = buildInstalledManifest(manifest, `/assets/plugins/${directoryName}`);
+    await writeFile(path.join(pluginsRoot, ENGINE_ASSET_NAMES.manifest), `${JSON.stringify(installed, null, 2)}\n`);
+    return installed;
+  } finally {
+    await rm(staging, { recursive: true, force: true });
+  }
 }
