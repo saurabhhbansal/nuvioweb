@@ -311,7 +311,7 @@ Consequences for #10:
 
 Windows 11 25H2 + Edge155.0.4283.62/Chromium155.0.8059.85: owner completed the guest checklist (demo add-on install, catalog, VP8/Opus playback with audible sound, pause/seek, English subtitle, Back, save/reload) with all steps passing; account isolation was not attempted. iPhone 17 Pro/iOS27 Safari: the VP8/Opus demo played, but native 4K MKV/HEVC/Dolby Vision/HDR sources failed. One surfaced `startup-media-error` with media code4; the other surfaced `startup-stall` despite an unsupported Matroska/HEVC configuration. Multitrack audio was not testable (no multi-audio source); HDR rendering was not observed. Evidence: [device verification](../../evidence/device-verification-2026-10-19.md).
 
-**Next unit — honest unsupported-container/codec classification (pre-code plan).**
+**Next unit — honest, machine-readable startup classification + automated WebKit coverage (pre-code plan).**
 
 Targets: the player startup classifier currently producing `startup-media-error`/`startup-stall` (`app/alpha/js/ui/screens/player/playerScreen.js`), existing source descriptor/capability helpers, its browser/unit tests and `PLAYBACK_QUALITY_MATRIX.md`. No transcoding, demuxer, proxy or new codec.
 
@@ -320,3 +320,17 @@ Behavior: when startup fails and the source descriptor or a definitive `canPlayT
 Tests: synthetic source descriptors for MKV/HEVC/DV/DDP and supported H.264/HLS controls; simulate media error4/stall events in the bundled player fixture; assert reason, message and return path; no real provider media or live credentials. Manual iPhone re-check after integration on a supported source and, if available, an HDR/HLS source.
 
 Non-goals: making Safari play MKV/HEVC/DV, converting media, claiming HDR or multitrack support, or changing source selection ordering. Rollback: protected revert; no remote state. Verification: focused player/capability tests, full application/browser suites, lint/build/docs checks, and a recorded manual iPhone observation.
+
+
+### Additional Safari results and revised next steps (2026-10-19)
+
+The owner's follow-up iPhone observations: non-MKV MP4 sources also returned `startup-stall`; a WebDL source that requires special request headers produced the correct user-facing “requires special request headers” message but still reported `startup-stall` as the reason. This confirms two gaps: (1) startup failures need distinct machine-readable reasons (unsupported-container, unsupported-codec, header-required, network-stall, unknown) with matching user guidance; (2) the iOS/Safari gap is not MKV-only, so root-cause claims require source descriptors and engine-level fixtures rather than ad-hoc manual attempts.
+
+The owner has paused further manual checks. The next units are therefore:
+
+1. **Startup classification fix (before code):** extend the existing player startup classifier so header-required, unsupported container/codec and generic stall have separate bounded reasons and messages; synthetic source descriptors and simulated media-error/stall events in the bundled player fixture; no transcoding or support claims. Keep transient network retries and never relabel an unknown failure as unsupported.
+2. **Automated WebKit engine coverage in CI:** add Playwright WebKit to the browser workflow (ubuntu runner can install it; this ARM64 host cannot) with synthetic fixtures for supported H.264/MP4/HLS paths, unsupported MKV/HEVC/DV descriptors, header-required messaging and capability-honest return. Treat this as engine-family evidence, not a claim about every iOS version.
+3. **Optional synthetic audio/HDR fixtures:** use generated original media for multitrack and HDR capability assertions where the engine supports them; do not rely on provider media.
+4. **#11 unit 6b-2** continues in parallel.
+
+Manual device runs are now reserved for a specific claim that cannot be automated; none are requested at this stage.
