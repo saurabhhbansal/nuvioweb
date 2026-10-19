@@ -1,0 +1,140 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-19T06:58:59.401Z",
+  "deployedRevision": "8edec4248405d59f5b8639085a1e779e6878911b",
+  "mode": "read-only live primary-profile hydration",
+  "results": [
+    {
+      "alias": "A",
+      "operation": "cloud-pull-status",
+      "operations": {
+        "addons": 200,
+        "library": 200,
+        "history": 200,
+        "progress": 200
+      }
+    },
+    {
+      "alias": "A",
+      "operation": "password-sign-in",
+      "status": 200,
+      "identityMatched": true,
+      "authenticatedRoute": true,
+      "profileCount": 3
+    },
+    {
+      "alias": "A",
+      "operation": "cloud-pull-status",
+      "operations": {
+        "history": 200,
+        "progress": 200,
+        "addons": 200,
+        "library": 200
+      }
+    },
+    {
+      "alias": "A",
+      "operation": "reload-persistence",
+      "sessionPresent": true,
+      "profileCount": 3
+    },
+    {
+      "alias": "A-independent",
+      "operation": "cloud-pull-status",
+      "operations": {
+        "addons": 200,
+        "progress": 200,
+        "history": 200
+      }
+    },
+    {
+      "alias": "A-independent",
+      "operation": "password-sign-in",
+      "status": 200,
+      "identityMatched": true,
+      "authenticatedRoute": true,
+      "profileCount": 3
+    },
+    {
+      "alias": "A-independent",
+      "operation": "existing-data-control",
+      "matching": {
+        "library": {
+          "equal": true,
+          "count": 0,
+          "controlCount": 0
+        },
+        "history": {
+          "equal": true,
+          "count": 162,
+          "controlCount": 162
+        },
+        "progress": {
+          "equal": false,
+          "count": 154,
+          "controlCount": 0
+        },
+        "addons": {
+          "equal": true,
+          "count": 6,
+          "controlCount": 6
+        }
+      },
+      "writePropagation": "not-tested"
+    },
+    {
+      "alias": "A",
+      "operation": "independent-context",
+      "sameIdentity": true,
+      "profilesEqual": true,
+      "profileCount": 3
+    },
+    {
+      "alias": "B-control",
+      "operation": "cloud-pull-status",
+      "operations": {
+        "addons": 200,
+        "progress": 200,
+        "library": 200,
+        "history": 200
+      }
+    },
+    {
+      "alias": "B-control",
+      "operation": "password-sign-in",
+      "status": 200,
+      "identityMatched": true,
+      "authenticatedRoute": true,
+      "profileCount": 1
+    },
+    {
+      "alias": "B-control",
+      "operation": "cloud-pull-status",
+      "operations": {
+        "history": 200,
+        "progress": 200,
+        "addons": 200,
+        "library": 200
+      }
+    },
+    {
+      "alias": "B-control",
+      "operation": "reload-persistence",
+      "sessionPresent": true,
+      "profileCount": 1
+    }
+  ],
+  "limitations": [
+    "Third-party providers blocked",
+    "No measured token expiry or revocation",
+    "No new-data write propagation proof; existing controls only",
+    "No QR/PIN approval",
+    "Single Linux Chromium environment; owner Windows/Edge report is separate"
+  ],
+  "browser": "156.0.8078.4",
+  "platform": "linux",
+  "architecture": "arm64",
+  "status": "blocked-or-failed",
+  "failedStage": "A-sign-out",
+  "failureCode": "PROFILE_SIGNOUT_NOT_AVAILABLE"
+}

@@ -60,9 +60,12 @@ function settledValue(settled, fallback = null) {
   return settled?.status === "fulfilled" ? settled.value : fallback;
 }
 
-let pendingCriticalHydration = null; // { profileId, promise }
+// Async work belongs to one start/stop lifecycle, even when profile IDs repeat.
+let lifecycleGeneration = 0;
+let pendingCriticalHydration = null; // { profileId, generation, promise }
 
 async function hydrateCriticalHomeUncached(resolvedProfileId) {
+  const generation = lifecycleGeneration;
   const startedAt = syncNow();
   if (!resolvedProfileId || !isActiveProfile(resolvedProfileId)) {
     return { profileId: resolvedProfileId, current: false, addons: null };
@@ -71,6 +74,12 @@ async function hydrateCriticalHomeUncached(resolvedProfileId) {
   // Home must not mount with a temporary catalog layout or add-on list and
   // then visibly replace it. These are the only remote domains on its first
   // render critical path; everything else belongs to background hydration.
+  const syncContext = AuthManager.isAuthenticated
+    ? await SyncHydrationState.capture(resolvedProfileId)
+    : null;
+  if (generation !== lifecycleGeneration || !isActiveProfile(resolvedProfileId)) {
+    return { profileId: resolvedProfileId, current: false, addons: null };
+  }
   const [profileSettings, homeCatalog, addons] = AuthManager.isAuthenticated
     ? await Promise.allSettled([
         ProfileSettingsSyncService.pull(resolvedProfileId),
@@ -83,12 +92,10 @@ async function hydrateCriticalHomeUncached(resolvedProfileId) {
         { status: "fulfilled", value: null }
       ];
 
-  const syncContext = AuthManager.isAuthenticated
-    ? await SyncHydrationState.capture(resolvedProfileId)
-    : null;
+  const currentContext = !syncContext || (await SyncHydrationState.isCurrent(syncContext));
   const current =
-    isActiveProfile(resolvedProfileId) &&
-    (!syncContext || (await SyncHydrationState.isCurrent(syncContext)));
+    generation === lifecycleGeneration &&
+    isActiveProfile(resolvedProfileId) && currentContext;
   if (!current) {
     return { profileId: resolvedProfileId, current: false, addons: null };
   }
@@ -96,7 +103,8 @@ async function hydrateCriticalHomeUncached(resolvedProfileId) {
   // Theme and language are profile-scoped settings. Apply them only after
   // the active profile's settings pull is settled, never from a stale pull.
   await I18n.init();
-  if (!isActiveProfile(resolvedProfileId)) {
+  const presentationContextCurrent = !syncContext || (await SyncHydrationState.isCurrent(syncContext));
+  if (generation !== lifecycleGeneration || !isActiveProfile(resolvedProfileId) || !presentationContextCurrent) {
     return { profileId: resolvedProfileId, current: false, addons: null };
   }
   ThemeManager.apply();
@@ -150,6 +158,9 @@ export const StartupSyncService = {
       }
       return;
     }
+    lifecycleGeneration += 1;
+    const generation = lifecycleGeneration;
+    pendingCriticalHydration = null;
     this.started = true;
     SyncHydrationState.invalidate();
     this.profileScopedSyncEnabled = Boolean(profileScopedSyncEnabled);
@@ -168,12 +179,18 @@ export const StartupSyncService = {
       await this.syncPull({ includeProfileScoped: this.profileScopedSyncEnabled });
     }
 
+    if (generation !== lifecycleGeneration || !this.started) return;
     this.intervalId = setInterval(() => {
       this.syncCycle();
     }, SYNC_INTERVAL_MS);
   },
 
   stop() {
+    lifecycleGeneration += 1;
+    pendingCriticalHydration = null;
+    this.inFlight = false;
+    this.syncRequestedWhileInFlight = false;
+    this.addonSyncInFlight = null;
     this.started = false;
     SyncHydrationState.invalidate();
     this.profileScopedSyncEnabled = false;
@@ -208,12 +225,13 @@ export const StartupSyncService = {
     const resolvedProfileId = normalizeProfileId(profileId);
     if (
       pendingCriticalHydration &&
+      pendingCriticalHydration.generation === lifecycleGeneration &&
       pendingCriticalHydration.profileId === resolvedProfileId
     ) {
       return pendingCriticalHydration.promise;
     }
     const promise = hydrateCriticalHomeUncached(resolvedProfileId);
-    pendingCriticalHydration = { profileId: resolvedProfileId, promise };
+    pendingCriticalHydration = { profileId: resolvedProfileId, generation: lifecycleGeneration, promise };
     promise.finally(() => {
       if (pendingCriticalHydration?.promise === promise) {
         pendingCriticalHydration = null;
@@ -227,19 +245,23 @@ export const StartupSyncService = {
       if (this.started && this.inFlight) this.syncRequestedWhileInFlight = true;
       return false;
     }
+    const generation = lifecycleGeneration;
     this.inFlight = true;
     try {
       const includeProfileScoped = this.profileScopedSyncEnabled;
       const pullResults = await this.syncPull({ includeProfileScoped, criticalHydration });
+      if (generation !== lifecycleGeneration || !this.started) return false;
       if (pushAfterPull && includeProfileScoped) {
         await this.syncPush(pullResults);
       }
-      return true;
+      return generation === lifecycleGeneration && this.started;
     } finally {
-      this.inFlight = false;
-      if (this.syncRequestedWhileInFlight && this.started) {
-        this.syncRequestedWhileInFlight = false;
-        void this.requestSyncNow({ pushAfterPull: false });
+      if (generation === lifecycleGeneration) {
+        this.inFlight = false;
+        if (this.syncRequestedWhileInFlight && this.started) {
+          this.syncRequestedWhileInFlight = false;
+          void this.requestSyncNow({ pushAfterPull: false });
+        }
       }
     }
   },
@@ -251,17 +273,22 @@ export const StartupSyncService = {
     if (!AuthManager.isAuthenticated) {
       return {};
     }
+    const generation = lifecycleGeneration;
+    const dispatchCurrent = (operation) => Promise.resolve().then(() =>
+      generation === lifecycleGeneration ? operation() : null
+    );
     const pullResults = {};
     const syncStartedAt = syncNow();
     const activeProfileId = ProfileManager.getActiveProfileId();
     for (let attempt = 1; attempt <= MAX_PULL_ATTEMPTS; attempt += 1) {
+      if (generation !== lifecycleGeneration) return pullResults;
       try {
         const critical =
           criticalHydration?.current &&
           normalizeProfileId(criticalHydration.profileId) === normalizeProfileId(activeProfileId)
             ? criticalHydration
             : await this.hydrateCriticalHome(activeProfileId);
-        if (!critical.current || !isActiveProfile(activeProfileId)) {
+        if (generation !== lifecycleGeneration || !critical.current || !isActiveProfile(activeProfileId)) {
           return pullResults;
         }
         pullResults.addons = critical.addons;
@@ -269,9 +296,11 @@ export const StartupSyncService = {
         // Every background branch starts now. SIMKL retains its credential →
         // refresh dependency inside its own branch, so it cannot delay
         // collections, library, watched/progress, plugins, or Home.
-        const profilesTask = Promise.resolve().then(() => ProfileSyncService.pull()).then(async (profiles) => {
+        const profilesTask = dispatchCurrent(() => ProfileSyncService.pull()).then(async (profiles) => {
+          if (generation !== lifecycleGeneration) return [];
           logSyncTiming("background-profile-pull", syncStartedAt);
           const profileIds = await collectKnownProfileIds(profiles);
+          if (generation !== lifecycleGeneration) return [];
           await Promise.allSettled(
             profileIds
               .filter((profileId) => normalizeProfileId(profileId) !== normalizeProfileId(activeProfileId))
@@ -280,34 +309,34 @@ export const StartupSyncService = {
           logSyncTiming("background-inactive-profile-settings-pull", syncStartedAt);
           return profiles;
         });
-        const traktCredentialsTask = Promise.resolve().then(() =>
+        const traktCredentialsTask = dispatchCurrent(() =>
           TraktCredentialSyncService.pullFromRemote(activeProfileId)
         );
-        const providerCredentialsTask = Promise.resolve().then(() =>
+        const providerCredentialsTask = dispatchCurrent(() =>
           ProviderCredentialSyncService.syncFromRemote(activeProfileId)
         );
-        const simklTask = Promise.resolve().then(() =>
+        const simklTask = dispatchCurrent(() =>
           SimklCredentialSyncService.pullFromRemote(activeProfileId)
         )
-          .then(() => SimklSyncService.refresh())
+          .then(() => generation === lifecycleGeneration ? SimklSyncService.refresh() : false)
           .catch((error) => {
             console.warn("Simkl automatic refresh failed", error);
             return false;
           })
           .finally(() => logSyncTiming("background-simkl-refresh", syncStartedAt));
         const watchedItemsTask = includeProfileScoped
-          ? Promise.resolve().then(() => WatchedItemsSyncService.pull())
+          ? dispatchCurrent(() => WatchedItemsSyncService.pull())
           : null;
         const scopedTasks = includeProfileScoped
           ? {
-              collections: Promise.resolve().then(() => CollectionSyncService.pull(activeProfileId)),
-              plugins: Promise.resolve().then(() => PluginSyncService.pull()),
-              savedLibrary: Promise.resolve().then(() => SavedLibrarySyncService.pull(activeProfileId)),
+              collections: dispatchCurrent(() => CollectionSyncService.pull(activeProfileId)),
+              plugins: dispatchCurrent(() => PluginSyncService.pull()),
+              savedLibrary: dispatchCurrent(() => SavedLibrarySyncService.pull(activeProfileId)),
               watchedItems: watchedItemsTask,
               // Both requests still go out together; only the progress merge
               // waits, because a completion made on another device arrives as a
               // watched record and as the absence of a progress row.
-              watchProgress: Promise.resolve().then(() =>
+              watchProgress: dispatchCurrent(() =>
                 WatchProgressSyncService.pull({ watchedItemsReady: watchedItemsTask })
               )
             }
@@ -320,7 +349,7 @@ export const StartupSyncService = {
           ...Object.values(scopedTasks)
         ]);
         logSyncTiming("background-domains-settled", syncStartedAt);
-        if (!isActiveProfile(activeProfileId)) {
+        if (generation !== lifecycleGeneration || !isActiveProfile(activeProfileId)) {
           return pullResults;
         }
         if (includeProfileScoped) {
@@ -343,6 +372,7 @@ export const StartupSyncService = {
         logSyncTiming("background-profile-scoped-pull", syncStartedAt);
         return pullResults;
       } catch (error) {
+        if (generation !== lifecycleGeneration) return pullResults;
         console.warn(`Startup sync pull failed (attempt ${attempt}/${MAX_PULL_ATTEMPTS})`, error);
         if (attempt < MAX_PULL_ATTEMPTS) {
           await sleep(3000);
@@ -353,6 +383,7 @@ export const StartupSyncService = {
   },
 
   async syncPush(pullResults = {}) {
+    const generation = lifecycleGeneration;
     if (!AuthManager.isAuthenticated) {
       return;
     }
@@ -363,9 +394,11 @@ export const StartupSyncService = {
       if (allow(pullResults.collections)) {
         await CollectionSyncService.push(null, { automatic: true });
       }
+      if (generation !== lifecycleGeneration || !AuthManager.isAuthenticated) return;
       if (allow(pullResults.plugins)) {
         await PluginSyncService.push({ automatic: true });
       }
+      if (generation !== lifecycleGeneration || !AuthManager.isAuthenticated) return;
       if (allow(pullResults.addons)) {
         await LibrarySyncService.push({ automatic: true });
       }
@@ -411,6 +444,7 @@ export const StartupSyncService = {
     if (!this.started || !this.profileScopedSyncEnabled) {
       return false;
     }
+    const generation = lifecycleGeneration;
     const run = async () => {
       let synced = true;
       do {
@@ -418,21 +452,26 @@ export const StartupSyncService = {
         try {
           synced = (await LibrarySyncService.push()) && synced;
         } catch (error) {
+          if (generation !== lifecycleGeneration) return false;
           console.warn("Addon auto push failed", error);
           synced = false;
         }
+        if (generation !== lifecycleGeneration) return false;
       } while (this.addonSyncPending);
 
       this.addonSyncWaiters.splice(0).forEach((resolve) => resolve(synced));
       return synced;
     };
-    this.addonSyncInFlight = run();
+    const task = run();
+    this.addonSyncInFlight = task;
     try {
-      return await this.addonSyncInFlight;
+      return await task;
     } finally {
-      this.addonSyncInFlight = null;
-      if (this.addonSyncPending) {
-        void this.flushAddonSync();
+      if (this.addonSyncInFlight === task) {
+        this.addonSyncInFlight = null;
+        if (this.addonSyncPending && generation === lifecycleGeneration && this.started) {
+          void this.flushAddonSync();
+        }
       }
     }
   }

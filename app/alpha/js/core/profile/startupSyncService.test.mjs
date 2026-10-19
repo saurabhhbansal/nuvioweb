@@ -80,6 +80,7 @@ function deferred() {
 
 function installDependencies({ activeProfileId = "1" } = {}) {
   const calls = [];
+  let sessionGeneration = 1;
   globalThis.__startupSyncDeps__ = {
     AuthManager: { isAuthenticated: true, getEffectiveUserId: async () => "user-1" },
     addonRepository: { onInstalledAddonsChanged: () => () => {} },
@@ -116,8 +117,8 @@ function installDependencies({ activeProfileId = "1" } = {}) {
       apply: () => { calls.push("i18n-apply"); }
     },
     SyncHydrationState: {
-      capture: async (profileId) => ({ profileId: String(profileId), activeProfileId, generation: 1 }),
-      isCurrent: async (context) => context.activeProfileId === activeProfileId,
+      capture: async (profileId) => ({ profileId: String(profileId), activeProfileId, generation: sessionGeneration }),
+      isCurrent: async (context) => context.activeProfileId === activeProfileId && context.generation === sessionGeneration,
       invalidate: () => {},
       beginPull: async () => true,
       completePull: async () => true,
@@ -125,7 +126,11 @@ function installDependencies({ activeProfileId = "1" } = {}) {
       allowsAutomaticPush: async () => true
     }
   };
-  return { calls, setActiveProfile: (value) => { activeProfileId = String(value); } };
+  return {
+    calls,
+    setActiveProfile: (value) => { activeProfileId = String(value); },
+    setSessionGeneration: (value) => { sessionGeneration = value; }
+  };
 }
 
 test("critical Home hydration waits only for profile settings, catalog settings, and addons", async () => {
@@ -196,4 +201,358 @@ test("a stale profile activation cannot apply its critical Home settings after a
   const result = await hydration;
   assert.equal(result.current, false);
   assert.deepEqual(calls, []);
+});
+
+
+test("a restarted account hydrates without waiting for old work and old completion cannot clear its pending cycle", async () => {
+  installDependencies();
+  const oldDomain = deferred();
+  const newDomain = deferred();
+  let account = "A";
+  const watched = [];
+  globalThis.__startupSyncDeps__.ProviderCredentialSyncService.syncFromRemote = () =>
+    account === "A" ? oldDomain.promise : newDomain.promise;
+  globalThis.__startupSyncDeps__.WatchedItemsSyncService.pull = async () => {
+    watched.push(account);
+    return [];
+  };
+  const { StartupSyncService: service } = await loadStartupSyncService();
+  const criticalHydration = { profileId: "1", current: true, addons: { result: "SUCCESS_EMPTY" } };
+  let oldCycle;
+  let newCycle;
+  try {
+    await service.start({ profileScopedSyncEnabled: true, runInitialPull: false });
+    oldCycle = service.requestSyncNow({ criticalHydration });
+    await new Promise(setImmediate);
+    assert.deepEqual(watched, ["A"]);
+    service.stop();
+    account = "B";
+    await service.start({ profileScopedSyncEnabled: true, runInitialPull: false });
+    newCycle = service.requestSyncNow({ criticalHydration });
+    await new Promise(setImmediate);
+    assert.deepEqual(watched, ["A", "B"]);
+    oldDomain.resolve(true);
+    assert.equal(await oldCycle, false);
+    assert.equal(service.inFlight, true);
+    newDomain.resolve(true);
+    assert.equal(await newCycle, true);
+    assert.equal(service.inFlight, false);
+  } finally {
+    service.stop();
+    oldDomain.resolve(true);
+    newDomain.resolve(true);
+    await Promise.allSettled([oldCycle, newCycle]);
+    service.stop();
+  }
+});
+
+test("critical hydration for the new account's profile1 does not reuse the old account's pending task", async () => {
+  installDependencies();
+  const oldSettings = deferred();
+  let settingsCalls = 0;
+  globalThis.__startupSyncDeps__.ProfileSettingsSyncService.pull = () => {
+    settingsCalls++;
+    return settingsCalls === 1 ? oldSettings.promise : true;
+  };
+  const { StartupSyncService: service } = await loadStartupSyncService();
+  let oldHydration;
+  let newHydration;
+  try {
+    await service.start({ runInitialPull: false });
+    oldHydration = service.hydrateCriticalHome("1");
+    await new Promise(setImmediate);
+    service.stop();
+    await service.start({ runInitialPull: false });
+    newHydration = service.hydrateCriticalHome("1");
+    await new Promise(setImmediate);
+    assert.equal(settingsCalls, 2);
+    assert.equal((await newHydration).current, true);
+    oldSettings.resolve(true);
+    assert.equal((await oldHydration).current, false);
+  } finally {
+    service.stop();
+    oldSettings.resolve(true);
+    await Promise.allSettled([oldHydration, newHydration]);
+  }
+});
+
+test("critical hydration cannot adopt a different session that arrived during its awaits", async () => {
+  const { calls, setSessionGeneration } = installDependencies();
+  const settings = deferred();
+  globalThis.__startupSyncDeps__.ProfileSettingsSyncService.pull = () => settings.promise;
+  const { StartupSyncService: service } = await loadStartupSyncService();
+  const pending = service.hydrateCriticalHome("1");
+  await new Promise(setImmediate);
+  setSessionGeneration(2);
+  settings.resolve(true);
+  const result = await pending;
+  assert.equal(result.current, false);
+  assert.deepEqual(calls, []);
+});
+
+test("concurrent critical hydration in the same lifecycle and profile still shares one pull", async () => {
+  installDependencies();
+  const settings = deferred();
+  let settingsCalls = 0;
+  globalThis.__startupSyncDeps__.ProfileSettingsSyncService.pull = () => {
+    settingsCalls++;
+    return settings.promise;
+  };
+  const { StartupSyncService: service } = await loadStartupSyncService();
+  const first = service.hydrateCriticalHome("1");
+  const second = service.hydrateCriticalHome("1");
+  await new Promise(setImmediate);
+  assert.equal(settingsCalls, 1);
+  settings.resolve(true);
+  const results = await Promise.all([first, second]);
+  assert.deepEqual(results.map((result) => result.current), [true, true]);
+});
+
+test("an obsolete automatic push cannot advance to the next domain after restart", async () => {
+  installDependencies();
+  const collections = deferred();
+  const pushed = [];
+  globalThis.__startupSyncDeps__.CollectionSyncService.push = () => {
+    pushed.push("collections");
+    return collections.promise;
+  };
+  globalThis.__startupSyncDeps__.PluginSyncService.push = async () => { pushed.push("plugins"); };
+  globalThis.__startupSyncDeps__.LibrarySyncService.push = async () => { pushed.push("addons"); };
+  const { StartupSyncService: service } = await loadStartupSyncService();
+  const success = { result: "SUCCESS_WITH_DATA" };
+  let pending;
+  try {
+    await service.start({ runInitialPull: false });
+    pending = service.syncPush({ collections: success, plugins: success, addons: success });
+    await new Promise(setImmediate);
+    service.stop();
+    await service.start({ runInitialPull: false });
+    collections.resolve(true);
+    await pending;
+    assert.deepEqual(pushed, ["collections"]);
+  } finally {
+    service.stop();
+    collections.resolve(true);
+    await pending;
+  }
+});
+
+test("addon sync restart owns its task and waiters while old-account completion is discarded", async () => {
+  installDependencies();
+  const oldPush = deferred();
+  const newPush = deferred();
+  const calls = [];
+  let account = "A";
+  let newWaiter = "pending";
+  globalThis.__startupSyncDeps__.LibrarySyncService.push = () => {
+    calls.push(account);
+    return account === "A" ? oldPush.promise : newPush.promise;
+  };
+  const { StartupSyncService: service } = await loadStartupSyncService();
+  let oldTask;
+  let newTask;
+  try {
+    await service.start({ runInitialPull: false, profileScopedSyncEnabled: true });
+    oldTask = service.flushAddonSync();
+    await new Promise(setImmediate);
+    service.stop();
+    account = "B";
+    await service.start({ runInitialPull: false, profileScopedSyncEnabled: true });
+    service.addonSyncWaiters.push((value) => { newWaiter = value; });
+    newTask = service.flushAddonSync();
+    await new Promise(setImmediate);
+    assert.deepEqual(calls, ["A", "B"]);
+    oldPush.resolve(true);
+    assert.equal(await oldTask, false);
+    assert.equal(newWaiter, "pending");
+    assert.notEqual(service.addonSyncInFlight, null);
+    newPush.resolve(true);
+    assert.equal(await newTask, true);
+    assert.equal(newWaiter, true);
+    assert.equal(service.addonSyncInFlight, null);
+  } finally {
+    service.stop();
+    oldPush.resolve(true);
+    newPush.resolve(true);
+    await Promise.allSettled([oldTask, newTask]);
+    service.stop();
+  }
+});
+
+test("a stale critical context capture cannot start new-account remote work", async () => {
+  installDependencies();
+  const capture = deferred();
+  const pulls = [];
+  globalThis.__startupSyncDeps__.SyncHydrationState.capture = () => capture.promise;
+  globalThis.__startupSyncDeps__.ProfileSettingsSyncService.pull = async () => { pulls.push("settings"); };
+  const { StartupSyncService: service } = await loadStartupSyncService();
+  let pending;
+  try {
+    await service.start({ runInitialPull: false });
+    pending = service.hydrateCriticalHome("1");
+    await new Promise(setImmediate);
+    service.stop();
+    await service.start({ runInitialPull: false });
+    capture.resolve({ profileId: "1", activeProfileId: "1", generation: 1 });
+    assert.equal((await pending).current, false);
+    assert.deepEqual(pulls, []);
+  } finally {
+    service.stop();
+    capture.resolve({ profileId: "1", activeProfileId: "1", generation: 1 });
+    await pending;
+  }
+});
+
+test("an obsolete initial start cannot replace the restarted lifecycle's interval", async () => {
+  installDependencies();
+  const settings = deferred();
+  globalThis.__startupSyncDeps__.ProfileSettingsSyncService.pull = () => settings.promise;
+  const { StartupSyncService: service } = await loadStartupSyncService();
+  let oldStart;
+  let newInterval;
+  try {
+    oldStart = service.start();
+    await new Promise(setImmediate);
+    service.stop();
+    await service.start({ runInitialPull: false });
+    newInterval = service.intervalId;
+    settings.resolve(true);
+    await oldStart;
+    assert.equal(service.intervalId, newInterval);
+  } finally {
+    service.stop();
+    clearInterval(newInterval);
+    settings.resolve(true);
+    await oldStart;
+  }
+});
+
+test("account teardown during language loading cannot apply stale profile presentation", async () => {
+  const { calls } = installDependencies();
+  const language = deferred();
+  const started = deferred();
+  globalThis.__startupSyncDeps__.I18n.init = () => {
+    calls.push("i18n-init");
+    started.resolve();
+    return language.promise;
+  };
+  const { StartupSyncService: service } = await loadStartupSyncService();
+  let pending;
+  try {
+    await service.start({ runInitialPull: false });
+    pending = service.hydrateCriticalHome("1");
+    await started.promise;
+    service.stop();
+    await service.start({ runInitialPull: false });
+    language.resolve();
+    assert.equal((await pending).current, false);
+    assert.deepEqual(calls, ["i18n-init"]);
+  } finally {
+    service.stop();
+    language.resolve();
+    await pending;
+  }
+});
+
+test("old profile results cannot launch inactive-profile pulls under the next account", async () => {
+  installDependencies();
+  const profiles = deferred();
+  const started = deferred();
+  const inactive = [];
+  globalThis.__startupSyncDeps__.ProfileSyncService.pull = () => { started.resolve(); return profiles.promise; };
+  globalThis.__startupSyncDeps__.ProfileSettingsSyncService.pull = async (id) => { inactive.push(id); };
+  const { StartupSyncService: service } = await loadStartupSyncService();
+  let pending;
+  try {
+    await service.start({ runInitialPull: false, profileScopedSyncEnabled: true });
+    pending = service.requestSyncNow({ criticalHydration: { profileId: "1", current: true } });
+    await started.promise;
+    service.stop();
+    await service.start({ runInitialPull: false });
+    profiles.resolve([{ id: "9" }]);
+    await pending;
+    assert.deepEqual(inactive, []);
+  } finally {
+    service.stop();
+    profiles.resolve([]);
+    await pending;
+  }
+});
+
+test("account teardown while collecting inactive profile IDs cannot launch their pulls", async () => {
+  installDependencies();
+  const localProfiles = deferred();
+  const started = deferred();
+  const inactive = [];
+  globalThis.__startupSyncDeps__.ProfileSyncService.pull = async () => [];
+  globalThis.__startupSyncDeps__.ProfileManager.getProfiles = () => { started.resolve(); return localProfiles.promise; };
+  globalThis.__startupSyncDeps__.ProfileSettingsSyncService.pull = async (id) => { inactive.push(id); };
+  const { StartupSyncService: service } = await loadStartupSyncService();
+  let pending;
+  try {
+    await service.start({ runInitialPull: false, profileScopedSyncEnabled: true });
+    pending = service.requestSyncNow({ criticalHydration: { profileId: "1", current: true } });
+    await started.promise;
+    service.stop();
+    await service.start({ runInitialPull: false });
+    localProfiles.resolve([{ id: "9" }]);
+    await pending;
+    assert.deepEqual(inactive, []);
+  } finally {
+    service.stop();
+    localProfiles.resolve([{ id: "9" }]);
+    await pending;
+  }
+});
+
+test("old Simkl credential completion cannot start refresh in the new lifecycle", async () => {
+  installDependencies();
+  const credentials = deferred();
+  const started = deferred();
+  let refreshes = 0;
+  globalThis.__startupSyncDeps__.SimklCredentialSyncService.pullFromRemote = () => { started.resolve(); return credentials.promise; };
+  globalThis.__startupSyncDeps__.SimklSyncService.refresh = async () => { refreshes++; };
+  const { StartupSyncService: service } = await loadStartupSyncService();
+  let pending;
+  try {
+    await service.start({ runInitialPull: false });
+    pending = service.requestSyncNow({ criticalHydration: { profileId: "1", current: true } });
+    await started.promise;
+    service.stop();
+    await service.start({ runInitialPull: false });
+    credentials.resolve(true);
+    await pending;
+    assert.equal(refreshes, 0);
+  } finally {
+    service.stop();
+    credentials.resolve(true);
+    await pending;
+  }
+});
+
+test("queued old-cycle domain dispatch cannot start after synchronous teardown", async () => {
+  installDependencies();
+  const called = [];
+  for (const [name, method] of [
+    ["ProfileSyncService", "pull"], ["TraktCredentialSyncService", "pullFromRemote"],
+    ["ProviderCredentialSyncService", "syncFromRemote"], ["SimklCredentialSyncService", "pullFromRemote"],
+    ["CollectionSyncService", "pull"], ["PluginSyncService", "pull"],
+    ["SavedLibrarySyncService", "pull"], ["WatchedItemsSyncService", "pull"],
+    ["WatchProgressSyncService", "pull"]
+  ]) {
+    globalThis.__startupSyncDeps__[name][method] = async () => { called.push(name); return []; };
+  }
+  const { StartupSyncService: service } = await loadStartupSyncService();
+  let pending;
+  try {
+    await service.start({ runInitialPull: false, profileScopedSyncEnabled: true });
+    pending = service.requestSyncNow({ criticalHydration: { profileId: "1", current: true } });
+    service.stop();
+    await service.start({ runInitialPull: false });
+    await pending;
+    assert.deepEqual(called, []);
+  } finally {
+    service.stop();
+    await pending;
+  }
 });
