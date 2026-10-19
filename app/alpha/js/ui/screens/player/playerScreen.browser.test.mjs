@@ -205,3 +205,24 @@ test("classified header-required guidance outranks an HTTP status and messages a
   assert.match(displayText, /export function ensureSentenceEnding/);
   assert.match(displayText, /\[\.!\?\]\$/);
 });
+
+test("the audio dialog refuses to offer tracks the engine cannot switch", async () => {
+  const source = await readFile(playerScreenUrl, "utf8");
+
+  // One decision, shared by the dialog and the activation boundary.
+  assert.match(source, /getAudioSwitchBlocked\(copy = null\) \{/);
+  assert.match(source, /return availability\?\.tone === "warning";/);
+  assert.match(source, /if \(this\.getAudioSwitchBlocked\(\)\) \{/);
+  assert.match(
+    source,
+    /const audioAvailability = this\.getAudioTrackAvailability\(\);\s*\n\s*const audioSwitchBlocked = this\.getAudioSwitchBlocked\(audioAvailability\);/
+  );
+  // The empty state reuses that copy instead of asking twice.
+  assert.match(source, /this\.getUnavailableTrackMessage\("audio", audioAvailability\)/);
+  // Blocked rows show the reviewed message, leave the focus order and do not
+  // claim a codec failure.
+  assert.match(source, /escapeHtml\(audioAvailability\.fallback\)/);
+  assert.match(source, /const codecDisabled = entry\.supported === false;/);
+  assert.match(source, /tabindex="\$\{disabled \? "-1" : "0"\}"/);
+  assert.match(source, /\$\{disabled \? "" : " focusable"\}/);
+});
