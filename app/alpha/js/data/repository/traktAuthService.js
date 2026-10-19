@@ -2,6 +2,7 @@ import { TRAKT_API_URL, TRAKT_CLIENT_ID } from "../../config.js";
 import { TraktAuthStore } from "../local/traktAuthStore.js";
 import { detailWatchedEnrichmentService } from "./detailWatchedEnrichmentService.js";
 import { TraktCredentialSyncService } from "../../core/profile/traktCredentialSyncService.js";
+import { getSidecarCapabilities, requireSidecarCapability, sidecarUnavailableMessage } from "../../core/platform/sidecarCapabilities.js";
 
 const API_VERSION = "2";
 const DEFAULT_API_URL = "https://api.trakt.tv";
@@ -14,7 +15,7 @@ function apiBaseUrl() {
 }
 
 function hasRequiredCredentials() {
-  return Boolean(TRAKT_CLIENT_ID && browserBridgeStatus !== "unavailable");
+  return Boolean(getSidecarCapabilities().traktAuth && TRAKT_CLIENT_ID && browserBridgeStatus !== "unavailable");
 }
 
 function normalizeAuthErrorMessage(payload, fallback) {
@@ -37,6 +38,7 @@ async function readResponseBody(response) {
 }
 
 async function requestBrowserBridge(path, { method = "POST", body = null } = {}) {
+  requireSidecarCapability("traktAuth");
   const response = await fetch(`${BROWSER_AUTH_BRIDGE_BASE_PATH}${path}`, {
     method,
     headers: body == null ? undefined : { "Content-Type": "application/json" },
@@ -47,6 +49,10 @@ async function requestBrowserBridge(path, { method = "POST", body = null } = {})
 }
 
 async function ensureBrowserAuthBridge() {
+  if (!getSidecarCapabilities().traktAuth) {
+    browserBridgeStatus = "unavailable";
+    return false;
+  }
   try {
     const { response, payload } = await requestBrowserBridge("/health", { method: "GET" });
     browserBridgeStatus = response.ok && payload?.configured === true ? "available" : "unavailable";
@@ -126,11 +132,12 @@ export const TraktAuthService = {
   },
 
   async startDeviceAuth() {
-    if (!hasRequiredCredentials()) {
+    requireSidecarCapability("traktAuth");
+    if (!TRAKT_CLIENT_ID) {
       throw new Error("Missing TRAKT credentials");
     }
     if (!(await ensureBrowserAuthBridge())) {
-      throw new Error("Trakt browser authentication is unavailable on this server");
+      throw new Error(sidecarUnavailableMessage("traktAuth"));
     }
 
     const current = TraktAuthStore.get();
@@ -164,6 +171,9 @@ export const TraktAuthService = {
   },
 
   async pollDeviceToken() {
+    if (!getSidecarCapabilities().traktAuth) {
+      return { type: "failed", message: sidecarUnavailableMessage("traktAuth") };
+    }
     if (!hasRequiredCredentials()) {
       return { type: "failed", message: "Missing TRAKT credentials" };
     }
@@ -249,6 +259,7 @@ export const TraktAuthService = {
   },
 
   async getValidAccessToken() {
+    if (!getSidecarCapabilities().traktAuth) return null;
     const state = TraktAuthStore.get();
     if (!state.accessToken) {
       return null;

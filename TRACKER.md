@@ -2,7 +2,7 @@
 
 As of 2026-10-19. Source of truth: [acceptance-evidence ledger](docs/PROGRESS.json), [recovery audit](docs/RECOVERY_AUDIT.md), and linked PR/CI records. GitHub closed labels and inherited test counts alone are not product completion. Only main is authoritative; completion entries in an unmerged PR are proposed until their evidence PR merges.
 
-Total tickets: **26**. Verified completed: **9**. In progress: **1**. External blockers: **0**. Ready: **4**. Pending dependencies/implementation: **12**.
+Total tickets: **26**. Verified completed: **9**. In progress: **2**. External blockers: **1**. Ready: **2**. Pending dependencies/implementation: **12**.
 
 The initial 24 roadmap tickets are retained, plus dependency remediation #29 and owner-requested recovery #31. Remaining unfinished tickets include all non-verified rows below; blocked work is included rather than hidden.
 
@@ -14,8 +14,8 @@ The initial 24 roadmap tickets are retained, plus dependency remediation #29 and
 | [#4](https://github.com/saurabhhbansal/nuvioweb/issues/4) [M1][P0] Import pinned Alpha NuvioWeb browser baseline with attribution | verified | #1 | PR #28; acceptance/verification in linked ledger documents |
 | [#5](https://github.com/saurabhhbansal/nuvioweb/issues/5) [M1][P0] Reproduce upstream install, build, lint and unit tests | verified | #4, #2 | PR #30; acceptance/verification in linked ledger documents |
 | [#6](https://github.com/saurabhhbansal/nuvioweb/issues/6) [M1][P0] Deploy free static browser preview on Cloudflare | verified | #5 | PR #36; live development preview, actual Chromium guest/worker checks and deployed artifact/header/source evidence. |
-| [#7](https://github.com/saurabhhbansal/nuvioweb/issues/7) [M1][P0] Validate existing Nuvio login, sync and profile isolation | ready | #6, #3 | Implementation/verification outstanding |
-| [#8](https://github.com/saurabhhbansal/nuvioweb/issues/8) [M1][P1] Inventory and safely isolate upstream sidecar-dependent routes | ready | #5 | Implementation/verification outstanding |
+| [#7](https://github.com/saurabhhbansal/nuvioweb/issues/7) [M1][P0] Validate existing Nuvio login, sync and profile isolation | blocked_external | #6, #3 | Two authorized disposable Nuvio identities/sessions needed for live sync/account-switch checks; owner-run or secure local file requested; no credentials in chat. |
+| [#8](https://github.com/saurabhhbansal/nuvioweb/issues/8) [M1][P1] Inventory and safely isolate upstream sidecar-dependent routes | in_progress | #5 | Static-host sidecar flags/client guards and actionable Settings guidance implemented on feature branch; browser/CI and required owner auth/remote-fetch review before merge/closure. [Inventory](docs/SIDECAR_CAPABILITIES.md). |
 | [#9](https://github.com/saurabhhbansal/nuvioweb/issues/9) [M2][P0] Build legal add-on interoperability fixtures and test matrix | verified | #5 | PR #37; original legal media, real HTTP/CORS/parser and bundled guest install/catalog/playback, persistent partial outcomes and retry; local Chromium limits documented |
 | [#10](https://github.com/saurabhhbansal/nuvioweb/issues/10) [M2][P0] Implement source descriptors and browser playback capability reporting | in_progress | #9, #5 | Descriptor/browser-prediction seam first; realistic4K/adaptive/cross-browser verification still required |
 | [#11](https://github.com/saurabhhbansal/nuvioweb/issues/11) [M2][P1] Prototype sandboxed Nuvio JavaScript plugin compatibility | ready | #9, #1 | Implementation/verification outstanding |
@@ -41,7 +41,7 @@ Source import and provenance are verified. A pinned Node 22 clean install/build,
 
 The [public development preview](https://nuvioweb-preview.pages.dev) passes actual Chromium shell/guest/automatic-worker and deployed artifact/header/source checks; local real worker replacement tests pass. Issue #9 additionally verifies actual bundled guest add-on installation/toggling/reload, legal catalog/detail navigation and original640x360 playback with advancing video time in local Chromium156. Real allowed/denied CORS, malformed/503/cancellation and partial-source refresh outcomes are covered, including duplicate custom provider names. See the [interoperability matrix](docs/ADDON_INTEROPERABILITY.md). These fixtures are not deployed or live-provider evidence; public preview now serves reviewed8edec42 after the verified development refresh; deployed shell/guest checks remain distinct from local playback evidence.
 
-Live authentication/session refresh/account isolation/cloud sync, public provider HTTPS/CORS, subtitle/audio selection, cross-browser codecs/HDR and full offline/PWA lifecycle remain unverified. Native sidecars are not deployed. Dependency audits currently report zero advisories; release notice/asset/font/native rights gates remain open.
+Live authentication/session refresh/account isolation/cloud sync, public provider HTTPS/CORS, subtitle/audio selection, cross-browser codecs/HDR and full offline/PWA lifecycle remain unverified. Native sidecars are not deployed. #8 isolates unavailable optional integrations with disabled-by-default capabilities and manual external progress; its feature branch is under verification/review, not deployed. Dependency audits currently report zero advisories; release notice/asset/font/native rights gates remain open.
 
 ## Milestones, forecast and next demonstration
 

@@ -1,3 +1,6 @@
+import { getSidecarCapabilities } from "../../core/platform/sidecarCapabilities.js";
+import { isValidExternalPlaybackToken } from "./browserExternalPlaybackHandoff.js";
+
 function supported(runtime = globalThis) {
   return Boolean(runtime?.isSecureContext && runtime?.navigator?.serviceWorker && runtime?.PushManager && runtime?.Notification);
 }
@@ -10,6 +13,7 @@ export function decodeVapidPublicKey(value) {
 
 export async function getBrowserPushReturnState({ runtime = globalThis, fetchImpl = runtime.fetch } = {}) {
   if (!supported(runtime)) return { state: "unavailable" };
+  if (!getSidecarCapabilities(runtime).externalReturn) return { state: "server-not-configured" };
   let config;
   try { config = await (await fetchImpl("/api/external-return/push/public-key", { cache: "no-store" })).json(); } catch (_) { return { state: "unavailable" }; }
   if (!config?.enabled || !config.publicKey) return { state: "server-not-configured" };
@@ -47,7 +51,7 @@ export async function disableBrowserPushReturn({ runtime = globalThis } = {}) {
 }
 
 export async function bindBrowserPushReturn({ token, runtime = globalThis, fetchImpl = runtime.fetch } = {}) {
-  if (!token || !supported(runtime) || typeof fetchImpl !== "function") return false;
+  if (!getSidecarCapabilities(runtime).externalReturn || !isValidExternalPlaybackToken(token) || !supported(runtime) || typeof fetchImpl !== "function") return false;
   try {
     const registration = await runtime.navigator.serviceWorker.ready;
     const subscription = await registration.pushManager.getSubscription();

@@ -12,6 +12,12 @@ const buildEnv = typeof __NUVIO_BUILD_ENV__ === "undefined" ? {} : __NUVIO_BUILD
 // container keeps overriding what was built in. It only falls back.
 const runtimeEnv = globalThis.__NUVIO_ENV__ || buildEnv;
 
+export const SIDECAR_DEPLOYMENT_FLAGS = Object.freeze({
+  NUVIO_ENABLE_TRAKT_BRIDGE: runtimeEnv.NUVIO_ENABLE_TRAKT_BRIDGE || "false",
+  NUVIO_ENABLE_DEBRID_BRIDGE: runtimeEnv.NUVIO_ENABLE_DEBRID_BRIDGE || "false",
+  NUVIO_ENABLE_EXTERNAL_RETURN_BRIDGE: runtimeEnv.NUVIO_ENABLE_EXTERNAL_RETURN_BRIDGE || "false"
+});
+
 if (!globalThis.__NUVIO_ENV__) {
   console.warn(
     Object.keys(buildEnv).length

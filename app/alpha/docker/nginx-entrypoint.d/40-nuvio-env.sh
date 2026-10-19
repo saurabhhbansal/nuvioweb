@@ -38,6 +38,9 @@ fi
   var env = root.__NUVIO_ENV__ || {};
   var values = {
 EOF
+  write_value NUVIO_ENABLE_TRAKT_BRIDGE "${NUVIO_ENABLE_TRAKT_BRIDGE:-false}"; printf ',\n'
+  write_value NUVIO_ENABLE_DEBRID_BRIDGE "${NUVIO_ENABLE_DEBRID_BRIDGE:-false}"; printf ',\n'
+  write_value NUVIO_ENABLE_EXTERNAL_RETURN_BRIDGE "${NUVIO_ENABLE_EXTERNAL_RETURN_BRIDGE:-false}"; printf ',\n'
   write_value NUVIO_SUPABASE_URL "${NUVIO_SUPABASE_URL:-}"; printf ',\n'
   write_value NUVIO_SUPABASE_ANON_KEY "${NUVIO_SUPABASE_ANON_KEY:-}"; printf ',\n'
   write_value NUVIO_SUPABASE_FALLBACK_URL "${NUVIO_SUPABASE_FALLBACK_URL:-}"; printf ',\n'

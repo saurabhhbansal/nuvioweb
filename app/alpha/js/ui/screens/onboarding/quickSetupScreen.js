@@ -1,3 +1,4 @@
+import { getSidecarCapabilities } from "../../../core/platform/sidecarCapabilities.js";
 // One-time Quick Setup, shown once per profile after the profile is chosen.
 //
 // It asks only about things the app cannot work out for itself and that cost
@@ -116,10 +117,10 @@ export const QuickSetupScreen = {
     const capabilities = getBrowserExternalPlayerCapabilities(this.player);
     return selectQuickSetupSteps({
       callbackMode: capabilities.callbackMode,
-      automaticProgress: capabilities.automaticProgress,
+      automaticProgress: capabilities.automaticProgress && getSidecarCapabilities().externalReturn,
       pushState: this.pushState?.state,
       automationAvailability: this.automationAvailability,
-      progressMode: this.progressMode
+      progressMode: getSidecarCapabilities().externalReturn ? this.progressMode : "manual"
     });
   },
 
@@ -127,7 +128,7 @@ export const QuickSetupScreen = {
     return selectReturnMethodsOffered({
       pushState: this.pushState?.state,
       automationAvailability: this.automationAvailability,
-      progressMode: this.progressMode
+      progressMode: getSidecarCapabilities().externalReturn ? this.progressMode : "manual"
     });
   },
 

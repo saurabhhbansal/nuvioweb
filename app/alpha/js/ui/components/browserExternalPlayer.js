@@ -1,4 +1,5 @@
 import { createExternalPlaybackCallbacks, createOutplayerReturnCallbacks } from "./browserExternalPlaybackHandoff.js";
+import { getSidecarCapabilities } from "../../core/platform/sidecarCapabilities.js";
 import {
   beginExternalPlaybackHandoff,
   clearExternalPlaybackHandoff
@@ -225,14 +226,15 @@ export function prepareBrowserExternalPlaybackLaunch({
   const normalizedPlayer = normalizeBrowserExternalPlayer(player);
   const capabilities = getBrowserExternalPlayerCapabilities(normalizedPlayer);
   const observationCallback = capabilities.callbackMode === "return-only";
-  const automatic = progressMode !== "manual" && (capabilities.automaticProgress || observationCallback);
+  const relayEnabled = getSidecarCapabilities(runtime).externalReturn;
+  const automatic = relayEnabled && progressMode !== "manual" && (capabilities.automaticProgress || observationCallback);
   const handoff = beginExternalPlaybackHandoff({
     runtime,
     playerMode: normalizedPlayer,
     automatic,
     progressMode: automatic ? "automatic" : "manual",
-    callbackCapable: capabilities.automaticProgress,
-    manualPromptEligible: observationCallback || capabilities.manualFallbackOnInvalid || progressMode === "manual",
+    callbackCapable: relayEnabled && capabilities.automaticProgress,
+    manualPromptEligible: !relayEnabled || observationCallback || capabilities.manualFallbackOnInvalid || progressMode === "manual",
     progressContext,
     profileId: profileId ?? ProfileManager.getActiveProfileId(),
     startingPositionMs: Math.max(0, Number(resumePositionSeconds) || 0) * 1000,
@@ -254,7 +256,7 @@ export function prepareBrowserExternalPlaybackLaunch({
     if (handoff) clearExternalPlaybackHandoff({ runtime });
     return null;
   }
-  return { launch, handoff, automatic, callbackCapable: capabilities.automaticProgress };
+  return { launch, handoff, automatic, callbackCapable: relayEnabled && capabilities.automaticProgress };
 }
 
 

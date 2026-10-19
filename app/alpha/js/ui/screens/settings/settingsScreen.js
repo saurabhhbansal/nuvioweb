@@ -75,6 +75,7 @@ import {
   OFFLINE_PLAYBACK_TARGETS,
   normalizeOfflinePlaybackTarget
 } from "../../../core/offline/offlineHandoffPolicy.js";
+import { getSidecarCapabilities, sidecarUnavailableMessage } from "../../../core/platform/sidecarCapabilities.js";
 import { enableBrowserPushReturn, getBrowserPushReturnState } from "../../components/browserPushReturn.js";
 import {
   copyAutomationShortcutTarget,
@@ -3569,8 +3570,12 @@ export const SettingsScreen = {
   },
 
   openDebridDeviceAuthDialog(provider) {
-    this.stopDebridDeviceAuth();
     const connected = Boolean(DebridProviders.apiKeyFor(DebridSettingsStore.get(), provider.id));
+    if (["torbox", "premiumize"].includes(provider.id) && !getSidecarCapabilities().debrid && !connected) {
+      this.showToast?.(sidecarUnavailableMessage("debrid"));
+      return;
+    }
+    this.stopDebridDeviceAuth();
     const nonce = Number(this.debridAuthNonce || 0) + 1;
     this.debridAuthNonce = nonce;
     this.debridAuthDialog = {
@@ -5675,6 +5680,7 @@ export const SettingsScreen = {
             <div class="settings-group-heading">
               <div class="settings-group-title">${escapeHtml(t("debrid_experimental_notice", {}, "Experimental Direct Debrid integration"))}</div>
             </div>
+            ${!getSidecarCapabilities().debrid ? `<p class="sidecar-capability-message" data-sidecar-status="debrid">${escapeHtml(t("sidecar_debrid_unavailable", {}, sidecarUnavailableMessage("debrid")))}</p>` : ""}
             ${this.renderToggleRow({
               focusKey: "integration:debrid:cloud",
               title: t("settings.integration.debrid.cloud.title", {}, "Cloud library"),
@@ -5738,7 +5744,7 @@ export const SettingsScreen = {
                           { provider: provider.displayName },
                           `Connect your ${provider.displayName} account.`
                       ),
-                  value: maskValue(
+                  value: ["torbox", "premiumize"].includes(provider.id) && !getSidecarCapabilities().debrid ? "Unavailable on this site" : maskValue(
                     provider.authMethod === DEBRID_AUTH_METHODS.DEVICE_CODE
                       ? ""
                       : DebridProviders.apiKeyFor(model.debrid, provider.id),
@@ -6868,10 +6874,10 @@ export const SettingsScreen = {
         this.openOptionDialog({
           title: "External Player Progress",
           options: [
-            { id: "automatic", label: "Automatic when supported" },
+            ...(getSidecarCapabilities().externalReturn ? [{ id: "automatic", label: "Automatic when supported" }] : []),
             { id: "manual", label: "Always ask manually" }
           ],
-          selectedId: PlayerSettingsStore.get().externalPlayerProgress || "automatic",
+          selectedId: getSidecarCapabilities().externalReturn ? PlayerSettingsStore.get().externalPlayerProgress || "automatic" : "manual",
           returnFocusKey: "playback:externalPlayerProgress",
           onSelect: (option) => {
             PlayerSettingsStore.set({ externalPlayerProgress: option.id });
@@ -6892,7 +6898,7 @@ export const SettingsScreen = {
         const offered = selectReturnMethodsOffered({
           pushState: this.pushReturnState,
           automationAvailability: getAutomationReturnAvailability(),
-          progressMode: PlayerSettingsStore.get().externalPlayerProgress
+          progressMode: getSidecarCapabilities().externalReturn ? PlayerSettingsStore.get().externalPlayerProgress : "manual"
         });
         const options = [
           ...(offered.includes("automation")
@@ -6903,7 +6909,7 @@ export const SettingsScreen = {
         ];
         this.openOptionDialog({
           title: "Return to NuvioWeb",
-          message:
+          message: !getSidecarCapabilities().externalReturn ? sidecarUnavailableMessage("externalReturn") :
             "An Automation needs no notification, so Nuvio stops asking for one. Your notifications stay switched on either way.\n\nEither way, closing the player opens a page in your default browser confirming your progress arrived. It closes itself a moment later, and only stays open if something went wrong.",
           options,
           selectedId: PlayerSettingsStore.get().externalReturnMethod,
@@ -7479,8 +7485,8 @@ export const SettingsScreen = {
             ? this.renderActionRow({
                 focusKey: "playback:externalPlayerProgress",
                 title: "External Player Progress",
-                subtitle: "Choose automatic callbacks where supported or always report playback manually.",
-                value: model.player.externalPlayerProgress === "manual" ? "Always ask manually" : "Automatic when supported",
+                subtitle: getSidecarCapabilities().externalReturn ? "Choose automatic callbacks where supported or always report playback manually." : sidecarUnavailableMessage("externalReturn"),
+                value: !getSidecarCapabilities().externalReturn || model.player.externalPlayerProgress === "manual" ? "Always ask manually" : "Automatic when supported",
                 classes: "settings-playback-external-player-row"
               })
             : ""
@@ -7491,8 +7497,8 @@ export const SettingsScreen = {
                 focusKey: "playback:returnMethod",
                 title: "Return to NuvioWeb",
                 subtitle:
-                  "Choose whether a notification or an iOS Shortcut automation brings you back after external playback.",
-                value: ({
+                  getSidecarCapabilities().externalReturn ? "Choose whether a notification or an iOS Shortcut automation brings you back after external playback." : "Notifications are unavailable here. A compatible iOS Shortcut can still reopen the app for manual progress.",
+                value: !getSidecarCapabilities().externalReturn && model.player.externalReturnMethod === "notification" ? "Unavailable on this site" : ({
                   notification: "A notification",
                   automation: "A Shortcut automation"
                 })[model.player.externalReturnMethod] || "Not chosen",
@@ -8017,6 +8023,7 @@ export const SettingsScreen = {
   },
 
   startTraktPolling(force = false) {
+    if (!getSidecarCapabilities().traktAuth) return;
     if (this.traktPollTimer && !force) {
       return;
     }
@@ -8465,6 +8472,7 @@ export const SettingsScreen = {
   },
 
   startDesktopTraktPolling() {
+    if (!getSidecarCapabilities().traktAuth) return;
     if (this.desktopTraktPollTimer) return;
     const poll = async () => {
       const auth = TraktAuthService.getCurrentAuthState();
@@ -8708,7 +8716,9 @@ export const SettingsScreen = {
            </div>`
         : `<p class="settings-row-subtitle">Connect Simkl to sync lists, watched history, playback progress, and scrobbles.</p>
            ${inlineButton("tracking:desktop:simkl:connect", "Connect Simkl")}`;
-    const traktBody = traktConnected
+    const traktBody = !getSidecarCapabilities().traktAuth
+      ? `<p class="sidecar-capability-message" data-sidecar-status="traktAuth">${escapeHtml(t("sidecar_trakt_unavailable", {}, sidecarUnavailableMessage("traktAuth")))}</p>${traktConnected ? inlineButton("tracking:desktop:trakt:disconnect", "Disconnect saved Trakt connection", "is-danger") : ""}`
+      : traktConnected
       ? `<p class="settings-tracking-provider-status">Connected as ${escapeHtml(trakt.username || "Trakt user")}</p>
          ${inlineButton("tracking:desktop:trakt:disconnect", "Disconnect", "is-danger")}`
       : traktWaiting
@@ -8724,7 +8734,7 @@ export const SettingsScreen = {
              <p class="settings-tracking-provider-status">${escapeHtml(this.desktopTraktStatusMessage || "Waiting for Trakt approval...")}</p>
            </div>`
         : traktBridgeStatus === "unavailable" || !TraktAuthService.hasRequiredCredentials()
-          ? `<p class="settings-row-subtitle">Trakt browser authentication is unavailable on this server.</p>`
+          ? `<p class="sidecar-capability-message">${escapeHtml(sidecarUnavailableMessage("traktAuth"))}</p>`
           : `<p class="settings-row-subtitle">Connect Trakt to sync lists, watched history, playback progress, and scrobbles.</p>
              ${inlineButton("tracking:desktop:trakt:connect", "Connect Trakt")}`;
     const behaviorBody = `
@@ -8740,7 +8750,7 @@ export const SettingsScreen = {
       ${this.renderSectionHeader(SECTION_META.find((item) => item.id === "trakt"))}
       <div class="settings-group-card settings-group-card-fill">
         <div class="settings-stack settings-desktop-tracking-stack">
-          ${this.renderCollapsibleRow({ focusKey: "tracking:desktop:trakt", title: "Trakt", subtitle: traktConnected ? `Connected as ${trakt.username || "Trakt user"}` : traktWaiting ? "Waiting for approval" : traktBridgeStatus === "unavailable" ? "Unavailable on this server" : "Not connected", expanded: Boolean(expanded.trakt), bodyHtml: expanded.trakt ? `${traktBody}${this.desktopTraktErrorMessage ? `<p class="settings-tracking-error">${escapeHtml(this.desktopTraktErrorMessage)}</p>` : ""}` : "", classes: "settings-collapsible-tracking" })}
+          ${this.renderCollapsibleRow({ focusKey: "tracking:desktop:trakt", title: "Trakt", subtitle: !getSidecarCapabilities().traktAuth ? "Unavailable on this site" : traktConnected ? `Connected as ${trakt.username || "Trakt user"}` : traktWaiting ? "Waiting for approval" : traktBridgeStatus === "unavailable" ? "Unavailable on this server" : "Not connected", expanded: Boolean(expanded.trakt), bodyHtml: expanded.trakt ? `${traktBody}${this.desktopTraktErrorMessage ? `<p class="settings-tracking-error">${escapeHtml(this.desktopTraktErrorMessage)}</p>` : ""}` : "", classes: "settings-collapsible-tracking" })}
           ${this.renderCollapsibleRow({ focusKey: "tracking:desktop:simkl", title: "Simkl", subtitle: simklConnected ? `Connected as ${simkl.username || "Simkl user"}` : simklWaiting ? "Waiting for approval" : "Not connected", expanded: Boolean(expanded.simkl), bodyHtml: expanded.simkl ? `${simklBody}${this.desktopSimklErrorMessage ? `<p class="settings-tracking-error">${escapeHtml(this.desktopSimklErrorMessage)}</p>` : ""}` : "", classes: "settings-collapsible-tracking" })}
           ${this.renderCollapsibleRow({ focusKey: "tracking:desktop:behavior", title: "Sources & Behavior", subtitle: "Choose the sources used for Library, progress, and related content.", expanded: Boolean(expanded.behavior), bodyHtml: expanded.behavior ? behaviorBody : "", classes: "settings-collapsible-tracking" })}
         </div>
@@ -9837,7 +9847,7 @@ export const SettingsScreen = {
       this.focusZone === "content" && (role === "toggle" || isSectionToggle);
     await action();
 
-    if (Router.getCurrent() === "settings") {
+    if (["settings", "settingsSection"].includes(Router.getCurrent())) {
       await this.render({ refreshModel: !isSectionToggle });
       this.focusZone = "content";
       this.applyFocus();

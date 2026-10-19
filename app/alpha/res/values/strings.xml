@@ -2955,4 +2955,7 @@
     <string name="player_error_source_load_unknown">The browser could not load this source. The link, access, network or format may be responsible. Refresh sources or choose another source.</string>
     <string name="source_order_native_first">Native predictions first</string>
     <string name="source_order_prediction_hint">Predictions do not verify playback. All sources stay available.</string>
+    <string name="sidecar_trakt_unavailable">Trakt sign-in and refresh are unavailable on this site. Continue without Trakt, or use a site with a configured Trakt integration.</string>
+    <string name="sidecar_debrid_unavailable">TorBox playback and TorBox/Premiumize sign-in are unavailable on this site. Choose a direct compatible add-on source.</string>
+    <string name="sidecar_site_unavailable">Unavailable on this site</string>
 </resources>

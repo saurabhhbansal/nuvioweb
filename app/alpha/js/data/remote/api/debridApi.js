@@ -1,3 +1,5 @@
+import { getSidecarCapabilities, sidecarUnavailableMessage } from "../../../core/platform/sidecarCapabilities.js";
+
 const TORBOX_BASE_URL = "https://api.torbox.app/";
 const PREMIUMIZE_BASE_URL = "https://www.premiumize.me/";
 const REAL_DEBRID_BASE_URL = "https://api.real-debrid.com/rest/1.0/";
@@ -7,7 +9,16 @@ function joinUrl(baseUrl, path) {
 }
 
 async function requestBridgeJson(path, options = {}) {
-  return requestJson("", path, options);
+  if (!getSidecarCapabilities().debrid) {
+    const message = sidecarUnavailableMessage("debrid");
+    return { ok: false, status: 0, data: { error: "SIDECAR_UNAVAILABLE", message }, text: message };
+  }
+  const response = await requestJson("", path, options);
+  if (response.data === null || typeof response.data !== "object" || (!response.ok && (response.status === 0 || response.data?.error === "not_found"))) {
+    const message = sidecarUnavailableMessage("debrid");
+    return { ...response, ok: false, data: { error: "SIDECAR_UNAVAILABLE", message }, text: message };
+  }
+  return response;
 }
 
 async function requestJson(baseUrl, path, options = {}) {

@@ -9,7 +9,7 @@ globalThis.localStorage = {
   clear() { storage.clear(); }
 };
 globalThis.__NUVIO_PLATFORM__ = "browser";
-globalThis.__NUVIO_ENV__ = { TRAKT_CLIENT_ID: "browser-public-client" };
+globalThis.__NUVIO_ENV__ = { TRAKT_CLIENT_ID: "browser-public-client", NUVIO_ENABLE_TRAKT_BRIDGE: "true" };
 
 const { Platform } = await import("../../platform/index.js");
 Platform.current = null;
@@ -101,7 +101,7 @@ test("browser bridge unavailability is graceful and does not expose a confidenti
   try {
     await assert.rejects(
       () => TraktAuthService.startDeviceAuth(),
-      /unavailable on this server/
+      /Trakt sign-in and refresh are unavailable on this site/
     );
     assert.equal(TraktAuthService.getBrowserBridgeStatus(), "unavailable");
   } finally {

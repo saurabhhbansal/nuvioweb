@@ -26,6 +26,7 @@ const desktop = { navigator: { userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; 
 function createHandoffRuntime() {
   const values = new Map();
   return {
+    __NUVIO_ENV__: { NUVIO_ENABLE_EXTERNAL_RETURN_BRIDGE: "true" },
     crypto: globalThis.crypto,
     location: { href: "https://nuviotest.alphasquare.my.id/player" },
     localStorage: {

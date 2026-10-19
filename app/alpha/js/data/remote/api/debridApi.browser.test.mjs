@@ -3,6 +3,9 @@ import test from "node:test";
 
 import { DebridApi } from "./debridApi.js";
 
+// Explicitly configured fixture deployment; never a live provider.
+globalThis.__NUVIO_ENV__ = { NUVIO_ENABLE_DEBRID_BRIDGE: "true" };
+
 test("uncovered browser DebridApi cloud operations remain direct until the cloud bridge phase", async () => {
   const originalFetch = globalThis.fetch;
   const requests = [];
