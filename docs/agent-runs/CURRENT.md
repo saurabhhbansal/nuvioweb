@@ -15,9 +15,9 @@ This file is the durable handoff. A new agent must be able to resume from it wit
 ## Current selection
 
 - Selected ticket: **#7** (real-account login/sync/profile isolation), with #10 evidence work in parallel when #7 is environment-gated.
-- Current branch: `docs/issue-7-marker-evidence` (evidence/ledger PR for the marker and round-trip results).
-- Current PR: the evidence PR opened from that branch.
-- Last completed atomic tasks: (1) hosted B→A switch diagnosis — distinct owners, A-epoch Library200 at ~5.9s, A's164 watched/156 progress restored with no B set; (2) one bounded synthetic marker — B arrival and no marker in A, but returning-B restoration failed once (Library/watched/progress failed before headers) and passed on an immediate read-only B→A→B round trip; exact-key cleanup verified, cloud count0, private note removed.
+- Current branch: none; clean `main` at `2cf2fc5` (PR #63 switch evidence, PR #64 marker evidence).
+- Current PR: none open.
+- Last completed atomic tasks: (1) hosted B→A switch diagnosis — distinct owners, A-epoch Library200 at ~5.9s, A's164 watched/156 progress restored with no B set; (2) one bounded synthetic marker — B arrival and no marker in A, but returning-B restoration failed once (Library/watched/progress failed before headers) and passed on an immediate read-only B→A→B round trip; exact-key cleanup verified, cloud count0, private note removed. Both evidence PRs merged through protection.
 - Next exact atomic task: no further live marker write. Start the unblocked #11 default-off lazy plugin-engine runtime seam (or an owner-approved #10 named-device/audio observation when a device is available), after re-reading [issue #11 plan](../plans/issues/issue-11.md). Any sync runtime change first requires a deterministic synthetic reproduction of the B→A→B request failure; do not infer one from the single live failure.
 
 ## Relevant plans and evidence
