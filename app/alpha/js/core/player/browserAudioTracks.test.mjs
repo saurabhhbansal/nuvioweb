@@ -340,9 +340,139 @@ test("hostile and oversized metadata is bounded without inventing values", () =>
   assert.ok(track.label === null || track.label.length <= 96);
   assert.doesNotMatch(track.key, /[<>"']/);
   assert.doesNotMatch(normalized.selectedKey, /[<>"']/);
-  const serialized = JSON.stringify(normalized);
-  const hasControlCharacter = Array.from(serialized).some(
-    (character) => character.charCodeAt(0) < 32 && character !== "\n"
+  // Inspect the normalized strings themselves: JSON.stringify escapes controls,
+  // so serializing first would hide the very bug this asserts.
+  for (const value of [track.key, track.label, track.language, track.codec, track.role]) {
+    if (typeof value !== "string") continue;
+    const hasControlCharacter = Array.from(value).some((character) => character.charCodeAt(0) < 32);
+    assert.equal(hasControlCharacter, false, value);
+  }
+});
+
+test("collision-free identities keep distinct renditions distinct", () => {
+  const normalized = normalizeEngineAudioTracks({
+    engine: "hls.js",
+    generation: 1,
+    tracks: [
+      { id: "a", index: 0, raw: { name: "A/B" } },
+      { id: "b", index: 1, raw: { name: "A B" } }
+    ],
+    selectedIndex: 0
+  });
+  assert.notEqual(normalized.tracks[0].key, normalized.tracks[1].key);
+  assert.equal(normalized.ambiguousCount, 0);
+  assert.equal(normalized.availableCount, 2);
+});
+
+test("a track without a stable identity is never selectable", () => {
+  const normalized = normalizeEngineAudioTracks({
+    engine: "hls.js",
+    generation: 1,
+    // Only a numeric engine index: it changes when the manifest reorders.
+    tracks: [{ id: "hls-audio-0", index: 0, raw: { id: 0 } }],
+    selectedIndex: 0
+  });
+  assert.equal(normalized.tracks[0].identityStable, false);
+  assert.equal(normalized.tracks[0].selectability, AUDIO_TRACK_SELECTABILITY.UNAVAILABLE);
+  const request = resolveAudioSelectionRequest({
+    generation: 1,
+    trackKey: normalized.tracks[0].key,
+    tracks: normalized.tracks,
+    currentGeneration: 1
+  });
+  assert.equal(request.ok, false);
+  assert.equal(request.reason, AUDIO_SELECTION_REASONS.NOT_SELECTABLE);
+});
+
+test("a stale track snapshot is rejected even when the generations match", () => {
+  const tracks = [
+    {
+      generation: 1,
+      key: "hls.js:English",
+      selectability: AUDIO_TRACK_SELECTABILITY.AVAILABLE,
+      ambiguous: false
+    }
+  ];
+  const request = resolveAudioSelectionRequest({
+    generation: 2,
+    trackKey: "hls.js:English",
+    tracks,
+    currentGeneration: 2
+  });
+  assert.equal(request.ok, false);
+  assert.equal(request.reason, AUDIO_SELECTION_REASONS.STALE_GENERATION);
+});
+
+test("native track kinds are mapped only when they are a known kind", () => {
+  const role = (kind) => normalizeAudioRole({ kind });
+  assert.equal(role("commentary"), AUDIO_TRACK_ROLES.COMMENTARY);
+  assert.equal(role("descriptions"), AUDIO_TRACK_ROLES.AUDIO_DESCRIPTION);
+  assert.equal(role("translation"), AUDIO_TRACK_ROLES.ALTERNATE);
+  assert.equal(role("main"), AUDIO_TRACK_ROLES.MAIN);
+  assert.equal(role("garbage"), AUDIO_TRACK_ROLES.UNKNOWN);
+  assert.equal(role(""), AUDIO_TRACK_ROLES.UNKNOWN);
+  assert.equal(role(undefined), AUDIO_TRACK_ROLES.UNKNOWN);
+});
+
+test("an unrecognised engine is unknown, never available", () => {
+  for (const engine of ["", "weird-engine", "none"]) {
+    const normalized = normalizeEngineAudioTracks({
+      engine,
+      generation: 1,
+      tracks: [{ id: "x", raw: { name: "English" } }],
+      selectedIndex: 0
+    });
+    assert.equal(normalized.tracks[0].selectability, AUDIO_TRACK_SELECTABILITY.UNKNOWN, engine);
+    assert.notEqual(normalized.tracks[0].selectability, AUDIO_TRACK_SELECTABILITY.AVAILABLE);
+  }
+});
+
+test("settlement reasons stay inside the fixed enum", () => {
+  const tracker = createAudioSelectionTracker({ deadlineMs: 50 });
+  const rejected = tracker.begin({ generation: 1, trackKey: "a" });
+  assert.equal(rejected.reject("https://provider.invalid/?token=secret").reason, "engine-rejected");
+  const cancelled = tracker.begin({ generation: 1, trackKey: "b" });
+  assert.equal(cancelled.cancel("<script>").reason, "cancelled");
+  const invalidated = tracker.begin({ generation: 1, trackKey: "c" });
+  tracker.invalidate("http://provider.invalid/?token=secret");
+  const result = invalidated.cancel("http://provider.invalid/?token=secret");
+  assert.equal(result, null); // already settled by invalidate
+  assert.equal(tracker.begin({ generation: 1, trackKey: "d" }).cancel("nope").reason, "cancelled");
+});
+
+test("oversized role metadata cannot crash or invent a role", () => {
+  assert.equal(
+    normalizeAudioRole({ characteristics: "x,".repeat(150000) }),
+    AUDIO_TRACK_ROLES.UNKNOWN
   );
-  assert.equal(hasControlCharacter, false);
+  const manyRoles = Array.from({ length: 10000 }, () => ({ value: "commentary" }));
+  assert.equal(normalizeAudioRole({ roles: manyRoles }), AUDIO_TRACK_ROLES.COMMENTARY);
+  const normalized = normalizeEngineAudioTracks({
+    engine: "hls.js",
+    generation: 1,
+    tracks: [
+      { id: "x", raw: { name: "English", attrs: { CHARACTERISTICS: "x,".repeat(150000) } } }
+    ],
+    selectedIndex: 0
+  });
+  assert.equal(normalized.tracks[0].role, AUDIO_TRACK_ROLES.UNKNOWN);
+});
+
+test("an ambiguous track is rejected even when its key is unique", () => {
+  const tracks = [
+    {
+      generation: 1,
+      key: "hls.js:unique",
+      selectability: AUDIO_TRACK_SELECTABILITY.AVAILABLE,
+      ambiguous: true
+    }
+  ];
+  const request = resolveAudioSelectionRequest({
+    generation: 1,
+    trackKey: "hls.js:unique",
+    tracks,
+    currentGeneration: 1
+  });
+  assert.equal(request.ok, false);
+  assert.equal(request.reason, AUDIO_SELECTION_REASONS.AMBIGUOUS_IDENTITY);
 });

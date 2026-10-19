@@ -49,9 +49,19 @@ export const AUDIO_SELECTION_REASONS = Object.freeze({
 });
 
 const MAX_LABEL = 96;
+const MAX_CHARACTERISTICS = 512;
+const MAX_ROLE_TOKENS = 32;
+const MAX_ROLE_ARRAY = 32;
+const MAX_LABEL_ARRAY = 16;
 const MAX_LANGUAGE = 32;
 const MAX_KEY = 160;
 const DEFAULT_CONFIRM_DEADLINE_MS = 5000;
+
+const REASON_VALUES = new Set(Object.values(AUDIO_SELECTION_REASONS));
+
+function safeReason(value, fallback) {
+  return typeof value === "string" && REASON_VALUES.has(value) ? value : fallback;
+}
 
 function boundedText(value, limit) {
   if (typeof value !== "string") return null;
@@ -90,16 +100,15 @@ function channelCount(value) {
 // and DASH role values. Normalize only what is actually declared.
 export function normalizeAudioRole({ characteristics = null, roles = null, kind = null } = {}) {
   const tokens = [];
-  if (typeof characteristics === "string") {
-    tokens.push(
-      ...characteristics
-        .split(",")
-        .map((token) => token.trim().toLowerCase())
-        .filter(Boolean)
-    );
+  if (typeof characteristics === "string" && characteristics.length <= MAX_CHARACTERISTICS) {
+    for (const token of characteristics.split(",")) {
+      if (tokens.length >= MAX_ROLE_TOKENS) break;
+      const clean = boundedText(token, 48);
+      if (clean) tokens.push(clean.toLowerCase());
+    }
   }
   if (Array.isArray(roles)) {
-    for (const role of roles) {
+    for (const role of roles.slice(0, MAX_ROLE_ARRAY)) {
       const value = typeof role === "string" ? role : role?.value;
       const clean = boundedText(value, 48);
       if (clean) tokens.push(clean.toLowerCase());
@@ -117,8 +126,25 @@ export function normalizeAudioRole({ characteristics = null, roles = null, kind 
   if (tokens.some((token) => token === "alternate" || token === "dub" || token === "description")) {
     return AUDIO_TRACK_ROLES.ALTERNATE;
   }
-  if (boundedText(kind, 32)) {
-    return AUDIO_TRACK_ROLES.MAIN;
+  // Native track kinds are a closed vocabulary; anything else stays unknown so a
+  // stray value cannot be presented as the main audio.
+  const cleanKind = boundedText(kind, 32)?.toLowerCase() || "";
+  if (cleanKind === "main" || cleanKind === "primary") return AUDIO_TRACK_ROLES.MAIN;
+  if (
+    cleanKind === "alternative" ||
+    cleanKind === "alternate" ||
+    cleanKind === "translation" ||
+    cleanKind === "dub"
+  ) {
+    return AUDIO_TRACK_ROLES.ALTERNATE;
+  }
+  if (cleanKind === "commentary" || cleanKind === "comment") return AUDIO_TRACK_ROLES.COMMENTARY;
+  if (
+    cleanKind === "descriptions" ||
+    cleanKind === "description" ||
+    cleanKind === "audio-description"
+  ) {
+    return AUDIO_TRACK_ROLES.AUDIO_DESCRIPTION;
   }
   return AUDIO_TRACK_ROLES.UNKNOWN;
 }
@@ -133,12 +159,15 @@ function readRawMetadata(engine, raw = {}) {
       label: boundedText(raw?.name ?? raw?.label ?? attrs?.NAME, MAX_LABEL),
       codec: audioCodec(attrs?.CODECS ?? raw?.codec),
       channels: channelCount(attrs?.CHANNELS ?? raw?.channels),
-      role: normalizeAudioRole({ characteristics: attrs?.CHARACTERISTICS })
+      role: normalizeAudioRole({ characteristics: attrs?.CHARACTERISTICS, kind: raw?.kind })
     };
   }
   if (engine === "dash.js") {
     const labels = Array.isArray(raw?.labels)
-      ? raw.labels.map((label) => boundedText(label?.text, MAX_LABEL)).filter(Boolean)
+      ? raw.labels
+          .slice(0, MAX_LABEL_ARRAY)
+          .map((label) => boundedText(label?.text, MAX_LABEL))
+          .filter(Boolean)
       : [];
     return {
       language: boundedText(raw?.lang ?? raw?.language, MAX_LANGUAGE),
@@ -157,10 +186,13 @@ function readRawMetadata(engine, raw = {}) {
   };
 }
 
-function selectabilityFor({ engine, ambiguous, hasSetter }) {
+// Only engines the player can actually address can offer a selectable track.
+const KNOWN_ENGINES = new Set(["native-file", "native-hls", "hls.js", "dash.js"]);
+
+function selectabilityFor({ engine, ambiguous, identityStable, hasSetter }) {
   if (hasSetter === false) return AUDIO_TRACK_SELECTABILITY.UNAVAILABLE;
-  if (ambiguous) return AUDIO_TRACK_SELECTABILITY.UNAVAILABLE;
-  if (!engine) return AUDIO_TRACK_SELECTABILITY.UNKNOWN;
+  if (ambiguous || identityStable === false) return AUDIO_TRACK_SELECTABILITY.UNAVAILABLE;
+  if (!KNOWN_ENGINES.has(engine)) return AUDIO_TRACK_SELECTABILITY.UNKNOWN;
   return AUDIO_TRACK_SELECTABILITY.AVAILABLE;
 }
 
@@ -185,23 +217,27 @@ export function normalizeEngineAudioTracks({
   const identityCounts = new Map();
   const identities = list.map((track, index) => {
     // Prefer a stable declared identity: a string engine id (DASH) or a declared
-    // name. A numeric engine index changes when the manifest reorders, so it is
-    // only a last resort before the adapter index.
-    const stableId =
-      typeof track?.raw?.id === "string" && track.raw.id.trim()
-        ? track.raw.id
-        : track?.raw?.name || (typeof track?.id === "string" ? track.id : null);
-    const engineTrackId =
-      boundedText(String(stableId ?? "").replace(/[^A-Za-z0-9._:-]+/g, "_"), 96) ||
-      `index-${index}`;
+    // name. A numeric engine index or a generated wrapper id changes when the
+    // manifest reorders, so it is recorded as unstable and never selectable.
+    const rawId = track?.raw?.id;
+    const wrapperId = typeof track?.id === "string" ? track.id : "";
+    const generatedWrapper = /^(?:native-audio|hls-audio|dash-audio)-\d+$/.test(wrapperId);
+    const declaredId = typeof rawId === "string" && rawId.trim() ? rawId : null;
+    const declaredName = boundedText(track?.raw?.name, 96);
+    const wrapperName = generatedWrapper ? null : boundedText(wrapperId, 96);
+    const stableId = declaredId || declaredName || wrapperName;
+    const identityStable = Boolean(stableId);
+    // Percent-encoding is collision free: "A/B" and "A B" stay distinct.
+    const encoded = encodeURIComponent(String(stableId ?? `index-${index}`)).slice(0, 120);
+    const engineTrackId = encoded || `index-${index}`;
     const identity = `${engineName}:${engineTrackId}`;
     identityCounts.set(identity, (identityCounts.get(identity) || 0) + 1);
-    return { engineTrackId, identity };
+    return { engineTrackId, identity, identityStable };
   });
 
   const normalized = list.map((track, index) => {
     const meta = readRawMetadata(engineName, track?.raw || {});
-    const { engineTrackId, identity } = identities[index];
+    const { engineTrackId, identity, identityStable } = identities[index];
     const ambiguous = (identityCounts.get(identity) || 0) > 1;
     const key = boundedText(`${identity}`, MAX_KEY) || `index-${index}`;
     const prediction = decodePredictions?.[key] ?? decodePredictions?.[engineTrackId] ?? null;
@@ -229,9 +265,10 @@ export function normalizeEngineAudioTracks({
         Number.isInteger(selectedIndex) && selectedIndex >= 0
           ? indexValue === selectedIndex
           : Boolean(track?.selected),
-      selectability: selectabilityFor({ engine: engineName, ambiguous, hasSetter }),
+      selectability: selectabilityFor({ engine: engineName, ambiguous, identityStable, hasSetter }),
       decodeSupport,
       ambiguous,
+      identityStable,
       metadataEvidence: declared
         ? AUDIO_TRACK_METADATA_EVIDENCE.ENGINE_DECLARED
         : AUDIO_TRACK_METADATA_EVIDENCE.UNKNOWN
@@ -298,6 +335,11 @@ export function resolveAudioSelectionRequest({
     return { ok: false, reason: AUDIO_SELECTION_REASONS.AMBIGUOUS_IDENTITY, track: matches[0] };
   }
   const track = matches[0];
+  // A snapshot from an older generation is stale even when the request and the
+  // current generation agree.
+  if (Number(track.generation) !== requestedGeneration) {
+    return { ok: false, reason: AUDIO_SELECTION_REASONS.STALE_GENERATION, track };
+  }
   if (track.selectability !== AUDIO_TRACK_SELECTABILITY.AVAILABLE) {
     return { ok: false, reason: AUDIO_SELECTION_REASONS.NOT_SELECTABLE, track };
   }
@@ -377,12 +419,13 @@ export function createAudioSelectionTracker({
         promise,
         confirm: () => settle(entry, "confirmed", AUDIO_SELECTION_REASONS.NONE),
         reject: (reason = AUDIO_SELECTION_REASONS.ENGINE_REJECTED) =>
-          settle(entry, "rejected", reason),
-        cancel: (reason = AUDIO_SELECTION_REASONS.CANCELLED) => settle(entry, "cancelled", reason)
+          settle(entry, "rejected", safeReason(reason, AUDIO_SELECTION_REASONS.ENGINE_REJECTED)),
+        cancel: (reason = AUDIO_SELECTION_REASONS.CANCELLED) =>
+          settle(entry, "cancelled", safeReason(reason, AUDIO_SELECTION_REASONS.CANCELLED))
       };
     },
     invalidate(reason = AUDIO_SELECTION_REASONS.STALE_GENERATION) {
-      return cancelPending(reason);
+      return cancelPending(safeReason(reason, AUDIO_SELECTION_REASONS.STALE_GENERATION));
     },
     getPending() {
       return pending ? { generation: pending.generation, trackKey: pending.trackKey } : null;
