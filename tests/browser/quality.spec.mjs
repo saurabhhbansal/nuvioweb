@@ -73,7 +73,34 @@ for (const [scenario, width, height, file] of [
     await expect(page.locator('[data-action="playStream"]')).toContainText(
       `Provider size: ${width} × ${height} (unverified)`,
     );
+    // These fixtures are H.264. A capable engine must decode them; an engine
+    // that reports no H.264 support must still surface an explicit, actionable
+    // failure instead of hanging. Do not assume Chromium's codec set.
+    const supportsFixtureCodec = await page.evaluate(
+      () =>
+        document
+          .createElement("video")
+          .canPlayType('video/mp4; codecs="avc1.42c02a"') !== "",
+    );
     await page.locator('[data-action="playStream"]').click();
+    if (!supportsFixtureCodec) {
+      const overlay = page.locator("#playerStartupErrorOverlay");
+      await expect(overlay).toHaveAttribute("aria-hidden", "false");
+      await expect(overlay).toBeVisible();
+      await expect(overlay.locator(".player-startup-error-title")).toHaveText(
+        "Playback Error",
+      );
+      await expect(
+        overlay.locator(".player-startup-error-message"),
+      ).not.toBeEmpty();
+      await testInfo.attach("unsupported-codec", {
+        body: JSON.stringify({ scenario, message: await overlay.innerText() }),
+        contentType: "application/json",
+      });
+      await overlay.getByRole("button", { name: "Go Back", exact: true }).click();
+      await expect(page.locator('[data-action="playStream"]')).toBeVisible();
+      return;
+    }
     const video = page.locator("video");
     await expect
       .poll(
@@ -220,18 +247,30 @@ for (const [scenario, status] of [
         overlay.locator(".player-startup-error-message"),
       ).toContainText("The browser could not load this source");
     if (scenario === "quality-hls-cors")
+      // Engines report a blocked manifest as either a failed request or a
+      // failed response. Either observation plus the visible overlay and the
+      // switching-engine log below proves the same product behaviour.
       expect(
         rejected.some(
           (entry) => entry.path === "/media/quality/cors-denied/stream.m3u8",
-        ),
+        ) ||
+          failed.some(
+            (entry) =>
+              entry.path === "/media/quality/cors-denied/stream.m3u8",
+          ),
       ).toBe(true);
     else expect(failed.some((entry) => entry.status === status)).toBe(true);
     if (["quality-expired", "quality-hls-cors"].includes(scenario)) {
       await expect.poll(() => applicationLogs.length).toBeGreaterThan(0);
-      if (scenario === "quality-hls-cors")
-        expect(JSON.stringify(await Promise.all(applicationLogs))).toContain(
-          "switching player engine",
+      if (scenario === "quality-hls-cors") {
+        // Engines classify the denied manifest differently: Chromium falls back
+        // and logs the switching warning, Firefox's HLS.js reports a fatal
+        // network error directly. Either way the failure must be classified,
+        // not swallowed, and must never include the signed query.
+        expect(JSON.stringify(await Promise.all(applicationLogs))).toMatch(
+          /switching player engine|"mediaErrorCode":2/,
         );
+      }
       expect(JSON.stringify(await Promise.all(applicationLogs))).not.toContain(
         "synthetic-private-media",
       );

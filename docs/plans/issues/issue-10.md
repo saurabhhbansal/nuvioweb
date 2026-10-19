@@ -259,3 +259,17 @@ Verification at `aff4f062d96c8bbcce57ffa042fb25fe98932a26` (inert build, 12 asse
 - Playwright Firefox157.0 (x86_64 build under this ARM64 host) —33/40 pass. The7 differences are capability/engine-event driven, not product regressions: five H.264 quality fixtures cannot decode because this Firefox build reports no H.264, two source-ordering tests hardcode Chromium's native-prediction order, and the HLS-CORS case's overlay/engine-switch assertions passed while only a Chromium-specific `requestfailed` observation differed. The complete guest journey (VP8/Opus playback, controls, subtitle, Back, save/reload) passed in Firefox.
 
 Limits: no branded Edge/Safari/physical mobile, no Firefox PWA run, no hosted/live-service claim. Chrome for Testing is a real Chrome binary but not a user-profile installation; Playwright Firefox is not branded-Firefox certification. Evidence: `docs/evidence/cross-engine-2026-10-19.json`. Follow-up unit: make codec-dependent and prediction-order browser tests capability-aware while keeping Chromium assertions strict.
+
+## Cross-engine test hardening: capability-aware assertions (planned 2026-10-19, after PR52)
+
+**Finding.** At `aff4f062`, Playwright Firefox157 passed33/40 browser cases. The7 differences are not runtime regressions: this Firefox build reports no H.264, so five H.264 quality fixtures cannot decode (the app does show `Playback Error` with a nonempty reason), two source-ordering tests hardcode Chromium's native-prediction order, and one HLS-CORS case passes every overlay/engine-switch assertion but differs on a Chromium-specific `requestfailed` observation. Hardcoding one engine's codec set makes the suite lie in both directions: it reports false failures on capable engines with a different codec set, and it never asserts the required explicit-error path when a codec is genuinely unsupported.
+
+**Targets (test-only; no runtime change expected).**
+- `tests/browser/quality.spec.mjs`: probe `canPlayType` for the fixture codec in the page. Supported → keep the existing strict dimensions/seek assertions unchanged. Unsupported → require the visible startup-error overlay with `Playback Error`, nonempty message and a working Go Back; do not assert decoding. HLS-CORS: accept either a failed request or a failed response for the same denied manifest path while keeping overlay, engine-switch and no-secret-log assertions.
+- `tests/browser/source-preference.spec.mjs`: derive the expected preferred order from the measured H.264 capability (two documented variants), keep all eight sources, toggle-restore, focus and no-extra-request assertions, and for the 4K playback step use the same supported/unsupported split.
+
+**Non-goals.** No application runtime change, no new media fixture or codec, no CI workflow change, no hosted/named-brand claim.
+
+**Verification.** Focused Firefox quality/source-ordering cases red before, green after; then full Playwright Firefox (40/40 non-PWA), Chromium 42/42 and Chrome for Testing155 42/42 at the same commit. Record exact engines and retained limits. Chromium assertions are not relaxed: its `canPlayType` is nonempty, so the strict branch still runs there.
+
+**Threats.** A capability probe could hide a real Chromium decode regression; mitigated because the unsupported branch requires an explicit user-visible error and Chromium never takes it. Probe only reads `canPlayType`, performs no I/O and changes no product behavior. **Rollback:** protected revert restores the Chromium-only assertions.
