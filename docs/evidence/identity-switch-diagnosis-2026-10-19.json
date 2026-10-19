@@ -1,0 +1,1277 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-19T15:04:42.322Z",
+  "candidateRevision": "1f67867ebab7f426672886121d852a643a436414",
+  "environment": "hosted development preview (HTTPS) with live primary Nuvio API",
+  "publicDeployment": true,
+  "mode": "bounded read-mostly B-to-A Library switch diagnosis; no intended test-record mutation",
+  "results": {
+    "controlA": {
+      "alias": "A",
+      "phase": "control-A",
+      "afterSignIn": {
+        "route": "profileSelection",
+        "visible": {
+          "home": false,
+          "auth": false,
+          "profileSelection": true,
+          "library": false,
+          "quickSetupSkip": false,
+          "activationOverlay": false,
+          "pinOverlay": false
+        },
+        "navButtons": {
+          "library": 0,
+          "profile": 0,
+          "home": 0,
+          "settings": 0
+        },
+        "dialogs": 0,
+        "activeProfileId": null,
+        "sessionPresent": true,
+        "localLibraryCount": 0
+      },
+      "activation": {
+        "activated": true,
+        "samples": 4,
+        "last": [
+          {
+            "route": "home",
+            "visible": {
+              "home": true,
+              "auth": false,
+              "profileSelection": false,
+              "library": false,
+              "quickSetupSkip": false,
+              "activationOverlay": true,
+              "pinOverlay": false
+            },
+            "navButtons": {
+              "library": 1,
+              "profile": 0,
+              "home": 1,
+              "settings": 1
+            },
+            "dialogs": 0,
+            "activeProfileId": "1",
+            "sessionPresent": true,
+            "localLibraryCount": 0
+          },
+          {
+            "route": "home",
+            "visible": {
+              "home": true,
+              "auth": false,
+              "profileSelection": false,
+              "library": false,
+              "quickSetupSkip": false,
+              "activationOverlay": false,
+              "pinOverlay": false
+            },
+            "navButtons": {
+              "library": 1,
+              "profile": 1,
+              "home": 1,
+              "settings": 1
+            },
+            "dialogs": 0,
+            "activeProfileId": "1",
+            "sessionPresent": true,
+            "localLibraryCount": 0
+          }
+        ]
+      },
+      "beforeLibrary": {
+        "route": "home",
+        "visible": {
+          "home": true,
+          "auth": false,
+          "profileSelection": false,
+          "library": false,
+          "quickSetupSkip": false,
+          "activationOverlay": false,
+          "pinOverlay": false
+        },
+        "navButtons": {
+          "library": 1,
+          "profile": 1,
+          "home": 1,
+          "settings": 1
+        },
+        "dialogs": 0,
+        "activeProfileId": "1",
+        "sessionPresent": true,
+        "localLibraryCount": 0
+      },
+      "libraryOutcome": {
+        "observed": true,
+        "rows": 0,
+        "atMs": 3344
+      },
+      "syncDataOutcome": {
+        "completed": [
+          "watched",
+          "progress"
+        ],
+        "pending": []
+      },
+      "ui": {
+        "route": "library",
+        "visible": {
+          "home": true,
+          "auth": false,
+          "profileSelection": false,
+          "library": true,
+          "quickSetupSkip": false,
+          "activationOverlay": false,
+          "pinOverlay": false
+        },
+        "navButtons": {
+          "library": 2,
+          "profile": 2,
+          "home": 2,
+          "settings": 2
+        },
+        "dialogs": 0,
+        "activeProfileId": "1",
+        "sessionPresent": true,
+        "localLibraryCount": 0
+      },
+      "operations": {
+        "1": {
+          "authToken": {
+            "started": 1,
+            "headers": 1,
+            "completedBodies": 1,
+            "failed": 0,
+            "aborted": 0,
+            "bodyErrors": 0,
+            "statuses": [
+              200
+            ],
+            "latestFinishMs": 1135
+          },
+          "collections": {
+            "started": 1,
+            "headers": 0,
+            "completedBodies": 0,
+            "failed": 0,
+            "aborted": 0,
+            "bodyErrors": 0,
+            "statuses": [],
+            "latestFinishMs": null
+          },
+          "criticalHomeCatalog": {
+            "started": 3,
+            "headers": 3,
+            "completedBodies": 3,
+            "failed": 0,
+            "aborted": 0,
+            "bodyErrors": 0,
+            "statuses": [
+              200
+            ],
+            "latestFinishMs": 3067
+          },
+          "criticalSettings": {
+            "started": 5,
+            "headers": 5,
+            "completedBodies": 5,
+            "failed": 0,
+            "aborted": 0,
+            "bodyErrors": 0,
+            "statuses": [
+              200
+            ],
+            "latestFinishMs": 3816
+          },
+          "library": {
+            "started": 1,
+            "headers": 1,
+            "completedBodies": 1,
+            "failed": 0,
+            "aborted": 0,
+            "bodyErrors": 0,
+            "statuses": [
+              200
+            ],
+            "latestFinishMs": 3336
+          },
+          "otherApi": {
+            "started": 3,
+            "headers": 3,
+            "completedBodies": 3,
+            "failed": 0,
+            "aborted": 0,
+            "bodyErrors": 0,
+            "statuses": [
+              200
+            ],
+            "latestFinishMs": 2991
+          },
+          "otherRest": {
+            "started": 2,
+            "headers": 1,
+            "completedBodies": 1,
+            "failed": 0,
+            "aborted": 0,
+            "bodyErrors": 0,
+            "statuses": [
+              200
+            ],
+            "latestFinishMs": 2403
+          },
+          "otherRpc": {
+            "started": 3,
+            "headers": 2,
+            "completedBodies": 2,
+            "failed": 0,
+            "aborted": 0,
+            "bodyErrors": 0,
+            "statuses": [
+              200
+            ],
+            "latestFinishMs": 1875
+          },
+          "owner": {
+            "started": 1,
+            "headers": 1,
+            "completedBodies": 1,
+            "failed": 0,
+            "aborted": 0,
+            "bodyErrors": 0,
+            "statuses": [
+              200
+            ],
+            "latestFinishMs": 1372
+          },
+          "profileLocks": {
+            "started": 1,
+            "headers": 1,
+            "completedBodies": 1,
+            "failed": 0,
+            "aborted": 0,
+            "bodyErrors": 0,
+            "statuses": [
+              200
+            ],
+            "latestFinishMs": 1607
+          },
+          "profiles": {
+            "started": 2,
+            "headers": 2,
+            "completedBodies": 2,
+            "failed": 0,
+            "aborted": 0,
+            "bodyErrors": 0,
+            "statuses": [
+              200
+            ],
+            "latestFinishMs": 3336
+          },
+          "progress": {
+            "started": 1,
+            "headers": 1,
+            "completedBodies": 1,
+            "failed": 0,
+            "aborted": 0,
+            "bodyErrors": 0,
+            "statuses": [
+              200
+            ],
+            "latestFinishMs": 3354
+          },
+          "providerCredentials": {
+            "started": 2,
+            "headers": 1,
+            "completedBodies": 1,
+            "failed": 0,
+            "aborted": 0,
+            "bodyErrors": 0,
+            "statuses": [
+              200
+            ],
+            "latestFinishMs": 3357
+          },
+          "watched": {
+            "started": 1,
+            "headers": 1,
+            "completedBodies": 1,
+            "failed": 0,
+            "aborted": 0,
+            "bodyErrors": 0,
+            "statuses": [
+              200
+            ],
+            "latestFinishMs": 3767
+          }
+        }
+      },
+      "counters": {
+        "blockedForeignOrigin": 10,
+        "blockedLegacySnapshot": 0
+      },
+      "pageErrors": [],
+      "consoleErrors": [
+        "CONSOLE_ERROR",
+        "CONSOLE_ERROR",
+        "CONSOLE_ERROR",
+        "CONSOLE_ERROR",
+        "CONSOLE_ERROR",
+        "CONSOLE_ERROR",
+        "CONSOLE_ERROR",
+        "CONSOLE_ERROR",
+        "CONSOLE_ERROR",
+        "CONSOLE_ERROR"
+      ]
+    },
+    "controlB": {
+      "alias": "B",
+      "phase": "control-B",
+      "afterSignIn": {
+        "route": "profileSelection",
+        "visible": {
+          "home": false,
+          "auth": false,
+          "profileSelection": true,
+          "library": false,
+          "quickSetupSkip": false,
+          "activationOverlay": false,
+          "pinOverlay": false
+        },
+        "navButtons": {
+          "library": 0,
+          "profile": 0,
+          "home": 0,
+          "settings": 0
+        },
+        "dialogs": 0,
+        "activeProfileId": null,
+        "sessionPresent": true,
+        "localLibraryCount": 0
+      },
+      "activation": {
+        "activated": true,
+        "samples": 3,
+        "last": [
+          {
+            "route": "quickSetup",
+            "visible": {
+              "home": false,
+              "auth": false,
+              "profileSelection": false,
+              "library": false,
+              "quickSetupSkip": true,
+              "activationOverlay": true,
+              "pinOverlay": false
+            },
+            "navButtons": {
+              "library": 0,
+              "profile": 0,
+              "home": 0,
+              "settings": 0
+            },
+            "dialogs": 0,
+            "activeProfileId": "1",
+            "sessionPresent": true,
+            "localLibraryCount": 0
+          },
+          {
+            "route": "home",
+            "visible": {
+              "home": true,
+              "auth": false,
+              "profileSelection": false,
+              "library": false,
+              "quickSetupSkip": false,
+              "activationOverlay": false,
+              "pinOverlay": false
+            },
+            "navButtons": {
+              "library": 1,
+              "profile": 0,
+              "home": 1,
+              "settings": 1
+            },
+            "dialogs": 0,
+            "activeProfileId": "1",
+            "sessionPresent": true,
+            "localLibraryCount": 0
+          }
+        ]
+      },
+      "beforeLibrary": {
+        "route": "home",
+        "visible": {
+          "home": true,
+          "auth": false,
+          "profileSelection": false,
+          "library": false,
+          "quickSetupSkip": false,
+          "activationOverlay": false,
+          "pinOverlay": false
+        },
+        "navButtons": {
+          "library": 1,
+          "profile": 0,
+          "home": 1,
+          "settings": 1
+        },
+        "dialogs": 0,
+        "activeProfileId": "1",
+        "sessionPresent": true,
+        "localLibraryCount": 0
+      },
+      "libraryOutcome": {
+        "observed": true,
+        "rows": 0,
+        "atMs": 3529
+      },
+      "syncDataOutcome": {
+        "completed": [
+          "watched",
+          "progress"
+        ],
+        "pending": []
+      },
+      "ui": {
+        "route": "library",
+        "visible": {
+          "home": true,
+          "auth": false,
+          "profileSelection": false,
+          "library": true,
+          "quickSetupSkip": false,
+          "activationOverlay": false,
+          "pinOverlay": false
+        },
+        "navButtons": {
+          "library": 2,
+          "profile": 0,
+          "home": 2,
+          "settings": 2
+        },
+        "dialogs": 0,
+        "activeProfileId": "1",
+        "sessionPresent": true,
+        "localLibraryCount": 0
+      },
+      "operations": {
+        "1": {
+          "authToken": {
+            "started": 1,
+            "headers": 1,
+            "completedBodies": 1,
+            "failed": 0,
+            "aborted": 0,
+            "bodyErrors": 0,
+            "statuses": [
+              200
+            ],
+            "latestFinishMs": 1757
+          },
+          "collections": {
+            "started": 1,
+            "headers": 1,
+            "completedBodies": 1,
+            "failed": 0,
+            "aborted": 0,
+            "bodyErrors": 0,
+            "statuses": [
+              200
+            ],
+            "latestFinishMs": 3529
+          },
+          "criticalHomeCatalog": {
+            "started": 3,
+            "headers": 3,
+            "completedBodies": 3,
+            "failed": 0,
+            "aborted": 0,
+            "bodyErrors": 0,
+            "statuses": [
+              200
+            ],
+            "latestFinishMs": 3266
+          },
+          "criticalSettings": {
+            "started": 1,
+            "headers": 1,
+            "completedBodies": 1,
+            "failed": 0,
+            "aborted": 0,
+            "bodyErrors": 0,
+            "statuses": [
+              200
+            ],
+            "latestFinishMs": 2997
+          },
+          "library": {
+            "started": 1,
+            "headers": 1,
+            "completedBodies": 1,
+            "failed": 0,
+            "aborted": 0,
+            "bodyErrors": 0,
+            "statuses": [
+              200
+            ],
+            "latestFinishMs": 3526
+          },
+          "otherRest": {
+            "started": 2,
+            "headers": 2,
+            "completedBodies": 2,
+            "failed": 0,
+            "aborted": 0,
+            "bodyErrors": 0,
+            "statuses": [
+              200
+            ],
+            "latestFinishMs": 3515
+          },
+          "otherRpc": {
+            "started": 3,
+            "headers": 3,
+            "completedBodies": 3,
+            "failed": 0,
+            "aborted": 0,
+            "bodyErrors": 0,
+            "statuses": [
+              200,
+              204
+            ],
+            "latestFinishMs": 3517
+          },
+          "owner": {
+            "started": 1,
+            "headers": 1,
+            "completedBodies": 1,
+            "failed": 0,
+            "aborted": 0,
+            "bodyErrors": 0,
+            "statuses": [
+              200
+            ],
+            "latestFinishMs": 2024
+          },
+          "profileLocks": {
+            "started": 1,
+            "headers": 1,
+            "completedBodies": 1,
+            "failed": 0,
+            "aborted": 0,
+            "bodyErrors": 0,
+            "statuses": [
+              200
+            ],
+            "latestFinishMs": 2260
+          },
+          "profiles": {
+            "started": 2,
+            "headers": 2,
+            "completedBodies": 2,
+            "failed": 0,
+            "aborted": 0,
+            "bodyErrors": 0,
+            "statuses": [
+              200
+            ],
+            "latestFinishMs": 3511
+          },
+          "progress": {
+            "started": 1,
+            "headers": 1,
+            "completedBodies": 1,
+            "failed": 0,
+            "aborted": 0,
+            "bodyErrors": 0,
+            "statuses": [
+              200
+            ],
+            "latestFinishMs": 3522
+          },
+          "providerCredentials": {
+            "started": 3,
+            "headers": 1,
+            "completedBodies": 1,
+            "failed": 0,
+            "aborted": 0,
+            "bodyErrors": 0,
+            "statuses": [
+              200
+            ],
+            "latestFinishMs": 3515
+          },
+          "watched": {
+            "started": 1,
+            "headers": 1,
+            "completedBodies": 1,
+            "failed": 0,
+            "aborted": 0,
+            "bodyErrors": 0,
+            "statuses": [
+              200
+            ],
+            "latestFinishMs": 3534
+          }
+        }
+      },
+      "counters": {
+        "blockedForeignOrigin": 5,
+        "blockedLegacySnapshot": 0
+      },
+      "pageErrors": [],
+      "consoleErrors": [
+        "CONSOLE_ERROR",
+        "CONSOLE_ERROR",
+        "CONSOLE_ERROR",
+        "CONSOLE_ERROR",
+        "CONSOLE_ERROR"
+      ]
+    },
+    "switch": {
+      "bActivation": {
+        "activated": true,
+        "samples": 3
+      },
+      "bLibrary": {
+        "observed": true,
+        "rows": 0,
+        "atMs": 2889
+      },
+      "bUi": {
+        "route": "library",
+        "visible": {
+          "home": true,
+          "auth": false,
+          "profileSelection": false,
+          "library": true,
+          "quickSetupSkip": false,
+          "activationOverlay": false,
+          "pinOverlay": false
+        },
+        "navButtons": {
+          "library": 2,
+          "profile": 0,
+          "home": 2,
+          "settings": 2
+        },
+        "dialogs": 0,
+        "activeProfileId": "1",
+        "sessionPresent": true,
+        "localLibraryCount": 0
+      },
+      "afterSignOut": {
+        "route": "authSignIn",
+        "visible": {
+          "home": true,
+          "auth": true,
+          "profileSelection": false,
+          "library": true,
+          "quickSetupSkip": false,
+          "activationOverlay": false,
+          "pinOverlay": false
+        },
+        "navButtons": {
+          "library": 2,
+          "profile": 0,
+          "home": 2,
+          "settings": 2
+        },
+        "dialogs": 0,
+        "activeProfileId": null,
+        "sessionPresent": false,
+        "localLibraryCount": 0
+      },
+      "afterSignIn": {
+        "route": "profileSelection",
+        "visible": {
+          "home": true,
+          "auth": false,
+          "profileSelection": true,
+          "library": true,
+          "quickSetupSkip": false,
+          "activationOverlay": false,
+          "pinOverlay": false
+        },
+        "navButtons": {
+          "library": 2,
+          "profile": 0,
+          "home": 2,
+          "settings": 2
+        },
+        "dialogs": 0,
+        "activeProfileId": null,
+        "sessionPresent": true,
+        "localLibraryCount": 0
+      },
+      "aActivation": {
+        "activated": true,
+        "samples": 3,
+        "last": [
+          {
+            "route": "quickSetup",
+            "visible": {
+              "home": false,
+              "auth": false,
+              "profileSelection": false,
+              "library": false,
+              "quickSetupSkip": true,
+              "activationOverlay": true,
+              "pinOverlay": false
+            },
+            "navButtons": {
+              "library": 0,
+              "profile": 0,
+              "home": 0,
+              "settings": 0
+            },
+            "dialogs": 0,
+            "activeProfileId": "1",
+            "sessionPresent": true,
+            "localLibraryCount": 0
+          },
+          {
+            "route": "home",
+            "visible": {
+              "home": true,
+              "auth": false,
+              "profileSelection": false,
+              "library": false,
+              "quickSetupSkip": false,
+              "activationOverlay": false,
+              "pinOverlay": false
+            },
+            "navButtons": {
+              "library": 1,
+              "profile": 0,
+              "home": 1,
+              "settings": 1
+            },
+            "dialogs": 0,
+            "activeProfileId": "1",
+            "sessionPresent": true,
+            "localLibraryCount": 0
+          }
+        ]
+      },
+      "beforeLibrary": {
+        "route": "home",
+        "visible": {
+          "home": true,
+          "auth": false,
+          "profileSelection": false,
+          "library": false,
+          "quickSetupSkip": false,
+          "activationOverlay": false,
+          "pinOverlay": false
+        },
+        "navButtons": {
+          "library": 1,
+          "profile": 0,
+          "home": 1,
+          "settings": 1
+        },
+        "dialogs": 0,
+        "activeProfileId": "1",
+        "sessionPresent": true,
+        "localLibraryCount": 0
+      },
+      "aLibrary": {
+        "observed": true,
+        "rows": 0,
+        "atMs": 5903
+      },
+      "syncDataOutcome": {
+        "completed": [
+          "watched",
+          "progress"
+        ],
+        "pending": []
+      },
+      "aUi": {
+        "route": "library",
+        "visible": {
+          "home": true,
+          "auth": false,
+          "profileSelection": false,
+          "library": true,
+          "quickSetupSkip": false,
+          "activationOverlay": false,
+          "pinOverlay": false
+        },
+        "navButtons": {
+          "library": 2,
+          "profile": 1,
+          "home": 2,
+          "settings": 2
+        },
+        "dialogs": 0,
+        "activeProfileId": "1",
+        "sessionPresent": true,
+        "localLibraryCount": 0
+      },
+      "operations": {
+        "1": {
+          "authToken": {
+            "started": 1,
+            "headers": 1,
+            "completedBodies": 1,
+            "failed": 0,
+            "aborted": 0,
+            "bodyErrors": 0,
+            "statuses": [
+              200
+            ],
+            "latestFinishMs": 1128
+          },
+          "collections": {
+            "started": 1,
+            "headers": 1,
+            "completedBodies": 1,
+            "failed": 0,
+            "aborted": 0,
+            "bodyErrors": 0,
+            "statuses": [
+              200
+            ],
+            "latestFinishMs": 2889
+          },
+          "criticalHomeCatalog": {
+            "started": 3,
+            "headers": 3,
+            "completedBodies": 3,
+            "failed": 0,
+            "aborted": 0,
+            "bodyErrors": 0,
+            "statuses": [
+              200
+            ],
+            "latestFinishMs": 2626
+          },
+          "criticalSettings": {
+            "started": 1,
+            "headers": 1,
+            "completedBodies": 1,
+            "failed": 0,
+            "aborted": 0,
+            "bodyErrors": 0,
+            "statuses": [
+              200
+            ],
+            "latestFinishMs": 2395
+          },
+          "library": {
+            "started": 1,
+            "headers": 1,
+            "completedBodies": 1,
+            "failed": 0,
+            "aborted": 0,
+            "bodyErrors": 0,
+            "statuses": [
+              200
+            ],
+            "latestFinishMs": 2885
+          },
+          "otherRest": {
+            "started": 2,
+            "headers": 1,
+            "completedBodies": 1,
+            "failed": 0,
+            "aborted": 0,
+            "bodyErrors": 0,
+            "statuses": [
+              200
+            ],
+            "latestFinishMs": 2417
+          },
+          "otherRpc": {
+            "started": 3,
+            "headers": 3,
+            "completedBodies": 3,
+            "failed": 0,
+            "aborted": 0,
+            "bodyErrors": 0,
+            "statuses": [
+              200,
+              204
+            ],
+            "latestFinishMs": 2889
+          },
+          "owner": {
+            "started": 1,
+            "headers": 1,
+            "completedBodies": 1,
+            "failed": 0,
+            "aborted": 0,
+            "bodyErrors": 0,
+            "statuses": [
+              200
+            ],
+            "latestFinishMs": 1365
+          },
+          "profileLocks": {
+            "started": 2,
+            "headers": 2,
+            "completedBodies": 2,
+            "failed": 0,
+            "aborted": 0,
+            "bodyErrors": 0,
+            "statuses": [
+              200
+            ],
+            "latestFinishMs": 3397
+          },
+          "profiles": {
+            "started": 3,
+            "headers": 3,
+            "completedBodies": 3,
+            "failed": 0,
+            "aborted": 0,
+            "bodyErrors": 0,
+            "statuses": [
+              200
+            ],
+            "latestFinishMs": 3388
+          },
+          "progress": {
+            "started": 1,
+            "headers": 1,
+            "completedBodies": 1,
+            "failed": 0,
+            "aborted": 0,
+            "bodyErrors": 0,
+            "statuses": [
+              200
+            ],
+            "latestFinishMs": 2871
+          },
+          "providerCredentials": {
+            "started": 3,
+            "headers": 3,
+            "completedBodies": 3,
+            "failed": 0,
+            "aborted": 0,
+            "bodyErrors": 0,
+            "statuses": [
+              200
+            ],
+            "latestFinishMs": 3121
+          },
+          "watched": {
+            "started": 1,
+            "headers": 1,
+            "completedBodies": 1,
+            "failed": 0,
+            "aborted": 0,
+            "bodyErrors": 0,
+            "statuses": [
+              200
+            ],
+            "latestFinishMs": 2876
+          }
+        },
+        "2": {
+          "authToken": {
+            "started": 1,
+            "headers": 1,
+            "completedBodies": 1,
+            "failed": 0,
+            "aborted": 0,
+            "bodyErrors": 0,
+            "statuses": [
+              200
+            ],
+            "latestFinishMs": 3881
+          },
+          "collections": {
+            "started": 1,
+            "headers": 0,
+            "completedBodies": 0,
+            "failed": 0,
+            "aborted": 0,
+            "bodyErrors": 0,
+            "statuses": [],
+            "latestFinishMs": null
+          },
+          "criticalHomeCatalog": {
+            "started": 3,
+            "headers": 3,
+            "completedBodies": 3,
+            "failed": 0,
+            "aborted": 0,
+            "bodyErrors": 0,
+            "statuses": [
+              200
+            ],
+            "latestFinishMs": 5618
+          },
+          "criticalSettings": {
+            "started": 3,
+            "headers": 1,
+            "completedBodies": 1,
+            "failed": 0,
+            "aborted": 0,
+            "bodyErrors": 0,
+            "statuses": [
+              200
+            ],
+            "latestFinishMs": 5151
+          },
+          "library": {
+            "started": 1,
+            "headers": 1,
+            "completedBodies": 1,
+            "failed": 0,
+            "aborted": 0,
+            "bodyErrors": 0,
+            "statuses": [
+              200
+            ],
+            "latestFinishMs": 5896
+          },
+          "otherApi": {
+            "started": 3,
+            "headers": 3,
+            "completedBodies": 3,
+            "failed": 0,
+            "aborted": 0,
+            "bodyErrors": 0,
+            "statuses": [
+              200
+            ],
+            "latestFinishMs": 5495
+          },
+          "otherRest": {
+            "started": 2,
+            "headers": 3,
+            "completedBodies": 3,
+            "failed": 0,
+            "aborted": 0,
+            "bodyErrors": 0,
+            "statuses": [
+              200
+            ],
+            "latestFinishMs": 5896
+          },
+          "otherRpc": {
+            "started": 4,
+            "headers": 4,
+            "completedBodies": 4,
+            "failed": 0,
+            "aborted": 0,
+            "bodyErrors": 0,
+            "statuses": [
+              200,
+              204
+            ],
+            "latestFinishMs": 5896
+          },
+          "owner": {
+            "started": 1,
+            "headers": 1,
+            "completedBodies": 1,
+            "failed": 0,
+            "aborted": 0,
+            "bodyErrors": 0,
+            "statuses": [
+              200
+            ],
+            "latestFinishMs": 4129
+          },
+          "profileLocks": {
+            "started": 1,
+            "headers": 1,
+            "completedBodies": 1,
+            "failed": 0,
+            "aborted": 0,
+            "bodyErrors": 0,
+            "statuses": [
+              200
+            ],
+            "latestFinishMs": 4368
+          },
+          "profiles": {
+            "started": 2,
+            "headers": 2,
+            "completedBodies": 2,
+            "failed": 0,
+            "aborted": 0,
+            "bodyErrors": 0,
+            "statuses": [
+              200
+            ],
+            "latestFinishMs": 5876
+          },
+          "progress": {
+            "started": 2,
+            "headers": 1,
+            "completedBodies": 1,
+            "failed": 0,
+            "aborted": 0,
+            "bodyErrors": 0,
+            "statuses": [
+              200
+            ],
+            "latestFinishMs": 5193
+          },
+          "providerCredentials": {
+            "started": 3,
+            "headers": 2,
+            "completedBodies": 2,
+            "failed": 0,
+            "aborted": 0,
+            "bodyErrors": 0,
+            "statuses": [
+              200
+            ],
+            "latestFinishMs": 5897
+          },
+          "watched": {
+            "started": 2,
+            "headers": 1,
+            "completedBodies": 1,
+            "failed": 0,
+            "aborted": 0,
+            "bodyErrors": 0,
+            "statuses": [
+              200
+            ],
+            "latestFinishMs": 5217
+          }
+        }
+      },
+      "counters": {
+        "blockedForeignOrigin": 12,
+        "blockedLegacySnapshot": 0
+      },
+      "pageErrors": [],
+      "consoleErrors": [
+        "CONSOLE_ERROR",
+        "CONSOLE_ERROR",
+        "CONSOLE_ERROR",
+        "CONSOLE_ERROR",
+        "CONSOLE_ERROR",
+        "CONSOLE_ERROR",
+        "CONSOLE_ERROR",
+        "CONSOLE_ERROR",
+        "CONSOLE_ERROR",
+        "CONSOLE_ERROR",
+        "CONSOLE_ERROR",
+        "CONSOLE_ERROR"
+      ]
+    }
+  },
+  "comparisons": {
+    "controls": {
+      "ownerAObserved": true,
+      "ownerBObserved": true,
+      "ownersDistinct": true,
+      "aLibraryPullObserved": true,
+      "bLibraryPullObserved": true,
+      "aLibraryRows": 0,
+      "bLibraryRows": 0,
+      "aWatchedRows": 164,
+      "bWatchedRows": 0,
+      "aProgressRows": 156,
+      "bProgressRows": 0
+    },
+    "switch": {
+      "switchedALibraryPullObserved": true,
+      "switchedALibraryRows": 0,
+      "switchedALibraryAtMs": 5903,
+      "switchedASyncData": {
+        "completed": [
+          "watched",
+          "progress"
+        ],
+        "pending": []
+      },
+      "switchedALibraryStarted": true,
+      "switchOwnerMatchesControlA": true,
+      "switchOwnerMatchesControlB": false,
+      "criticalReadsInAEpoch": {
+        "criticalSettings": {
+          "started": 3,
+          "completedBodies": 1,
+          "failed": 0
+        },
+        "criticalHomeCatalog": {
+          "started": 3,
+          "completedBodies": 3,
+          "failed": 0
+        },
+        "criticalAddons": null,
+        "profiles": {
+          "started": 2,
+          "completedBodies": 2,
+          "failed": 0
+        },
+        "owner": {
+          "started": 1,
+          "completedBodies": 1,
+          "failed": 0
+        },
+        "watched": {
+          "started": 2,
+          "completedBodies": 1,
+          "failed": 0
+        },
+        "progress": {
+          "started": 2,
+          "completedBodies": 1,
+          "failed": 0
+        }
+      },
+      "watched": {
+        "switchedRows": 164,
+        "matchesFreshA": {
+          "compared": true,
+          "same": true,
+          "leftRows": 164,
+          "rightRows": 164
+        },
+        "foreignSet": {
+          "evaluated": true,
+          "exposesForeignSet": false
+        }
+      },
+      "progress": {
+        "switchedRows": 156,
+        "matchesFreshA": {
+          "compared": true,
+          "same": true,
+          "leftRows": 156,
+          "rightRows": 156
+        },
+        "foreignSet": {
+          "evaluated": true,
+          "exposesForeignSet": false
+        }
+      },
+      "library": {
+        "matchesFreshA": {
+          "compared": true,
+          "same": true,
+          "leftRows": 0,
+          "rightRows": 0
+        },
+        "foreignSet": {
+          "evaluated": true,
+          "exposesForeignSet": false
+        }
+      }
+    }
+  },
+  "limitations": [
+    "Fresh contexts only; empty Library rows are not isolation or sync evidence",
+    "Normal application login/device registration/background work remains enabled",
+    "Legacy full-snapshot Library pushes, foreign origins and service workers were blocked",
+    "Request bodies, headers, tokens, account identifiers and response contents were never exported",
+    "No live expiry/revocation, cross-device or nonempty-Library isolation claim"
+  ],
+  "status": "switch-library-pull-observed",
+  "stopStage": null,
+  "stopCode": null
+}
