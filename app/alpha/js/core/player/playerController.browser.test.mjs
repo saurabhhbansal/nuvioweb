@@ -366,3 +366,40 @@ test("terminal HLS access failure still reports actual status without stream rec
     assert.equal(emitted[0].hlsResponseCode, 403);
   });
 });
+
+test("normalized audio tracks expose engine evidence for the current generation", () => {
+  const originalEngine = PlayerController.playbackEngine;
+  const originalToken = PlayerController.playRequestToken;
+  try {
+    PlayerController.playbackEngine = "hls.js";
+    PlayerController.playRequestToken = 12;
+    PlayerController.getHlsAudioTracks = () => [
+      { id: 0, name: "English", lang: "en", attrs: { CHANNELS: "2", CODECS: "mp4a.40.2" } },
+      { id: 1, name: "Commentary", lang: "en", attrs: { CHANNELS: "2", CHARACTERISTICS: "commentary" } }
+    ];
+    PlayerController.getSelectedHlsAudioTrackIndex = () => 1;
+
+    const normalized = PlayerController.getNormalizedBrowserAudioTracks();
+    assert.equal(normalized.generation, 12);
+    assert.equal(normalized.engine, "hls.js");
+    assert.equal(normalized.trackCount, 2);
+    assert.equal(normalized.selectedKey, normalized.tracks[1].key);
+    assert.equal(normalized.tracks[0].language, "en");
+    assert.equal(normalized.tracks[0].channels, 2);
+    assert.equal(normalized.tracks[1].role, "commentary");
+    assert.equal(normalized.tracks[0].selectability, "available");
+    // It is an observation, not a certification.
+    assert.doesNotMatch(JSON.stringify(normalized), /verified|supported/i);
+
+    // A missing engine track API yields no tracks and no invented selection.
+    PlayerController.getHlsAudioTracks = () => undefined;
+    const empty = PlayerController.getNormalizedBrowserAudioTracks();
+    assert.equal(empty.trackCount, 0);
+    assert.equal(empty.selectedKey, null);
+  } finally {
+    PlayerController.playbackEngine = originalEngine;
+    PlayerController.playRequestToken = originalToken;
+    delete PlayerController.getHlsAudioTracks;
+    delete PlayerController.getSelectedHlsAudioTrackIndex;
+  }
+});
