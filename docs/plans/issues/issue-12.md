@@ -937,3 +937,21 @@ Status: the caller-side operation record exists and was hardened after review; n
 **Not done.** No controller or loader wiring, no timers/deadlines (the loader rebuild), no browser evidence.
 
 **Rollback.** Revert the module, its test and these records; nothing imports it.
+
+### Recovery coordinator executed (2026-10-19)
+
+Status: the reviewed planner and operation record are now joined atomically; nothing calls the coordinator yet.
+
+**Why.** Planning and recording were separate: a caller could plan an offer, fail to record it, or record one the planner no longer proposed. `app/alpha/js/core/player/recoveryCoordinator.js` makes one step of it — `plan()` proposes *and* records, and a refused record replaces the proposal, so the caller can never execute something the operation did not accept.
+
+**Contract.** `createRecoveryCoordinator({generation})` → `begin(failedTrackKey)`, `plan({tracks, lastConfirmedTrackKey, failure}) → {action, trackKey, reason, recorded}`, `close(reason)`, `invalidate(generation, reason)`, `isCurrent(generation)`, `snapshot()`. Attempt counts come from the operation, so re-planning the same failure cannot repeat an offer or exceed the one-alternate/one-restore cap.
+
+**Rules.** An invalid generation refuses `begin` and `plan`. A closed coordinator returns `none`/`operation-closed`. A non-audio failure returns the planner's reason without consuming an attempt. A proposal the operation refuses (already attempted, not started, capped) is reported as `unsupported` with the operation's reason and `recorded: false`. A stale caller cannot invalidate the live coordinator.
+
+**Verification.** `node --test app/alpha/js/core/player/recoveryCoordinator.test.mjs` 13/13; `npm test --prefix app/alpha` 1334/1334; lint pass.
+
+**Review corrections.** An automated read-only review found no P1, but four diagnostic/test gaps, all fixed: an unstarted coordinator mislabeled its reason (`plan()` now returns `none`/`not-started` before planning); the operation-rejection test never actually reached the record-refusal branch (replaced by a cross-kind case where the operation refuses an already-attempted restore); count synchronization was unproven (now asserted through the planner-specific `alternate-tried`/`restore-tried` reasons with exact counts); and generation coverage was one shape only (a table now covers `undefined`/`null`/numeric string/`0`/fraction/`NaN`/`Infinity`/`2**60` across all four methods). [Record](../../agent-runs/2026-10-19-recovery-coordinator-review.md).
+
+**Not done.** No controller, UI, loader, timers or browser evidence. The coordinator is the seam the loader rebuild will call.
+
+**Rollback.** Revert the module, its test and this record; nothing imports it.
