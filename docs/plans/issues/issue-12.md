@@ -841,4 +841,6 @@ This is exactly the trap the gate exists to catch: requesting `audio/mp4` succee
 
 The corrected probe still reports **BLOCKED** on Chromium 156.0.8078.4, now reading a real `Opus` sample entry (75 bytes) from an 11,778-byte recording whose initialization transferred completely (641 bytes), with both WebCodecs `AudioEncoder` absent and no `mp4a` entry on the recorded path.
 
+**CI confirmation.** The required browser job now runs `npm run probe:audio-fixtures` and `npm run test:audio-recovery-gate`. Its first run reproduced the same verdict independently on the ubuntu runner: `"status": "blocked"`, `RESULT: BLOCKED — this browser recorded no inspectable AAC-LC sample entry on the tested path`, and 11/11 parser tests. The gate therefore fails closed on a toolchain that does expose AAC encoding (the probe would report SUPPORTED) and reports rather than skips when it does not.
+
 **Rollback.** Revert the probe script, its test, the npm/CI wiring and this record. No media, dependency or runtime state exists to unwind.
