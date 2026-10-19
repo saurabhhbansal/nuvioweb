@@ -138,3 +138,15 @@ Executed: focused `node --test app/alpha/js/core/plugins/pluginBroker.test.mjs` 
 **Next unit (3b).** Bind the broker as the sandbox's only network primitive (asyncified host function), add cancellation/deadline propagation and teardown, then expose a default-off runtime seam consuming `normalizePluginResult`. Independent security/dependency review remains required before any shipped runtime.
 
 **Rollback.** Protected revert deletes the broker and tests; no runtime or data change.
+
+### Unit 3b results — broker-bound sandbox with deadline cancellation (2026-10-19)
+
+Implemented `app/alpha/scripts/pluginSandboxNetworkPrototype.mjs` and tests. `api.fetch` is an asyncified QuickJS host function backed by `createPluginNetworkBroker`; the VM has no global `fetch`, and headers/credentials/destinations never cross the boundary. A host-side deadline races each broker call, suspended host calls are awaited before context disposal, and broker errors surface as bounded `plugin-network:<code>` failures that plugins may catch.
+
+Executed: focused tests7/7 pass,0 skipped (allowlisted fetch and normalization, no-headers transport call, denied host, request cap, slow-host deadline, oversized and redirected-away responses, catchable denial, no global fetch). `npm test --prefix app/alpha`1215/1215 pass; lint pass; inert build/12-asset check pass. No application wiring, feature flag, real network or default-off runtime was added.
+
+**Limits.** Deadline cancellation is host-race based, not AbortSignal propagation into a real transport; no persistent per-account quotas, no user-facing cancellation and no independent security/dependency review. The asyncified WASM build is larger/slower and affects the future browser-bundle decision.
+
+**Next unit (4).** Default-off runtime seam consuming the contract + broker, persistent quota/allowlist source, abuse corpus (hangs, repeated failures, malformed output, huge inputs), then independent security/dependency review and bundle measurement.
+
+**Rollback.** Protected revert deletes the network prototype and tests; no runtime or data change.
