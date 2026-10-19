@@ -386,6 +386,6 @@ Ordered, evidence-gated rules (first match wins):
 
 **Test commands.** `node --test app/alpha/js/core/player/startupFailure.test.mjs`; `node --test app/alpha/js/ui/screens/player/playerScreen.browser.test.mjs`; `npx playwright test tests/browser/capabilities.spec.mjs --project=chromium`; `npm test --prefix app/alpha`; `npm run lint`; `node scripts/check-alpha-build.mjs`; `npx playwright test`; `node scripts/check-docs.mjs`; `node --test scripts/check-docs.test.mjs scripts/governance.test.mjs scripts/prepare-static-preview.test.mjs`.
 
-**Rollback.** Protected revert of the merge commit; the classifier is additive, no remote state, no migration, no flag.
+**Rollback.** Protected revert of merge commit `d2a6acd` (PR #77); the classifier is additive, no remote state, no migration, no flag.
 
 **Limits.** Synthetic/local evidence only. A WebKit-family classification assertion requires the Playwright WebKit project (next unit) or an owner-recorded observation; neither is claimed here.
