@@ -23,7 +23,7 @@ export const HARD_LIMITS = Object.freeze({
   commentBytes: 61440
 });
 
-const TOP_LEVEL_KEYS = new Set(["schemaVersion", "sources", "import", "reviewedThroughSha", "licenseBaseline", "decisions", "ports", "tracking", "limits"]);
+const TOP_LEVEL_KEYS = new Set(["schemaVersion", "sources", "import", "reviewedThroughSha", "licenseBaseline", "observationBaseline", "decisions", "ports", "tracking", "limits"]);
 const SOURCE_ID = /^[a-z0-9][a-z0-9-]{1,31}$/;
 const REPOSITORY = /^https:\/\/github\.com\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
 const TRACKING_REPOSITORY = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
@@ -182,6 +182,39 @@ async function validateLicenseBaseline(state, errors, root) {
   }
 }
 
+function validateObservationBaseline(state, errors) {
+  if (state.observationBaseline == null) return;
+  const value = state.observationBaseline;
+  if (!isPlainObject(value)) {
+    push(errors, "OBSERVATION_BASELINE", "observationBaseline");
+    return;
+  }
+  checkKeys(errors, value, "observationBaseline", new Set(["tags", "releases"]));
+  if (!isPlainObject(value.tags) || Object.keys(value.tags).length > 100) {
+    push(errors, "OBSERVATION_TAGS", "observationBaseline.tags");
+  } else {
+    for (const [name, sha] of Object.entries(value.tags)) {
+      if (!REF.test(name)) push(errors, "OBSERVATION_TAG_NAME", `observationBaseline.tags.${name}`);
+      if (typeof sha !== "string" || !SHA40.test(sha)) push(errors, "SHA", `observationBaseline.tags.${name}`);
+    }
+  }
+  if (!Array.isArray(value.releases) || value.releases.length > 100) {
+    push(errors, "OBSERVATION_RELEASES", "observationBaseline.releases");
+    return;
+  }
+  for (let index = 0; index < value.releases.length; index += 1) {
+    const entry = value.releases[index];
+    const at = `observationBaseline.releases[${index}]`;
+    if (!isPlainObject(entry)) {
+      push(errors, "OBSERVATION_RELEASE", at);
+      continue;
+    }
+    checkKeys(errors, entry, at, new Set(["id", "tagName"]));
+    if (!Number.isInteger(entry.id) || entry.id < 1) push(errors, "OBSERVATION_RELEASE_ID", `${at}.id`);
+    if (typeof entry.tagName !== "string" || !REF.test(entry.tagName)) push(errors, "OBSERVATION_RELEASE_TAG", `${at}.tagName`);
+  }
+}
+
 async function validateDecisions(state, errors, root) {
   if (!Array.isArray(state.decisions) || state.decisions.length > 100) {
     push(errors, "DECISIONS", "decisions");
@@ -282,6 +315,7 @@ export async function validateUpstreamState(state, { root = REPO_ROOT } = {}) {
   await validateImport(state, errors, root, ids);
   if (typeof state.reviewedThroughSha !== "string" || !SHA40.test(state.reviewedThroughSha)) push(errors, "SHA", "reviewedThroughSha");
   await validateLicenseBaseline(state, errors, root);
+  validateObservationBaseline(state, errors);
   await validateDecisions(state, errors, root);
   await validatePorts(state, errors, root);
   validateTracking(state, errors);
