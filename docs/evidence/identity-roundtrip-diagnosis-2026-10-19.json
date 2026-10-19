@@ -1,0 +1,488 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-19T15:13:30.637Z",
+  "candidateRevision": "1f67867ebab7f426672886121d852a643a436414",
+  "environment": "hosted development preview (HTTPS) with live primary Nuvio API",
+  "publicDeployment": true,
+  "mode": "bounded read-only B-to-A-to-B round-trip; no mutation",
+  "results": {
+    "bFirst": {
+      "library": {
+        "started": true,
+        "completed": true,
+        "failed": false,
+        "statuses": [
+          200
+        ],
+        "categories": {},
+        "firstFailMs": null,
+        "latestFinishMs": 2238
+      },
+      "ui": {
+        "route": "library",
+        "activeProfileId": "1",
+        "sessionPresent": true
+      }
+    },
+    "aEpoch": {
+      "library": {
+        "started": true,
+        "completed": true,
+        "failed": false,
+        "statuses": [
+          200
+        ],
+        "categories": {},
+        "firstFailMs": null,
+        "latestFinishMs": 4361
+      },
+      "ui": {
+        "route": "library",
+        "activeProfileId": "1",
+        "sessionPresent": true
+      }
+    },
+    "bReturn": {
+      "library": {
+        "started": true,
+        "completed": true,
+        "failed": false,
+        "statuses": [
+          200
+        ],
+        "categories": {},
+        "firstFailMs": null,
+        "latestFinishMs": 6688
+      },
+      "ui": {
+        "route": "library",
+        "activeProfileId": "1",
+        "sessionPresent": true
+      }
+    },
+    "operations": {
+      "1": {
+        "authToken": {
+          "started": 1,
+          "headers": 1,
+          "completedBodies": 1,
+          "failed": 0,
+          "statuses": [
+            200
+          ],
+          "latestFinishMs": 1093,
+          "firstFailMs": null,
+          "failureCategories": {}
+        },
+        "criticalHomeCatalog": {
+          "started": 4,
+          "headers": 3,
+          "completedBodies": 3,
+          "failed": 0,
+          "statuses": [
+            200
+          ],
+          "latestFinishMs": 2052,
+          "firstFailMs": null,
+          "failureCategories": {}
+        },
+        "criticalSettings": {
+          "started": 2,
+          "headers": 1,
+          "completedBodies": 1,
+          "failed": 0,
+          "statuses": [
+            200
+          ],
+          "latestFinishMs": 1849,
+          "firstFailMs": null,
+          "failureCategories": {}
+        },
+        "library": {
+          "started": 1,
+          "headers": 1,
+          "completedBodies": 1,
+          "failed": 0,
+          "statuses": [
+            200
+          ],
+          "latestFinishMs": 2238,
+          "firstFailMs": null,
+          "failureCategories": {}
+        },
+        "otherRest": {
+          "started": 3,
+          "headers": 2,
+          "completedBodies": 2,
+          "failed": 0,
+          "statuses": [
+            200
+          ],
+          "latestFinishMs": 2260,
+          "firstFailMs": null,
+          "failureCategories": {}
+        },
+        "otherRpc": {
+          "started": 7,
+          "headers": 7,
+          "completedBodies": 7,
+          "failed": 0,
+          "statuses": [
+            200,
+            204
+          ],
+          "latestFinishMs": 2260,
+          "firstFailMs": null,
+          "failureCategories": {}
+        },
+        "owner": {
+          "started": 1,
+          "headers": 1,
+          "completedBodies": 1,
+          "failed": 0,
+          "statuses": [
+            200
+          ],
+          "latestFinishMs": 1274,
+          "firstFailMs": null,
+          "failureCategories": {}
+        },
+        "profiles": {
+          "started": 2,
+          "headers": 2,
+          "completedBodies": 2,
+          "failed": 0,
+          "statuses": [
+            200
+          ],
+          "latestFinishMs": 2237,
+          "firstFailMs": null,
+          "failureCategories": {}
+        },
+        "progress": {
+          "started": 1,
+          "headers": 1,
+          "completedBodies": 1,
+          "failed": 0,
+          "statuses": [
+            200
+          ],
+          "latestFinishMs": 2260,
+          "firstFailMs": null,
+          "failureCategories": {}
+        },
+        "watched": {
+          "started": 1,
+          "headers": 1,
+          "completedBodies": 1,
+          "failed": 0,
+          "statuses": [
+            200
+          ],
+          "latestFinishMs": 2260,
+          "firstFailMs": null,
+          "failureCategories": {}
+        }
+      },
+      "2": {
+        "authToken": {
+          "started": 1,
+          "headers": 1,
+          "completedBodies": 1,
+          "failed": 0,
+          "statuses": [
+            200
+          ],
+          "latestFinishMs": 2902,
+          "firstFailMs": null,
+          "failureCategories": {}
+        },
+        "criticalHomeCatalog": {
+          "started": 5,
+          "headers": 6,
+          "completedBodies": 6,
+          "failed": 0,
+          "statuses": [
+            200,
+            403
+          ],
+          "latestFinishMs": 4160,
+          "firstFailMs": null,
+          "failureCategories": {}
+        },
+        "criticalSettings": {
+          "started": 5,
+          "headers": 6,
+          "completedBodies": 6,
+          "failed": 0,
+          "statuses": [
+            200
+          ],
+          "latestFinishMs": 4702,
+          "firstFailMs": null,
+          "failureCategories": {}
+        },
+        "library": {
+          "started": 1,
+          "headers": 1,
+          "completedBodies": 1,
+          "failed": 0,
+          "statuses": [
+            200
+          ],
+          "latestFinishMs": 4361,
+          "firstFailMs": null,
+          "failureCategories": {}
+        },
+        "otherApi": {
+          "started": 5,
+          "headers": 5,
+          "completedBodies": 5,
+          "failed": 0,
+          "statuses": [
+            200
+          ],
+          "latestFinishMs": 4834,
+          "firstFailMs": null,
+          "failureCategories": {}
+        },
+        "otherRest": {
+          "started": 2,
+          "headers": 3,
+          "completedBodies": 3,
+          "failed": 0,
+          "statuses": [
+            200
+          ],
+          "latestFinishMs": 4349,
+          "firstFailMs": null,
+          "failureCategories": {}
+        },
+        "otherRpc": {
+          "started": 9,
+          "headers": 9,
+          "completedBodies": 8,
+          "failed": 0,
+          "statuses": [
+            200,
+            204
+          ],
+          "latestFinishMs": 4531,
+          "firstFailMs": null,
+          "failureCategories": {}
+        },
+        "owner": {
+          "started": 1,
+          "headers": 1,
+          "completedBodies": 1,
+          "failed": 0,
+          "statuses": [
+            200
+          ],
+          "latestFinishMs": 3120,
+          "firstFailMs": null,
+          "failureCategories": {}
+        },
+        "profiles": {
+          "started": 3,
+          "headers": 3,
+          "completedBodies": 3,
+          "failed": 0,
+          "statuses": [
+            200
+          ],
+          "latestFinishMs": 4355,
+          "firstFailMs": null,
+          "failureCategories": {}
+        },
+        "progress": {
+          "started": 2,
+          "headers": 2,
+          "completedBodies": 1,
+          "failed": 0,
+          "statuses": [
+            200
+          ],
+          "latestFinishMs": 4659,
+          "firstFailMs": null,
+          "failureCategories": {}
+        },
+        "watched": {
+          "started": 2,
+          "headers": 2,
+          "completedBodies": 2,
+          "failed": 0,
+          "statuses": [
+            200
+          ],
+          "latestFinishMs": 4768,
+          "firstFailMs": null,
+          "failureCategories": {}
+        }
+      },
+      "3": {
+        "authToken": {
+          "started": 1,
+          "headers": 1,
+          "completedBodies": 1,
+          "failed": 0,
+          "statuses": [
+            200
+          ],
+          "latestFinishMs": 5577,
+          "firstFailMs": null,
+          "failureCategories": {}
+        },
+        "criticalHomeCatalog": {
+          "started": 6,
+          "headers": 4,
+          "completedBodies": 4,
+          "failed": 2,
+          "statuses": [
+            200
+          ],
+          "latestFinishMs": 6741,
+          "firstFailMs": 6765,
+          "failureCategories": {
+            "FAILED": 2
+          }
+        },
+        "criticalSettings": {
+          "started": 3,
+          "headers": 2,
+          "completedBodies": 2,
+          "failed": 1,
+          "statuses": [
+            200
+          ],
+          "latestFinishMs": 6755,
+          "firstFailMs": 6775,
+          "failureCategories": {
+            "FAILED": 1
+          }
+        },
+        "library": {
+          "started": 1,
+          "headers": 1,
+          "completedBodies": 1,
+          "failed": 0,
+          "statuses": [
+            200
+          ],
+          "latestFinishMs": 6688,
+          "firstFailMs": null,
+          "failureCategories": {}
+        },
+        "otherRest": {
+          "started": 3,
+          "headers": 3,
+          "completedBodies": 3,
+          "failed": 0,
+          "statuses": [
+            200
+          ],
+          "latestFinishMs": 6765,
+          "firstFailMs": null,
+          "failureCategories": {}
+        },
+        "otherRpc": {
+          "started": 9,
+          "headers": 8,
+          "completedBodies": 9,
+          "failed": 1,
+          "statuses": [
+            200,
+            204
+          ],
+          "latestFinishMs": 6695,
+          "firstFailMs": 6710,
+          "failureCategories": {
+            "FAILED": 1
+          }
+        },
+        "owner": {
+          "started": 1,
+          "headers": 1,
+          "completedBodies": 1,
+          "failed": 0,
+          "statuses": [
+            200
+          ],
+          "latestFinishMs": 5770,
+          "firstFailMs": null,
+          "failureCategories": {}
+        },
+        "profiles": {
+          "started": 3,
+          "headers": 3,
+          "completedBodies": 3,
+          "failed": 0,
+          "statuses": [
+            200
+          ],
+          "latestFinishMs": 6709,
+          "firstFailMs": null,
+          "failureCategories": {}
+        },
+        "progress": {
+          "started": 1,
+          "headers": 1,
+          "completedBodies": 2,
+          "failed": 0,
+          "statuses": [
+            200
+          ],
+          "latestFinishMs": 6693,
+          "firstFailMs": null,
+          "failureCategories": {}
+        },
+        "watched": {
+          "started": 1,
+          "headers": 1,
+          "completedBodies": 1,
+          "failed": 0,
+          "statuses": [
+            200
+          ],
+          "latestFinishMs": 6709,
+          "firstFailMs": null,
+          "failureCategories": {}
+        }
+      }
+    },
+    "failures": [
+      {
+        "epoch": 3,
+        "label": "otherRpc",
+        "category": "FAILED",
+        "atMs": 6710
+      },
+      {
+        "epoch": 3,
+        "label": "criticalHomeCatalog",
+        "category": "FAILED",
+        "atMs": 6765
+      },
+      {
+        "epoch": 3,
+        "label": "criticalHomeCatalog",
+        "category": "FAILED",
+        "atMs": 6765
+      },
+      {
+        "epoch": 3,
+        "label": "criticalSettings",
+        "category": "FAILED",
+        "atMs": 6775
+      }
+    ],
+    "counters": {
+      "blockedForeignOrigin": 18,
+      "blockedLegacySnapshot": 0
+    },
+    "pageErrors": []
+  },
+  "status": "roundtrip-b-return-observed",
+  "stopStage": null,
+  "stopCode": null
+}

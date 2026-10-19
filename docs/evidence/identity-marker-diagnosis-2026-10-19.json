@@ -1,0 +1,400 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-19T15:11:36.103Z",
+  "candidateRevision": "1f67867ebab7f426672886121d852a643a436414",
+  "environment": "hosted development preview (HTTPS) with live primary Nuvio API",
+  "publicDeployment": true,
+  "mode": "bounded corrected-harness synthetic Library marker; one incremental insert with exact-key cleanup",
+  "results": {
+    "initialB": {
+      "cloudCount": 0,
+      "hasKey": false,
+      "status": 200
+    },
+    "contractProbes": {
+      "pushEmpty": 204,
+      "deleteEmpty": 204
+    },
+    "insert": {
+      "status": 204
+    },
+    "postInsertCloud": {
+      "count": 1,
+      "hasKey": true,
+      "status": 200
+    },
+    "receiverB": {
+      "first": {
+        "present": true,
+        "local": true,
+        "visible": true
+      },
+      "inA": {
+        "local": false,
+        "visible": false
+      },
+      "cloudInA": {
+        "status": 200,
+        "count": 0,
+        "hasKey": false
+      },
+      "again": {
+        "present": false,
+        "local": false,
+        "visible": false
+      },
+      "operations": {
+        "operations": {
+          "1": {
+            "authToken": {
+              "started": 1,
+              "headers": 1,
+              "completedBodies": 1,
+              "failed": 0,
+              "statuses": [
+                200
+              ],
+              "latestFinishMs": 1315
+            },
+            "criticalHomeCatalog": {
+              "started": 3,
+              "headers": 3,
+              "completedBodies": 3,
+              "failed": 0,
+              "statuses": [
+                200
+              ],
+              "latestFinishMs": 2805
+            },
+            "criticalSettings": {
+              "started": 1,
+              "headers": 1,
+              "completedBodies": 1,
+              "failed": 0,
+              "statuses": [
+                200
+              ],
+              "latestFinishMs": 2540
+            },
+            "library": {
+              "started": 1,
+              "headers": 1,
+              "completedBodies": 1,
+              "failed": 0,
+              "statuses": [
+                200
+              ],
+              "latestFinishMs": 3068
+            },
+            "otherRest": {
+              "started": 2,
+              "headers": 2,
+              "completedBodies": 2,
+              "failed": 0,
+              "statuses": [
+                200
+              ],
+              "latestFinishMs": 3066
+            },
+            "otherRpc": {
+              "started": 8,
+              "headers": 7,
+              "completedBodies": 7,
+              "failed": 0,
+              "statuses": [
+                200,
+                204
+              ],
+              "latestFinishMs": 3068
+            },
+            "owner": {
+              "started": 1,
+              "headers": 1,
+              "completedBodies": 1,
+              "failed": 0,
+              "statuses": [
+                200
+              ],
+              "latestFinishMs": 1590
+            },
+            "profiles": {
+              "started": 2,
+              "headers": 2,
+              "completedBodies": 2,
+              "failed": 0,
+              "statuses": [
+                200
+              ],
+              "latestFinishMs": 3068
+            },
+            "progress": {
+              "started": 1,
+              "headers": 1,
+              "completedBodies": 1,
+              "failed": 0,
+              "statuses": [
+                200
+              ],
+              "latestFinishMs": 3057
+            },
+            "watched": {
+              "started": 1,
+              "headers": 1,
+              "completedBodies": 1,
+              "failed": 0,
+              "statuses": [
+                200
+              ],
+              "latestFinishMs": 3054
+            }
+          },
+          "2": {
+            "authToken": {
+              "started": 1,
+              "headers": 1,
+              "completedBodies": 1,
+              "failed": 0,
+              "statuses": [
+                200
+              ],
+              "latestFinishMs": 4063
+            },
+            "criticalHomeCatalog": {
+              "started": 3,
+              "headers": 3,
+              "completedBodies": 3,
+              "failed": 0,
+              "statuses": [
+                200
+              ],
+              "latestFinishMs": 6005
+            },
+            "criticalSettings": {
+              "started": 6,
+              "headers": 6,
+              "completedBodies": 6,
+              "failed": 0,
+              "statuses": [
+                200
+              ],
+              "latestFinishMs": 7244
+            },
+            "library": {
+              "started": 2,
+              "headers": 2,
+              "completedBodies": 2,
+              "failed": 0,
+              "statuses": [
+                200
+              ],
+              "latestFinishMs": 8130
+            },
+            "otherApi": {
+              "started": 3,
+              "headers": 3,
+              "completedBodies": 3,
+              "failed": 0,
+              "statuses": [
+                200
+              ],
+              "latestFinishMs": 5704
+            },
+            "otherRest": {
+              "started": 2,
+              "headers": 2,
+              "completedBodies": 2,
+              "failed": 0,
+              "statuses": [
+                200
+              ],
+              "latestFinishMs": 6276
+            },
+            "otherRpc": {
+              "started": 11,
+              "headers": 12,
+              "completedBodies": 12,
+              "failed": 0,
+              "statuses": [
+                200,
+                204
+              ],
+              "latestFinishMs": 7494
+            },
+            "owner": {
+              "started": 1,
+              "headers": 1,
+              "completedBodies": 1,
+              "failed": 0,
+              "statuses": [
+                200
+              ],
+              "latestFinishMs": 4304
+            },
+            "profiles": {
+              "started": 3,
+              "headers": 3,
+              "completedBodies": 3,
+              "failed": 0,
+              "statuses": [
+                200
+              ],
+              "latestFinishMs": 6261
+            },
+            "progress": {
+              "started": 2,
+              "headers": 2,
+              "completedBodies": 2,
+              "failed": 0,
+              "statuses": [
+                200
+              ],
+              "latestFinishMs": 6684
+            },
+            "watched": {
+              "started": 2,
+              "headers": 2,
+              "completedBodies": 2,
+              "failed": 0,
+              "statuses": [
+                200
+              ],
+              "latestFinishMs": 6278
+            }
+          },
+          "3": {
+            "authToken": {
+              "started": 1,
+              "headers": 1,
+              "completedBodies": 1,
+              "failed": 0,
+              "statuses": [
+                200
+              ],
+              "latestFinishMs": 8926
+            },
+            "criticalHomeCatalog": {
+              "started": 3,
+              "headers": 3,
+              "completedBodies": 3,
+              "failed": 0,
+              "statuses": [
+                200
+              ],
+              "latestFinishMs": 10398
+            },
+            "criticalSettings": {
+              "started": 2,
+              "headers": 1,
+              "completedBodies": 1,
+              "failed": 1,
+              "statuses": [
+                200
+              ],
+              "latestFinishMs": 10142
+            },
+            "library": {
+              "started": 1,
+              "headers": 0,
+              "completedBodies": 0,
+              "failed": 1,
+              "statuses": [],
+              "latestFinishMs": null
+            },
+            "otherRest": {
+              "started": 2,
+              "headers": 2,
+              "completedBodies": 2,
+              "failed": 0,
+              "statuses": [
+                200
+              ],
+              "latestFinishMs": 10662
+            },
+            "otherRpc": {
+              "started": 7,
+              "headers": 3,
+              "completedBodies": 3,
+              "failed": 4,
+              "statuses": [
+                200
+              ],
+              "latestFinishMs": 9403
+            },
+            "owner": {
+              "started": 1,
+              "headers": 1,
+              "completedBodies": 1,
+              "failed": 0,
+              "statuses": [
+                200
+              ],
+              "latestFinishMs": 9165
+            },
+            "profiles": {
+              "started": 3,
+              "headers": 2,
+              "completedBodies": 2,
+              "failed": 1,
+              "statuses": [
+                200
+              ],
+              "latestFinishMs": 9396
+            },
+            "progress": {
+              "started": 1,
+              "headers": 0,
+              "completedBodies": 0,
+              "failed": 1,
+              "statuses": [],
+              "latestFinishMs": null
+            },
+            "watched": {
+              "started": 1,
+              "headers": 0,
+              "completedBodies": 0,
+              "failed": 1,
+              "statuses": [],
+              "latestFinishMs": null
+            }
+          }
+        },
+        "counters": {
+          "blockedForeignOrigin": 14,
+          "blockedLegacySnapshot": 0
+        },
+        "pageErrors": []
+      }
+    },
+    "receiverA": {
+      "marker": {
+        "local": false,
+        "visible": false
+      },
+      "cloud": {
+        "status": 200,
+        "count": 0,
+        "hasKey": false
+      }
+    },
+    "deletionAfterReload": {
+      "absent": true,
+      "local": false,
+      "visible": false
+    }
+  },
+  "status": "marker-isolation-failed",
+  "stopStage": null,
+  "stopCode": null,
+  "cleanup": {
+    "attempted": true,
+    "verified": true,
+    "status": 204,
+    "cloudAfter": {
+      "status": 200,
+      "count": 0,
+      "hasKey": false
+    },
+    "originalKeysUnchanged": true,
+    "noteRemoved": true
+  }
+}

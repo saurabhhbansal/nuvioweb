@@ -14,11 +14,11 @@ This file is the durable handoff. A new agent must be able to resume from it wit
 
 ## Current selection
 
-- Selected ticket: **#7** (real-account login/sync/profile isolation), with #10 evidence work in parallel when blocked.
-- Current branch: `docs/issue-7-switch-diagnosis` (evidence/ledger PR for the hosted switch result).
+- Selected ticket: **#7** (real-account login/sync/profile isolation), with #10 evidence work in parallel when #7 is environment-gated.
+- Current branch: `docs/issue-7-marker-evidence` (evidence/ledger PR for the marker and round-trip results).
 - Current PR: the evidence PR opened from that branch.
-- Last completed atomic task: hosted `1f67867` bounded read-mostly B→A switch diagnosis. Distinct owners; fresh A control164 watched/156 progress, B0/0; after actual Sign Out → A sign-in → primary-profile activation → Library, a new A-epoch `sync_pull_library` completed200 at ~5.9s and A's164/156 watched/progress identities matched fresh A exactly with no B set. Older missing-pull barrier not reproduced with corrected activation waits.
-- Next exact atomic task: implement the private corrected-harness marker driver per the plan amendment in [issue #7 plan](../plans/issues/issue-7.md) — one synthetic incremental insert in B/profile1, independent B/A/B verification, and verified exact-key cleanup in `finally`. One run only; stop mutations if cleanup is uncertain. Then record the sanitized receipt and update the identity/MVP/ledger records.
+- Last completed atomic tasks: (1) hosted B→A switch diagnosis — distinct owners, A-epoch Library200 at ~5.9s, A's164 watched/156 progress restored with no B set; (2) one bounded synthetic marker — B arrival and no marker in A, but returning-B restoration failed once (Library/watched/progress failed before headers) and passed on an immediate read-only B→A→B round trip; exact-key cleanup verified, cloud count0, private note removed.
+- Next exact atomic task: no further live marker write. Start the unblocked #11 default-off lazy plugin-engine runtime seam (or an owner-approved #10 named-device/audio observation when a device is available), after re-reading [issue #11 plan](../plans/issues/issue-11.md). Any sync runtime change first requires a deterministic synthetic reproduction of the B→A→B request failure; do not infer one from the single live failure.
 
 ## Relevant plans and evidence
 
@@ -31,7 +31,8 @@ This file is the durable handoff. A new agent must be able to resume from it wit
 
 ## Last verification performed
 
-- Hosted switch diagnosis (this unit): `node dist/tools/issue7-switch-diagnosis.mjs <owner-only-file> dist/tools/switch-diagnosis-final.json`, exit0; receipt copied to evidence. Chromium156.0.8078.4/Playwright1.64/LinuxARM64; hosted HTTPS + live primary API; third parties, service workers and legacy full-snapshot Library pushes blocked; no test-record mutation. Page errors0; console errors12 from blocked third-party resources; blocked foreign origins12.
+- Marker and round trip (this unit): `node dist/tools/issue7-marker-diagnosis.mjs <owner-only-file> dist/tools/marker-diagnosis-raw.json`, exit0, status `marker-isolation-failed` (B arrival PASS, A absence PASS, returning-B restoration FAIL, cleanup verified); `node dist/tools/issue7-switch-roundtrip.mjs <owner-only-file> dist/tools/roundtrip-raw.json`, exit0, status `roundtrip-b-return-observed` (all three Library pulls200, returning-B ~6.7s). Receipts in `docs/evidence/`.
+- Hosted switch diagnosis (earlier this session): `node dist/tools/issue7-switch-diagnosis.mjs <owner-only-file> dist/tools/switch-diagnosis-final.json`, exit0; receipt copied to evidence. Chromium156.0.8078.4/Playwright1.64/LinuxARM64; hosted HTTPS + live primary API; third parties, service workers and legacy full-snapshot Library pushes blocked; no test-record mutation. Page errors0; console errors12 from blocked third-party resources; blocked foreign origins12.
 - Earlier hosted refresh (still current deployment): 134/134 artifact hashes, GPL/notices, headers/404/source and automatic worker verified; complete hosted guest journey PASS in Chromium156 with0 uncaught errors; rollback retained. [Receipt](../evidence/preview-refresh-2026-10-19.json).
 - Prior baselines remain authoritative for their seams: 1171 application tests, 40 browser/PWA journeys, 76 focused auth/sync/repository cases at `3b602f3`; cross-engine capability at `11ddfa3`; hosted guest journey at `1f67867`.
 - Evidence-only PR checks required: `node scripts/check-docs.mjs`, `node --test scripts/check-docs.test.mjs scripts/governance.test.mjs scripts/prepare-static-preview.test.mjs`, `node scripts/check-progress.mjs`, plus links/ledger/ancestry/whitespace and the four protected PR workflows.
@@ -39,7 +40,7 @@ This file is the durable handoff. A new agent must be able to resume from it wit
 ## Known failures and limits
 
 - **#7:** the older `LIBRARY_PULL_NOT_OBSERVED` receipts (`8edec42`, loopback `f800920`) are preserved and are **not** explained by the new run; the new run did not reproduce the barrier. During this session, navigating to Library while profile activation was still in progress and stale screens remained mounted reproduced a similar no-navigation/no-pull symptom, so the older failures remain consistent with a harness timing barrier as well as a client/scheduling issue. Root cause unestablished.
-- **#7:** both accounts' Libraries are empty. Nonempty Library isolation, app Save/delete/receiver deletion, live push and deletion propagation remain unverified. No add-on identity comparison was made in the switch run. Measured expiry/revocation/QR, offline recovery and named-device evidence remain open.
+- **#7:** one synthetic marker showed B arrival and no marker in A (scoped isolation support), but returning-B restoration failed once with pre-header Library/watched/progress request failures; an immediate read-only repeat passed. The failure category was not captured in the marker run, and the failure is not deterministic. No further marker write will be made. App Save/remove, receiver deletion, live push, add-on identity comparison, measured expiry/revocation/QR, offline recovery and named-device evidence remain open.
 - **#10:** hosted guest journey PASS at `1f67867`; branded Edge/Safari/mobile, multitrack/audible output, hosted external-provider CORS and 4K60/HDR remain NOT TESTED or unverified. Chrome for Testing155 and Playwright Firefox157 pass their scoped suites; WebKit cannot be installed on this host; Edge has no ARM64 Linux build.
 - Tokens remain XSS-readable in the inherited browser architecture. Local logout is not proof of remote revocation. Snapshot writes still carry concurrent-writer risk.
 
@@ -63,6 +64,6 @@ This file is the durable handoff. A new agent must be able to resume from it wit
 3. Hosted preview is `1f67867`/`b48de821`; rollback `96f977f4`/`8edec42`.
 4. Credentials: `/home/saurabh/.config/nuvioweb/test-accounts.json` (0600, outside Git). Never print, log, commit, echo to reviewers or pass as a positional value; pass only its path. Recommend rotation after the marker run.
 5. Tooling: pinned Node `export PATH=/home/saurabh/.local/share/mise/installs/node/22.23.1/bin:$PATH` (v22.23.1/npm10.9.8); Wrangler `node /home/saurabh/.npm/_npx/d77349f55c2be1c0/node_modules/wrangler/bin/wrangler.js`; Codex per above.
-6. Do not repeat an unchanged-source live probe. The next live write is the bounded marker unit already amended in the plan; one run, exact-key cleanup, stop on uncertainty.
+6. Do not repeat an unchanged live probe and do not run another live marker write; the one bounded marker is complete with verified cleanup. A deterministic synthetic reproduction is required before any sync runtime change.
 7. #10 remains open for branded Edge/Safari/mobile, multitrack/audible audio, hosted external-provider CORS and 4K60/HDR. #11 remains open for the default-off runtime seam.
 8. Goal: keep the persisted objective active; do not mark complete until #7/#10 and the roadmap gates are genuinely satisfied.
