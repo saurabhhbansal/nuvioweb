@@ -120,7 +120,9 @@
           "docs/IDENTITY_VERIFICATION.md",
           "docs/plans/issues/issue-7.md",
           "docs/MVP_ACCEPTANCE.md",
-          "docs/evidence/identity-library-reconciliation-2026-10-19.json"
+          "docs/evidence/identity-library-reconciliation-2026-10-19.json",
+          "docs/evidence/identity-switch-diagnosis-2026-10-19.json",
+          "docs/agent-runs/2026-10-19-private-tooling-incident.md"
         ],
         "verification": [
           "Owner reported initial three Windows/Edge checks passed; browser version and independent-session setup unspecified.",
@@ -129,9 +131,10 @@
           "Owner-approved PR47 exact976726d merged48ee9b0 after protected CI: explicit final-item empty snapshot, mutation/queue/refresh ownership.1150 application/38 browser/55 focused pass; no live snapshot test.",
           "Owner-approved PR48 exactf1ee08e merged25ce335 after protected CI: clean remote-empty reconciliation and pending/legacy edit preservation.1171 application/40 browser-PWA/76 focused pass; automated reviews0 actionable findings, not independent approval. No automatic retry/outbox or live deletion claim.",
           "All four main workflows pass at25ce335. Public preview remains8edec42/deployment96f977f4; merged runtime44-48 not yet uploaded.",
-          "One bounded reviewed-sourcef800920 loopback/live API run: distinct A/B identities and sync owners, fresh initial Library pulls and independent nonempty B local/UI arrival pass. B-to-A reaches Library but no successful new Library response within30s; account switching FAIL/incomplete. Exact-key cleanup verified remote marker absent and original B keys unchanged, contexts/server closed. No full-snapshot write attempted or equivalent retry planned."
+          "One bounded reviewed-sourcef800920 loopback/live API run: distinct A/B identities and sync owners, fresh initial Library pulls and independent nonempty B local/UI arrival pass. B-to-A reaches Library but no successful new Library response within30s; account switching FAIL/incomplete. Exact-key cleanup verified remote marker absent and original B keys unchanged, contexts/server closed. No full-snapshot write attempted or equivalent retry planned.",
+          "Hosted1f67867/deployment b48de821 B-to-A diagnosis: distinct owners; fresh A control164 watched/156 progress, B0/0; actual Sign Out then A sign-in/primary-profile activation followed by a new A-epoch Library200 at about5.9s; A-epoch watched164/progress156 match fresh A exactly with no B set. Older missing-pull barrier not reproduced with corrected activation waits; both Libraries empty, so no Library isolation claim and no older-run root cause established."
         ],
-        "remaining": "Issue7 OPEN. MVP blocker: live B-to-A Library read/hydration barrier; reason not yet isolated, cumulative failed requests do not prove server rejection or leakage. Save/push/final-item deletion and receiver deletion remain synthetic only; live snapshot operation was blocked. Failed/legacy local changes persist pending but have no retry/resolution UI; full-snapshot concurrent writers, storage across failure/reload and cross-tab conflicts unresolved. Live expiry/revocation/QR and named-browser/device/hosted latest-source checks incomplete. No new permission needed for local debugging; exact preview refresh approval and external device evidence are the next owner checkpoints. Continue independent #10 native-playback acceptance while avoiding equivalent live probes."
+        "remaining": "Issue7 OPEN. Hosted switch hydration now passes for watched/progress on1f67867 with corrected activation waits; the older missing-pull barrier is not reproduced and its root cause is unestablished. Both Libraries are empty: nonempty Library isolation, app Save/delete/receiver deletion and live snapshot push remain unverified. Failed/legacy local changes persist pending without retry/resolution UI; full-snapshot concurrent writers, storage across failure/reload and cross-tab conflicts remain open. Measured expiry/revocation/QR, offline recovery and named-browser/device evidence incomplete. Next: one bounded corrected-harness marker probe with exact-key cleanup, then add-on identity comparison; no unchanged-source marker retry."
       }
     },
     {
@@ -219,14 +222,14 @@
           "pr": 49
         },
         "preview": {
-          "sourceRevision": "8edec4248405d59f5b8639085a1e779e6878911b",
-          "deployment": "96f977f4",
+          "sourceRevision": "1f67867ebab7f426672886121d852a643a436414",
+          "deployment": "b48de821-9034-49cc-8e1f-ab5c50e7fa3a",
           "url": "https://nuvioweb-preview.pages.dev",
           "documents": [
             "docs/STATIC_PREVIEW.md",
-            "docs/evidence/preview-2026-10-19.json"
+            "docs/evidence/preview-refresh-2026-10-19.json"
           ],
-          "verification": "Actual HTTPS asset/header/source hashes and Chromium automatic-worker/guest/reload/alias checks pass; third-party traffic blocked; no live auth/media/sync or other-browser claim"
+          "verification": "134/134 artifact hashes, GPL/notices, headers/404/source and automatic worker verified; hosted guest install/catalog/640x360 playback/pause/seek/subtitle/Back/save/reload PASS in Chromium156, third parties blocked,0 uncaught errors; rollback deployment96f977f4/8edec42 retained"
         }
       }
     },

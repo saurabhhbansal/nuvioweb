@@ -330,3 +330,33 @@ Execution order: validate the owner-only file metadata without printing contents
 Stop conditions: rejected login, unexpected destination, identity mismatch, potential cross-account publication, unexpected mutation, throttling or uncertain cleanup; preserve incomplete results at the barrier; no repeated unchanged experiment, forced sync loop or equivalent live mutation; a nonreproduction or empty Library is not isolation evidence; stop before any runtime change and reproduce synthetically first.
 
 **Conditional write:** none is required for this diagnosis. A synthetic B marker remains a later, separately justified step only if a distinct nonempty publication question is otherwise untestable, with collision checks, private cleanup record, unchanged unrelated keys and verified exact-key deletion in `finally`.
+
+## Executed hosted switch diagnosis — 2026-10-19
+
+Command: `node dist/tools/issue7-switch-diagnosis.mjs <owner-only-credentials> dist/tools/switch-diagnosis-final.json`; exit0. Hosted `1f67867ebab7f426672886121d852a643a436414`, deployment `b48de821`, live primary API, Chromium156.0.8078.4/Playwright1.64 on LinuxARM64. [Receipt](../../evidence/identity-switch-diagnosis-2026-10-19.json). Private driver is git-excluded and unfetched; it validates the0600 credentials file, blocks third-party origins/service workers/legacy full-snapshot pushes, compares request bodies only in memory via a non-exported salted fingerprint, and rejects receipt paths outside `dist/` or `docs/evidence/`.
+
+Result: two fresh controls plus one same-context B→A switch. Distinct sync owners; A control164 watched/156 progress, B0/0; A and B Library pulls both200 with0 rows. After B Library, actual Sign Out, A sign-in, primary-profile activation and Library navigation, a new A-epoch Library pull completed200 at about5.9s; watched164 and progress156 also completed in the A epoch and fingerprint-match fresh A exactly. No B-only set; switch owner matches A, not B.
+
+This **does not reproduce** the prior `LIBRARY_PULL_NOT_OBSERVED` barrier on hosted `1f67867`. During this session, navigating while profile activation was still running and old screens remained visible reproduced a similar no-navigation/no-pull symptom, so the older failures are consistent with a harness timing barrier; that is a hypothesis, not a proven root cause for the `8edec42`/`f800920` receipts. No product runtime change was made or justified.
+
+Limits: both Libraries empty, so this is **not** nonempty Library isolation. No add-on identity comparison, app Save/delete/receiver deletion, live push, measured expiry/revocation, QR, offline, concurrent-writer or named-device evidence is added.
+
+Next unit (before code): one bounded corrected-harness marker probe on the same hosted revision using the previously documented incremental insert + exact-key targeted delete contract, with the private cleanup note, unchanged unrelated-key verification and failure-stop rule. It must reuse the verified activation waits, block legacy snapshot pushes, close all contexts and verify remote cleanup in `finally`. Add-on identity comparison and failure-category capture can be folded into the same bounded run. No further live write is authorized until that plan amendment and its cleanup contract are committed. Tooling incident and hardened path guard: [incident note](../../agent-runs/2026-10-19-private-tooling-incident.md).
+
+## Corrected-harness marker probe — plan amendment before code
+
+Basis: the hosted switch now completes with verified activation waits, so the earlier marker failures cannot be attributed to a persistent read barrier. One bounded replay of the previously authorized incremental marker protocol is justified by this new diagnosis. No application source change is planned.
+
+Targets: private git-excluded driver under `dist/tools/`; sanitized receipt `docs/evidence/identity-marker-diagnosis-2026-10-19.json`; updates to `IDENTITY_VERIFICATION`, `MVP_ACCEPTANCE`, ledger/tracker and this plan. Credentials stay in the0600 file and browser forms; never in argv beyond its path, logs, receipts or review prompts.
+
+Protocol: hosted `1f67867` only; fresh nonpersistent contexts; allow only the exact preview origin and `https://api.nuvio.tv`; block third-party origins, service workers and `sync_push_library`. Sign A and B independently, require distinct sync owners and an initially empty B Library, and stop without mutation on either mismatch or on marker-key collision. Probe the incremental contract with empty `p_items` and empty targeted `p_keys` (no record change); stop if rejected or unsupported.
+
+Then insert exactly one clearly labelled synthetic Library metadata item in B/profile1 with `sync_push_library_items`. Keep one dedicated B writer context for cleanup. Verify, in a separate B context, that the application's own Library pull/local store/UI contains that key; verify in an A context that cloud keys and local state do not contain it; exercise B→A→B in a receiver without clearing storage and require present/absent/present. Compare identity sets privately with a per-run salted fingerprint and export only booleans/counts.
+
+Containment and cleanup: persist a private marker-only note (key in memory only, never exported) before insertion; in `finally` call only `sync_delete_library_items` with that exact key under B/profile1, then verify remote absence and that original B keys are unchanged. If cleanup cannot be verified, stop all mutations immediately and report the exact stage. The receipt must disclose blocked snapshot pushes and that API insertion plus application pull is not the app Save path.
+
+Stop conditions: rejected login, unexpected destination, shared owner, nonempty starting B Library, collision, contract rejection, potential cross-account publication, cleanup uncertainty. One run only; no retry, no forced sync, no alternate endpoint, no broad delete/restore, no unrelated record edits.
+
+Commands: `node --check <driver>`; run once with the owner-only file path and a receipt path under `docs/evidence/`; docs/governance/preview tests, links/ledger/ancestry/whitespace and protected PR CI for the evidence PR. No full application/browser rerun is needed if runtime stays unchanged.
+
+Non-goals: app Save/remove propagation into this path, remote-empty local policy, offline outbox, concurrent full-snapshot writers, cross-device deletion timing, expiry/revocation, QR, named-browser claims. Nonempty Library isolation across A/B is the only positive claim sought; deletion-after-reload may be recorded separately without turning a stale receiver into a cleanup exception.
