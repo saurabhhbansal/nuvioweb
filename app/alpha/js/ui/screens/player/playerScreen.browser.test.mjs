@@ -222,6 +222,10 @@ test("the audio dialog refuses to offer tracks the engine cannot switch", async 
   // Blocked rows show the reviewed message, leave the focus order and do not
   // claim a codec failure.
   assert.match(source, /escapeHtml\(audioAvailability\.fallback\)/);
+  // The same note covers unknown compatibility and predictions, not only blocks.
+  assert.match(source, /const showAudioAvailabilityNote =/);
+  assert.match(source, /audioAvailability\.key !== "player_audio_available"/);
+  assert.match(source, /audioAvailability\.key !== "player_audio_no_tracks"/);
   assert.match(source, /const codecDisabled = entry\.supported === false;/);
   assert.match(source, /tabindex="\$\{disabled \? "-1" : "0"\}"/);
   assert.match(source, /\$\{disabled \? "" : " focusable"\}/);
