@@ -5,9 +5,10 @@
 // from validated offsets only: no caller string is ever concatenated into a
 // header, which also removes a header-injection path.
 //
-// Offsets are passed through exactly as the caller supplies them; this module
-// does not reinterpret hls.js's convention, it only refuses values it cannot
-// represent safely.
+// The emitted value uses HTTP's **inclusive** byte endpoints: `bytes=0-0`
+// requests one byte. Offsets are passed through unchanged, so a caller whose
+// source uses an exclusive end (pinned hls.js subtracts one itself) must convert
+// before calling. This module never reinterprets the convention silently.
 //
 // Pure: no fetch, no logging, no mutation.
 

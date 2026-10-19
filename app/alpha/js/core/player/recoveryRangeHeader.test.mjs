@@ -60,7 +60,7 @@ test("header injection through string offsets is impossible", () => {
   }
 });
 
-test("zero-length and single-byte ranges are representable", () => {
+test("equal endpoints request exactly one byte", () => {
   assert.equal(buildRecoveryRangeHeader({ rangeStart: 0, rangeEnd: 0 }).value, "bytes=0-0");
   assert.equal(buildRecoveryRangeHeader({ rangeStart: 5, rangeEnd: 5 }).value, "bytes=5-5");
 });
