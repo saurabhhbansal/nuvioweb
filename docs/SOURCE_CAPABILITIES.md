@@ -76,3 +76,9 @@ git diff --check
 ```
 
 The restricted sandbox summarized only test-file subprocesses; the authorized rerun produced19 actual unit and6 actual fixture results. The full local application suite was not rerun for this display-only unit: focused seam tests and mandatory remote full regression are the planned gates. The inherited1089 run remains PR39 evidence, not new-feature proof. No new browser/device, account or deployment result is inferred.
+
+## Protected integration and preview receipt — 2026-10-19
+
+PR40 merged at8edec4248405d59f5b8639085a1e779e6878911b after all four exact-head contexts passed, including the normally triggered ready-for-review integrity check. Full remote application regression1094/1094 passed,0fail/0skip; remote full browser29/29 passed. [Application](https://github.com/saurabhhbansal/nuvioweb/actions/runs/39195533730/job/117877374950), [browser](https://github.com/saurabhhbansal/nuvioweb/actions/runs/39195533796/job/117877375553), [docs](https://github.com/saurabhhbansal/nuvioweb/actions/runs/39195533814/job/117877375057), [integrity](https://github.com/saurabhhbansal/nuvioweb/actions/runs/39195640312/job/117877695113). These supersede the third-unit pending-integration notes, not the still-open #10 device/quality gates.
+
+The already-authorized development preview now serves that reviewed merge. [Deployment/HTTPS/shell evidence](STATIC_PREVIEW.md) distinguishes public asset/guest verification from local legal-media playback tests. No live login/sync/provider, all-device playback, HDR/4K60 or production readiness is claimed. Next work remains expanded named-browser/media/device validation; Linux Chromium evidence cannot certify Chrome/Edge/Firefox/Safari/mobile or hardware HDR output.

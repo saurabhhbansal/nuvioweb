@@ -166,7 +166,6 @@
         ],
         "integrationGate": "PR39 owner-approved and merged at0cf8876 after all protected checks passed; no deployment or issue completion",
         "remaining": [
-          "Integrate optional native-prediction ranking after review and required CI",
           "Chrome/Edge/Firefox/Safari and device evidence",
           "Sustained high-bitrate/4K60/HDR and broader failure fixtures"
         ],
@@ -177,8 +176,18 @@
             "Focused19 unit,6 HTTP fixture,2 actual browser cases; inert build/lint pass",
             "Complete29 browser cases pass,0fail/skip/flaky; automated Standards/Spec no unresolved actionable findings;artifact12/docs-governance15 pass"
           ],
-          "integrationGate": "PR40: required exact-head protected CI and resolved conversations before normal merge",
+          "integrationGate": "PR40 merged at8edec42 after all required exact-head checks; remote application1094/browser29 pass; no new fetch policy",
           "pr": 40
+        },
+        "preview": {
+          "sourceRevision": "8edec4248405d59f5b8639085a1e779e6878911b",
+          "deployment": "96f977f4",
+          "url": "https://nuvioweb-preview.pages.dev",
+          "documents": [
+            "docs/STATIC_PREVIEW.md",
+            "docs/evidence/preview-2026-10-19.json"
+          ],
+          "verification": "Actual HTTPS asset/header/source hashes and Chromium automatic-worker/guest/reload/alias checks pass; third-party traffic blocked; no live auth/media/sync or other-browser claim"
         }
       }
     },
