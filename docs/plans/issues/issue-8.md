@@ -1,6 +1,6 @@
 # Issue #8: [M1][P1] Inventory and safely isolate upstream sidecar-dependent routes
 
-**Plan status:** Implemented on feature branch; required verification/review in progress, not merged or closed.
+**Plan status:** Owner-reviewed PR42 merged atcdd6615; acceptance evidence complete. Explicit issue closure follows the protected ledger update.
 **Milestone:** M1 · **Priority:** P1  
 **GitHub issue:** https://github.com/saurabhhbansal/nuvioweb/issues/8  
 **Workstream:** [M1 roadmap](https://github.com/saurabhhbansal/nuvioweb/blob/main/docs/ROADMAP.md) · **Agent rules:** [AGENTS.md](https://github.com/saurabhhbansal/nuvioweb/blob/main/AGENTS.md)
@@ -34,9 +34,9 @@ The issue-owning agent must convert this initial artifact inventory into precise
 
 ## Functional acceptance criteria
 
-- [ ] Every sidecar dependency has a capability flag and proposed deployment
-- [ ] Unavailable features display actionable errors instead of silently breaking
-- [ ] No unrestricted HTTP proxy published
+- [x] Every sidecar dependency has a capability flag and proposed deployment
+- [x] Unavailable features display actionable errors instead of silently breaking
+- [x] No unrestricted HTTP proxy published
 
 ## Verification design
 
@@ -58,11 +58,11 @@ Capture bounded, redacted failure counters and trace IDs without exposing access
 
 ## Definition of done
 
-- [ ] Dependency assumptions and interface/API contract verified against code or published upstream evidence.
-- [ ] All issue acceptance criteria tested and documented.
-- [ ] Negative/security/budget cases covered as relevant.
-- [ ] Docs, compatibility notes and source provenance updated.
-- [ ] Reviewed pull request linked to issue, with rollout and rollback evidence.
+- [x] Dependency assumptions and interface/API contract verified against code or published upstream evidence.
+- [x] All issue acceptance criteria tested and documented.
+- [x] Negative/security/budget cases covered as relevant.
+- [x] Docs, compatibility notes and source provenance updated.
+- [x] Reviewed pull request linked to issue, with rollout and rollback evidence.
 
 ## Inspected execution plan — 2026-10-19 (before code changes)
 
@@ -124,3 +124,9 @@ Follow-up: owner elected to run issue7 live checks personally. Provide the [owne
 Draft [PR #42](https://github.com/saurabhhbansal/nuvioweb/pull/42) opened. Owner later identified Windows/Microsoft Edge for #7's initial manual results; exact version and independent-session details remain unknown. No live automated login has been performed. Any automated account checks require a secure local credential file rather than putting credentials into committed tests, shell commands or logs. No secret or account email is included in project evidence.
 
 Protected CI initially rejected the PR description's accidental closing directive in a sentence about later completion. Removed the directive from PR metadata and reran ancestry with the exact title/body: pass; no guard or test weakened. Required CI reruns on the final head. A600-mode credential template was created only in `/tmp` at owner request; no contents, email, password or token belong in source/evidence.
+
+## Owner acceptance and integration
+
+Owner explicitly approved PR42 head674e573 on2026-10-19; [approval receipt](https://github.com/saurabhhbansal/nuvioweb/pull/42#issuecomment-6261400999). All four protected checks on that head passed: [application](https://github.com/saurabhhbansal/nuvioweb/actions/runs/39211522003), [31 browser journeys](https://github.com/saurabhhbansal/nuvioweb/actions/runs/39211522224), [docs](https://github.com/saurabhhbansal/nuvioweb/actions/runs/39211521999), [roadmap](https://github.com/saurabhhbansal/nuvioweb/actions/runs/39211522009). Application CI records1103 passed,0 failed; browser CI additionally verifies6 add-on,4 quality-packaging and2 preview-validator cases, then stages only static files. PR42 merged without bypass atcdd661564f89d7c8cfefa5d589689ffab3034f9d. [Final checkpoint](https://github.com/saurabhhbansal/nuvioweb/pull/42#issuecomment-6261386524).
+
+This documentation-only completion record proposes ledger verified status based on the actual merged evidence PR. Explicitly mark the issue complete only after this ledger update merges. No new runtime/deployment claim; public preview stays8edec42. Issue7 live checks are a separate unfinished task.

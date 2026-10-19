@@ -119,17 +119,21 @@
     {
       "number": 8,
       "title": "[M1][P1] Inventory and safely isolate upstream sidecar-dependent routes",
-      "status": "in_progress",
+      "status": "verified",
       "dependencies": [
         5
       ],
-      "progress": {
-        "branch": "m1/issue-8-sidecar-capabilities",
+      "completion": {
+        "pr": 42,
         "documents": [
           "docs/SIDECAR_CAPABILITIES.md",
           "docs/plans/issues/issue-8.md"
         ],
-        "remaining": "Finish required browser/CI/review evidence and owner auth/remote-fetch review; no service or proxy deployed. Keep issue open until evidence PR merges."
+        "verification": [
+          "All fixed Trakt/debrid/external-return clients have disabled-by-default capability guards; native browser media is unsupported. Route/caller/deployment matrix and actionable unavailable/manual fallback verified; no backend or unrestricted proxy deployed.",
+          "Owner explicitly approved674e573; PR42 merged atcdd661564f89d7c8cfefa5d589689ffab3034f9d after four required exact-head CI contexts passed. Automated Standards/Spec reviews are not independent human approval.",
+          "Node22.23.1/npm10.9.8:1103 application tests,31 Chromium/PWA journeys,lint,inert build/assets,17 docs/governance/preview tests and28 retained bridge cases passed. Local public-only staging passed without uploading; live integrations and physical devices remain unverified."
+        ]
       }
     },
     {
