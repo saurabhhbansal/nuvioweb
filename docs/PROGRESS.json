@@ -233,7 +233,7 @@
     {
       "number": 11,
       "title": "[M2][P1] Prototype sandboxed Nuvio JavaScript plugin compatibility",
-      "status": "ready",
+      "status": "in_progress",
       "dependencies": [
         9,
         1
