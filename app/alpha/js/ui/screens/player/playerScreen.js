@@ -3583,20 +3583,28 @@ export const PlayerScreen = {
     return normalizedSourceType === "video/x-matroska";
   },
 
-  getUnavailableTrackMessage(kind = "audio") {
+  getAudioTrackAvailability() {
+    return typeof PlayerController.getAudioTrackAvailabilityCopy === "function"
+      ? PlayerController.getAudioTrackAvailabilityCopy()
+      : null;
+  },
+
+  getAudioSwitchBlocked(copy = null) {
+    const availability = copy || this.getAudioTrackAvailability();
+    return availability?.tone === "warning";
+  },
+
+  getUnavailableTrackMessage(kind = "audio", copy = null) {
     if (kind === "subtitle") {
       return "No subtitle tracks available.";
     }
     // Audio copy comes from the reviewed availability contract so the dialog
     // cannot claim an action the engine cannot perform.
-    const copy =
-      typeof PlayerController.getAudioTrackAvailabilityCopy === "function"
-        ? PlayerController.getAudioTrackAvailabilityCopy()
-        : null;
-    if (!copy) {
+    const availability = copy || this.getAudioTrackAvailability();
+    if (!availability) {
       return t("player_audio_no_tracks", {}, "No audio tracks are available for this source.");
     }
-    return t(copy.key, {}, copy.fallback);
+    return t(availability.key, {}, availability.fallback);
   },
 
   getVideoTextTrackList() {
@@ -14138,6 +14146,13 @@ export const PlayerScreen = {
   },
 
   applyAudioTrack(index, { automaticFallback = false, rememberSelection = false } = {}) {
+    // The activation boundary enforces the same decision the dialog renders:
+    // an engine that cannot switch, or an ambiguous list, must not switch.
+    if (this.getAudioSwitchBlocked()) {
+      this.invalidateTrackDialogCaches();
+      this.renderAudioDialog();
+      return;
+    }
     const entries = this.getAudioEntries();
     const selectedEntry = entries[index] || null;
     if (!selectedEntry) {
@@ -14196,11 +14211,8 @@ export const PlayerScreen = {
     // The engine may be unable to switch tracks at all (no setter) or the list
     // may be ambiguous. In those cases the dialog must not offer a selection
     // that would silently fail; the reviewed copy contract decides.
-    const audioAvailability =
-      typeof PlayerController.getAudioTrackAvailabilityCopy === "function"
-        ? PlayerController.getAudioTrackAvailabilityCopy()
-        : null;
-    const audioSwitchBlocked = audioAvailability?.tone === "warning";
+    const audioAvailability = this.getAudioTrackAvailability();
+    const audioSwitchBlocked = this.getAudioSwitchBlocked(audioAvailability);
     const audioControls = [
       {
         id: "amplification",
@@ -14240,7 +14252,7 @@ export const PlayerScreen = {
         (this.manifestLoading || this.trackDiscoveryInProgress);
       const emptyMessage = loading
         ? "Loading audio tracks..."
-        : this.getUnavailableTrackMessage("audio");
+        : this.getUnavailableTrackMessage("audio", audioAvailability);
       dialog.innerHTML = `
         <div class="player-dialog-title">${escapeHtml(t("audio_dialog_title", {}, "Audio"))}</div>
         <div class="player-dialog-empty${loading ? " player-dialog-loading" : ""}">
@@ -14271,11 +14283,12 @@ export const PlayerScreen = {
               const selected = entry.selected;
               const focused =
                 this.audioFocusedColumn === "tracks" && index === this.audioDialogIndex;
-              const disabled = entry.supported === false || audioSwitchBlocked;
-              const label = disabled
+              const codecDisabled = entry.supported === false;
+              const disabled = codecDisabled || audioSwitchBlocked;
+              const label = codecDisabled
                 ? `${entry.label || ""} · ${t("player.audio.unsupported", {}, "Unsupported")}`
                 : entry.label || "";
-              const secondary = disabled
+              const secondary = codecDisabled
                 ? [
                     entry.secondary,
                     t("player.audio.unsupportedCodec", {}, "Codec not supported by this device")
@@ -14284,7 +14297,7 @@ export const PlayerScreen = {
                     .join(" · ")
                 : entry.secondary || "";
               return `
-              <div class="player-dialog-item focusable${selected ? " selected" : ""}${focused ? " focused" : ""}${disabled ? " disabled" : ""}" data-audio-column="tracks" data-audio-index="${index}" aria-disabled="${disabled ? "true" : "false"}">
+              <div class="player-dialog-item${disabled ? "" : " focusable"}${selected ? " selected" : ""}${!disabled && focused ? " focused" : ""}${disabled ? " disabled" : ""}" data-audio-column="tracks" data-audio-index="${index}" tabindex="${disabled ? "-1" : "0"}" aria-disabled="${disabled ? "true" : "false"}">
                 <div class="player-dialog-item-main">${escapeHtml(label)}</div>
                 <div class="player-dialog-item-sub">${escapeHtml(secondary)}</div>
                 <div class="player-dialog-item-check">${selected ? "&#10003;" : ""}</div>
