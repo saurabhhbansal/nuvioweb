@@ -28,7 +28,7 @@ Inlining the WASM as base64 instead of shipping an asset: sync 670,848 B (292,21
 1. **Async variant only.** The sandbox's `api.fetch` is an asyncified host function; the sync variant cannot await a brokered host request, which the plugin API requires. The extra ~500 KiB of WASM is the cost of that capability.
 2. **External WASM asset, not base64.** The external asset is smaller compressed (≈378 KiB vs ≈465 KiB for async) and supports streaming instantiation and normal caching. Base64 would also inflate the main bundle and defeat cache separation.
 3. **Lazy, explicit opt-in only.** The engine must not be part of the initial browser bundle or first paint. It is fetched only when a user explicitly enables JavaScript plugins (default off), so the preview's baseline remains 12 assets. The current measurement shows the incremental opt-in cost honestly rather than hiding it in the main payload.
-4. **No shipping yet.** This measurement does not prove in-browser execution of the bundled async engine; Node tests exercise the package directly. Build integration, a real browser journey, quota review and independent security review are required first.
+4. **No shipping yet.** Unit 6a now proves in-browser execution of the built async engine (Chromium156) with the broker, contract and quota failures asserted; Node tests still exercise the package directly elsewhere. Emission into the staged app under the default-off seam, a CSP decision, broader browser coverage and independent security/dependency review are required first.
 
 ## Requirements before a shipping unit
 
@@ -48,3 +48,22 @@ Inlining the WASM as base64 instead of shipping an asset: sync 670,848 B (292,21
 ## Rollback
 
 This unit adds only tooling, tests and documentation. A protected revert removes them; the shipped artifact, quotas and user data are unchanged.
+
+## Browser execution verification — unit 6a (2026-10-19)
+
+Added an explicit opt-in asset builder (`app/alpha/scripts/pluginEngineAssets.mjs` + `buildPluginEngineAssets.mjs`), a browser fixture entry and `tests/browser/plugin-engine.spec.mjs`. The builder bundles the asyncify variant, copies the external `emscripten-module.wasm` beside it, verifies the JS references that file, and writes `plugin-engine.json` with package/version/license, MIME types, sizes and SHA-256. Output goes only under ignored `app/alpha/dist/`; the normal build, stager and preview remain 12 assets with no engine files.
+
+Measured built assets (deterministic, no timestamps):
+
+| File | Bytes | SHA-256 | MIME |
+| --- | --- | --- | --- |
+| `plugin-engine.js` | 64,623 | `6f13eed23b24682bdc5acbeb318057e4fa21ffe417b7cae75540f7884d13280d` | `text/javascript` |
+| `emscripten-module.wasm` | 1,027,523 | `b790f3842eef48d154984cea48d35303b5c3c3696fedab4dc79f314bde005dba` | `application/wasm` |
+
+Total JS+WASM 1,092,146 B. The manifest declares `loadPolicy:"explicit-opt-in-lazy"` and `defaultEnabled:false`.
+
+Chromium `156.0.8078.4` on Linux ARM64: `npx playwright test tests/browser/plugin-engine.spec.mjs --project=chromium` — **8/8 pass**, 0 skipped (3.8s). The page loads the built ES module and WASM from an ephemeral loopback origin with exact MIME types; the browser observed a200 `application/wasm` response. Scenarios: representative fixture returns one normalized group with one stream and drops its `javascript:` URL; `fetch`/`require`/`process`/`XMLHttpRequest`/`WebSocket`/`importScripts` are `undefined` inside the VM; an allowed synthetic `api.fetch` returns200/body through the broker with one transport call; a denied host is rejected (`host`) before any dispatch; an infinite loop yields `timeout`; a 64 MiB allocation under a 1 MiB budget yields `memory`; an oversized result yields `output-size`; no page errors.
+
+The browser run surfaced one classifier gap: an in-VM allocation overshoot arrives as a catchable plugin rejection, which was reported as `plugin`. `pluginSandboxNetworkPrototype.mjs` now applies the same word-bounded OOM classification to rejections, with a retained control that a plain `"boom"` error stays `plugin`. Focused Node prototype/abuse suites: 18/18 and 12/12 pass.
+
+Full verification: `npm test --prefix app/alpha` 1235/1235 pass (0 skipped, 14.9s); `npm run lint --prefix app/alpha` pass; inert build + `node scripts/check-alpha-build.mjs` pass with **12 assets and no engine files**; full `npx playwright test` 50/50 pass (1.6min). These are test-only assets: no application import, feature flag exposure, stager emission or preview change. Shipping still requires the unit 6b seam, CSP decision, independent security/dependency review and owner-gated rollout.
