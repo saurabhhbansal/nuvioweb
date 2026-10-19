@@ -36,6 +36,14 @@ jobs:
         env:
           NUVIO_LOCAL_PROPERTIES: ${{ github.workspace }}/tests/fixtures/build.properties
       - run: npm run test:browser
+      # WebKit engine coverage runs inside this required job so a WebKit
+      # regression blocks integration instead of sitting in an advisory job.
+      # The project is opt-in (see playwright.config.mjs) because not every
+      # workstation can install WebKit.
+      - name: Install WebKit for engine coverage
+        run: npx playwright install --with-deps webkit
+      - name: WebKit engine coverage
+        run: NUVIO_PLAYWRIGHT_WEBKIT=1 npx playwright test --project=webkit
       - run: npm run test:addon-fixtures
       - run: npm run test:quality-fixtures
       - run: npm run test:preview

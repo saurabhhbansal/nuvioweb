@@ -389,3 +389,34 @@ Ordered, evidence-gated rules (first match wins):
 **Rollback.** Protected revert of merge commit `d2a6acd` (PR #77); the classifier is additive, no remote state, no migration, no flag.
 
 **Limits.** Synthetic/local evidence only. A WebKit-family classification assertion requires the Playwright WebKit project (next unit) or an owner-recorded observation; neither is claimed here.
+
+#### Pre-code plan amendment — automated WebKit engine coverage in CI (2026-10-19, round 17)
+
+Status: design approved before code. No media decode, no codec support claim, no per-iOS-version claim.
+
+**Problem.** Every browser/media assertion in CI runs on Chromium. The recorded iOS failures were Safari/WebKit observations, and this ARM64 host cannot run WebKit (Playwright's WebKit build installs, but the host is missing `libxslt1.1`, `libgstreamer-plugins-bad1.0-0`, `libflite1`, `libwebpdemux2` and other system libraries that need `sudo apt`, which this session must not do). The ubuntu CI runner can install them, so WebKit coverage has to come from CI rather than this workstation.
+
+**Targets.**
+
+- New `tests/browser/engine-capabilities.spec.mjs`: engine-agnostic invariants plus a WebKit-runnable subset. No `<video>` playback, no fixture media decode.
+- `playwright.config.mjs`: a `webkit` project that only activates when `NUVIO_PLAYWRIGHT_WEBKIT=1`, so the default local `npx playwright test` still runs Chromium only and cannot fail on an uninstalled browser.
+- `.github/workflows/browser.yml`: a second job that installs WebKit with `--with-deps`, rebuilds the inert fixture application, and runs `--project=webkit`.
+- `docs/evidence/startup-classification-2026-10-19.md` or a new evidence record for the engine matrix; `docs/PLAYBACK_QUALITY_MATRIX.md`; `docs/MVP_ACCEPTANCE.md`.
+
+**Test contract (engine-agnostic, so it is honest on every engine).** For Matroska/HEVC, MP4/H.264 and HLS descriptors, the spec reads the real `HTMLVideoElement.canPlayType` answer and asserts the classifier agrees with it:
+
+- `not-reported` on an unsupported declaration → `unsupported-container` (Matroska) or `unsupported-codec` (MP4+HEVC);
+- `probably`/`maybe` → never an unsupported category (the reason falls back to stall/media-error);
+- HTTP 403 on any descriptor → `network`;
+- `notWebReady` plus required headers → `header-required`, above HTTP and above any format claim;
+- the real `PlayerScreen` message builder names the container/codec, ends with exactly one full stop, and shows header guidance instead of an HTTP verdict for a classified header-required failure.
+
+**Non-goals.** No claim that WebKit plays any specific codec, no per-iOS-version statement, no WebKit media-decode fixture, no change to the Chromium application smoke scope, no new deployment. The `webkit` project is engine-family evidence only.
+
+**Threats.** (a) A hardcoded engine assumption would make the spec lie on a GStreamer build with different codec support — the spec derives expectations from the engine's own answer instead. (b) Adding the project unconditionally would break local runs on hosts without WebKit — it is env-gated. (c) A required check that can silently skip would give false confidence — the CI job fails if the project runs zero tests (`--project=webkit` with no matching spec fails Playwright).
+
+**Test commands.** `NUVIO_PLAYWRIGHT_WEBKIT=1 npx playwright test --project=webkit` (CI), `npx playwright test tests/browser/engine-capabilities.spec.mjs --project=chromium` (local), plus the full existing suite, lint, docs and build checks.
+
+**Rollback.** Protected revert of the merge commit; the workflow job and project gate are additive and remove cleanly.
+
+**Limits.** WebKit on Linux is not iOS Safari: it is the same engine family with a different media stack. Local verification of the WebKit project is impossible on this host; the PR's CI run is the first execution and must be green before integration.
