@@ -206,10 +206,16 @@ for (const [scenario, status] of [
         ),
       ).toBe(true);
     else expect(failed.some((entry) => entry.status === status)).toBe(true);
-    if (scenario === "quality-expired") {
+    if (["quality-expired", "quality-hls-cors"].includes(scenario)) {
       await expect.poll(() => applicationLogs.length).toBeGreaterThan(0);
-      expect(JSON.stringify(await Promise.all(applicationLogs))).not.toContain("synthetic-private-media");
-      await page.screenshot({path:testInfo.outputPath("source-error.png")});
+      if (scenario === "quality-hls-cors")
+        expect(JSON.stringify(await Promise.all(applicationLogs))).toContain(
+          "switching player engine",
+        );
+      expect(JSON.stringify(await Promise.all(applicationLogs))).not.toContain(
+        "synthetic-private-media",
+      );
+      await page.screenshot({ path: testInfo.outputPath("source-error.png") });
     }
     await testInfo.attach("actual-source-failure", {
       body: JSON.stringify({

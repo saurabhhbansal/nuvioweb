@@ -8629,7 +8629,7 @@ export const PlayerScreen = {
           this.sourcesError = null;
           this.updateLoadingVisibility();
           console.warn("Playback failed during startup; switching player engine", {
-            url: this.activePlaybackUrl,
+            endpoint: describeSafePlaybackEndpoint(this.activePlaybackUrl),
             mediaErrorCode,
             from: PlayerController.playbackEngine,
             to: targetEngine
