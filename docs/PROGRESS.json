@@ -114,7 +114,7 @@
         6,
         3
       ],
-      "blocker": "Live acceptance requires two owner-authorized disposable Nuvio accounts/browser sessions for sync and account-switch isolation. Owner chose guided browser checks; checklist in docs/ISSUE_7_OWNER_CHECKS.md, results pending; never credentials in chat. Public API documentation permission is already accepted."
+      "blocker": "Live acceptance requires two owner-authorized disposable Nuvio accounts/browser sessions for sync and account-switch isolation. Owner reports sign-in, reload persistence and same-account profiles across sessions passed; environment details, new Library/add-on/history sync, account-switch isolation and negative/refresh checks pending. Checklist in docs/ISSUE_7_OWNER_CHECKS.md; never credentials in chat. Public API documentation permission is already accepted."
     },
     {
       "number": 8,

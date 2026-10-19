@@ -1,6 +1,6 @@
 # Issue #7 — owner-run login, sync and isolation checks
 
-Status: instructions only; no live result received. The owner elected to run these checks. This is the live evidence portion of [issue #7](https://github.com/saurabhhbansal/nuvioweb/issues/7), not sufficient by itself to establish all security/refresh race cases. Agent fixture tests and review remain required before closure.
+Status: owner reports first batch (steps1–3) passed on 2026-10-19. Browser/version/OS and independent-session details requested; Library sync and account-switch checks pending. This is a manual observation report, not agent-observed assertions or measured token-refresh evidence. The owner elected to run these checks. This is the live evidence portion of [issue #7](https://github.com/saurabhhbansal/nuvioweb/issues/7), not sufficient by itself to establish all security/refresh race cases. Agent fixture tests and review remain required before closure.
 
 Use https://nuvioweb-preview.pages.dev (currently reviewed revision `8edec42`). Use two disposable existing Nuvio accounts, called A and B, with distinguishable test data; keep account emails, passwords and tokens private. Use an ordinary browser profile and a separate private window or another browser/device. Two tabs in the same profile share storage and cannot prove cloud sync. Record browser/version, operating system, test date and which window/device you used. A screenshot may include account details: crop/redact it. Do not share storage exports, QR codes, authorization codes, network archives or tokens.
 
