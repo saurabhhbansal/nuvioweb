@@ -15,9 +15,9 @@ This file is the durable handoff. A new agent must be able to resume from it wit
 ## Current selection
 
 - Selected ticket: **#11 unit 6b-2** (default-off app seam + CSP/security review) next; 6b-1 (opt-in asset emission) is implemented in the current PR. **#23 PR C** is owner-gated because it introduces `issues: write`. #7/#10 remain environment-gated.
-- Current branch: `feat/issue-11-engine-assets`; base `main` at `257640c`.
-- Current PR: the 6b-1 opt-in engine asset emission PR (no app import, upload or deployment).
-- Last completed atomic tasks: #66 unit 6a (opt-in engine assets + Chromium fixture, review fixes, app1237/1237, browser51/51); #67 pre-code plans for #12/#13/#23; #70 #23 PR A+B (state contract/validator + read-only collector, validator10/10 and collector17/17 offline, Codex review 1P1+12P2 with P1+11 fixed). All merged through protection after GitHub Actions recovered.
+- Current branch: none; clean `main` at `6284e47` after merging #72 (6b-1).
+- Current PR: none open.
+- Last completed atomic tasks: #66 unit 6a (opt-in engine assets + Chromium fixture, review fixes); #67 pre-code plans; #70 #23 PR A+B; #72 unit 6b-1 (content-versioned opt-in engine emission through build/stager, notices, scoped headers, artifact/stager validation, Codex 5P2 fixed; default build still 12 assets and no engine refs; app1238/1238, focused12/12). All merged through protection.
 - Next exact atomic task: write the unit 6b pre-code plan amendment (default-off app seam, hashed stager emission with `application/wasm`, CSP/`wasm-unsafe-eval` decision, Firefox/WebKit coverage, security/dependency review package) before any application or stager change. Do not implement #23 PR C without explicit owner review of the `issues: write` boundary. Do not repeat the live B→A→B probe; any sync runtime change first needs a deterministic synthetic reproduction.
 
 ## Relevant plans and evidence
@@ -44,7 +44,7 @@ This file is the durable handoff. A new agent must be able to resume from it wit
 
 - **#7:** the older `LIBRARY_PULL_NOT_OBSERVED` receipts (`8edec42`, loopback `f800920`) are preserved and are **not** explained by the new run; the new run did not reproduce the barrier. During this session, navigating to Library while profile activation was still in progress and stale screens remained mounted reproduced a similar no-navigation/no-pull symptom, so the older failures remain consistent with a harness timing barrier as well as a client/scheduling issue. Root cause unestablished.
 - **#7:** one synthetic marker showed B arrival and no marker in A (scoped isolation support), but returning-B restoration failed once with pre-header Library/watched/progress request failures; an immediate read-only repeat passed. The failure category was not captured in the marker run, and the failure is not deterministic. No further marker write will be made. App Save/remove, receiver deletion, live push, add-on identity comparison, measured expiry/revocation/QR, offline recovery and named-device evidence remain open.
-- **#11:** unit 6a (merged PR #66) proves in-browser execution of opt-in engine assets in Chromium only. Unit 6b-1 adds opt-in build/stager emission with content-versioned assets, manifest/hash/MIME validation, notices and scoped headers, but no app import or execution. Unit 6b-2 still needs the default-off app seam, flag source, CSP decision, Firefox/WebKit coverage, real-network use and independent security/dependency review; no plugin is shipped, compatible or supported.
+- **#11:** unit 6a (merged PR #66) proves in-browser execution of opt-in engine assets in Chromium only. Unit 6b-1 (merged PR #72) adds opt-in build/stager emission with content-versioned assets, manifest/hash/MIME validation, notices and scoped headers, but no app import or execution. Unit 6b-2 still needs the default-off app seam, flag source, CSP decision, Firefox/WebKit coverage, real-network use and independent security/dependency review; no plugin is shipped, compatible or supported.
 - **#23:** PR A/B are merged; no live GitHub call, workflow, issue publication, parity decision or observation baseline exists yet. The publisher's `issues: write` permission requires explicit owner review. Decisions/ports remain empty and the tag/release baseline is unapproved.
 - **#10:** hosted guest journey PASS at `1f67867`; branded Edge/Safari/mobile, multitrack/audible output, hosted external-provider CORS and 4K60/HDR remain NOT TESTED or unverified. Chrome for Testing155 and Playwright Firefox157 pass their scoped suites; WebKit cannot be installed on this host; Edge has no ARM64 Linux build.
 - Tokens remain XSS-readable in the inherited browser architecture. Local logout is not proof of remote revocation. Snapshot writes still carry concurrent-writer risk.
@@ -64,7 +64,7 @@ This file is the durable handoff. A new agent must be able to resume from it wit
 
 ## Context-clear quick start
 
-1. `git status` and `git log -1 --oneline`: expect clean `main` at or after `38cf2c9`, then the current evidence/feature branch.
+1. `git status` and `git log -1 --oneline`: expect clean `main` at or after `6284e47`, then the current evidence/feature branch.
 2. Read this file, `docs/plans/issues/issue-11.md` (unit 6a merged, 6b next) and the plugin engine documents; for #23, `docs/plans/issues/issue-23.md` and the upstream-watch review record; for #7, `docs/plans/issues/issue-7.md` and the switch receipts.
 3. Hosted preview is `1f67867`/`b48de821`; rollback `96f977f4`/`8edec42`.
 4. Credentials: `/home/saurabh/.config/nuvioweb/test-accounts.json` (0600, outside Git). Never print, log, commit, echo to reviewers or pass as a positional value; pass only its path. Recommend rotation after the marker run.
