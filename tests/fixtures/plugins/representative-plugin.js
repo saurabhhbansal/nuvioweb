@@ -4,7 +4,7 @@
 // contract, quota and sandbox units can share one representative input and an
 // expected normalized result. It must remain self-contained, original and
 // contain no third-party code or credentials.
-export async function resolve(api, input) {
+async function resolve(api, input) {
   const url = "https://media.example.com/fixture-1080.mp4";
   api.log("resolving", input.tmdbId);
   return [
