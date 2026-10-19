@@ -3584,7 +3584,19 @@ export const PlayerScreen = {
   },
 
   getUnavailableTrackMessage(kind = "audio") {
-    return kind === "subtitle" ? "No subtitle tracks available." : "No audio tracks available.";
+    if (kind === "subtitle") {
+      return "No subtitle tracks available.";
+    }
+    // Audio copy comes from the reviewed availability contract so the dialog
+    // cannot claim an action the engine cannot perform.
+    const copy =
+      typeof PlayerController.getAudioTrackAvailabilityCopy === "function"
+        ? PlayerController.getAudioTrackAvailabilityCopy()
+        : null;
+    if (!copy) {
+      return t("player_audio_no_tracks", {}, "No audio tracks are available for this source.");
+    }
+    return t(copy.key, {}, copy.fallback);
   },
 
   getVideoTextTrackList() {
