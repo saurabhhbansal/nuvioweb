@@ -866,3 +866,23 @@ Status: the observation half of unit 2 is implemented; the async selection seam 
 **Review corrections (same step).** An automated read-only review found eight issues, all fixed with regressions: lossy identity sanitization that made `A/B` and `A B` collide; an index fallback that left unidentified tracks selectable; a stale track snapshot accepted when request and current generations matched; every native `kind` mapped to `main`; an unrecognised engine reported as selectable; arbitrary settlement reasons that could carry a provider URL; an unbounded role-metadata crash; and two weak assertions (JSON-escaped control characters, ambiguity only reached through other guards). Identity is now percent-encoded (collision free), unstable identities are explicitly unselectable, stale snapshots are rejected by track generation, native kinds map only known values, selectability requires a recognised engine, reasons are enum-validated, role input is bounded, and the tests inspect normalized strings directly. Module tests 18/18; application suite 1281/1281. Record: [review](../../agent-runs/2026-10-19-audio-track-evidence-review.md).
 
 **Rollback.** Protected revert of the module, its tests, the controller accessor and this record. No preference-schema migration and no persisted state.
+
+### Unit 3 — first step executed: bounded recovery loader (2026-10-19)
+
+Status: the loader and its budgets are implemented and unit-tested; it is **not wired into playback**, so no recovery operation exists yet.
+
+**Interface check first.** The pinned bundle is hls.js 1.5.20 (`app/alpha/dist/assets/libs/hls.min.js`). Before coding, the loader surface was verified against it: `getResponseHeader`/`getCacheAge` (the bundle reads the `age` header), `abort`, `destroy`, `onTimeout(stats, context, networkDetails)`, `onProgress`, and `LoaderStats` fields including `tstart`. No SDK behaviour was assumed.
+
+**What exists.** `app/alpha/js/core/player/recoveryHlsLoader.js`:
+
+- `RECOVERY_LIMITS` carries the plan's numbers: four concurrent requests, 256 KiB playlist, 1 MiB init, 8 MiB fragment, 64 MiB session, five-second manifest and ten-second fragment deadlines, 256-character diagnostic bound.
+- `createRecoverySession()` owns concurrency and byte budgets for a session, with explicit `acquire`/`release`/`charge` and a counter snapshot.
+- `createRecoveryLoaderClass({baseLoader, session, fetchImpl, now, setTimeoutFn, clearTimeoutFn})` returns a class compatible with `config.loader`, implementing `load`, `abort`, `destroy`, `getCacheAge`, `getResponseHeader` and a `LoaderStats`-shaped `stats`.
+- Every request is `mode: "cors"`, `credentials: "omit"`, `redirect: "error"`, with an abort signal; request headers are bounded and filtered. Bytes are counted as the body streams (no reliance on `Content-Length`), and an over-limit response is cancelled and reported as `recovery-budget-exceeded`. Deadlines abort the request and report `onTimeout`. `abort()`/`destroy()` release the session slot and suppress late success/error callbacks. Network errors are bounded to 256 characters and contain no URL.
+- Slots are released **before** success/error callbacks run, because hls.js requests the next fragment from inside `onSuccess`; per-request state is reset on every `load`, which was a real bug found by the tests (a reused `released` flag dropped every slot after the first request).
+
+**Verification.** `node --test app/alpha/js/core/player/recoveryHlsLoader.test.mjs` 10/10: playlist CORS/credentials/redirect options and cache-age header, over-budget playlist cancellation, eight-fragment session cap with the ninth rejected, concurrency cap with the fifth request never fetching, both deadlines, abort/destroy late-callback suppression, bounded network error text, classification, and the stats shape. `npm test --prefix app/alpha` 1291/1291; lint pass.
+
+**Deliberately not done.** No controller or `playerScreen` wiring, no `config.loader` installation, no recovery session lifecycle, no fixture-server budget scenarios and no `tests/browser/audio-recovery.spec.mjs`. Installing a custom loader changes real playback, so it belongs with units 4–5 behind an explicit experimental recovery session, and the browser evidence still needs the blocked AAC fixtures.
+
+**Rollback.** Revert the module, its test and this record; nothing imports the module, so no runtime behaviour changes.

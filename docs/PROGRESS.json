@@ -293,13 +293,16 @@
           "scripts/generate-audio-recovery-media.test.mjs",
           "app/alpha/js/core/player/browserAudioTracks.js",
           "app/alpha/js/core/player/browserAudioTracks.test.mjs",
-          "docs/agent-runs/2026-10-19-audio-track-evidence-review.md"
+          "docs/agent-runs/2026-10-19-audio-track-evidence-review.md",
+          "app/alpha/js/core/player/recoveryHlsLoader.js",
+          "app/alpha/js/core/player/recoveryHlsLoader.test.mjs"
         ],
         "verifiedLocally": [
           "Unit0 (documentation only): scope, dependency and licence decisions recorded; no acceptance evidence",
           "Unit1a gate executed on Chromium156.0.8078.4 headless/Linux x86_64: WebCodecs AudioEncoder absent, MediaRecorder audio/mp4 actually emits audio/mp4;codecs=opus with an Opus sample entry, no parseable AAC config -> BLOCKED; parser tests 7/7 with synthetic MP4 bytes including an mp4a-in-mdat decoy and malformed boxes",
           "Unit2 observation step: pure browserAudioTracks module (raw-metadata extraction, ambiguity fail-closed, evidence-only decode support, bounded values) plus controller getNormalizedBrowserAudioTracks; 10 module/15 controller tests and 1273 app tests pass; async selection confirmation, presentation copy and audio-recovery browser spec remain blocked on AAC fixtures",
-          "Unit2 observation step after review: 8 findings fixed (collision-free identities, unstable-identity unselectable, stale-snapshot rejection, native-kind mapping, recognised-engine gate, enum-validated reasons, bounded role metadata, stronger assertions); 18 module/15 controller/1281 app tests pass"
+          "Unit2 observation step after review: 8 findings fixed (collision-free identities, unstable-identity unselectable, stale-snapshot rejection, native-kind mapping, recognised-engine gate, enum-validated reasons, bounded role metadata, stronger assertions); 18 module/15 controller/1281 app tests pass",
+          "Unit3 loader step: recoveryHlsLoader implements the pinned hls.js 1.5.20 loader surface with session concurrency (4), per-kind and 64MiB session byte budgets, streamed byte counting, deadlines (5s manifest/10s fragment), CORS/omit-credentials/no-redirect, abort/destroy late-callback suppression and stats; 10/10 tests and 1291 app tests pass; not wired into playback"
         ],
         "integrationGate": "Unit0 is a documentation PR; AC1-AC3 stay unproven and the issue stays in progress",
         "currentUnit": {
@@ -310,7 +313,7 @@
           "Resolve the AAC fixture blocker (environment, approved encoder/fixture source, or evidenced Opus re-scope)",
           "Unit1b fixtures (blocked until the above)",
           "Unit2 remaining: async selection confirmation, honest presentation copy and browser spec (needs fixtures)",
-          "Unit3 bounded network/lifecycle work",
+          "Unit3 remaining: controller/recovery-session wiring, fixture-server budget scenarios and audio-recovery browser spec",
           "Unit4 alternate-audio recovery with pinned video (blocked)",
           "Unit5 bounded MPEG-TS container recovery (blocked)",
           "Unit6 named-environment evidence and closure review"
