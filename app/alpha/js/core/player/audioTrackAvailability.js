@@ -5,6 +5,10 @@
 // claims that a track is supported or that audio was audible: "available" means
 // the engine exposes an addressable track, nothing more.
 //
+// Input contract: a plain object whose count fields are primitive, non-negative
+// safe integers. Anything else is "unknown" — never "no tracks", never an
+// action, and never a reason to trust partial evidence.
+//
 // Pure: no DOM, no i18n import, no logging. The caller resolves the key with t().
 
 export const AUDIO_AVAILABILITY_KEYS = Object.freeze({
@@ -28,54 +32,81 @@ const FALLBACKS = Object.freeze({
     "Select an audio track. Browser support is predicted, not verified."
 });
 
-function count(value) {
-  const number = Number(value);
-  return Number.isInteger(number) && number > 0 ? number : 0;
+const COUNT_FIELDS = [
+  "trackCount",
+  "ambiguousCount",
+  "availableCount",
+  "unavailableCount",
+  "unknownCount",
+  "predictedCount"
+];
+
+// Read a field as its own data property without invoking getters, and accept
+// only primitive non-negative safe integers. No coercion, no valueOf().
+function readCount(object, name) {
+  try {
+    const descriptor = Object.getOwnPropertyDescriptor(object, name);
+    if (!descriptor) return { ok: true, value: 0, present: false };
+    if (!("value" in descriptor)) return { ok: false };
+    const value = descriptor.value;
+    if (typeof value !== "number" || !Number.isSafeInteger(value) || value < 0) {
+      return { ok: false };
+    }
+    return { ok: true, value, present: true };
+  } catch (_) {
+    return { ok: false };
+  }
+}
+
+function unknown() {
+  return {
+    key: AUDIO_AVAILABILITY_KEYS.UNKNOWN,
+    fallback: FALLBACKS[AUDIO_AVAILABILITY_KEYS.UNKNOWN],
+    tone: "info"
+  };
 }
 
 export function describeAudioTrackAvailability(summary) {
-  // A missing or malformed summary means "we do not know", not "there are none".
-  if (!summary || typeof summary !== "object") {
-    return {
-      key: AUDIO_AVAILABILITY_KEYS.UNKNOWN,
-      fallback: FALLBACKS[AUDIO_AVAILABILITY_KEYS.UNKNOWN],
-      tone: "info"
-    };
+  if (!summary || typeof summary !== "object" || Array.isArray(summary)) return unknown();
+  const counts = {};
+  for (const field of COUNT_FIELDS) {
+    const read = readCount(summary, field);
+    if (!read.ok) return unknown();
+    counts[field] = read.value;
+    if (field === "trackCount") counts.trackCountPresent = read.present;
   }
-  const source = summary;
-  if (
-    source.trackCount !== undefined &&
-    !(Number.isInteger(source.trackCount) && source.trackCount >= 0)
-  ) {
-    return {
-      key: AUDIO_AVAILABILITY_KEYS.UNKNOWN,
-      fallback: FALLBACKS[AUDIO_AVAILABILITY_KEYS.UNKNOWN],
-      tone: "info"
-    };
-  }
-  const trackCount = count(source.trackCount);
-  const ambiguous = count(source.ambiguousCount);
-  const available = count(source.availableCount);
-  const unavailable = count(source.unavailableCount);
-  const unknown = count(source.unknownCount);
-  const predicted = count(source.predictedCount);
+  // Without an explicit track count we do not know; an absent count is not zero.
+  if (!counts.trackCountPresent) return unknown();
+  const {
+    trackCount,
+    ambiguousCount,
+    availableCount,
+    unavailableCount,
+    unknownCount,
+    predictedCount
+  } = counts;
 
-  const pick = (key) => ({ key, fallback: FALLBACKS[key] });
+  // Contradictory evidence is unknown, not a guess.
+  const classified = availableCount + unavailableCount + unknownCount;
+  if (ambiguousCount > trackCount) return unknown();
+  if (classified > trackCount) return unknown();
+  if (predictedCount > availableCount) return unknown();
 
-  if (trackCount === 0) return { ...pick(AUDIO_AVAILABILITY_KEYS.NO_TRACKS), tone: "empty" };
-  if (ambiguous > 0) return { ...pick(AUDIO_AVAILABILITY_KEYS.AMBIGUOUS), tone: "warning" };
-  if (available > 0) {
-    return {
-      ...pick(
-        predicted > 0
-          ? AUDIO_AVAILABILITY_KEYS.AVAILABLE_WITH_PREDICTED
-          : AUDIO_AVAILABILITY_KEYS.AVAILABLE
-      ),
-      tone: "action"
-    };
+  const pick = (key, tone) => ({ key, fallback: FALLBACKS[key], tone });
+
+  if (trackCount === 0) {
+    if (ambiguousCount || classified) return unknown();
+    return pick(AUDIO_AVAILABILITY_KEYS.NO_TRACKS, "empty");
   }
-  if (unavailable > 0) return { ...pick(AUDIO_AVAILABILITY_KEYS.UNAVAILABLE), tone: "warning" };
-  if (unknown > 0) return { ...pick(AUDIO_AVAILABILITY_KEYS.UNKNOWN), tone: "info" };
-  // Defensive: a summary with tracks but no classified selectability.
-  return { ...pick(AUDIO_AVAILABILITY_KEYS.UNKNOWN), tone: "info" };
+  // Ambiguity outranks availability: never offer a track we cannot identify.
+  if (ambiguousCount > 0) return pick(AUDIO_AVAILABILITY_KEYS.AMBIGUOUS, "warning");
+  if (availableCount > 0) {
+    return predictedCount > 0
+      ? pick(AUDIO_AVAILABILITY_KEYS.AVAILABLE_WITH_PREDICTED, "action")
+      : pick(AUDIO_AVAILABILITY_KEYS.AVAILABLE, "action");
+  }
+  if (unavailableCount > 0) return pick(AUDIO_AVAILABILITY_KEYS.UNAVAILABLE, "warning");
+  if (unknownCount > 0) return pick(AUDIO_AVAILABILITY_KEYS.UNKNOWN, "info");
+  // Tracks declared but none classified: still unknown.
+  return unknown();
 }
