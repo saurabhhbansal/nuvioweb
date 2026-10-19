@@ -7,7 +7,7 @@
 // the application; independent security review is required before that.
 import { newAsyncContext } from "quickjs-emscripten";
 import { createPluginNetworkBroker } from "../js/core/plugins/pluginBroker.js";
-import { normalizePluginResult } from "../js/core/plugins/pluginContract.js";
+import { normalizePluginResult, PLUGIN_CONTRACT_LIMITS } from "../js/core/plugins/pluginContract.js";
 import { PLUGIN_SANDBOX_DEFAULTS } from "./pluginSandboxPrototype.mjs";
 
 function withDeadline(promise, deadline) {
@@ -33,6 +33,7 @@ export async function executePluginWithNetworkPrototype({
   brokerLimits = {}
 } = {}) {
   if (typeof code !== "string" || !code.trim()) return { ok: false, error: "code" };
+  if (new TextEncoder().encode(code).length > PLUGIN_CONTRACT_LIMITS.codeBytes) return { ok: false, error: "code-size" };
   if (typeof transport !== "function") return { ok: false, error: "transport-config" };
   const budget = { ...PLUGIN_SANDBOX_DEFAULTS, ...limits };
   const startedAt = Date.now();
@@ -114,9 +115,10 @@ api.fetch = function (url) {
       `${code}
 ;globalThis.__nuvioResult = undefined;
 globalThis.__nuvioError = undefined;
+globalThis.__nuvioDone = false;
 resolve(api, JSON.parse(inputJson)).then(
-  function (value) { globalThis.__nuvioResult = JSON.stringify(value); },
-  function (error) { globalThis.__nuvioError = String((error && error.message) || error); }
+  function (value) { globalThis.__nuvioResult = JSON.stringify(value); globalThis.__nuvioDone = true; },
+  function (error) { globalThis.__nuvioError = String((error && error.message) || error); globalThis.__nuvioDone = true; }
 );`,
       "plugin.js"
     );
@@ -154,31 +156,39 @@ resolve(api, JSON.parse(inputJson)).then(
           elapsedMs: Date.now() - startedAt
         };
       }
+      const doneProbe = context.evalCode("String(globalThis.__nuvioDone)");
       const resultProbe = context.evalCode("String(globalThis.__nuvioResult)");
       const errorProbe = context.evalCode("String(globalThis.__nuvioError)");
+      let doneValue;
       let resultValue;
       let errorValue;
       try {
+        doneValue = context.dump(doneProbe.value);
         resultValue = context.dump(resultProbe.value);
         errorValue = context.dump(errorProbe.value);
       } finally {
+        doneProbe.value.dispose();
         resultProbe.value.dispose();
         errorProbe.value.dispose();
       }
+      if (doneProbe.error) doneProbe.error.dispose();
       if (resultProbe.error) resultProbe.error.dispose();
       if (errorProbe.error) errorProbe.error.dispose();
 
-      if (typeof errorValue === "string" && errorValue !== "undefined") {
-        const networkCode = networkErrorCode(errorValue);
-        return {
-          ok: false,
-          error: networkCode || (Date.now() > deadline ? "timeout" : "plugin"),
-          elapsedMs: Date.now() - startedAt
-        };
-      }
-      if (typeof resultValue === "string" && resultValue !== "undefined") {
-        serialized = resultValue;
-        break;
+      if (doneValue === "true") {
+        if (typeof errorValue === "string" && errorValue !== "undefined") {
+          const networkCode = networkErrorCode(errorValue);
+          return {
+            ok: false,
+            error: networkCode || (Date.now() > deadline ? "timeout" : "plugin"),
+            elapsedMs: Date.now() - startedAt
+          };
+        }
+        if (typeof resultValue === "string" && resultValue !== "undefined") {
+          serialized = resultValue;
+          break;
+        }
+        return { ok: false, error: "output", elapsedMs: Date.now() - startedAt };
       }
       if (Date.now() > deadline) {
         // Let a suspended host call resume (it is bounded by withDeadline)

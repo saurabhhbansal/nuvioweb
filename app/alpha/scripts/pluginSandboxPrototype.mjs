@@ -11,7 +11,7 @@
 // here simply hits the wall-clock budget.
 // See docs/PLUGIN_COMPATIBILITY.md for the staged plan and limits.
 import { getQuickJS } from "quickjs-emscripten";
-import { normalizePluginResult } from "../js/core/plugins/pluginContract.js";
+import { normalizePluginResult, PLUGIN_CONTRACT_LIMITS } from "../js/core/plugins/pluginContract.js";
 
 export const PLUGIN_SANDBOX_DEFAULTS = Object.freeze({
   timeMs: 250,
@@ -25,7 +25,7 @@ export const PLUGIN_SANDBOX_DEFAULTS = Object.freeze({
 function failureCode(error, deadline) {
   if (Date.now() > deadline) return "timeout";
   const message = String(error?.message || "");
-  if (/out of memory|oom|memory limit/i.test(message)) return "memory";
+  if (/out of memory|memory limit|\boom\b/i.test(message)) return "memory";
   if (/stack|too deep/i.test(message)) return "stack";
   if (/interrupt/i.test(message)) return "timeout";
   return "runtime";
@@ -41,6 +41,7 @@ function dumpHandle(context, handle) {
 
 export async function executePluginPrototype({ code, input = {}, limits = {} } = {}) {
   if (typeof code !== "string" || !code.trim()) return { ok: false, error: "code" };
+  if (new TextEncoder().encode(code).length > PLUGIN_CONTRACT_LIMITS.codeBytes) return { ok: false, error: "code-size" };
   const budget = { ...PLUGIN_SANDBOX_DEFAULTS, ...limits };
   const startedAt = Date.now();
   const deadline = startedAt + budget.timeMs;
@@ -81,9 +82,10 @@ export async function executePluginPrototype({ code, input = {}, limits = {} } =
       `${code}
 ;globalThis.__nuvioResult = undefined;
 globalThis.__nuvioError = undefined;
-Promise.resolve().then(function () { return resolve(api, JSON.parse(inputJson)); }).then(
-  function (value) { globalThis.__nuvioResult = JSON.stringify(value); },
-  function (error) { globalThis.__nuvioError = String((error && error.message) || error); }
+globalThis.__nuvioDone = false;
+resolve(api, JSON.parse(inputJson)).then(
+  function (value) { globalThis.__nuvioResult = JSON.stringify(value); globalThis.__nuvioDone = true; },
+  function (error) { globalThis.__nuvioError = String((error && error.message) || error); globalThis.__nuvioDone = true; }
 );`,
       "plugin.js"
     );
@@ -102,27 +104,35 @@ Promise.resolve().then(function () { return resolve(api, JSON.parse(inputJson));
         jobs.error.dispose();
         return { ok: false, error: failureCode({ message: detail?.message || "" }, deadline) };
       }
-      const resultProbe = context.evalCode("globalThis.__nuvioResult");
-      const errorProbe = context.evalCode("globalThis.__nuvioError");
+      const doneProbe = context.evalCode("String(globalThis.__nuvioDone)");
+      const resultProbe = context.evalCode("String(globalThis.__nuvioResult)");
+      const errorProbe = context.evalCode("String(globalThis.__nuvioError)");
+      let done;
       let result;
       let pluginError;
       try {
+        done = dumpHandle(context, doneProbe.value);
         result = dumpHandle(context, resultProbe.value);
         pluginError = dumpHandle(context, errorProbe.value);
       } finally {
+        doneProbe.value.dispose();
         resultProbe.value.dispose();
         errorProbe.value.dispose();
       }
+      if (doneProbe.error) doneProbe.error.dispose();
       if (errorProbe.error) errorProbe.error.dispose();
       if (resultProbe.error) resultProbe.error.dispose();
-      if (typeof pluginError === "string") {
-        // A rejected promise can be a quota interrupt or a genuine plugin error.
-        const classified = failureCode({ message: pluginError }, deadline);
-        return { ok: false, error: classified === "runtime" ? "plugin" : classified, elapsedMs: Date.now() - startedAt };
-      }
-      if (typeof result === "string") {
-        serialized = result;
-        break;
+      if (done === "true") {
+        if (typeof pluginError === "string" && pluginError !== "undefined") {
+          // A rejected promise can be a quota interrupt or a genuine plugin error.
+          const classified = failureCode({ message: pluginError }, deadline);
+          return { ok: false, error: classified === "runtime" ? "plugin" : classified, elapsedMs: Date.now() - startedAt };
+        }
+        if (typeof result === "string" && result !== "undefined") {
+          serialized = result;
+          break;
+        }
+        return { ok: false, error: "output", elapsedMs: Date.now() - startedAt };
       }
       if (jobs.value === 0) {
         return { ok: false, error: "timeout", elapsedMs: Date.now() - startedAt };
