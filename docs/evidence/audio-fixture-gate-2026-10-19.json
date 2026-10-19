@@ -3,10 +3,15 @@
   "probe": "native-aac-encoding",
   "status": "blocked",
   "reasons": [
-    "WebCodecs AudioEncoder is not exposed",
-    "the MediaRecorder output carried Opus rather than mp4a"
+    "WebCodecs AudioEncoder is not exposed, so no AAC encode path was exercised",
+    "the recorded container carried Opus rather than mp4a"
   ],
   "toneHz": 440,
+  "audioEncoder": {
+    "present": false,
+    "aacConfigSupported": false,
+    "encodeAttempt": null
+  },
   "mediaRecorderTypes": [
     {
       "mimeType": "audio/mp4;codecs=mp4a.40.2",
@@ -22,14 +27,23 @@
     }
   ],
   "sampleEntries": [
-    "Opus"
+    {
+      "fourcc": "Opus",
+      "size": 75,
+      "audio": true
+    }
   ],
   "aacConfig": null,
   "recording": {
     "requestedMimeType": "audio/mp4",
     "actualMimeType": "audio/mp4;codecs=opus",
     "bytes": 11778,
-    "withinByteLimit": true
+    "byteLimitExceeded": false,
+    "inspection": {
+      "transferred": 641,
+      "totalBytes": 11778,
+      "complete": true
+    }
   },
   "environment": {
     "browserVersion": "156.0.8078.4",
@@ -38,6 +52,7 @@
   "limits": [
     "Probe only: no fixture was generated and no media was downloaded.",
     "One short synthesised tone in a headless browser; audibility is not measured.",
-    "Recording bounded to 12000 ms of wall-clock work and 16777216 bytes."
+    "Recording retained at most 8388608 bytes for 700 ms; initialization transfer bounded to 1048576 bytes.",
+    "A BLOCKED result describes this browser and this recording path, not every browser."
   ]
 }
