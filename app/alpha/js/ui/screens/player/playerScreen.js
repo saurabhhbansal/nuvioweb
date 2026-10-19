@@ -11,6 +11,16 @@ import {
   shouldAllowPlaybackDuringStartupAudioGate
 } from "../../../core/player/startupAudioGatePolicy.js";
 import { isTerminalHlsHttpStatus } from "../../../core/player/hlsNetworkErrorPolicy.js";
+import {
+  classifyStartupFailure,
+  STARTUP_FAILURE_REASONS
+} from "../../../core/player/startupFailure.js";
+import {
+  describeSource,
+  normalizeSourceDescriptor,
+  probeNativeSource,
+  selectSourceContentType
+} from "../../../core/streams/sourceCapabilities.js";
 import { buildClockFormatOptions, resolveBrowserHour12 } from "../../../core/player/clockFormat.js";
 import { normalizeImageUrl } from "../../../core/media/imageProxy.js";
 import {
@@ -87,7 +97,7 @@ import {
   shouldEnterStillWatchingPrompt,
   shouldShowNextEpisodeCard as shouldShowNextEpisodeCardRule
 } from "./playerNextEpisodeRules.js";
-import { normalizePlaybackDisplayLineBreaks } from "./playbackDisplayText.js";
+import { ensureSentenceEnding, normalizePlaybackDisplayLineBreaks } from "./playbackDisplayText.js";
 import {
   resolveBrowserPlayerShortcutRoute,
   shouldBlurBrowserPlayerToolbarAfterPointer
@@ -3340,6 +3350,9 @@ export const PlayerScreen = {
           streamOrigin,
           mimeType: stream.mimeType || stream.raw?.mimeType || stream.type || stream.source || null,
           sourceType: stream.sourceType || stream.mimeType || stream.type || stream.source || "",
+          // Keep the evidence built at the repository boundary so startup
+          // classification can tell an unsupported container from a stall.
+          sourceDescriptor: stream.sourceDescriptor || stream.raw?.sourceDescriptor || null,
           url: streamUrl,
           ytId: stream.ytId || null,
           infoHash: stream.infoHash || null,
@@ -6072,13 +6085,19 @@ export const PlayerScreen = {
         this.getCurrentStreamCandidate();
       this.markPlaybackSourceFailed(playbackUrl);
       if (!this.hasPresentedPlaybackFrame) {
-        this.showStartupError(this.getStartupErrorMessage(mediaErrorCode, detail, candidate), {
+        const startupFailure = this.resolveStartupFailure({
+          mediaErrorCode,
+          detail,
+          streamCandidate: candidate,
+          playbackUrl
+        });
+        this.showStartupError(startupFailure.message, {
           mediaErrorCode,
           detail,
           error,
           streamCandidate: candidate,
           playbackUrl,
-          reason: "play-start"
+          reason: startupFailure.reason
         });
         console.warn("Playback failed to start", {
           url: playbackUrl,
@@ -6107,26 +6126,166 @@ export const PlayerScreen = {
     });
   },
 
+  getStartupSourceDescriptor(streamCandidate = null) {
+    const candidate =
+      streamCandidate ||
+      this.getStreamCandidateByUrl(this.activePlaybackUrl) ||
+      this.getCurrentStreamCandidate() ||
+      {};
+    const raw = candidate?.raw || {};
+    // The player's candidate list intentionally keeps a narrow field set, so the
+    // repository descriptor can sit on the raw stream instead of the candidate.
+    const declaredSource = candidate?.sourceDescriptor || raw?.sourceDescriptor || null;
+    let declared = null;
+    if (declaredSource && typeof declaredSource === "object") {
+      try {
+        declared = normalizeSourceDescriptor(declaredSource);
+      } catch (_) {
+        declared = null;
+      }
+    }
+    try {
+      const descriptor = describeSource({
+        url: candidate?.url || raw.url || this.activePlaybackUrl || "",
+        // Prefer a validated media type; short aliases like "mkv" are not
+        // evidence and must not shadow the declared MIME type.
+        mimeType: selectSourceContentType([
+          candidate?.mimeType,
+          raw.mimeType,
+          declared?.contentType,
+          candidate?.sourceType,
+          raw.sourceType
+        ]),
+        video: candidate?.video || raw.video || declared?.video || null,
+        audioTracks: candidate?.audioTracks || raw.audioTracks || declared?.audioTracks || [],
+        subtitles: candidate?.subtitles || raw.subtitles || declared?.subtitleTracks || [],
+        expiresAt: candidate?.expiresAt || raw.expiresAt || declared?.expiresAt || "",
+        behaviorHints: candidate?.behaviorHints || raw.behaviorHints || null
+      });
+      const headerCount = Math.max(
+        Number(descriptor.requiredHeaderCount) || 0,
+        Number(declared?.requiredHeaderCount) || 0
+      );
+      if (headerCount > (Number(descriptor.requiredHeaderCount) || 0)) {
+        descriptor.requiredHeaderCount = headerCount;
+      }
+      return descriptor;
+    } catch (_) {
+      return declared;
+    }
+  },
+
+  getStartupNativePrediction(descriptor) {
+    if (!descriptor) {
+      return "unknown";
+    }
+    const video = PlayerController.video || null;
+    if (!video || typeof video.canPlayType !== "function") {
+      return "unknown";
+    }
+    try {
+      return probeNativeSource(descriptor, video);
+    } catch (_) {
+      return "unknown";
+    }
+  },
+
+  classifyStartupFailureForSource({
+    mediaErrorCode = 0,
+    detail = "",
+    streamCandidate = null,
+    playbackUrl = "",
+    timedOut = false,
+    sourceElementError = false
+  } = {}) {
+    const candidate =
+      streamCandidate ||
+      this.getStreamCandidateByUrl(playbackUrl || this.activePlaybackUrl) ||
+      this.getCurrentStreamCandidate();
+    const descriptor = this.getStartupSourceDescriptor(candidate);
+    return classifyStartupFailure({
+      descriptor,
+      nativePrediction: this.getStartupNativePrediction(descriptor),
+      engine: PlayerController.playbackEngine || "none",
+      mediaErrorCode,
+      detail,
+      httpStatus: extractPlaybackHttpStatus(detail),
+      headerRequired: Boolean(this.getWebHeaderRestrictedStreamMessage(candidate)),
+      timedOut,
+      sourceElementError
+    });
+  },
+
+  resolveStartupFailure({
+    mediaErrorCode = 0,
+    detail = "",
+    streamCandidate = null,
+    playbackUrl = "",
+    timedOut = false,
+    sourceElementError = false
+  } = {}) {
+    const candidate =
+      streamCandidate ||
+      this.getStreamCandidateByUrl(playbackUrl || this.activePlaybackUrl) ||
+      this.getCurrentStreamCandidate();
+    const classification = this.classifyStartupFailureForSource({
+      mediaErrorCode,
+      detail,
+      streamCandidate: candidate,
+      playbackUrl,
+      timedOut,
+      sourceElementError
+    });
+    return {
+      classification,
+      reason: classification.reason,
+      message: this.getStartupErrorMessage(
+        mediaErrorCode,
+        detail,
+        candidate,
+        classification
+      )
+    };
+  },
+
   getStartupErrorMessage(
     mediaErrorCode = 0,
     detail = "",
-    streamCandidate = this.getCurrentStreamCandidate()
+    streamCandidate = this.getCurrentStreamCandidate(),
+    classification = null
   ) {
     const code = Number(mediaErrorCode || 0);
-    const compatibilityMessage = this.getWebHeaderRestrictedStreamMessage(streamCandidate);
-    if (compatibilityMessage && (code === 0 || code === 2 || code === 4)) {
-      return compatibilityMessage;
+    const resolved =
+      classification ||
+      this.classifyStartupFailureForSource({
+        mediaErrorCode: code,
+        detail,
+        streamCandidate
+      });
+    const reason = String(resolved?.reason || "");
+    if (reason === STARTUP_FAILURE_REASONS.STARTUP_SOURCE_ERROR) {
+      return t(
+        "player_error_source_load_unknown",
+        {},
+        "The browser could not load this source. The link, access, network or format may be responsible. Refresh sources or choose another source."
+      );
     }
-    const baseMessage = this.mediaErrorMessage(code, detail, streamCandidate);
+    const baseMessage = this.mediaErrorMessage(code, detail, streamCandidate, resolved);
     const extra = String(detail || "").trim();
-    if (!extra || (code === 4 && this.isDebridPlaybackCandidate(streamCandidate))) {
-      return `${baseMessage}.`;
+    const classifiedReason = [
+      STARTUP_FAILURE_REASONS.HEADER_REQUIRED,
+      STARTUP_FAILURE_REASONS.UNSUPPORTED_CONTAINER,
+      STARTUP_FAILURE_REASONS.UNSUPPORTED_CODEC,
+      STARTUP_FAILURE_REASONS.INVALID_CONTENT
+    ].includes(reason);
+    if (!extra || classifiedReason || (code === 4 && this.isDebridPlaybackCandidate(streamCandidate))) {
+      return ensureSentenceEnding(baseMessage);
     }
     const normalizedExtra = extra.replace(/\s+/g, " ");
     if (baseMessage.toLowerCase().includes(normalizedExtra.toLowerCase())) {
       return baseMessage;
     }
-    return `${baseMessage}. ${normalizedExtra}`;
+    return `${ensureSentenceEnding(baseMessage)} ${normalizedExtra}`;
   },
 
   focusStartupErrorButton() {
@@ -8645,24 +8804,22 @@ export const PlayerScreen = {
           return;
         }
         this.markPlaybackSourceFailed(this.activePlaybackUrl);
-        const startupErrorMessage = sourceElementError ? t(
-          "player_error_source_load_unknown",
-          {},
-          "The browser could not load this source. The link, access, network or format may be responsible. Refresh sources or choose another source."
-        ) : this.getStartupErrorMessage(
+        const startupFailure = this.resolveStartupFailure({
           mediaErrorCode,
-          playbackErrorDetail,
-          currentSourceCandidate
-        );
+          detail: playbackErrorDetail,
+          streamCandidate: currentSourceCandidate,
+          playbackUrl: this.activePlaybackUrl,
+          sourceElementError
+        });
         this.clearPlaybackStallGuard();
         this.releaseStartupAudioGate({ resume: false });
-        this.showStartupError(startupErrorMessage, {
+        this.showStartupError(startupFailure.message, {
           mediaErrorCode,
           detail: playbackErrorDetail,
           eventDetail,
           streamCandidate: currentSourceCandidate,
           playbackUrl: this.activePlaybackUrl,
-          reason: sourceElementError ? "startup-source-error" : "startup-media-error"
+          reason: startupFailure.reason
         });
         console.warn("Playback failed during startup", {
           endpoint: describeSafePlaybackEndpoint(this.activePlaybackUrl),
@@ -10801,17 +10958,53 @@ export const PlayerScreen = {
   mediaErrorMessage(
     errorCode = 0,
     detail = "",
-    streamCandidate = this.getCurrentStreamCandidate()
+    streamCandidate = this.getCurrentStreamCandidate(),
+    classification = null
   ) {
     const code = Number(errorCode || 0);
     const text = String(detail || "").toLowerCase();
+    const compatibilityMessage = this.getWebHeaderRestrictedStreamMessage(streamCandidate);
+    const reason = String(classification?.reason || "");
+    // A source that could never be requested correctly is not an HTTP verdict,
+    // so the header guidance outranks the status message when it is classified.
+    if (reason === STARTUP_FAILURE_REASONS.HEADER_REQUIRED) {
+      return (
+        compatibilityMessage ||
+        t(
+          "player_error_web_headers_unsupported",
+          {},
+          "This source is not compatible with this device's player because it requires special request headers. Try a different source or contact the add-on provider."
+        )
+      );
+    }
     const httpStatus = extractPlaybackHttpStatus(detail);
     const httpMessage = this.getHttpPlaybackErrorMessage(httpStatus);
     if (httpMessage) {
       return httpMessage;
     }
-    const compatibilityMessage = this.getWebHeaderRestrictedStreamMessage(streamCandidate);
-    if (compatibilityMessage && (code === 0 || code === 2 || code === 4)) {
+    if (classification) {
+      if (reason === STARTUP_FAILURE_REASONS.UNSUPPORTED_CONTAINER) {
+        return t(
+          "player_error_container_unsupported",
+          [String(classification.container || "unknown").slice(0, 64)],
+          "This device's browser cannot play this video container (%1$s). Try a different source, or open this item on a device that supports it."
+        );
+      }
+      if (reason === STARTUP_FAILURE_REASONS.UNSUPPORTED_CODEC) {
+        return t(
+          "player_error_codec_unsupported",
+          [String(classification.codec || "unknown").slice(0, 64)],
+          "This device's browser cannot play this video format (%1$s). Try a different source, or open this item on a device that supports it."
+        );
+      }
+      if (reason === STARTUP_FAILURE_REASONS.INVALID_CONTENT) {
+        return t(
+          "player_error_source_invalid_content",
+          [this.getPlaybackErrorCodeLabel(code) || "source"],
+          "Source error: The stream source returned invalid or unplayable content. The link may have expired or the server returned an error page instead of video.\n\nTry a different source. [%1$s]"
+        );
+      }
+    } else if (compatibilityMessage && (code === 0 || code === 2 || code === 4)) {
       return compatibilityMessage;
     }
     if (code === 1) return "Playback aborted";
@@ -10963,11 +11156,17 @@ export const PlayerScreen = {
       this.releaseStartupAudioGate({ resume: false });
       if (startup) {
         this.markPlaybackSourceFailed(this.activePlaybackUrl);
-        this.showStartupError(this.getStartupErrorMessage(mediaErrorCode, "", sourceCandidate), {
+        const startupFailure = this.resolveStartupFailure({
           mediaErrorCode,
           streamCandidate: sourceCandidate,
           playbackUrl: this.activePlaybackUrl,
-          reason: "startup-stall"
+          timedOut: true
+        });
+        this.showStartupError(startupFailure.message, {
+          mediaErrorCode,
+          streamCandidate: sourceCandidate,
+          playbackUrl: this.activePlaybackUrl,
+          reason: startupFailure.reason
         });
         return;
       }

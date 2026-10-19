@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
 
-const scenarios = new Set(["source-order","basic","objects","configured","cors-denied","malformed","shape","slow","failure","empty","timeout","partial","declared","unknown-quality","unsupported-mime","quality-1080","quality-2160","quality-hls","quality-dash","quality-expired","quality-restricted","quality-hls-cors"]);
+const scenarios = new Set(["source-order","basic","objects","configured","cors-denied","malformed","shape","slow","failure","empty","timeout","partial","declared","unknown-quality","unsupported-mime","quality-1080","quality-2160","quality-hls","quality-dash","quality-expired","quality-restricted","quality-hls-cors","startup-header-required"]);
 const mediaRoot = new URL("../media/",import.meta.url);
 const qualityFiles = new Set(["original-1080p.mp4","original-2160p.mp4",...["1080p","2160p"].flatMap(size => ["init.mp4","segment.m4s","stream.m3u8","manifest.mpd"].map(file => `${size}/${file}`))]);
 
@@ -36,6 +36,12 @@ export function createAddonFixtureServer() {
       if (url.pathname === "/media/quality/cors-denied/stream.m3u8") {
         const denied = {...headers,"Content-Type":"application/vnd.apple.mpegurl"}; delete denied["Access-Control-Allow-Origin"];
         response.writeHead(200,denied).end(await readFile(new URL("quality/2160p/stream.m3u8",mediaRoot))); return;
+      }
+      if (url.pathname === "/media/header-restricted.webm") {
+        if (!request.headers["x-fixture-required"]) {
+          response.writeHead(403,{...headers,"Content-Type":"video/webm"}).end("Header required"); return;
+        }
+        response.writeHead(200,{...headers,"Content-Type":"video/webm"}).end(await readFile(new URL("procedural-vp8-opus.webm",mediaRoot))); return;
       }
       if (url.pathname === "/media/quality/expired.mp4" || url.pathname === "/media/quality/restricted.mp4") {
         response.writeHead(url.pathname.includes("expired") ? 410 : 403,{...headers,"Content-Type":"video/mp4"}).end("Original fixture unavailable"); return;
@@ -98,6 +104,9 @@ export function createAddonFixtureServer() {
             webm("headers-required",{behaviorHints:{proxyHeaders:{request:{"X-Fixture-Required":"fixture-only"}}}}),
             webm("declared-expired",{expiresAt:"2026-01-01T00:00:00Z"})
           ]}); return;
+        }
+        if (scenario === "startup-header-required") {
+          json({streams:[{id:"startup-header-required",name:"Header restricted WebDL",title:"Generated legal fixture",url:`${origin}/media/header-restricted.webm`,mimeType:'video/webm; codecs="vp8,opus"',video:{codec:"vp8",width:640,height:360},behaviorHints:{notWebReady:true,proxyHeaders:{request:{"X-Fixture-Required":"fixture-only"}}}}]}); return;
         }
         if (scenario.startsWith("quality-")) {
           const provenance = JSON.parse(await readFile(new URL("quality/provenance.json",mediaRoot),"utf8"));

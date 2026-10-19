@@ -1,12 +1,12 @@
 # Agent continuity record — current state
 
-Last updated: 2026-10-19, after the hosted B→A switch diagnosis. **Read this first after clearing context.**
+Last updated: 2026-10-19, after the startup-failure classification unit (#10). **Read this first after clearing context.**
 
 This file is the durable handoff. A new agent must be able to resume from it without the previous conversation. Update it at the checkpoints listed in the operating directive, and group updates into the PR that caused them where possible.
 
 ## Current state
 
-- Repository `saurabhhbansal/nuvioweb`: clean `main` at `ea54e69f95381de98f05e1c73c1f739a7d830d44` (PR #62 merged). No open PRs at the start of this unit.
+- Repository `saurabhhbansal/nuvioweb`: `main` at `775e18c44bf6711fb15228a125012d220af886ff` (PR #76 merged) plus the startup-classification branch described below. No other open PRs.
 - Hosted development preview: `1f67867ebab7f426672886121d852a643a436414`, deployment `b48de821-9034-49cc-8e1f-ab5c50e7fa3a`; rollback deployment `96f977f4` / `8edec42` retained.
 - Four required workflows passed on the merged heads `44cbdff` (#66), `c9e4325` (#67) and `38cf2c9` (#70). `docs/PROGRESS.json` reports 26 tickets: 10 verified, 4 in progress (#7, #10, #11, #23), remainder pending.
 - #7 and #10 remain open and environment-gated. #11 unit 6a is merged; unit 6b remains. #23 PR A/B (state contract + read-only collector) are merged; the issue-writing publisher and workflow remain.
@@ -14,11 +14,11 @@ This file is the durable handoff. A new agent must be able to resume from it wit
 
 ## Current selection
 
-- Selected ticket: **#11 unit 6b-2** (default-off app seam + CSP/security review) next; 6b-1 (opt-in asset emission) is implemented in the current PR. **#23 PR C** is owner-gated because it introduces `issues: write`. #7/#10 remain environment-gated.
-- Current branch: none; clean `main` at `6284e47` after merging #72 (6b-1).
-- Current PR: none open.
-- Last completed atomic tasks: #66 unit 6a; #67 pre-code plans; #70 #23 PR A+B; #72 unit 6b-1; hosted nonempty Library B→A; plus owner manual device checks (Windows11 Edge155 guest checklist PASS, audible audio; iPhone17Pro/iOS27 Safari VP8/Opus demo PASS but native MKV/HEVC/DV/HDR sources fail) and owner app-removal evidence (B cloud1 item vs A2 after removal; one transient switch failure then a successful read-only round trip).
-- Next exact atomic task: write the unit 6b pre-code plan amendment (default-off app seam, hashed stager emission with `application/wasm`, CSP/`wasm-unsafe-eval` decision, Firefox/WebKit coverage, security/dependency review package) before any application or stager change. Do not implement #23 PR C without explicit owner review of the `issues: write` boundary. Do not repeat the live B→A→B probe; any sync runtime change first needs a deterministic synthetic reproduction.
+- Selected ticket: **#10** (hosted browser MVP playback). The startup-classification unit is implemented and awaiting protected integration in its PR; the next unit is **automated Playwright WebKit coverage in CI**. **#23 PR C** is owner-gated because it introduces `issues: write`. #7 remains environment-gated.
+- Current branch: `fix/issue-10-startup-classification` (see the PR for the exact head).
+- Last completed atomic tasks: #66 unit 6a; #67 pre-code plans; #70 #23 PR A+B; #72 unit 6b-1; #76 final Safari observations; startup-failure classification (#10, this PR); hosted nonempty Library B→A; owner manual device checks (Windows11 Edge155 guest checklist PASS, audible audio; iPhone17Pro/iOS27 Safari VP8/Opus demo PASS but native MKV/HEVC/DV/HDR sources fail) and owner app-removal evidence (B cloud1 item vs A2 after removal; one transient switch failure then a successful read-only round trip).
+- Next exact atomic task: add Playwright **WebKit** to the browser workflow (an ubuntu runner can install it; this ARM64 host cannot) with synthetic fixtures for a supported H.264/MP4/HLS path, unsupported MKV/HEVC/DV descriptors, header-required messaging and capability-honest return, labelled as engine-family evidence rather than per-iOS-version proof. Do not implement #23 PR C without explicit owner review of the `issues: write` boundary. Do not repeat the live B→A→B probe; any sync runtime change first needs a deterministic synthetic reproduction.
+- **Build prerequisite learned this round:** `npm run build --prefix app/alpha` needs `NUVIO_LOCAL_PROPERTIES=<repo>/tests/fixtures/build.properties` for tests (CI does the same). Without it the build falls back to `local.example.properties`, bakes an empty backend URL and fails `scripts/envProperties.test.mjs` / `check-alpha-build.mjs`. Never bake the live backend into a local test build.
 
 ## Relevant plans and evidence
 
@@ -26,7 +26,7 @@ This file is the durable handoff. A new agent must be able to resume from it wit
 - MVP gate: [MVP_ACCEPTANCE.md](../MVP_ACCEPTANCE.md).
 - Identity/sync: [IDENTITY_VERIFICATION.md](../IDENTITY_VERIFICATION.md); switch receipt [identity-switch-diagnosis-2026-10-19.json](../evidence/identity-switch-diagnosis-2026-10-19.json).
 - Preview: [STATIC_PREVIEW.md](../STATIC_PREVIEW.md), [preview-refresh-2026-10-19.json](../evidence/preview-refresh-2026-10-19.json).
-- Playback/quality: [PLAYBACK_QUALITY_MATRIX.md](../PLAYBACK_QUALITY_MATRIX.md), [browser-mvp-playback-2026-10-19.md](../evidence/browser-mvp-playback-2026-10-19.md).
+- Playback/quality: [PLAYBACK_QUALITY_MATRIX.md](../PLAYBACK_QUALITY_MATRIX.md), [browser-mvp-playback-2026-10-19.md](../evidence/browser-mvp-playback-2026-10-19.md), [startup classification evidence](../evidence/startup-classification-2026-10-19.md), [automated review record](2026-10-19-startup-classification-review.md), [device verification](../evidence/device-verification-2026-10-19.md).
 - Plugin engine: [issue #11 plan](../plans/issues/issue-11.md), [PLUGIN_COMPATIBILITY.md](../PLUGIN_COMPATIBILITY.md), [PLUGIN_ENGINE_EVALUATION.md](../PLUGIN_ENGINE_EVALUATION.md).
 - Upstream watch: [issue #23 plan](../plans/issues/issue-23.md), [state contract](../upstream/state.json), [report schema](../upstream/report.schema.json), [review record](2026-10-19-upstream-watch-review.md).
 - Governing sources: [AGENTS.md](../../AGENTS.md), [PROJECT_CHARTER.md](../PROJECT_CHARTER.md), [PRD.md](../PRD.md), [DECISIONS.md](../DECISIONS.md), [ROADMAP.md](../ROADMAP.md), [QUALITY_GATES.md](../QUALITY_GATES.md), [SECURITY_PRIVACY.md](../SECURITY_PRIVACY.md), [PROGRESS.json](../PROGRESS.json), [TRACKER.md](../../TRACKER.md).
@@ -46,7 +46,7 @@ This file is the durable handoff. A new agent must be able to resume from it wit
 - **#7:** nonempty Library isolation passes scoped hosted B→A with owner-created items. The owner added a second item to each account and removed one from B through the app; a fresh control showed A=2/B=1, confirming the removal in cloud state. One post-removal B→A switch failed (Library and critical reads failed before headers) while an immediate read-only B→A→B round trip succeeded all Library pulls — transient/environment-sensitive, cause unestablished. App-level Save/remove, cross-client deletion, expiry/revocation/QR and offline remain open. Owner-created A/B Library items must not be deleted by automation.
 - **#11:** unit 6a (merged PR #66) proves in-browser execution of opt-in engine assets in Chromium only. Unit 6b-1 (merged PR #72) adds opt-in build/stager emission with content-versioned assets, manifest/hash/MIME validation, notices and scoped headers, but no app import or execution. Unit 6b-2 still needs the default-off app seam, flag source, CSP decision, Firefox/WebKit coverage, real-network use and independent security/dependency review; no plugin is shipped, compatible or supported.
 - **#23:** PR A/B are merged; no live GitHub call, workflow, issue publication, parity decision or observation baseline exists yet. The publisher's `issues: write` permission requires explicit owner review. Decisions/ports remain empty and the tag/release baseline is unapproved.
-- **#10:** hosted guest journey PASS; Windows Edge manual guest checklist PASS with audible audio. iPhone Safari plays VP8/Opus but fails native MKV/HEVC/DV/HDR, non-MKV MP4 (`startup-stall`) and header-required WebDL (correct message, generic `startup-stall` reason). The iOS gap is not MKV-only; root cause needs engine-level fixtures, not more manual attempts. Next: startup-classification fix + Playwright WebKit in CI. Multitrack audio, supported HDR observation and hosted external-provider CORS remain open. Owner has paused manual device checks.
+- **#10:** hosted guest journey PASS; Windows Edge manual guest checklist PASS with audible audio. iPhone Safari plays VP8/Opus but fails native MKV/HEVC/DV/HDR and non-MKV MP4. **Fixed in this unit:** startup failures now carry distinct reasons (`header-required`, `unsupported-container`, `unsupported-codec`, `invalid-content`, `network`, `aborted`, `decode-error`, `startup-stall`, `startup-media-error`, `startup-source-error`, `startup-unknown`) instead of one literal per call site; the header-required WebDL case reports `header-required`, and Matroska/HEVC declarations are classified from Chromium's real `canPlayType`. Evidence: [startup classification](../evidence/startup-classification-2026-10-19.md). Still open: automated WebKit coverage, multitrack audio, a supported HDR observation, hosted external-provider CORS. Owner has paused manual device checks; do not re-run the iPhone checks for this unit.
 - Tokens remain XSS-readable in the inherited browser architecture. Local logout is not proof of remote revocation. Snapshot writes still carry concurrent-writer risk.
 
 ## Tooling incident and blockers
@@ -64,11 +64,11 @@ This file is the durable handoff. A new agent must be able to resume from it wit
 
 ## Context-clear quick start
 
-1. `git status` and `git log -1 --oneline`: expect clean `main` at or after `6284e47`, then the current evidence/feature branch.
+1. `git status` and `git log -1 --oneline`: expect clean `main` at or after `775e18c`, then the current feature branch (startup classification, then WebKit CI).
 2. Read this file, `docs/plans/issues/issue-11.md` (unit 6a merged, 6b next) and the plugin engine documents; for #23, `docs/plans/issues/issue-23.md` and the upstream-watch review record; for #7, `docs/plans/issues/issue-7.md` and the switch receipts.
 3. Hosted preview is `1f67867`/`b48de821`; rollback `96f977f4`/`8edec42`.
 4. Credentials: `/home/saurabh/.config/nuvioweb/test-accounts.json` (0600, outside Git). Never print, log, commit, echo to reviewers or pass as a positional value; pass only its path. Recommend rotation after the marker run.
 5. Tooling: pinned Node `export PATH=/home/saurabh/.local/share/mise/installs/node/22.23.1/bin:$PATH` (v22.23.1/npm10.9.8); Wrangler `node /home/saurabh/.npm/_npx/d77349f55c2be1c0/node_modules/wrangler/bin/wrangler.js`; Codex per above.
 6. Do not repeat an unchanged live probe and do not run another live marker write; the one bounded marker is complete with verified cleanup. A deterministic synthetic reproduction is required before any sync runtime change.
-7. #10 remains open for branded Edge/Safari/mobile, multitrack/audible audio, hosted external-provider CORS and 4K60/HDR. #11 unit 6a is complete (test-only browser engine + builder); unit 6b still needs the default-off app seam, stager emission, CSP decision and independent security/dependency review.
+7. #10 remains open for automated WebKit coverage, multitrack/audible audio, hosted external-provider CORS and 4K60/HDR; branded Edge/Safari/mobile spot checks are optional per owner direction. #11 unit 6a is complete (test-only browser engine + builder); unit 6b still needs the default-off app seam, stager emission, CSP decision and independent security/dependency review.
 8. Goal: keep the persisted objective active; do not mark complete until #7/#10 and the roadmap gates are genuinely satisfied.

@@ -154,3 +154,54 @@ test("audio boost does not capture native cross-origin media", async () => {
   video.currentSrc = "";
   assert.equal(context.supportsWebAudioAmplification(), false);
 });
+
+test("startup failures are classified once and every startup path reports the resolved reason", async () => {
+  const source = await readFile(playerScreenUrl, "utf8");
+
+  assert.match(
+    source,
+    /import \{\s*classifyStartupFailure,\s*STARTUP_FAILURE_REASONS\s*\} from "\.\.\/\.\.\/\.\.\/core\/player\/startupFailure\.js";|import \{[^}]*classifyStartupFailure[^}]*\} from "\.\.\/\.\.\/\.\.\/core\/player\/startupFailure\.js";/
+  );
+  // One resolver builds the message and the machine-readable reason together.
+  assert.match(source, /resolveStartupFailure\(\{/);
+  assert.match(source, /reason: startupFailure\.reason/);
+  // No startup path may keep a hard-coded reason that can disagree with the message.
+  assert.doesNotMatch(source, /reason: "startup-stall"/);
+  assert.doesNotMatch(source, /reason: "startup-media-error"/);
+  assert.doesNotMatch(source, /reason: sourceElementError \? "startup-source-error"/);
+  // Exactly three startup call sites resolve the classification.
+  assert.equal(source.match(/this\.resolveStartupFailure\(\{/g).length, 3);
+  // The player's narrow candidate list still carries the repository descriptor.
+  assert.match(
+    source,
+    /sourceDescriptor: stream\.sourceDescriptor \|\| stream\.raw\?\.sourceDescriptor \|\| null,/
+  );
+  // The startup overlay keeps the single documented return path.
+  assert.equal(source.match(/data-player-error-action="/g).length, 1);
+  assert.match(source, /data-player-error-action="back"/);
+});
+
+test("classified header-required guidance outranks an HTTP status and messages are not double-punctuated", async () => {
+  const [source, displayText] = await Promise.all([
+    readFile(playerScreenUrl, "utf8"),
+    readFile(new URL("./playbackDisplayText.js", import.meta.url), "utf8"),
+  ]);
+
+  const mediaError = source.slice(source.indexOf("  mediaErrorMessage("));
+  const headerBranch = mediaError.indexOf(
+    "reason === STARTUP_FAILURE_REASONS.HEADER_REQUIRED"
+  );
+  const httpBranch = mediaError.indexOf(
+    "const httpMessage = this.getHttpPlaybackErrorMessage(httpStatus);"
+  );
+  assert.ok(headerBranch > 0, "the classified header branch must exist");
+  assert.ok(
+    httpBranch > headerBranch,
+    "a header-restricted source must not show an HTTP verdict it never requested"
+  );
+
+  // A composed message that already ends with punctuation must not gain a second stop.
+  assert.match(source, /return ensureSentenceEnding\(baseMessage\);/);
+  assert.match(displayText, /export function ensureSentenceEnding/);
+  assert.match(displayText, /\[\.!\?\]\$/);
+});
