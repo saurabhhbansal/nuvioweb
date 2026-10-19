@@ -6,8 +6,10 @@
 // which tracks were already attempted, how many alternate and restore attempts
 // happened, and whether the operation is still open.
 //
-// No network, no player mutation, no persistence, no logging. The caller executes
-// actions; this module only decides whether an action is still allowed.
+// The plan's invariant is exactly one alternate and one restore attempt per
+// operation, so limits are fixed at one and cannot be configured away.
+//
+// No network, no player mutation, no persistence, no logging.
 
 export const RECOVERY_OPERATION_STATE = Object.freeze({
   OPEN: "open",
@@ -22,11 +24,24 @@ export const RECOVERY_OPERATION_REASONS = Object.freeze({
   ALTERNATE_LIMIT: "alternate-limit",
   RESTORE_LIMIT: "restore-limit",
   ALREADY_ATTEMPTED: "already-attempted",
-  TRACK_NOT_ALLOWED: "track-not-allowed"
+  TRACK_NOT_ALLOWED: "track-not-allowed",
+  NOT_STARTED: "not-started",
+  UNKNOWN_ACTION: "unknown-action",
+  COMPLETED: "completed",
+  CANCELLED: "cancelled",
+  SOURCE_CHANGED: "source-changed",
+  NAVIGATION: "navigation"
+});
+
+export const RECOVERY_OPERATION_ACTION = Object.freeze({
+  ALTERNATE: "alternate",
+  RESTORE: "restore"
 });
 
 const MAX_KEY = 160;
-const MAX_ATTEMPTS = 1000;
+const MAX_REASON = 64;
+const MAX_ATTEMPTS = 1;
+const REASON_VALUES = new Set(Object.values(RECOVERY_OPERATION_REASONS));
 
 function validKey(value) {
   if (typeof value !== "string") return "";
@@ -35,23 +50,24 @@ function validKey(value) {
   return clean;
 }
 
-function validLimit(value, fallback) {
-  if (value === undefined) return fallback;
-  return Number.isInteger(value) && value >= 0 && value <= MAX_ATTEMPTS ? value : null;
+// A generation is a positive safe integer number. Numeric strings, floats,
+// NaN, infinities and values beyond safe-integer precision are all invalid:
+// coercion would hide caller bugs and make generations indistinguishable.
+function validGeneration(value) {
+  return typeof value === "number" && Number.isSafeInteger(value) && value > 0;
 }
 
-// One operation per generation. `begin` records the track that failed; every
-// later offer must be a different, not-yet-attempted track.
-export function createRecoveryOperation({ generation = 0, maxAlternate = 1, maxRestore = 1 } = {}) {
-  // A generation is a number, not a numeric string: coercion hides caller bugs.
-  const generationValue = typeof generation === "number" ? generation : Number.NaN;
-  const alternateLimit = validLimit(maxAlternate, 1);
-  const restoreLimit = validLimit(maxRestore, 1);
-  const valid =
-    Number.isInteger(generationValue) &&
-    generationValue > 0 &&
-    alternateLimit !== null &&
-    restoreLimit !== null;
+function normalizeReason(value, fallback) {
+  return typeof value === "string" && value && value.length <= MAX_REASON ? value : fallback;
+}
+
+function isKnownReason(value) {
+  return REASON_VALUES.has(value);
+}
+
+export function createRecoveryOperation({ generation = 0 } = {}) {
+  const generationValue = generation;
+  const valid = validGeneration(generationValue);
 
   let state = RECOVERY_OPERATION_STATE.OPEN;
   let failedTrackKey = null;
@@ -62,19 +78,51 @@ export function createRecoveryOperation({ generation = 0, maxAlternate = 1, maxR
 
   const refuse = (why) => ({ ok: false, reason: why });
 
-  const guard = (key) => {
+  // Shared gate: validity, caller generation, open state and key shape.
+  const guard = (trackKey, callerGeneration) => {
     if (!valid) return refuse(RECOVERY_OPERATION_REASONS.INVALID_REQUEST);
+    if (!validGeneration(callerGeneration) || callerGeneration !== generationValue) {
+      return refuse(RECOVERY_OPERATION_REASONS.STALE_GENERATION);
+    }
     if (state !== RECOVERY_OPERATION_STATE.OPEN) {
       return refuse(RECOVERY_OPERATION_REASONS.CLOSED);
     }
-    if (!validKey(key)) return refuse(RECOVERY_OPERATION_REASONS.INVALID_REQUEST);
-    return { ok: true };
+    if (!validKey(trackKey)) return refuse(RECOVERY_OPERATION_REASONS.INVALID_REQUEST);
+    return { ok: true, key: validKey(trackKey) };
   };
 
-  const record = (kind, key) => {
-    attempted.push({ kind, trackKey: key });
-    if (kind === "alternate") alternateAttempts += 1;
+  // One eligibility rule for both offering and reporting, so canOffer cannot
+  // claim permission for an action that offer would refuse.
+  const eligibility = (kind, key) => {
+    if (!failedTrackKey) return refuse(RECOVERY_OPERATION_REASONS.NOT_STARTED);
+    if (key === failedTrackKey) return refuse(RECOVERY_OPERATION_REASONS.TRACK_NOT_ALLOWED);
+    if (attempted.some((entry) => entry.trackKey === key)) {
+      return refuse(RECOVERY_OPERATION_REASONS.ALREADY_ATTEMPTED);
+    }
+    if (kind === RECOVERY_OPERATION_ACTION.ALTERNATE) {
+      if (alternateAttempts >= MAX_ATTEMPTS) {
+        return refuse(RECOVERY_OPERATION_REASONS.ALTERNATE_LIMIT);
+      }
+      return { ok: true, reason: RECOVERY_OPERATION_REASONS.NONE };
+    }
+    if (kind === RECOVERY_OPERATION_ACTION.RESTORE) {
+      if (restoreAttempts >= MAX_ATTEMPTS) {
+        return refuse(RECOVERY_OPERATION_REASONS.RESTORE_LIMIT);
+      }
+      return { ok: true, reason: RECOVERY_OPERATION_REASONS.NONE };
+    }
+    return refuse(RECOVERY_OPERATION_REASONS.UNKNOWN_ACTION);
+  };
+
+  const offer = (kind, trackKey, callerGeneration) => {
+    const check = guard(trackKey, callerGeneration);
+    if (!check.ok) return check;
+    const allowed = eligibility(kind, check.key);
+    if (!allowed.ok) return allowed;
+    attempted.push({ kind, trackKey: check.key });
+    if (kind === RECOVERY_OPERATION_ACTION.ALTERNATE) alternateAttempts += 1;
     else restoreAttempts += 1;
+    return { ok: true, reason: RECOVERY_OPERATION_REASONS.NONE };
   };
 
   return {
@@ -87,84 +135,57 @@ export function createRecoveryOperation({ generation = 0, maxAlternate = 1, maxR
 
     isCurrent(candidateGeneration) {
       return (
-        state === RECOVERY_OPERATION_STATE.OPEN && Number(candidateGeneration) === generationValue
+        valid &&
+        state === RECOVERY_OPERATION_STATE.OPEN &&
+        validGeneration(candidateGeneration) &&
+        candidateGeneration === generationValue
       );
     },
 
-    begin(trackKey) {
-      const check = guard(trackKey);
+    begin(trackKey, callerGeneration = generationValue) {
+      const check = guard(trackKey, callerGeneration);
       if (!check.ok) return check;
       if (failedTrackKey) return refuse(RECOVERY_OPERATION_REASONS.INVALID_REQUEST);
-      failedTrackKey = validKey(trackKey);
+      failedTrackKey = check.key;
       return { ok: true, reason: RECOVERY_OPERATION_REASONS.NONE };
     },
 
-    offerAlternate(trackKey) {
-      const check = guard(trackKey);
-      if (!check.ok) return check;
-      const key = validKey(trackKey);
-      if (!failedTrackKey || key === failedTrackKey) {
-        return refuse(RECOVERY_OPERATION_REASONS.TRACK_NOT_ALLOWED);
-      }
-      if (attempted.some((entry) => entry.trackKey === key)) {
-        return refuse(RECOVERY_OPERATION_REASONS.ALREADY_ATTEMPTED);
-      }
-      if (alternateAttempts >= alternateLimit) {
-        return refuse(RECOVERY_OPERATION_REASONS.ALTERNATE_LIMIT);
-      }
-      record("alternate", key);
-      return { ok: true, reason: RECOVERY_OPERATION_REASONS.NONE };
+    offerAlternate(trackKey, callerGeneration = generationValue) {
+      return offer(RECOVERY_OPERATION_ACTION.ALTERNATE, trackKey, callerGeneration);
     },
 
-    offerRestore(trackKey) {
-      const check = guard(trackKey);
-      if (!check.ok) return check;
-      const key = validKey(trackKey);
-      // Restoring the rendition that just failed is not a recovery.
-      if (key === failedTrackKey) {
-        return refuse(RECOVERY_OPERATION_REASONS.TRACK_NOT_ALLOWED);
-      }
-      if (attempted.some((entry) => entry.trackKey === key)) {
-        return refuse(RECOVERY_OPERATION_REASONS.ALREADY_ATTEMPTED);
-      }
-      if (restoreAttempts >= restoreLimit) {
-        return refuse(RECOVERY_OPERATION_REASONS.RESTORE_LIMIT);
-      }
-      record("restore", key);
-      return { ok: true, reason: RECOVERY_OPERATION_REASONS.NONE };
+    offerRestore(trackKey, callerGeneration = generationValue) {
+      return offer(RECOVERY_OPERATION_ACTION.RESTORE, trackKey, callerGeneration);
     },
 
-    canOffer(trackKey) {
-      const check = guard(trackKey);
+    canOffer(kind, trackKey, callerGeneration = generationValue) {
+      const check = guard(trackKey, callerGeneration);
       if (!check.ok) return check;
-      const key = validKey(trackKey);
-      if (attempted.some((entry) => entry.trackKey === key)) {
-        return refuse(RECOVERY_OPERATION_REASONS.ALREADY_ATTEMPTED);
-      }
-      return { ok: true, reason: RECOVERY_OPERATION_REASONS.NONE };
+      return eligibility(kind, check.key);
     },
 
     // Close on completion, cancellation, source change, stop or navigation.
     close(why = RECOVERY_OPERATION_REASONS.CLOSED) {
       if (state === RECOVERY_OPERATION_STATE.CLOSED) return false;
       state = RECOVERY_OPERATION_STATE.CLOSED;
-      closeReason =
-        typeof why === "string" && why && why.length <= 64
-          ? why
-          : RECOVERY_OPERATION_REASONS.CLOSED;
+      const candidate = normalizeReason(why, RECOVERY_OPERATION_REASONS.CLOSED);
+      closeReason = isKnownReason(candidate) ? candidate : RECOVERY_OPERATION_REASONS.CLOSED;
       return true;
     },
 
     // Invalidate only when the caller's generation still matches; a stale caller
-    // must not close the current operation.
-    invalidate(
-      candidateGeneration = generationValue,
-      why = RECOVERY_OPERATION_REASONS.STALE_GENERATION
-    ) {
-      if (Number(candidateGeneration) !== generationValue) {
+    // must not close the current operation, and the returned reason is the one
+    // that was actually stored.
+    invalidate(callerGeneration, why = RECOVERY_OPERATION_REASONS.STALE_GENERATION) {
+      if (!valid) return refuse(RECOVERY_OPERATION_REASONS.INVALID_REQUEST);
+      if (!validGeneration(callerGeneration) || callerGeneration !== generationValue) {
         return refuse(RECOVERY_OPERATION_REASONS.STALE_GENERATION);
       }
-      return { ok: this.close(why), reason: why };
+      if (state === RECOVERY_OPERATION_STATE.CLOSED) {
+        return refuse(RECOVERY_OPERATION_REASONS.CLOSED);
+      }
+      this.close(why);
+      return { ok: true, reason: closeReason };
     },
 
     snapshot() {
@@ -175,7 +196,7 @@ export function createRecoveryOperation({ generation = 0, maxAlternate = 1, maxR
         failedTrackKey,
         alternateAttempts,
         restoreAttempts,
-        limits: { alternate: alternateLimit, restore: restoreLimit },
+        limits: { alternate: MAX_ATTEMPTS, restore: MAX_ATTEMPTS },
         attempted: attempted.map((entry) => ({ ...entry }))
       };
     }

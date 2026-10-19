@@ -914,16 +914,26 @@ Status: the pure planner exists and was hardened after review; nothing calls it 
 
 ### Recovery operation state executed (2026-10-19)
 
-Status: the caller-side operation record exists; nothing calls it yet.
+Status: the caller-side operation record exists and was hardened after review; nothing calls it yet.
 
-**Why.** The loader review (see [record](../../agent-runs/2026-10-19-recovery-loader-review.md)) pointed out that a pure planner cannot prevent a caller from replaying identical plans, and that "one alternate, one restore" needs an owner. `app/alpha/js/core/player/recoveryOperation.js` is that owner.
+**Why.** The loader review noted that a pure planner cannot stop a caller replaying identical plans, and that "one alternate, one restore" needs an owner. `app/alpha/js/core/player/recoveryOperation.js` is that owner. Pure: no network, no player mutation, no persistence, no logging.
 
-**Contract.** `createRecoveryOperation({generation, maxAlternate = 1, maxRestore = 1})` returns an operation with `begin(trackKey)`, `offerAlternate(trackKey)`, `offerRestore(trackKey)`, `canOffer(trackKey)`, `close(why)`, `invalidate(generation, why)`, `isCurrent(generation)` and `snapshot()`. Pure: no network, no player mutation, no persistence, no logging.
+**Contract.** `createRecoveryOperation({generation})` → `begin(key, generation?)`, `offerAlternate(key, generation?)`, `offerRestore(key, generation?)`, `canOffer(kind, key, generation?)`, `close(reason)`, `invalidate(generation, reason?)`, `isCurrent(generation)`, `snapshot()`.
 
-**Rules.** A generation must be a number (not a numeric string), a positive integer, and limits must be non-negative integers; anything else refuses as `invalid-request`. `begin` records the failed track exactly once. An alternate may not be the failed track, may not repeat an already-attempted track, and is capped; a restore may not target the failed track either and is capped separately. Attempts are recorded in order with their kind, so "offer A, then restore A" is refused as `already-attempted`. `close` is idempotent and stops every later offer with `operation-closed`. `invalidate` refuses a stale caller rather than letting it close the current operation. Snapshots are copies (mutating one cannot forge state), keys are not truncated, and an oversized or non-string key is refused without consumption.
+**Rules (after review).**
 
-**Verification.** `node --test app/alpha/js/core/player/recoveryOperation.test.mjs` 11/11; `npm test --prefix app/alpha` 1318/1318; lint pass.
+- A generation must be a positive **safe integer number**; numeric strings, floats, `NaN`, infinities, values beyond safe-integer precision and non-numbers are `invalid-request`, and an invalid operation refuses every action, `isCurrent` and `invalidate`.
+- Nothing is offerable before `begin`; `begin` records the failed track exactly once.
+- The failed track is never a recovery target (alternate *or* restore).
+- One alternate and one restore per operation; the limits are fixed, not configurable, because the plan's invariant is one of each.
+- A previously attempted track is refused as `already-attempted`, so "offer A, then restore A" cannot happen.
+- `canOffer` runs the same eligibility function as the offer methods, so it cannot report permission an offer would refuse.
+- Reasons are a fixed enum; an unknown value normalizes to `operation-closed`, a successful `invalidate` returns the stored reason, and an already-closed operation returns `operation-closed` rather than echoing new input.
+- Every action takes the caller's generation and refuses a mismatch as `stale-generation`, so a stale holder cannot act after its `invalidate` was refused.
+- Keys are validated without truncation; snapshots are deep copies; attempts record their kind and order.
 
-**Not done.** No controller or loader wiring, no timers/deadlines (those belong to the loader rebuild), no browser evidence.
+**Verification.** `node --test app/alpha/js/core/player/recoveryOperation.test.mjs` 14/14, including the review's previously unprotected guards; `npm test --prefix app/alpha` 1321/1321; lint pass. Record: [review](../../agent-runs/2026-10-19-recovery-operation-review.md).
 
-**Rollback.** Revert the module, its test and this record; nothing imports it.
+**Not done.** No controller or loader wiring, no timers/deadlines (the loader rebuild), no browser evidence.
+
+**Rollback.** Revert the module, its test and these records; nothing imports it.
