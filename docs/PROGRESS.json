@@ -210,7 +210,7 @@
             "Complete real bundled guest install/catalog/save/play/pause/seek/resume/subtitle/back/reload and fresh-return control:2/2pass in9.0s; native English active cue visually inspected; audio-track menu reports no selectable tracks, no multitrack/audible output claim.",
             "Final inert build1f6602975d2f/worker4cf247398dd9/assets/lint pass;1173 application and42 browser/PWA journeys,0skips;70 Router/focus and18 docs/governance/static-preview cases pass.134-file public staging verified including10 optional CC0 demo files; no upload."
           ],
-          "integrationGate": "PR49 scoped navigation/static-demo/acceptance unit awaits final-head protected CI. Automated Standards/Spec found one shared stale subtitle-status sentence, corrected; no other actionable findings. No independent approval claimed. Current main25ce335 and deployed8edec42 remain separate.",
+          "integrationGate": "PR49 carries scoped navigation/static-demo/acceptance changes; its protected PR records exact-head CI and integration. This entry is proposed until that PR merges. Automated Standards/Spec review corrected one shared stale subtitle sentence; follow-up0 actionable findings, not independent approval. Audited baseline25ce335 and deployed8edec42 remain separate; no upload.",
           "remaining": [
             "Live account-switch Library hydration FAIL under #7, no equivalent retry; exact-key cleanup verified.",
             "Hosted optional demo/media/save/subtitle journey NOT TESTED; prepare merged candidate and obtain exact owner upload approval.",
