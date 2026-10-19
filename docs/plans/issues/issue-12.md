@@ -866,3 +866,23 @@ Status: the observation half of unit 2 is implemented; the async selection seam 
 **Review corrections (same step).** An automated read-only review found eight issues, all fixed with regressions: lossy identity sanitization that made `A/B` and `A B` collide; an index fallback that left unidentified tracks selectable; a stale track snapshot accepted when request and current generations matched; every native `kind` mapped to `main`; an unrecognised engine reported as selectable; arbitrary settlement reasons that could carry a provider URL; an unbounded role-metadata crash; and two weak assertions (JSON-escaped control characters, ambiguity only reached through other guards). Identity is now percent-encoded (collision free), unstable identities are explicitly unselectable, stale snapshots are rejected by track generation, native kinds map only known values, selectability requires a recognised engine, reasons are enum-validated, role input is bounded, and the tests inspect normalized strings directly. Module tests 18/18; application suite 1281/1281. Record: [review](../../agent-runs/2026-10-19-audio-track-evidence-review.md).
 
 **Rollback.** Protected revert of the module, its tests, the controller accessor and this record. No preference-schema migration and no persisted state.
+
+### Unit 3 — first step executed: recovery budgets, loader deferred (2026-10-19)
+
+Status: the pure budget layer is implemented and tested. The hls.js loader implementation was written, reviewed read-only, found unsafe and **held back** — it is not merged and nothing imports it.
+
+**Interface check first.** The pinned bundle is hls.js 1.5.20 (`app/alpha/dist/assets/libs/hls.min.js`). Its loader surface was verified before coding (`getResponseHeader`, `getCacheAge` via the `age` header, `abort`, `destroy`, `onTimeout`, `onProgress`, `LoaderStats`), and the review later confirmed two details that the draft got wrong: init segments are identified by `frag.sn === "initSegment"` / an object-valued `frag.initSegment`, and the default loader class is `Hls.DefaultConfig.loader`, not `Hls.Loader`.
+
+**What is merged.** `app/alpha/js/core/player/recoveryHlsLoader.js` is now the pure policy layer, with no network access:
+
+- `RECOVERY_LIMITS` carries the plan's numbers (4 concurrent requests, 256 KiB playlist, 1 MiB init, 8 MiB fragment, 64 MiB session, 5 s/10 s deadlines, 256-character diagnostic bound).
+- `classifyRecoveryResource` follows the pinned context shapes, including both init-segment forms, and gives unknown resources the strictest meaningful budget.
+- `createRecoverySession` owns concurrency and bytes: **every** observed byte is accounted for even when its chunk is rejected, the session latches as exhausted and refuses further acquisitions, and release handles are bound to a successful acquisition and idempotent.
+
+**Why the loader was held back.** The read-only review found seven P1 defects: caller headers (including credentials) forwarded verbatim; provider URLs with tokens surviving in diagnostics; rejected bytes missing from accounting; real init segments getting the fragment budget; slot release by loaders that never acquired; callbacks after destroy and double settlement around an awaited cancel; and a replaced `stats` object that hls.js had already retained. Nine P2 findings cover the unbounded fallback buffer, unchecked HTTP status, overlapping-load leaks, a missing `onAbort`, ignored byte ranges, epoch instead of monotonic timing, `onProgress` semantics, the non-existent default base loader, and tests that could not detect their own bug. Merging remote-fetch code with known failures was not acceptable, and fixing all sixteen is its own unit.
+
+**Verification.** `node --test app/alpha/js/core/player/recoveryHlsLoader.test.mjs` 10/10 (limits, pinned classification, budgets, concurrency cap and rejected-acquisition ownership, rejected-byte accounting, exhaustion latching, accumulation, nonsense charges, negative active count, snapshot isolation). `npm test --prefix app/alpha` 1291/1291; lint pass.
+
+**Deferred unit.** A dedicated loader unit will start from the review and must cover: no caller-supplied headers, fixed error codes with no URL, per-request attempt records with a terminal guard, init classification via the pinned shapes, ownership-safe release, `onAbort`, `Range` handling, monotonic stats matching the pinned `LoaderStats`, bounded streaming with no unbounded fallback, HTTP status checks, overlapping-load rejection, and tests that assert observed transfer, controller cancellation, timer removal and exactly-once settlement.
+
+**Rollback.** Revert the policy module, its tests and these records. Nothing imports the module.
