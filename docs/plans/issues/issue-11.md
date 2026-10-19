@@ -201,9 +201,9 @@ Implemented `pluginEngineAssets.mjs`, `buildPluginEngineAssets.mjs`, `pluginEngi
 
 Executed with pinned Node22.23.1/Playwright1.64/Chromium156.0.8078.4/LinuxARM64:
 
-- `node --test app/alpha/scripts/pluginEngineAssets.test.mjs` —6/6 pass (including a symlink output-escape rejection).
+- `node --test app/alpha/scripts/pluginEngineAssets.test.mjs` —7/7 pass (including symlink output-escape and symlinked/missing `dist` containment, run without a prebuilt `dist`).
 - `npx playwright test tests/browser/plugin-engine.spec.mjs --project=chromium` —9/9 pass,0 skipped (4.2s): manifest/hash correspondence, actual browser200 `application/wasm` response, representative fixture one group/one stream with dropped `javascript:`, no ambient host globals, allowed synthetic fetch through the broker, denied host with zero dispatch, timeout, memory, output-size, blocked/recorded unexpected external request, no page errors.
-- `npm test --prefix app/alpha` —1236/1236 pass,0 skipped (15.1s).
+- `npm test --prefix app/alpha` —1237/1237 pass,0 skipped (15.1s).
 - `npm run lint --prefix app/alpha` — pass.
 - Inert build + `node scripts/check-alpha-build.mjs` — pass, **12 assets**, no engine files in the app dist.
 - Full `npx playwright test` —51/51 pass (1.6min).

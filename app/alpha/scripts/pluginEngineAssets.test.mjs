@@ -46,7 +46,7 @@ test("the manifest is deterministic and requires both versions", () => {
 });
 
 test("the builder rejects an output path that escapes through a symlink", async () => {
-  const { mkdtemp, readdir, rm, symlink } = await import("node:fs/promises");
+  const { mkdir, mkdtemp, readdir, rm, symlink } = await import("node:fs/promises");
   const { tmpdir } = await import("node:os");
   const { join } = await import("node:path");
   const { fileURLToPath } = await import("node:url");
@@ -54,12 +54,39 @@ test("the builder rejects an output path that escapes through a symlink", async 
   const alphaRoot = fileURLToPath(new URL("../", import.meta.url));
   const outside = await mkdtemp(join(tmpdir(), "nuvioweb-engine-"));
   const link = join(alphaRoot, "dist", `symlink-${process.pid}-${Date.now()}`);
-  await symlink(outside, link, "dir");
   try {
+    await mkdir(join(alphaRoot, "dist"), { recursive: true });
+    await symlink(outside, link, "dir");
     await assert.rejects(buildPluginEngineAssets({ outdir: join(link, "engine") }), /written under app\/alpha\/dist/);
     assert.deepEqual(await readdir(outside), []);
   } finally {
     await rm(link, { force: true });
+    await rm(outside, { recursive: true, force: true });
+  }
+});
+
+test("a symlinked dist root or a missing dist root is handled safely", async () => {
+  const { mkdtemp, rm, symlink } = await import("node:fs/promises");
+  const { tmpdir } = await import("node:os");
+  const { join } = await import("node:path");
+  const { resolveSafeOutdir } = await import("./pluginEngineAssets.mjs");
+  const repositoryRoot = await mkdtemp(join(tmpdir(), "nuvioweb-repo-"));
+  const outside = await mkdtemp(join(tmpdir(), "nuvioweb-outside-"));
+  try {
+    const clean = await resolveSafeOutdir(join(repositoryRoot, "dist", "engine"), { distRoot: join(repositoryRoot, "dist"), repositoryRoot });
+    assert.equal(clean, join(repositoryRoot, "dist", "engine"));
+    const linkedRepository = await mkdtemp(join(tmpdir(), "nuvioweb-repo-link-"));
+    try {
+      await symlink(outside, join(linkedRepository, "dist"), "dir");
+      await assert.rejects(
+        resolveSafeOutdir(join(linkedRepository, "dist", "engine"), { distRoot: join(linkedRepository, "dist"), repositoryRoot: linkedRepository }),
+        /must not be a symlink/
+      );
+    } finally {
+      await rm(linkedRepository, { recursive: true, force: true });
+    }
+  } finally {
+    await rm(repositoryRoot, { recursive: true, force: true });
     await rm(outside, { recursive: true, force: true });
   }
 });

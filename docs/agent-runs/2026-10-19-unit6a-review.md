@@ -16,10 +16,10 @@ Codex also reported no P0, found no host escape, proxy, credential/header leak, 
 
 ## Re-verification after fixes
 
-- `node --test app/alpha/scripts/pluginEngineAssets.test.mjs` — 6/6 pass, including the symlink-escape regression.
+- `node --test app/alpha/scripts/pluginEngineAssets.test.mjs` — 7/7 pass, including symlink-escape, symlinked-`dist` and clean-checkout containment regressions.
 - `npx playwright test tests/browser/plugin-engine.spec.mjs --project=chromium` — 9/9 pass (4.2 s), including the external-request guard and the real WASM response assertion.
 - `node --test app/alpha/scripts/pluginSandboxAbuse.test.mjs` — 12/12 pass (OOM classification and plain-boom control).
-- `npm test --prefix app/alpha` — 1236/1236 pass, 0 skipped (15.1 s).
+- `npm test --prefix app/alpha` — 1237/1237 pass, 0 skipped (15.1 s).
 - `npm run lint --prefix app/alpha` — pass.
 - Inert build + `node scripts/check-alpha-build.mjs` — pass, 12 assets, no engine files.
 - Full `npx playwright test` — 51/51 pass (1.6 min).
@@ -27,3 +27,15 @@ Codex also reported no P0, found no host escape, proxy, credential/header leak, 
 ## Verdict
 
 After these corrections Codex's verdict applies to the merged state: the application boundary remains intact and this test-only unit introduces no observed shipping exposure. It does not establish production sandbox safety, plugin compatibility or permission to ship the engine; unit 6b and independent security/dependency review remain required.
+
+## Follow-up re-review
+
+A second read-only Codex pass over `246bdc6` confirmed findings 2–5 fixed and finding 1 **PARTIAL**: the output parent was contained, but `app/alpha/dist` itself could be a symlink, which would make the allowed root resolve outside the repository. It also reported a new P2: the symlink regression assumed a prebuilt `dist` (failing on a clean checkout) and created its setup outside the cleanup guard.
+
+Corrections:
+
+- `resolveSafeOutdir` now rejects a symlinked `app/alpha/dist`, verifies the real dist root stays under the real repository root, and accepts injected dist/repository roots so containment is testable without touching the checkout.
+- The regression creates `dist` when absent and runs all setup inside a `try/finally`; a second regression covers a missing dist root and a symlinked dist root.
+- The suite was run after deleting `app/alpha/dist` to prove clean-checkout behavior.
+
+Re-verification: focused asset tests 7/7 (no prebuilt dist), browser fixture 9/9, `npm test --prefix app/alpha` 1237/1237, lint pass, full browser suite 51/51. No new P0/P1 findings; the review remains automated, not human approval.

@@ -91,10 +91,16 @@ async function sha256File(file) {
 // Resolve the requested output directory without following symlinks out of the
 // ignored app/alpha/dist tree. The builder recursively deletes its output, so a
 // lexical prefix check is not enough when an ancestor is a symlink.
-async function resolveSafeOutdir(requested) {
-  const distRoot = path.join(alphaRoot, "dist");
+export async function resolveSafeOutdir(requested, { distRoot = path.join(alphaRoot, "dist"), repositoryRoot = alphaRoot } = {}) {
   await mkdir(distRoot, { recursive: true });
+  const distStat = await lstat(distRoot);
+  if (distStat.isSymbolicLink()) throw new Error("app/alpha/dist must not be a symlink");
   const allowedRoot = await realpath(distRoot);
+  const realRepository = await realpath(repositoryRoot);
+  const distRelative = path.relative(realRepository, allowedRoot);
+  if (!distRelative || distRelative.startsWith("..") || path.isAbsolute(distRelative)) {
+    throw new Error("app/alpha/dist resolves outside the repository");
+  }
   const resolved = path.resolve(requested);
   const parent = await realpath(path.dirname(resolved));
   const candidate = path.join(parent, path.basename(resolved));
