@@ -14,6 +14,9 @@ export function validatePublicConfig(source) {
     throw new Error("Preview requires the documented public primary URL and publishable key");
   }
   if (values.NUVIO_SUPABASE_FALLBACK_URL) throw new Error("Alternate credential destination is not enabled for this preview");
+  for (const key of ["NUVIO_ENABLE_TRAKT_BRIDGE", "NUVIO_ENABLE_DEBRID_BRIDGE", "NUVIO_ENABLE_EXTERNAL_RETURN_BRIDGE"]) {
+    if (values[key] !== "false") throw new Error("Static preview sidecars must be explicitly disabled");
+  }
   return values;
 }
 

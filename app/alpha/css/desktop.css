@@ -17306,3 +17306,12 @@ html[data-nav-placement="bottom"].desktop-browser #folderDetail .desktop-folder-
     max-width: none;
   }
 }
+
+/* Site capability messages stay readable without introducing another panel. */
+.desktop-browser .sidecar-capability-message {
+  margin: 12px 0;
+  color: var(--text-secondary);
+  font-size: 16px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}

@@ -1,4 +1,6 @@
-// Local development and the production bridge share this one return protocol.
+import { getSidecarCapabilities } from "../../core/platform/sidecarCapabilities.js";
+
+// Local development and a configured bridge share this return protocol.
 const STORAGE_KEY = "nuvioExternalPlaybackHandoff";
 const TOKEN_BYTES = 16;
 // The handoff is written when the external player is launched and read when the
@@ -36,6 +38,16 @@ function getReturnOrigin(runtime) {
 
 export function isValidExternalPlaybackToken(token) {
   return /^[a-f0-9]{32}$/i.test(String(token || ""));
+}
+
+function isHttpsOrigin(value) {
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" && !url.username && !url.password &&
+      url.pathname === "/" && !url.search && !url.hash;
+  } catch (_) {
+    return false;
+  }
 }
 
 function sanitizeProgressContext(context) {
@@ -89,7 +101,7 @@ export function createExternalPlaybackCallbacks({
   returnMethod = "",
   outcomes = {}
 } = {}) {
-  if (!isValidExternalPlaybackToken(token) || !String(returnOrigin || "").startsWith("https://"))
+  if (!isValidExternalPlaybackToken(token) || !isHttpsOrigin(returnOrigin))
     return null;
   const reportUrl = new URL(`/api/external-return/report/${token}`, returnOrigin);
   const callback = (outcome) => {
@@ -121,23 +133,25 @@ export function beginExternalPlaybackHandoff({
   const returnOrigin = getReturnOrigin(runtime);
   const context = sanitizeProgressContext(progressContext);
   if (!token || !returnOrigin || !context || !String(playerMode || "").trim()) return null;
+  const relayEnabled = getSidecarCapabilities(runtime).externalReturn;
+  const automaticEnabled = Boolean(automatic && relayEnabled);
   const launchedAt = Date.now();
   const handoff = {
     token,
     returnOrigin,
     playerMode: String(playerMode),
-    automatic: Boolean(automatic),
+    automatic: automaticEnabled,
     profileId: String(profileId || ""),
     progressContext: context,
     launchedAt,
     expiresAt: launchedAt + HANDOFF_TTL_MS,
     startingPositionMs: Math.max(0, Math.round(Number(startingPositionMs) || 0)),
     knownDurationMs: Math.max(0, Math.round(Number(knownDurationMs) || 0)),
-    progressMode: progressMode === "automatic" ? "automatic" : "manual",
-    callbackCapable: Boolean(callbackCapable),
-    manualPromptEligible: Boolean(manualPromptEligible),
+    progressMode: automaticEnabled && progressMode === "automatic" ? "automatic" : "manual",
+    callbackCapable: Boolean(callbackCapable && relayEnabled),
+    manualPromptEligible: Boolean(manualPromptEligible || !relayEnabled),
     navigationLaunch: Boolean(navigationLaunch),
-    state: automatic ? "awaiting-auto-report" : "manual-required",
+    state: automaticEnabled ? "awaiting-auto-report" : "manual-required",
     returnObservedAt: null,
     manualPromptedAt: null
   };
@@ -161,14 +175,22 @@ export function readPendingExternalPlaybackHandoff({
     if (
       !handoff ||
       !isValidExternalPlaybackToken(handoff.token) ||
-      !String(handoff.returnOrigin || "").startsWith("https://") ||
+      !isHttpsOrigin(handoff.returnOrigin) ||
+      handoff.returnOrigin !== getReturnOrigin(runtime) ||
       !sanitizeProgressContext(handoff.progressContext) ||
       !Number.isFinite(Number(handoff.expiresAt)) ||
       Date.now() > Number(handoff.expiresAt) ||
+      Number(handoff.expiresAt) > Date.now() + HANDOFF_TTL_MS ||
       (profileId != null && String(handoff.profileId || "") !== String(profileId || ""))
     ) {
       clearExternalPlaybackHandoff({ runtime });
       return null;
+    }
+    if (handoff.automatic && !getSidecarCapabilities(runtime).externalReturn) {
+      const manual = { ...handoff, automatic: false, callbackCapable: false,
+        progressMode: "manual", manualPromptEligible: true, state: "manual-required" };
+      writeHandoff(manual, runtime);
+      return manual;
     }
     return handoff;
   } catch (_) {
@@ -206,7 +228,7 @@ export async function collectExternalPlaybackReport({
   profileId = null
 } = {}) {
   const handoff = readPendingExternalPlaybackHandoff({ runtime, profileId });
-  if (!handoff || !handoff.automatic || typeof fetchImpl !== "function")
+  if (!getSidecarCapabilities(runtime).externalReturn || !handoff || !handoff.automatic || typeof fetchImpl !== "function")
     return { found: false, handoff };
   const url = `${handoff.returnOrigin}/api/external-return/collect/${handoff.token}`;
   try {

@@ -13,6 +13,7 @@ import {
 function createRuntime() {
   const values = new Map();
   return {
+    __NUVIO_ENV__: { NUVIO_ENABLE_EXTERNAL_RETURN_BRIDGE: "true" },
     crypto: { getRandomValues: (bytes) => bytes.fill(0xab) },
     location: { href: "https://nuviotest.alphasquare.my.id/player?ignored=value" },
     localStorage: {

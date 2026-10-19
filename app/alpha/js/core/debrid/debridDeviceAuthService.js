@@ -28,6 +28,7 @@ export function isDeviceAuthorizationExpired(expiresAt, now = Date.now()) {
 function failureMessage(response) {
   const data = response?.data;
   if (data && typeof data === "object") {
+    if (data.error === "SIDECAR_UNAVAILABLE") return textValue(data.message);
     return textValue(data.error_description || data.detail || data.error || data.message);
   }
   return textValue(response?.text || response?.error?.message);
@@ -42,6 +43,9 @@ function requireSessionFields(session) {
 
 export function parseTorboxDeviceTokenResult(response) {
   const envelope = response?.data && typeof response.data === "object" ? response.data : {};
+  if (envelope.error === "SIDECAR_UNAVAILABLE") {
+    return { status: DEBRID_DEVICE_AUTH_STATUS.FAILED, message: failureMessage(response) };
+  }
   const accessToken = textValue(envelope?.data?.access_token);
   if (response?.ok && envelope.success !== false && accessToken) {
     return { status: DEBRID_DEVICE_AUTH_STATUS.AUTHORIZED, accessToken };
@@ -70,6 +74,9 @@ export function parseTorboxDeviceTokenResult(response) {
 
 export function parsePremiumizeDeviceTokenResult(response) {
   const data = response?.data && typeof response.data === "object" ? response.data : {};
+  if (data.error === "SIDECAR_UNAVAILABLE") {
+    return { status: DEBRID_DEVICE_AUTH_STATUS.FAILED, message: failureMessage(response) };
+  }
   const accessToken = textValue(data.access_token);
   if (response?.ok && accessToken) {
     return { status: DEBRID_DEVICE_AUTH_STATUS.AUTHORIZED, accessToken };
