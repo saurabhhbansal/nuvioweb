@@ -57,7 +57,10 @@ test.beforeAll(async () => {
 });
 
 test.afterAll(async () => {
-  await new Promise((resolve) => server.close(resolve));
+  // Chromium can hold keep-alive sockets to the loopback fixture origin, which
+  // would make server.close() wait forever during runner cleanup.
+  server.closeAllConnections?.();
+  await Promise.race([new Promise((resolve) => server.close(resolve)), new Promise((resolve) => setTimeout(resolve, 2000))]);
 });
 
 async function openEngine(page) {

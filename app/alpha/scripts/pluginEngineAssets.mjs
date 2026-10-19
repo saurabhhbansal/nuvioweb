@@ -10,7 +10,7 @@ import { createHash } from "node:crypto";
 import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { build } from "esbuild";
+import { build, stop as stopEsbuild } from "esbuild";
 
 const require = createRequire(import.meta.url);
 const scriptsDir = path.dirname(fileURLToPath(import.meta.url));
@@ -97,16 +97,21 @@ export async function buildPluginEngineAssets({ outdir = defaultOutdir, entry = 
   await mkdir(resolvedOutdir, { recursive: true });
 
   const jsPath = path.join(resolvedOutdir, ENGINE_ASSET_NAMES.js);
-  await build({
-    entryPoints: [path.resolve(entry)],
-    bundle: true,
-    minify: true,
-    format: "esm",
-    platform: "browser",
-    target: ["es2022"],
-    outfile: jsPath,
-    logLevel: "silent"
-  });
+  try {
+    await build({
+      entryPoints: [path.resolve(entry)],
+      bundle: true,
+      minify: true,
+      format: "esm",
+      platform: "browser",
+      target: ["es2022"],
+      outfile: jsPath,
+      logLevel: "silent"
+    });
+  } finally {
+    // Do not leave esbuild's long-lived service process behind in test workers.
+    stopEsbuild();
+  }
 
   // Emscripten keeps the wasm as an external `new URL("emscripten-module.wasm")`
   // reference, so esbuild leaves it out of the bundle; copy it beside the JS.
