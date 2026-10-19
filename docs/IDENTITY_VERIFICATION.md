@@ -40,3 +40,7 @@ The final probe FAILED on B→A restoration: profiles and6 add-ons returned, but
 Both test Libraries were empty. Equal empty controls do not verify Library synchronization or isolation. New-data creation/removal and push propagation remain untested; no existing remote record was modified. Future write probes need a documented reversible marker and a verified narrow cleanup contract. The current PR addresses only the separately reproduced refresh races and preserves these live limitations.
 
 Automated Standards/Spec reviews at909deac report no actionable findings in the bounded refresh fix; neither is human approval. All four required CI contexts passed on909deac. Final documentation updates require exact-head CI before the owner auth review checkpoint.
+
+## Controlled sync lifecycle regressions
+
+The real startup-sync module with controlled synthetic services reproduced five teardown/ownership failures (4 pass/5 fail), then two additional context/interval boundary failures (9 pass/2 fail), and language-load teardown (11 pass/1 fail). The feature branch now invalidates pending lifecycle work, permits a new account's independent pulls, rejects old context adoption/automatic pushes, and protects new task/waiter/interval slots from old completions. Same-lifecycle profile dedupe remains covered. Focused auth/sync/cleanup is28/28 pass,0 skips. This is synthetic verification; it does not retroactively turn the deployed B→A failure into a success. A private local-candidate live-service replay is planned without public deployment.
