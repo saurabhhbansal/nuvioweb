@@ -86,6 +86,10 @@ function normalizeStream(raw) {
   };
 }
 
+export function normalizePluginHost(value) {
+  return normalizeHost(value);
+}
+
 export function normalizePluginStreams(raw) {
   const list = Array.isArray(raw) ? raw : [];
   const streams = [];

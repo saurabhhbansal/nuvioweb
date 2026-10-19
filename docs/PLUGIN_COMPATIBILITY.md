@@ -42,7 +42,7 @@ Unknown fields are dropped. Failures return bounded reason codes (`descriptor`, 
 
 1. **Contract and fixture (this unit).** Pure normalization, hostile-input tests and an original `tests/fixtures/plugins/representative-plugin.js`. No execution.
 2. **Engine decision and dependency review (prototype complete).** QuickJS/WASM with only injected bindings was selected for evaluation: MIT-licensed `quickjs-emscripten` 0.32.0 (QuickJS itself MIT), installed as an `app/alpha` **devDependency**, not imported by shipped code and therefore absent from the browser bundle. A test-only prototype executes the representative fixture, enforces memory/time/output budgets and exposes no host networking or process globals. See the prototype section below.
-3. **Sandbox runtime.** Hard wall-clock/CPU budget, memory and output caps, ≤N brokered network requests to `allowedHosts` only, no credentials/headers, cancellation and worker teardown, default-off feature flag.
+3. **Sandbox runtime.** Hard wall-clock/CPU budget, memory and output caps, ≤N brokered network requests to `allowedHosts` only, no credentials/headers, cancellation and worker teardown, default-off feature flag. The broker policy half is implemented and tested (below); the QuickJS binding and cancellation half is next.
 4. **Parity and abuse corpus.** Representative plugin fixtures, malformed output, redirects/private addresses, huge code/output, hangs, cancellation and repeated-failure limits.
 
 ## Engine prototype (test-only, 2026-10-19)
@@ -59,6 +59,18 @@ Observed with pinned Node 22.23.1 (`node --test app/alpha/scripts/pluginSandboxP
 - Malformed but parseable output normalizes to no groups without throwing; empty code is rejected before starting an engine.
 
 **Limits:** this prototype is not wired into the application, has no network broker, no cancellation UI, no persistent quotas and no default-off flag. A plugin that awaits host I/O simply times out. QuickJS/WASM isolation still needs independent security review, dependency-policy review and browser-bundle measurements before any runtime ships. No compatibility claim follows.
+
+## Network broker policy (test-only, 2026-10-19)
+
+`app/alpha/js/core/plugins/pluginBroker.js` is the only network primitive the sandbox will receive; it is not wired to the app yet. `createPluginNetworkBroker({allowedHosts, transport, maxRequests, maxResponseBytes, maxRedirects})` enforces:
+
+- HTTPS only, exact allowlisted hostnames (no subdomain widening), default port only, no embedded credentials, no IP literals, bounded URL length.
+- Only `GET`; the injected transport receives **only** the URL and method — never headers, cookies or tokens.
+- Redirects are re-authorized per hop against the same allowlist with a hard hop limit, so an allowlisted host cannot bounce to another destination.
+- Authorized dispatches are counted against `maxRequests`; oversized or non-text/binary responses beyond `maxResponseBytes` fail closed.
+- Failures are bounded codes (`url`, `scheme`, `credentials`, `ip`, `port`, `host`, `method`, `requests`, `redirect-limit`, `redirect-url`, `response-size`, `response-body`, `transport`) with no raw exception text.
+
+Focused tests (`node --test app/alpha/js/core/plugins/pluginBroker.test.mjs`, 10/10) cover allowlisted success, every denial class, method/request caps, same-host redirects, cross-host redirect rejection, redirect loops, oversized bodies, transport failure leakage and defensive allowlist normalization. No real network is used.
 
 ## Guarantees and limits
 
