@@ -178,9 +178,13 @@ resolve(api, JSON.parse(inputJson)).then(
       if (doneValue === "true") {
         if (typeof errorValue === "string" && errorValue !== "undefined") {
           const networkCode = networkErrorCode(errorValue);
+          // An in-VM allocation overshoot can surface as a catchable plugin
+          // rejection rather than an engine-level failure. Classify it with the
+          // same word-bounded OOM rule used for engine errors.
+          const memoryFailure = /\bout of memory\b|memory limit|\boom\b/i.test(errorValue);
           return {
             ok: false,
-            error: networkCode || (Date.now() > deadline ? "timeout" : "plugin"),
+            error: networkCode || (memoryFailure ? "memory" : Date.now() > deadline ? "timeout" : "plugin"),
             elapsedMs: Date.now() - startedAt
           };
         }
