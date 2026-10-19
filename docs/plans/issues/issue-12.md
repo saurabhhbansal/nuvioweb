@@ -886,3 +886,28 @@ Status: the pure budget layer is implemented and tested. The hls.js loader imple
 **Deferred unit.** A dedicated loader unit will start from the review and must cover: no caller-supplied headers, fixed error codes with no URL, per-request attempt records with a terminal guard, init classification via the pinned shapes, ownership-safe release, `onAbort`, `Range` handling, monotonic stats matching the pinned `LoaderStats`, bounded streaming with no unbounded fallback, HTTP status checks, overlapping-load rejection, and tests that assert observed transfer, controller cancellation, timer removal and exactly-once settlement.
 
 **Rollback.** Revert the policy module, its tests and these records. Nothing imports the module.
+
+### Recovery policy executed (2026-10-19)
+
+Status: the pure planner exists and was hardened after review; nothing calls it yet and no recovery operation is wired.
+
+**Contract change recorded in review.** The plan's draft contract had a `userChoice` input. Review found that it let an explicit choice bypass attribution, container rejection and the attempt caps. `userChoice` is therefore **removed**: explicit selection is not automatic recovery, it may cross language and role, and it belongs to the selection path (`resolveAudioSelectionRequest` in `browserAudioTracks.js`) with its own pending-selection state. The planner now answers only "what may be offered automatically?".
+
+**What exists.** `app/alpha/js/core/player/playbackRecoveryPolicy.js` — `planAudioRecovery({generation, currentGeneration, tracks, failedTrackKey, lastConfirmedTrackKey, failure, attempts}) → {action, trackKey, reason}` with fixed `action` (`offer-track` | `restore-track` | `unsupported` | `none`) and a fixed reason enum. Pure: no fetch, mutation, persistence or logging; every field it relies on is read as an own data property; hostile input is bounded or rejected rather than thrown at.
+
+**Rules it enforces.**
+
+- No failure → `none`/`no-failure`; a stale generation or track snapshot → `none`/`generation-changed`.
+- A failure is only recoverable as audio when `failure.audioAttributable` is exactly `true`; a generic or unknown media error, a missing flag or a non-boolean flag never yields a track offer.
+- A container failure → `unsupported`/`unsupported-format`; an empty list → `unsupported`/`no-tracks`.
+- Lists are capped at 32; a duplicate or flagged-ambiguous failed identity, or a duplicated alternate/restore key, fails closed instead of guessing; keys are validated without truncation, so an oversized key cannot alias a shorter one.
+- Counters must be own non-negative integers ≤ 1000; a malformed counter is invalid state, not zero, so bad state cannot re-open the budget.
+- Automatic matching requires the **same role and same language**, and an unspecified language only matches another unspecified language. A playback failure may not fall back across language or role; restoring the previous user-selected rendition after a *selection* failure is the documented, capped exception.
+- One alternate offer and one restore attempt per operation, distinguished in the reason (`no-alternate` vs `alternate-tried`/`restore-tried`).
+- Replay protection and operation identity are the caller's responsibility; a pure planner cannot prevent identical inputs being planned again, and the module says so.
+
+**Verification.** `node --test app/alpha/js/core/player/playbackRecoveryPolicy.test.mjs` 16/16, including the review's discriminating cases: a valid unknown→unknown match, simultaneous alternate/restore eligibility, a colliding 160/168-character prefix pair, duplicate candidate/restore keys, accessor-backed and inherited inputs, malformed counters, the 32-track boundary, and purity under frozen inputs. `npm test --prefix app/alpha` 1307/1307; lint pass.
+
+**Not done.** No controller or UI integration, no presentation strings, no audio-recovery browser spec, no recovery session. Those need the loader rebuild and the blocked AAC fixtures.
+
+**Rollback.** Revert the module, its test and these records; nothing imports it.
