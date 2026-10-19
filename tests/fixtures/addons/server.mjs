@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
 
-const scenarios = new Set(["basic","objects","configured","cors-denied","malformed","shape","slow","failure","empty","timeout","partial","declared","unknown-quality","unsupported-mime","quality-1080","quality-2160","quality-hls","quality-dash","quality-expired","quality-restricted","quality-hls-cors"]);
+const scenarios = new Set(["source-order","basic","objects","configured","cors-denied","malformed","shape","slow","failure","empty","timeout","partial","declared","unknown-quality","unsupported-mime","quality-1080","quality-2160","quality-hls","quality-dash","quality-expired","quality-restricted","quality-hls-cors"]);
 const mediaRoot = new URL("../media/",import.meta.url);
 const qualityFiles = new Set(["original-1080p.mp4","original-2160p.mp4",...["1080p","2160p"].flatMap(size => ["init.mp4","segment.m4s","stream.m3u8","manifest.mpd"].map(file => `${size}/${file}`))]);
 
@@ -84,6 +84,21 @@ export function createAddonFixtureServer() {
       if (path === "meta/movie/fixture:original.json") { json({meta}); return; }
       if (path === "stream/movie/fixture:original.json") {
         if (scenario === "partial" && !partialRecovered) { json({message:"Fixture stream endpoint unavailable"},503); return; }
+        if (scenario === "source-order") {
+          const provenance = JSON.parse(await readFile(new URL("quality/provenance.json",mediaRoot),"utf8"));
+          const original = provenance.files.find(file => file.file === "original-2160p.mp4");
+          const webm = (id, extra = {}) => ({id,name:id,url:`${origin}/media/procedural-vp8-opus.webm?case=${id}`,mimeType:'video/webm; codecs="vp8,opus"',...extra});
+          json({streams:[
+            webm("unknown-4k-claim",{mimeType:null,name:"Provider claims 4K HDR HEVC"}),
+            webm("native-not-reported",{mimeType:'video/x-nuvioweb-unsupported; codecs="unknown"'}),
+            {id:"original-4k",name:"Original declared 4K",url:`${origin}/media/quality/${original.file}`,mimeType:`video/mp4; codecs="${original.codec}"`,video:{codec:original.codec,width:3840,height:2160}},
+            webm("original-vp8"),
+            {id:"adaptive-hls",name:"Adaptive HLS",url:`${origin}/media/quality/2160p/stream.m3u8`,mimeType:"application/vnd.apple.mpegurl"},
+            {id:"adaptive-dash",name:"Adaptive DASH",url:`${origin}/media/quality/2160p/manifest.mpd`,mimeType:"application/dash+xml"},
+            webm("headers-required",{behaviorHints:{proxyHeaders:{request:{"X-Fixture-Required":"fixture-only"}}}}),
+            webm("declared-expired",{expiresAt:"2026-01-01T00:00:00Z"})
+          ]}); return;
+        }
         if (scenario.startsWith("quality-")) {
           const provenance = JSON.parse(await readFile(new URL("quality/provenance.json",mediaRoot),"utf8"));
           const size = scenario === "quality-1080" ? "1080" : "2160";

@@ -69,3 +69,15 @@ test("quality media routes preserve hashes, MIME/Range and explicit error/CORS b
   assert.equal(denied.status,200);assert.equal(denied.headers.get("access-control-allow-origin"),null);
   assert.equal((await fetch(`${origin}/media/quality/provenance.json`)).status,404);
 });
+
+
+test("source preference fixture retains all unknown/adaptive/constraint choices in provider order",async()=>{
+  const {streams}=await (await fetch(`${origin}/source-order/stream/movie/fixture:original.json`)).json();
+  assert.deepEqual(streams.map(source=>source.id),["unknown-4k-claim","native-not-reported","original-4k","original-vp8","adaptive-hls","adaptive-dash","headers-required","declared-expired"]);
+  assert.equal(streams[0].mimeType,null);
+  assert.equal(streams[2].video.width,3840);
+  assert.match(streams[2].mimeType,/codecs=/);
+  assert.equal(streams[6].behaviorHints.proxyHeaders.request["X-Fixture-Required"],"fixture-only");
+  for(const source of streams) assert.equal(new URL(source.url).origin,origin);
+  assert.equal(new Set(streams.map(source=>source.url)).size,streams.length);
+});

@@ -17,6 +17,7 @@ import {
   orderSourceNames,
   orderStreamsByAddonOrder
 } from "../../../core/streams/streamOrdering.js";
+import { orderSourcesByNativePrediction } from "../../../core/streams/sourcePreference.js";
 import { buildStreamResumeIdentity } from "../../../core/streams/streamResumeIdentity.js";
 import {
   flattenStreams,
@@ -666,6 +667,7 @@ export const StreamScreen = {
       error: String(this.error || ""),
       streams: Array.isArray(this.streams) ? this.streams.map((stream) => ({ ...stream })) : [],
       addonFilter: String(this.addonFilter || "all"),
+      nativePredictionOrder: this.nativePredictionOrder === true,
       focusState: this.focusState ? { ...this.focusState } : { zone: "filter", index: 0 },
       sourceChips: Array.isArray(this.sourceChips)
         ? this.sourceChips.map((chip) => ({ ...chip }))
@@ -694,6 +696,7 @@ export const StreamScreen = {
     this.sourceChips = [];
     this.addonLogoLookup = {};
     this.addonFilter = "all";
+    this.nativePredictionOrder = false;
     this.hasRenderedStreamRouteShell = false;
     // Returning here from the player is a back navigation, not a fresh open, so
     // do not auto-resume or auto-play again. Otherwise exiting the player drops
@@ -771,6 +774,7 @@ export const StreamScreen = {
         ? restored.streams.map((stream) => ({ ...stream }))
         : [];
       this.addonFilter = String(restored.addonFilter || "all");
+      this.nativePredictionOrder = restored.nativePredictionOrder === true;
       this.focusState = restored.focusState
         ? { ...restored.focusState }
         : { zone: "filter", index: 0 };
@@ -1318,7 +1322,7 @@ export const StreamScreen = {
     const installedAddonNames = collectInstalledAddonNames(
       addonRepository.getCachedInstalledAddons()
     );
-    const selected = selectAutoPlayStream(this.getFilteredStreams(), {
+    const selected = selectAutoPlayStream(this.getFilteredStreams(this.addonFilter, { preferNative: false }), {
       mode: settings.streamAutoPlayMode,
       source: settings.streamAutoPlaySource,
       regexPattern: settings.streamAutoPlayRegex,
@@ -1429,7 +1433,7 @@ export const StreamScreen = {
     return getOrderedFilterNames(this.sourceChips, this.streams);
   },
 
-  getFilteredStreams(filter = this.addonFilter) {
+  getFilteredStreams(filter = this.addonFilter, { preferNative = this.nativePredictionOrder } = {}) {
     // Cache the sorted/filtered result so focus navigation (which re-requests
     // this on every move via badge hydration) does not re-sort and re-parse
     // the whole source list each keypress. The cache is keyed on the inputs
@@ -1439,19 +1443,22 @@ export const StreamScreen = {
       cache &&
       cache.streams === this.streams &&
       cache.chips === this.sourceChips &&
-      cache.filter === filter
+      cache.filter === filter &&
+      cache.preferNative === preferNative
     ) {
       return cache.result;
     }
     const orderedStreams = sortStreamsByAddonOrder(this.streams, this.sourceChips);
-    const result =
-      filter === "all"
-        ? orderedStreams
-        : orderedStreams.filter((stream) => stream.addonName === filter);
+    const filtered = filter === "all"
+      ? orderedStreams : orderedStreams.filter((stream) => stream.addonName === filter);
+    const result = preferNative && Platform.isBrowser()
+      ? orderSourcesByNativePrediction(filtered, { videoElement: document.createElement("video") })
+      : filtered;
     this._filteredStreamsCache = {
       streams: this.streams,
       chips: this.sourceChips,
       filter,
+      preferNative,
       result
     };
     return result;
@@ -1822,6 +1829,15 @@ export const StreamScreen = {
       anchorAction: "toggleAddonPicker",
       optionAction: "selectAddonOption"
     });
+  },
+  renderSourceOrderControl() {
+    const label = t("source_order_native_first", {}, "Native predictions first");
+    const hint = t("source_order_prediction_hint", {}, "Predictions do not verify playback. All sources stay available.");
+    return `<div class="stream-route-order-row">
+      <button type="button" class="stream-route-source-order" data-action="toggleSourceOrder"
+              aria-pressed="${this.nativePredictionOrder === true}" aria-describedby="streamSourceOrderHint">${escapeHtml(label)}</button>
+      <p id="streamSourceOrderHint" class="stream-route-order-note">${escapeHtml(hint)}</p>
+    </div>`;
   },
   renderStreamRefreshAction() {
     const label = t("stream_refresh_sources", {}, "Refresh sources");
@@ -2371,7 +2387,7 @@ export const StreamScreen = {
             ${
               Platform.isBrowser()
                 ? `<div class="stream-route-panel-shell">
-                     <header class="stream-route-panel-header">
+                     <header class="stream-route-panel-header stream-route-source-options">
                        <div class="stream-route-panel-heading">
                          <span class="stream-route-panel-title">${escapeHtml(t("stream_panel_title", {}, "Streams"))}</span>
                          ${this.renderStreamPanelSummary()}
@@ -2380,6 +2396,7 @@ export const StreamScreen = {
                          ${this.renderAddonFilterPicker()}
                          ${this.renderStreamRefreshAction()}
                        </div>
+                       ${this.renderSourceOrderControl()}
                      </header>
                      ${sourceStatus}
                      <div class="stream-route-panel">
@@ -2507,6 +2524,16 @@ export const StreamScreen = {
     this.boundStreamFilterRowHandler = (event) => {
       const target = event.target instanceof Element ? event.target : null;
       if (!target || !this.container?.contains(target)) {
+        return;
+      }
+      const sourceOrder = target.closest("[data-action='toggleSourceOrder']");
+      if (sourceOrder) {
+        event.preventDefault();
+        event.stopPropagation();
+        this.nativePredictionOrder = !this.nativePredictionOrder;
+        this.addonPickerOpen = false;
+        this.render();
+        this.container.querySelector("[data-action='toggleSourceOrder']")?.focus({ preventScroll: true });
         return;
       }
       const refresh = target.closest("[data-action='refreshStreams']");
@@ -2925,7 +2952,8 @@ export const StreamScreen = {
     this.cancelAutoPlaySelectionWait();
     const filtered = this.getFilteredStreams();
     const selected =
-      offlineStream || filtered.find((stream) => stream.id === streamId) || filtered[0];
+      offlineStream || filtered.find((stream) => stream.id === streamId) ||
+      this.getFilteredStreams(this.addonFilter, { preferNative: false })[0];
     if (!selected) {
       return;
     }
@@ -3134,6 +3162,11 @@ export const StreamScreen = {
       return;
     }
 
+    // Let the browser activate this native button with Enter/Space and move
+    // focus with Tab; TV card navigation must not also activate another source.
+    if (Platform.isBrowser() && event?.target?.closest?.("[data-action='toggleSourceOrder']")) {
+      return;
+    }
     const direction = getDpadDirection(event);
     if (direction) {
       const { chips, rows } = this.getFocusLists();

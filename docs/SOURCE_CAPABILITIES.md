@@ -38,3 +38,41 @@ After the metadata-boundary fix, `npm test` passed1085/1085 (1079 inherited plus
 Final first-unit local verification: `npm run test:browser` **20/20 passed**,0fail/0skip,1.6minutes (eight add-on, six capability, four shell and two real-worker journeys). This includes actual header/expiry guidance, no rendered injection/secret URL, forged raw-provider descriptor normalization, original fixture playback, desktop/narrow16px wrapping and real MediaCapabilities predictions. `NUVIO_LOCAL_PROPERTIES=../../tests/fixtures/build.properties npm run build`, `npm run lint`, `node scripts/check-alpha-build.mjs` and `node --test scripts/check-docs.test.mjs scripts/governance.test.mjs` passed (12 artifact checks,15 tests,0skips). Final runtime review follow-ups report zero actionable Standards and Spec findings; explicitly automated. All four protected contexts passed on644fe92; final documentation-head checks are required again before merge. These receipts validate this unit, not the remaining #10 milestone or a production release.
 
 The second #10 unit records original1080p/4K and HLS/DASH/failure evidence in the [quality matrix](PLAYBACK_QUALITY_MATRIX.md); it remains unmerged pending required checks and human review of fatal manifest recovery. First-unit unknown/descriptor evidence remains unchanged.
+
+## Optional native-prediction ordering — third unit, 2026-10-19
+
+The owner approved PR39's explained HLS recovery behavior and it merged through protected checks at0cf8876; its player fixes and dated quality evidence are now integrated. This supersedes its historical pending-review notes. No public preview upload followed.
+
+The next unit adds `orderSourcesByNativePrediction(streams, {videoElement, now})` and a browser-only **Native predictions first** toggle. It is off on fresh entry and restored only in the existing in-memory back snapshot. Default add-on/debrid/plugin order remains unchanged. Opt-in order is stable within three groups:
+
+1. Direct sources with explicit video MIME+codec strings for which canPlayType reports probably/maybe, without a declared header/expiry caution.
+2. Unknown evidence, including missing/bare-MIME/invalid/API-unavailable declarations and HLS/DASH whose engine support cannot be established by a native file probe.
+3. Native support not reported, declared required headers, or a provider-declared expired link. These are cautions, not proof that no engine can play a source.
+
+Titles, filenames, quality/HDR claims and resolution never create codec support or break ties. The same objects, IDs, URLs, original4K options and unknown sources remain selectable. Normalize descriptors again; raw header/expiry/transport evidence also prevents a supplied descriptor from hiding a caution or masquerading an adaptive URL as a direct file. MIME predictions are memoized only during a call. Expiry is re-evaluated on render/refresh, not a background timer that silently moves cards.
+
+Changing the display order performs no provider/media requests and does not change native/HLS/DASH engine policy. Automatic selection and invalid-ID fallback explicitly use provider order even when the display preference is on. Choosing a source still plays that original source. No new persistent settings, login, backend, compute, processing, fees or deployment.
+
+Local verification so far: focused capability/preference/ordering/auto-play unit tests19/19, HTTP fixture contracts6/6, actual browser UI/selector scenarios2/2, configured inert build/lint pass. The bundled test proves default/toggled order, every original canonical source ID retained, Enter/Space/Tab and focus, no toggle requests, actual original3840x2160 playback and retained preference on player Back. The imported screen/real selector test proves enabled FIRST_STREAM auto-play chooses provider-first despite a differently ranked display. All third-party traffic blocked. Initial test-driver assumptions about upstream-generated IDs, source-module entry order and the player's Sources panel were corrected; no application behavior or assertion was weakened to accept failure. One desktop/narrow visual round found a header row collision; one corrective round confirms separate44px/16px control, wrapping and no new horizontal overflow. Blocked external icon fonts still show inherited fallback text, not a newly certified icon/font release.
+
+Final complete local browser run on5f4d0b4 passed29/29 (54.2seconds),0fail/skip/flaky; [structured receipt](evidence/source-order-2026-10-19.json). Automated Standards/Spec reviews have zero unresolved actionable findings; an initial expiry-cache concern was withdrawn after confirming inherited render invalidation. Artifact12 and docs/governance15/15 plus links/ledger/ancestry/whitespace pass. [PR40](https://github.com/saurabhhbansal/nuvioweb/pull/40) remains unmerged pending required exact-head CI. Named Chrome/Edge/Firefox/Safari/device, sustained high-bitrate/4K60/HDR and broader failure evidence remain outstanding; #10 is not complete. Prediction ordering is advisory, not automatic quality selection or compatibility certification.
+
+
+Third-unit exact executed commands (pinned Node22):
+
+```sh
+node --test app/alpha/js/core/streams/sourcePreference.test.mjs app/alpha/js/core/streams/sourceCapabilities.test.mjs app/alpha/js/core/streams/streamOrdering.test.mjs app/alpha/js/core/streams/streamAutoPlaySelector.test.mjs
+npm run test:addon-fixtures
+NUVIO_LOCAL_PROPERTIES=../../tests/fixtures/build.properties npm run build --prefix app/alpha
+npm run lint --prefix app/alpha
+npx playwright test tests/browser/source-preference.spec.mjs --project chromium
+PLAYWRIGHT_JSON_OUTPUT_NAME=/tmp/nuvioweb-source-order-browser-2026-10-19.json npx playwright test --reporter=list,json
+node scripts/check-alpha-build.mjs
+node --test scripts/check-docs.test.mjs scripts/governance.test.mjs
+node scripts/check-docs.mjs
+node scripts/check-progress.mjs
+node scripts/check-commit-references.mjs origin/main HEAD
+git diff --check
+```
+
+The restricted sandbox summarized only test-file subprocesses; the authorized rerun produced19 actual unit and6 actual fixture results. The full local application suite was not rerun for this display-only unit: focused seam tests and mandatory remote full regression are the planned gates. The inherited1089 run remains PR39 evidence, not new-feature proof. No new browser/device, account or deployment result is inferred.

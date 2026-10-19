@@ -76,3 +76,7 @@ Final local checks on source7eb8147, pinned Node22.23.1/npm10.9.8:
 - `node --test scripts/check-docs.test.mjs scripts/governance.test.mjs`:15/15 pass. `node scripts/check-docs.mjs`, `node scripts/check-progress.mjs`, `node scripts/check-commit-references.mjs origin/main HEAD`, `git diff --check`: pass.
 
 Initial focused runs encountered sandbox loopback binding restrictions and incorrect test-driver assumptions (Sources navigates away; primary pause control uses a CSS mask, not IMG). The final regression directly dispatches TRACK error during playback and asserts no false warning, advancing time, actual pause mask and no media error. No failing assertion was weakened to accept a spinner or playback error. Required exact-head GitHub checks remain the PR's integration gate. #10 stays in progress; public preview is unchanged.
+
+## Owner acceptance and integration
+
+After reviewing the concrete HLS fix explanation and protected-merge implications, the owner explicitly approved PR39 in the coding workspace. [Approval receipt](https://github.com/saurabhhbansal/nuvioweb/pull/39#issuecomment-6258963843). All four required contexts passed again after marking ready; PR39 merged at0cf88767cc24c56e81a51f786baab77b64009286. This supersedes its earlier pending-owner/integration notes. No deployment or #10 closure followed. The third unit's optional native-prediction display order is documented in the [source contract](SOURCE_CAPABILITIES.md); it preserves the integrated player/quality behavior and adds no remote fetching or processing policy.

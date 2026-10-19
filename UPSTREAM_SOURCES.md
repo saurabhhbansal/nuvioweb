@@ -102,3 +102,7 @@ Adds `app/alpha/js/core/streams/sourceCapabilities.js` and its `.test.mjs`, modi
 ## Second source-capability unit — original quality/failure fixtures (in progress)
 
 Adds local patches to `app/alpha/js/ui/screens/player/playerScreen.js`, `app/alpha/js/core/player/playerController.js` and its `.browser.test.mjs`, plus the already patched default strings. Native child-source error presentation/capture cleanup and fatal HLS manifest error propagation address actual fixture regressions. This brings the Alpha patch inventory to fourteen paths; original pin/import/history/GPL remain intact. HLS fetch-recovery behavior requires owner review before this unit merges. [Quality matrix, exact bytes and limits](docs/PLAYBACK_QUALITY_MATRIX.md). No source URL/header/auth/paid processing policy is broadened.
+
+## Optional native-prediction ordering — issue #10 (in progress)
+
+PR39's fourteen-path quality/failure unit was owner-approved and merged at0cf8876, without changing the original upstream pin/history/GPL or media hashes. The third unit adds `app/alpha/js/core/streams/sourcePreference.js` and its `.test.mjs` and reuses existing stream-screen/CSS/default-string patch paths, bringing the local Alpha inventory to sixteen paths. Opt-in browser display ordering preserves source objects/URLs/quality and provider-order automatic selection; no request, auth/engine/compute policy is changed. [Contract, tests and limits](docs/SOURCE_CAPABILITIES.md).
