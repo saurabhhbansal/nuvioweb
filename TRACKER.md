@@ -2,7 +2,7 @@
 
 As of 2026-10-19. Source of truth: [acceptance-evidence ledger](docs/PROGRESS.json), [recovery audit](docs/RECOVERY_AUDIT.md), and linked PR/CI records. GitHub closed labels and inherited test counts alone are not product completion. Only main is authoritative; completion entries in an unmerged PR are proposed until their evidence PR merges.
 
-Total tickets: **26**. Verified completed: **10**. In progress: **3** (#7, #10, #11). External blockers: **0**. Ready: **1** (#23). Pending dependencies/implementation: **12**.
+Total tickets: **26**. Verified completed: **10**. In progress: **4** (#7, #10, #11, #23). External blockers: **0**. Ready: **0**. Pending dependencies/implementation: **12**.
 
 The initial 24 roadmap tickets are retained, plus dependency remediation #29 and owner-requested recovery #31. Remaining unfinished tickets include all non-verified rows below; blocked work is included rather than hidden.
 
@@ -30,7 +30,7 @@ The initial 24 roadmap tickets are retained, plus dependency remediation #29 and
 | [#20](https://github.com/saurabhhbansal/nuvioweb/issues/20) [M4][P0] Build Nuvio-verified entitlements and atomic credits ledger | pending | #3, #19 | Implementation/verification outstanding |
 | [#21](https://github.com/saurabhhbansal/nuvioweb/issues/21) [M4][P1] Implement isolated metered hosted processing jobs | pending | #20, #13, #19 | Implementation/verification outstanding |
 | [#22](https://github.com/saurabhhbansal/nuvioweb/issues/22) [M4][P1] Integrate eligible payment provider and transparent credit checkout | pending | #20, #21 | Implementation/verification outstanding |
-| [#23](https://github.com/saurabhhbansal/nuvioweb/issues/23) [M5][P1] Automate upstream change monitoring and reviewed parity tracking | ready | #4, #5 | Implementation/verification outstanding |
+| [#23](https://github.com/saurabhhbansal/nuvioweb/issues/23) [M5][P1] Automate upstream change monitoring and reviewed parity tracking | in_progress | #4, #5 | Plans merged (#67). PR A/B merged at `38cf2c9`: reviewed `docs/upstream/state.json` + report schema, strict validator (10/10) and GET-only collector with offline fixtures (17/17); Codex review 1P1+12P2, P1 and 11 P2 fixed. No live GitHub call, workflow or issue write; publisher `issues: write` is owner-gated, and the observation baseline/decisions/ports remain unapproved. [Plan](docs/plans/issues/issue-23.md), [review](docs/agent-runs/2026-10-19-upstream-watch-review.md). |
 | [#24](https://github.com/saurabhhbansal/nuvioweb/issues/24) [M5][P1] Define full browser device, security and staged release verification | pending | #5, #9, #10 | Implementation/verification outstanding |
 | [#29](https://github.com/saurabhhbansal/nuvioweb/issues/29) [M1][P1] Remediate audited build-tool dependency advisories before release | verified | #5 | PR #33; clean install/build, 1,079 unit tests, 4 Chromium journeys, lint and zero-advisory audits |
 | [#31](https://github.com/saurabhhbansal/nuvioweb/issues/31) Recovery audit, branch safeguards and browser evidence | verified | #1, #2, #4, #5 | PR #32; recovery acceptance evidence and CI in the audit |
