@@ -15,10 +15,10 @@ This file is the durable handoff. A new agent must be able to resume from it wit
 ## Current selection
 
 - Selected ticket: **#7** (real-account login/sync/profile isolation) and **#10** (source descriptors and browser playback capability reporting) remain the only in-progress MVP tickets. Governance/continuity work precedes them and is not a roadmap ticket.
-- Current branch: `m2/issue-11-plugin-sandbox-prototype` (from `main` `c02b7af`).
-- Current PR: issue #11 unit 2 — test-only QuickJS/WASM sandbox prototype.
-- Most recently completed atomic task: PR #55 merged at `c02b7af` (bounded plugin contract); unit 2 prototype implemented with `quickjs-emscripten@0.32.0` as a devDependency: representative fixture executes, memory/time/output quotas enforced, no host globals, tests 7/7, app suite 1198/1198, lint/audit/build pass, dependency absent from the shipped bundle.
-- Next exact atomic task: merge unit 2, then the bounded network broker + cancellation + default-off runtime unit. #7 live work and the #10 hosted gate remain owner-blocked (see Known blockers).
+- Current branch: `m2/issue-11-plugin-network-policy` (from `main` `09d6cdc`).
+- Current PR: issue #11 unit 3a — bounded network broker policy.
+- Most recently completed atomic task: PR #56 merged at `09d6cdc` (QuickJS prototype); unit 3a broker policy implemented: HTTPS exact-host allowlist, per-hop redirect re-authorization, no headers/credentials, request/response caps, tests 10/10, app suite 1208/1208, lint/build pass.
+- Next exact atomic task: merge unit 3a, then unit 3b — bind the broker as the sandbox's only network primitive with cancellation/teardown and a default-off runtime seam. #7 live work and the #10 hosted gate remain owner-blocked.
 
 ## Relevant plans and evidence
 

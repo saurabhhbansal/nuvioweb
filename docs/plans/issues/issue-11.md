@@ -110,3 +110,31 @@ Executed: focused prototype tests7/7 pass,0 skipped (representative fixture retu
 **Next unit.** Bounded network broker (`allowedHosts` only, no credentials/headers, request/time/output quotas), cancellation/teardown, repeated-failure limits and a default-off runtime seam consuming the contract.
 
 **Rollback.** Protected revert removes the prototype, tests, fixture adjustment and devDependency; the shipped bundle is unchanged either way.
+
+### Unit 3a — bounded network broker policy (planned 2026-10-19)
+
+**Scope.** A pure, injected-transport broker that any future sandbox binding must use for plugin network access. No global `fetch`, no credentials, no headers, no real network in tests.
+
+Contract (`app/alpha/js/core/plugins/pluginBroker.js`): `createPluginNetworkBroker({allowedHosts, transport, maxRequests=8, maxResponseBytes=1MiB, maxRedirects=2})` with `request(url,{method:"GET"})`.
+
+- HTTPS only, exact allowlisted hostnames (no subdomain widening), default port only, no embedded credentials, no IP literals, URL length bounded.
+- Requests counted before dispatch; exceeding `maxRequests` fails closed.
+- Redirects are re-authorized per hop against the same allowlist with a hard hop limit, so an allowlisted host cannot bounce the broker to an arbitrary destination.
+- The transport receives only the URL and method — never headers, tokens or cookies. Responses larger than `maxResponseBytes` and non-GET methods fail closed.
+- Errors are bounded codes (`url`, `scheme`, `credentials`, `host`, `port`, `ip`, `method`, `requests`, `redirect-limit`, `redirect-url`, `response-size`, `response-body`, `transport`), never raw exception text.
+
+**Tests (red first where the rule is missing):** allowlisted success; denied scheme/host/subdomain/credentials/IP/port/URL length; method and request-count limits; redirect to an allowed host followed; redirect to a disallowed host rejected; redirect loop bounded; oversized response rejected; transport failure; transport receives no headers/tokens; host allowlist defensively normalized.
+
+**Non-goals.** No QuickJS binding, no runtime wiring, no feature flag, no real fetch. Unit 3b will inject this broker as the only network primitive and add cancellation.
+
+**Rollback.** Protected revert deletes the broker and tests; no runtime or data change.
+
+### Unit 3a results — bounded network broker policy (2026-10-19)
+
+Implemented `app/alpha/js/core/plugins/pluginBroker.js` with an injected transport and exported host normalization from the contract module. Rules: HTTPS only, exact allowlisted hostnames, default port only, no credentials/IP literals, bounded URL length, GET only, redirects re-authorized per hop with a hard limit, authorized-dispatch request cap, response-byte cap, and bounded error codes with no raw transport text. The transport receives only `(url, {method:"GET"})`.
+
+Executed: focused `node --test app/alpha/js/core/plugins/pluginBroker.test.mjs` —10/10 pass,0 skipped (allowlisted success and no headers; scheme/credential/IP/port/host/subdomain/length denials; method and request caps; same-host redirect; cross-host redirect rejection; redirect loop; oversized response; transport failure leakage; allowlist normalization). `npm test --prefix app/alpha` —1208/1208 pass; lint pass; inert build/12-asset check pass. No real network, QuickJS binding, runtime wiring or feature flag was added.
+
+**Next unit (3b).** Bind the broker as the sandbox's only network primitive (asyncified host function), add cancellation/deadline propagation and teardown, then expose a default-off runtime seam consuming `normalizePluginResult`. Independent security/dependency review remains required before any shipped runtime.
+
+**Rollback.** Protected revert deletes the broker and tests; no runtime or data change.
