@@ -90,3 +90,14 @@ test("a symlinked dist root or a missing dist root is handled safely", async () 
     await rm(outside, { recursive: true, force: true });
   }
 });
+
+test("the installed manifest adds a versioned directory and rejects unsafe paths", async () => {
+  const { buildInstalledManifest } = await import("./pluginEngineAssets.mjs");
+  const base = buildEngineManifest({ engineVersion: "0.32.0", variantVersion: "0.32.0", files: [jsFile, wasmFile] });
+  const installed = buildInstalledManifest(base, "/assets/plugins/0123456789abcdef");
+  assert.equal(installed.directory, "/assets/plugins/0123456789abcdef");
+  assert.equal(installed.defaultEnabled, false);
+  assert.deepEqual(installed.files, base.files);
+  assert.throws(() => buildInstalledManifest(base, "/assets/plugins/not-hex"), /invalid engine asset directory/);
+  assert.throws(() => buildInstalledManifest(base, "../outside"), /invalid engine asset directory/);
+});

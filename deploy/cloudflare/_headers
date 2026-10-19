@@ -11,3 +11,19 @@
 
 /nuvio.env.js
   Cache-Control: no-store
+
+# Opt-in plugin engine assets (issue #11). The manifest is not immutable; the
+# content-versioned directory is. Rules are inert when no engine assets exist.
+/assets/plugins/plugin-engine.json
+  Cache-Control: no-store
+  Content-Type: application/json
+
+/assets/plugins/*/plugin-engine.js
+  ! Cache-Control
+  Cache-Control: public, max-age=31536000, immutable
+  Content-Type: text/javascript; charset=utf-8
+
+/assets/plugins/*/emscripten-module.wasm
+  ! Cache-Control
+  Cache-Control: public, max-age=31536000, immutable
+  Content-Type: application/wasm
