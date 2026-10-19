@@ -96,3 +96,17 @@ Executed with pinned Node22.23.1: `node --test app/alpha/js/core/plugins/pluginC
 **Next unit.** Engine decision + dependency/licence review; then a default-off sandbox runtime that consumes `normalizePluginResult` and a broker restricted to `allowedHosts`, with timeout/output/request quotas and abuse tests.
 
 **Rollback.** Protected revert of the contract module, tests, fixture and document; no runtime behavior or user data changes.
+
+### Unit 2 results — test-only QuickJS/WASM engine prototype (2026-10-19)
+
+Selected QuickJS/WASM with only injected bindings for evaluation. Added `quickjs-emscripten@0.32.0` (MIT; QuickJS MIT) as an `app/alpha` **devDependency**, with `package-lock` updated and `npm audit --audit-level=low` reporting0 vulnerabilities. It is imported only by `app/alpha/scripts/pluginSandboxPrototype.mjs`, which is not imported by application code; the production build remains12 assets and a recursive `quickjs` search of `app/alpha/dist` is absent.
+
+Implemented `app/alpha/scripts/pluginSandboxPrototype.mjs` and `.test.mjs`: per-execution QuickJS context, memory limit, stack limit, wall-clock interrupt deadline, only `api.log` plus JSON input injected, pending-job pumping for async functions that resolve without host I/O, output-size cap and normalization through `normalizePluginResult`.
+
+Executed: focused prototype tests7/7 pass,0 skipped (representative fixture returns one normalized group and drops its `javascript:` stream; `fetch`/`require`/`process`/`XMLHttpRequest`/`WebSocket`/`importScripts` are `undefined`; infinite loop→`timeout`; large allocation→`memory`; oversized output→`output-size`; malformed output yields no groups; empty code rejected). `npm test --prefix app/alpha`1198/1198 pass; lint pass; inert build/12-asset/private-field check pass; audit0.
+
+**Limits.** Test-only, not wired to the app; no network broker, cancellation UI, persistent quotas or default-off flag; a plugin awaiting host I/O times out. QuickJS/WASM still needs independent security and dependency-policy review plus bundle measurements before any shipped runtime. No compatibility claim.
+
+**Next unit.** Bounded network broker (`allowedHosts` only, no credentials/headers, request/time/output quotas), cancellation/teardown, repeated-failure limits and a default-off runtime seam consuming the contract.
+
+**Rollback.** Protected revert removes the prototype, tests, fixture adjustment and devDependency; the shipped bundle is unchanged either way.

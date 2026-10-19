@@ -1,6 +1,6 @@
 # Nuvio JavaScript plugin compatibility — contract and status
 
-Status: **contract only; execution is not implemented and no plugin is supported yet.** Last updated 2026-10-19.
+Status: **bounded contract plus a test-only engine prototype; execution is not shipped and no plugin is supported yet.** Last updated 2026-10-19.
 
 This document defines the bounded shapes that a future sandboxed plugin runtime must accept and return. It is deliberately narrower than "Nuvio JS plugin compatibility": nothing here executes third-party code, performs network requests, reads storage or touches the DOM. The inherited `pluginRuntime.js` remains a URL-template feature and is unchanged.
 
@@ -41,9 +41,24 @@ Unknown fields are dropped. Failures return bounded reason codes (`descriptor`, 
 ## Staged plan
 
 1. **Contract and fixture (this unit).** Pure normalization, hostile-input tests and an original `tests/fixtures/plugins/representative-plugin.js`. No execution.
-2. **Engine decision and dependency review.** Evaluate QuickJS/WASM with injected bindings; license, bundle size, determinism and API surface. No dependency is added before that review.
+2. **Engine decision and dependency review (prototype complete).** QuickJS/WASM with only injected bindings was selected for evaluation: MIT-licensed `quickjs-emscripten` 0.32.0 (QuickJS itself MIT), installed as an `app/alpha` **devDependency**, not imported by shipped code and therefore absent from the browser bundle. A test-only prototype executes the representative fixture, enforces memory/time/output budgets and exposes no host networking or process globals. See the prototype section below.
 3. **Sandbox runtime.** Hard wall-clock/CPU budget, memory and output caps, ≤N brokered network requests to `allowedHosts` only, no credentials/headers, cancellation and worker teardown, default-off feature flag.
 4. **Parity and abuse corpus.** Representative plugin fixtures, malformed output, redirects/private addresses, huge code/output, hangs, cancellation and repeated-failure limits.
+
+## Engine prototype (test-only, 2026-10-19)
+
+`app/alpha/scripts/pluginSandboxPrototype.mjs` runs inside Node tests only. It creates a QuickJS/WASM context per execution, sets a memory limit, stack limit and wall-clock interrupt deadline, injects only `api.log` and the JSON input, pumps pending jobs so an async function that resolves without host I/O can finish, and normalizes output through `normalizePluginResult`.
+
+Observed with pinned Node 22.23.1 (`node --test app/alpha/scripts/pluginSandboxPrototype.test.mjs`, 7/7):
+
+- The representative fixture returns one normalized group with the original `https` stream and drops its `javascript:` stream.
+- `fetch`, `require`, `process`, `XMLHttpRequest`, `WebSocket` and `importScripts` are all `undefined` inside the sandbox.
+- An infinite loop is interrupted at the wall-clock budget (`timeout`).
+- A large allocation beyond the memory limit fails closed (`memory`).
+- Oversized serialized output is rejected (`output-size`) before normalization.
+- Malformed but parseable output normalizes to no groups without throwing; empty code is rejected before starting an engine.
+
+**Limits:** this prototype is not wired into the application, has no network broker, no cancellation UI, no persistent quotas and no default-off flag. A plugin that awaits host I/O simply times out. QuickJS/WASM isolation still needs independent security review, dependency-policy review and browser-bundle measurements before any runtime ships. No compatibility claim follows.
 
 ## Guarantees and limits
 

@@ -15,10 +15,10 @@ This file is the durable handoff. A new agent must be able to resume from it wit
 ## Current selection
 
 - Selected ticket: **#7** (real-account login/sync/profile isolation) and **#10** (source descriptors and browser playback capability reporting) remain the only in-progress MVP tickets. Governance/continuity work precedes them and is not a roadmap ticket.
-- Current branch: `m2/issue-11-plugin-contract` (from `main` `aaa275e`).
-- Current PR: issue #11 unit 1 — bounded plugin descriptor/result contract and fixture.
-- Most recently completed atomic task: PR #54 merged at `aaa275e` (continuity); issue #11 unit 1 implemented: pure contract module, hostile-input tests 10/10, representative fixture, compatibility/security doc; full app suite 1191/1191, lint and inert build pass.
-- Next exact atomic task: merge unit 1, then the engine decision + dependency/licence review unit (QuickJS/WASM with injected bindings) before any execution. #7 live work and the #10 hosted gate remain owner-blocked (see Known blockers).
+- Current branch: `m2/issue-11-plugin-sandbox-prototype` (from `main` `c02b7af`).
+- Current PR: issue #11 unit 2 — test-only QuickJS/WASM sandbox prototype.
+- Most recently completed atomic task: PR #55 merged at `c02b7af` (bounded plugin contract); unit 2 prototype implemented with `quickjs-emscripten@0.32.0` as a devDependency: representative fixture executes, memory/time/output quotas enforced, no host globals, tests 7/7, app suite 1198/1198, lint/audit/build pass, dependency absent from the shipped bundle.
+- Next exact atomic task: merge unit 2, then the bounded network broker + cancellation + default-off runtime unit. #7 live work and the #10 hosted gate remain owner-blocked (see Known blockers).
 
 ## Relevant plans and evidence
 
