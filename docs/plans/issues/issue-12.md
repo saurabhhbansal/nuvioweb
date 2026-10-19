@@ -911,3 +911,29 @@ Status: the pure planner exists and was hardened after review; nothing calls it 
 **Not done.** No controller or UI integration, no presentation strings, no audio-recovery browser spec, no recovery session. Those need the loader rebuild and the blocked AAC fixtures.
 
 **Rollback.** Revert the module, its test and these records; nothing imports it.
+
+### Recovery operation state executed (2026-10-19)
+
+Status: the caller-side operation record exists and was hardened after review; nothing calls it yet.
+
+**Why.** The loader review noted that a pure planner cannot stop a caller replaying identical plans, and that "one alternate, one restore" needs an owner. `app/alpha/js/core/player/recoveryOperation.js` is that owner. Pure: no network, no player mutation, no persistence, no logging.
+
+**Contract.** `createRecoveryOperation({generation})` → `begin(key, generation?)`, `offerAlternate(key, generation?)`, `offerRestore(key, generation?)`, `canOffer(kind, key, generation?)`, `close(reason)`, `invalidate(generation, reason?)`, `isCurrent(generation)`, `snapshot()`.
+
+**Rules (after review).**
+
+- A generation must be a positive **safe integer number**; numeric strings, floats, `NaN`, infinities, values beyond safe-integer precision and non-numbers are `invalid-request`, and an invalid operation refuses every action, `isCurrent` and `invalidate`.
+- Nothing is offerable before `begin`; `begin` records the failed track exactly once.
+- The failed track is never a recovery target (alternate *or* restore).
+- One alternate and one restore per operation; the limits are fixed, not configurable, because the plan's invariant is one of each.
+- A previously attempted track is refused as `already-attempted`, so "offer A, then restore A" cannot happen.
+- `canOffer` runs the same eligibility function as the offer methods, so it cannot report permission an offer would refuse.
+- Reasons are a fixed enum; an unknown value normalizes to `operation-closed`, a successful `invalidate` returns the stored reason, and an already-closed operation returns `operation-closed` rather than echoing new input.
+- Every action takes the caller's generation and refuses a mismatch as `stale-generation`, so a stale holder cannot act after its `invalidate` was refused.
+- Keys are validated without truncation; snapshots are deep copies; attempts record their kind and order.
+
+**Verification.** `node --test app/alpha/js/core/player/recoveryOperation.test.mjs` 14/14, including the review's previously unprotected guards; `npm test --prefix app/alpha` 1321/1321; lint pass. Record: [review](../../agent-runs/2026-10-19-recovery-operation-review.md).
+
+**Not done.** No controller or loader wiring, no timers/deadlines (the loader rebuild), no browser evidence.
+
+**Rollback.** Revert the module, its test and these records; nothing imports it.
