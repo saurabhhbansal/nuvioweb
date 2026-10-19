@@ -29,6 +29,19 @@ This file is the durable handoff. A new agent must be able to resume from it wit
 - **Verified gate on `bfa9577` (latest):** `npm test --prefix app/alpha` 1343/1343; `npx playwright test` 57/57 (after rebuilding with the fixture properties); `node scripts/check-alpha-build.mjs` 12 assets/inert config; `node scripts/check-docs.mjs` and `check-progress.mjs` pass; `node --test scripts/check-docs.test.mjs scripts/governance.test.mjs scripts/prepare-static-preview.test.mjs` 19/19. Earlier gate at `62c2208` was 1334/1334 and 56/56; the extra browser test is #93's HDR-honesty spec.
 - **Build prerequisite learned this round:** `npm run build --prefix app/alpha` needs `NUVIO_LOCAL_PROPERTIES=<repo>/tests/fixtures/build.properties` for tests (CI does the same). Without it the build falls back to `local.example.properties`, bakes an empty backend URL and fails `scripts/envProperties.test.mjs` / `check-alpha-build.mjs`. Never bake the live backend into a local test build. Preview staging rebuilds `app/alpha/dist` with `deploy/cloudflare/build.properties` (live API), so after any `npm run preview:stage` you must rebuild with `NUVIO_LOCAL_PROPERTIES=$PWD/tests/fixtures/build.properties` before running local gates — otherwise `check-alpha-build.mjs` and the env regression test fail on the live config.
 
+
+## Owner decisions required (blocking the next substantive units)
+
+1. **AAC fixtures (#12 units 1b, 4, 5; all AC1/AC2 browser claims).** The pinned Chromium exposes no WebCodecs `AudioEncoder` and `MediaRecorder` with `audio/mp4` really emits `audio/mp4;codecs=opus` — verified in the required CI job as well as locally ([receipt](../evidence/audio-fixture-gate-2026-10-19.json)). Choose one:
+   - run the probe on an AAC-capable environment and generate fixtures there with provenance;
+   - approve a permissively licensed AAC encoder or a CC0 AAC fixture source (this is a new dependency/media-source decision, not something an agent may take);
+   - re-scope the prototype to Opus renditions, which first needs evidence that the chosen adaptive engine and MSE accept Opus in fragmented MP4.
+   Do not substitute Opus fixtures for AAC ones or download AAC media.
+2. **`#11` unit 6b-2 (plugin engine seam).** Needs the CSP/`wasm-unsafe-eval` decision and an independent security review; automated passes cannot substitute for it. Until then the engine assets stay opt-in and inert.
+3. **`#23` PR C (publisher).** Introduces `issues: write`; the permission boundary is the owner's call, and no live write has been attempted.
+
+`#7` additionally needs live-account evidence the owner paused; the preview is refreshed and rollback-retained, so no deployment work is pending.
+
 ## Relevant plans and evidence
 
 - Issue plans: [issue #7](../plans/issues/issue-7.md) (includes the marker-probe amendment), [issue #10](../plans/issues/issue-10.md).
