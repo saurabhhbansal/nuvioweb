@@ -164,12 +164,20 @@
           "Subtitle TRACK errors isolated from playback; signed startup/fallback URLs redacted",
           "Full27 browser and1089 application tests pass after review corrections; packaging4,HTTP5,preview1,docs/governance15,artifact12 pass"
         ],
-        "integrationGate": "Draft PR39: owner review required for fatal HLS manifest fetch recovery; protected exact-head CI required; no merge/deployment or completion claimed",
+        "integrationGate": "PR39 owner-approved and merged at0cf8876 after all protected checks passed; no deployment or issue completion",
         "remaining": [
-          "Compatible-source ranking and unknown policy",
+          "Integrate optional native-prediction ranking after review and required CI",
           "Chrome/Edge/Firefox/Safari and device evidence",
           "Sustained high-bitrate/4K60/HDR and broader failure fixtures"
-        ]
+        ],
+        "currentUnit": {
+          "branch": "m2/issue-10-source-ranking",
+          "scope": "Optional native-prediction display ordering with unknown/constraint policy; provider-order auto-play unchanged",
+          "verifiedLocally": [
+            "Focused19 unit,6 HTTP fixture,2 actual browser cases; inert build/lint pass"
+          ],
+          "integrationGate": "Complete browser suite, automated two-axis review and required exact-head protected CI pending"
+        }
       }
     },
     {

@@ -15228,6 +15228,47 @@ body.desktop-browser {
   cursor: pointer;
 }
 
+.desktop-browser #stream .stream-route-panel-header.stream-route-source-options {
+  flex-wrap: wrap;
+}
+
+.desktop-browser #stream .stream-route-order-row {
+  flex: 0 0 100%;
+  min-width: 0;
+}
+
+.desktop-browser #stream .stream-route-source-order {
+  max-width: 100%;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background: transparent;
+  color: var(--text-color);
+  font: inherit;
+  font-size: 16px;
+  line-height: 1.4;
+  text-align: left;
+  cursor: pointer;
+}
+
+.desktop-browser #stream .stream-route-source-order[aria-pressed="true"] {
+  border-color: var(--secondary-color);
+  color: var(--secondary-color);
+}
+
+.desktop-browser #stream .stream-route-source-order:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+.desktop-browser #stream .stream-route-order-note {
+  margin: 8px 0 0;
+  color: var(--text-secondary);
+  font-size: 16px;
+  line-height: 1.4;
+}
+
 .desktop-browser #stream .stream-route-refresh .material-icons {
   font-size: 20px;
 }
