@@ -8,11 +8,7 @@
 // executes the returned action; this module only decides and records it.
 
 import { RECOVERY_ACTIONS, planAudioRecovery } from "./playbackRecoveryPolicy.js";
-import {
-  RECOVERY_OPERATION_ACTION,
-  RECOVERY_OPERATION_REASONS,
-  createRecoveryOperation
-} from "./recoveryOperation.js";
+import { RECOVERY_OPERATION_ACTION, createRecoveryOperation } from "./recoveryOperation.js";
 
 export const COORDINATOR_REASONS = Object.freeze({
   NONE: "none",
@@ -68,6 +64,16 @@ export function createRecoveryCoordinator({ generation } = {}) {
         };
       }
       const snapshot = operation.snapshot();
+      // Without a recorded failed rendition there is nothing to recover; say so
+      // instead of letting the planner report a misleading invalid-key/no-failure.
+      if (!snapshot.failedTrackKey) {
+        return {
+          action: RECOVERY_ACTIONS.NONE,
+          trackKey: null,
+          reason: COORDINATOR_REASONS.NOT_STARTED,
+          recorded: false
+        };
+      }
       const plan = planAudioRecovery({
         generation,
         currentGeneration: generation,
@@ -95,10 +101,7 @@ export function createRecoveryCoordinator({ generation } = {}) {
           ? operation.offerAlternate(plan.trackKey, generation)
           : operation.offerRestore(plan.trackKey, generation);
       if (!record.ok) {
-        const reason =
-          record.reason === RECOVERY_OPERATION_REASONS.NOT_STARTED
-            ? COORDINATOR_REASONS.NOT_STARTED
-            : record.reason;
+        const reason = record.reason;
         return {
           action: RECOVERY_ACTIONS.UNSUPPORTED,
           trackKey: null,
