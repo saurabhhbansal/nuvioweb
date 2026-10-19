@@ -15,8 +15,8 @@ This file is the durable handoff. A new agent must be able to resume from it wit
 ## Current selection
 
 - Selected ticket: **#11** (sandboxed plugin compatibility), unit 6b; #7/#10 remain open and environment-gated (live account nondeterminism, named devices/audio).
-- Current branch: `m2/issue-11-browser-engine` (unit 6a evidence/implementation PR).
-- Current PR: the unit 6a PR opened from that branch.
+- Current branch: `m2/issue-11-browser-engine` (unit 6a implementation/evidence).
+- Current PR: **#66** (unit 6a). Head has all code/docs; GitHub Actions `degraded_performance` has left required checks queued and one earlier run stuck after its steps completed. Do not merge without all four required checks green; no override. Rerun when Actions is healthy.
 - Last completed atomic task: unit 6a — opt-in asyncify engine asset builder with deterministic SHA-256 manifest (JS64,623B + WASM1,027,523B), in-browser Chromium fixture8/8 (representative normalization, no ambient globals, broker fetch/denial, timeout/memory/output budgets), in-VM OOM classifier fix, app1235/1235, lint, inert12-asset build and full browser50/50.
 - Next exact atomic task: after this PR merges, write the unit 6b pre-code plan amendment (default-off app seam, hashed stager emission with `application/wasm`, CSP/`wasm-unsafe-eval` decision, Firefox/WebKit coverage, independent security/dependency review package) before any application or stager change. Do not repeat the live B→A→B probe; any sync runtime change first needs a deterministic synthetic reproduction.
 
