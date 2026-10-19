@@ -14213,6 +14213,12 @@ export const PlayerScreen = {
     // that would silently fail; the reviewed copy contract decides.
     const audioAvailability = this.getAudioTrackAvailability();
     const audioSwitchBlocked = this.getAudioSwitchBlocked(audioAvailability);
+    // Show the reviewed note whenever it says something the rows cannot: a
+    // blocked engine, unknown compatibility, or a prediction that is not proof.
+    const showAudioAvailabilityNote =
+      Boolean(audioAvailability) &&
+      audioAvailability.key !== "player_audio_available" &&
+      audioAvailability.key !== "player_audio_no_tracks";
     const audioControls = [
       {
         id: "amplification",
@@ -14270,7 +14276,7 @@ export const PlayerScreen = {
     dialog.innerHTML = `
       <div class="player-dialog-title">${escapeHtml(t("audio_dialog_title", {}, "Audio"))}</div>
       ${
-        audioSwitchBlocked
+        showAudioAvailabilityNote
           ? `<div class="player-audio-support-message">${escapeHtml(audioAvailability.fallback)}</div>`
           : hasSupportedEntries
             ? ""
