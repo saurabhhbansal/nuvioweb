@@ -76,3 +76,20 @@ Sourceb629a30 completed1131/1131 application tests (18.987s),31/31 browser/PWA j
 The first staging attempt rejected an uncommitted plan amendment. After committing it, `npm run preview:stage` staged exact6df6ebdf7027be3ac5c1768dd92c44348c82d74a (runtime unchanged fromb629a30), public asset2951e5e1f62a/worker264d578fa33f, without uploading. [Changed-source Library receipt](evidence/identity-library-candidate-2026-10-19.json): `node /tmp/nuvioweb-issue7-library-candidate.mjs /tmp/nuvioweb-test-accounts.json` exit1. Despite green synthetic scheduling tests, fresh B receiver again had no observed successful Library pull within30s. No claim that PR45 resolves this entire live symptom. The exact synthetic marker was removed in finally, verified remote absent/original empty B key set unchanged. No further unchanged-source writes; all contexts/server closed. This is the third bounded marker attempt, all three now cleaned up.
 
 Next investigation needs a deterministic bundled login/profile/Library fixture with controlled critical/profile/catalog responses and domain request observations, to distinguish activation/hydration invalidation from transport or driver timing. It can use synthetic accounts and avoid further real account mutations. Empty-remote handling and app Save/remove semantics remain separate unverified risks; no production/sync guarantee follows from this PR.
+
+## Bundled synthetic identity/Library verification
+
+Owner approved PR45 at2ee9689; [approval receipt](https://github.com/saurabhhbansal/nuvioweb/pull/45#issuecomment-6262705879). After the ready-event check passed, normal protected merge completed ata046a542d8ebd158efd1392008705b71ceec6874. Public preview is still8edec42; issue7 stays open.
+
+New `tests/browser/identity-sync.spec.mjs` exercises the actual inert built app rather than imported test substitutes. Reproduce with the inert build command in the issue plan, then `npx playwright test tests/browser/identity-sync.spec.mjs --project=chromium`. Final focused result:6/6 pass,0skips,16.0seconds. The synthetic fixture verifies:
+
+- Fresh nonempty B Library, completed B→A→B switching without clearing storage, correct item rendered and stored, and a new Library RPC for each login.
+- Independent B browser contexts both hydrate while the first page remains open.
+- Library pull waits for critical settings and resumes when the controlled response is released.
+- Library renders while synthetic catalog results are still pending; identity headers are absent from catalog/manifest requests.
+- A held B Library response finishes after logout/A login and cannot replace A's local/UI record.
+- Reload retains the synthetic session and performs a new Library pull without another password exchange, following the existing single-profile startup policy.
+
+All identities/JWTs/settings/catalogs are synthetic. Only exact inert identity and optional synthetic catalog origins are intercepted; other outbound requests are blocked. Named setup/device/empty watched-seed operations have explicit fixture contracts; unknown writes fail. The fixture stores per-alias synthetic settings to model Quick Setup/migration, and permits only an empty watched-items bootstrap push. Initial fixture runs exposed missing setup contracts and an incorrect reload-picker assumption; those harness failures remain in the plan and led to no product edits. No real account file, live API or production mutation is used. Existing synthetic-only traces may be retained on test failure.
+
+These six scenarios pass and do not reproduce the live receiver barrier. They verify browser orchestration with mocked services, not real token validation, CORS, hosted-schema correctness, new Save/removal propagation, live expiry/revocation or cross-device behavior. App source, identity/API/storage policy and43-path Alpha inventory remain unchanged from approved PR45. Further live diagnosis needs safe request-completion observations rather than another marker retry.

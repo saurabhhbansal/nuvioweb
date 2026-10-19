@@ -115,7 +115,7 @@
         3
       ],
       "progress": {
-        "branch": "m1/issue-7-library-verification",
+        "branch": "m1/issue-7-browser-sync-fixtures",
         "documents": [
           "docs/IDENTITY_VERIFICATION.md",
           "docs/plans/issues/issue-7.md"
@@ -125,9 +125,10 @@
           "Live Chromium deployed8edec42:13 scoped assertions pass for intended distinct A/B logins, reload, independent A profiles and completed A-B-A profile controls/local logout. No Library/history/expiry claim.",
           "Owner approved PR44 at35d36cb; protected merge e674c0e after all required CI, no override. Candidate1127 app/31 browser/32 focused and scoped live existing-data replay passed; public preview remains8edec42.",
           "Nonempty B incremental marker reached an independent B app Library/local store. Distinct sync owners verified privately. Isolation sequence did not complete: first harness exception, reduced receiver no observed successful Library pull within30s. Both temporary markers removed with exact-key cleanup and verified empty B cloud Library.",
-          "Separate activation regression reproduced Home first paint delaying background sync; scoped source b629a30 now1131 application/31 browser/36 focused/17 governance passes, lint/build/assets pass and automated Standards/Spec0 findings. Changed local6df6ebd live marker replay still fails receiver Library pull barrier; exact-key cleanup succeeds. No live isolation/removal pass."
+          "Separate activation regression reproduced Home first paint delaying background sync; scoped source b629a30 now1131 application/31 browser/36 focused/17 governance passes, lint/build/assets pass and automated Standards/Spec0 findings. Changed local6df6ebd live marker replay still fails receiver Library pull barrier; exact-key cleanup succeeds. No live isolation/removal pass.",
+          "Owner approved PR45 at2ee9689; merged a046a54 with all protected CI. New actual-bundle synthetic identity/Library fixture6/6pass: B-A-B nonempty isolation, independent contexts, delayed critical response, pending catalog/no auth-header leak, obsolete B response and reload/new pull. No live barrier reproduction or real account writes."
         ],
-        "remaining": "Issue7 remains open. PR44 is integrated; public preview/post-merge check still8edec42. Draft PR45 fixes the separately reproduced Home-paint scheduling barrier and awaits final-head CI/explicit owner remote-fetch/auth review. Its changed-source live replay still observes no successful receiver Library pull within30s; further unchanged-source write retries stopped, exact-key cleanup verified. Nonempty Library account-switch isolation, Save/removal, broader negative/QR/offline/device and measured live expiry/revocation remain unverified."
+        "remaining": "Issue7 remains open. PR44/45 owner-approved and integrated; public preview still8edec42. Live receiver Library pull barrier remains unresolved; all three synthetic live markers cleaned up. New bundled six-case synthetic fixture passes, not proof of hosted CORS/API/token validation or live isolation. App Save/removal, broader negative/QR/offline/device and measured live expiry/revocation remain. Next diagnosis should observe critical-request completion without further test-record writes."
       }
     },
     {
