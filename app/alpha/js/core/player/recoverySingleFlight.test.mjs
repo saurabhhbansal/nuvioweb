@@ -23,7 +23,7 @@ test("one request owns the guard at a time", () => {
 test("only the owning token releases, and only once", () => {
   const guard = createSingleFlight();
   const first = guard.begin();
-  assert.equal(guard.end(first.token + 1), false);
+  assert.equal(guard.end(Symbol("not-the-owner")), false);
   assert.equal(guard.busy, true);
   assert.equal(guard.end(first.token), true);
   assert.equal(guard.busy, false);
@@ -43,10 +43,10 @@ test("a stale token cannot release a newer request", () => {
   assert.equal(guard.end(second.token), true);
 });
 
-test("tokens are never reused, so identity is stable across requests", () => {
+test("tokens are unique symbols, so identity can never repeat", () => {
   const guard = createSingleFlight();
   const tokens = [];
-  for (let index = 0; index < 5; index += 1) {
+  for (let index = 0; index < 50; index += 1) {
     const started = guard.begin();
     assert.equal(started.ok, true);
     tokens.push(started.token);
@@ -54,9 +54,13 @@ test("tokens are never reused, so identity is stable across requests", () => {
   }
   assert.equal(new Set(tokens).size, tokens.length);
   for (const token of tokens) {
-    assert.equal(typeof token, "number");
-    assert.ok(token > 0);
+    assert.equal(typeof token, "symbol");
   }
+  // A forged symbol is not the owner.
+  const guard2 = createSingleFlight();
+  const owner = guard2.begin();
+  assert.equal(guard2.end(Symbol("recovery-request")), false);
+  assert.equal(guard2.current(), owner.token);
 });
 
 test("hostile tokens are refused without disturbing the owner", () => {

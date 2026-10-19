@@ -9,13 +9,11 @@
 
 export const SINGLE_FLIGHT_REASONS = Object.freeze({
   OK: "ok",
-  BUSY: "busy",
-  NOT_OWNER: "not-owner"
+  BUSY: "busy"
 });
 
 export function createSingleFlight() {
   let current = null;
-  let sequence = 0;
 
   return {
     get busy() {
@@ -30,8 +28,9 @@ export function createSingleFlight() {
       if (current !== null) {
         return { ok: false, reason: SINGLE_FLIGHT_REASONS.BUSY, token: null };
       }
-      sequence += 1;
-      current = sequence;
+      // A fresh symbol per acquisition: identity can never repeat, so a very
+      // late cleanup can never match a newer request.
+      current = Symbol("recovery-request");
       return { ok: true, reason: SINGLE_FLIGHT_REASONS.OK, token: current };
     },
     // Only the owning token can release, and releasing twice is refused, so a
