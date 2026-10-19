@@ -1,0 +1,14 @@
+{
+  "sourceRevision": "25ce335ec870d1f31dbed557d11fd7e6a08d3faa",
+  "environment": "loopback exact static candidate; all third-party browser traffic blocked",
+  "browser": "156.0.8078.4",
+  "platform": "linux",
+  "architecture": "arm64",
+  "sourceMatched": true,
+  "signedOutRendering": "PASS",
+  "guestNavigation": "PASS",
+  "reloadProfilePersistence": "PASS",
+  "aliasReload": "PASS",
+  "uncaughtPageErrors": 0,
+  "limits": "No account/service, add-on/media, automatic worker, offline, named Chrome/Edge or device verification; no upload."
+}
