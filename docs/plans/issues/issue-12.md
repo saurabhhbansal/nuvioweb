@@ -803,3 +803,42 @@ Status: Unit 0 complete. Documentation only: no runtime, fixture or test change,
 **Unit order and entry gate.** `1a` (native audio-fixture generation gate) → `1b` (fixtures) → `2` (track evidence and real selection) → `3` (bounded network/lifecycle) → `4` (audio recovery) → `5` (bounded MPEG-TS container recovery) → `6` (named-environment evidence and closure review). The next unit is `1a`; it must record the probe result before any fixture work, and a blocked probe stops the AAC chain rather than producing placeholder media.
 
 **Rollback.** Protected documentation revert. No runtime state, dependency, fixture or deployment is affected by this unit.
+
+## Unit 1a — executed: native AAC fixture gate is BLOCKED (2026-10-19)
+
+Status: probe implemented and executed; the gate result is **BLOCKED**. No fixture was generated and units 1b–5 (the AAC chain) cannot proceed on this toolchain.
+
+**What was built.** `scripts/generate-audio-recovery-media.mjs --probe` records a short synthesised 440 Hz tone through `MediaRecorder` inside the pinned Playwright Chromium, then parses the produced bytes: top-level boxes, the `stsd` audio sample entry, and the `esds`/`dOps` decoder configuration. A requested MIME type is explicitly not treated as evidence — only an `mp4a` sample entry with a parseable AudioSpecificConfig counts as supported. `scripts/generate-audio-recovery-media.test.mjs` (7 cases) covers the parser with synthetic MP4 bytes, including a `mp4a`-in-`mdat` decoy, malformed/oversized boxes and a recording-error report.
+
+**Observed result** ([receipt](../../evidence/audio-fixture-gate-2026-10-19.json)), Chromium 156.0.8078.4 headless, Linux x86_64:
+
+| Observation | Value |
+| --- | --- |
+| `typeof AudioEncoder` | `undefined` — WebCodecs audio encoding is not exposed |
+| `AudioEncoder.isConfigSupported` | not reachable, so no AAC-LC configuration can be confirmed |
+| `MediaRecorder.isTypeSupported("audio/mp4;codecs=mp4a.40.2")` | `false` |
+| `MediaRecorder.isTypeSupported("audio/mp4")` | `true` |
+| Recording with `{ mimeType: "audio/mp4" }` | actual type `audio/mp4;codecs=opus` |
+| Emitted audio sample entry | `Opus` (11,778 bytes, inside the byte bound) |
+| Parsed AAC AudioSpecificConfig | none |
+| Verdict | **BLOCKED**: "WebCodecs AudioEncoder is not exposed" and "the MediaRecorder output carried Opus rather than mp4a" |
+
+This is exactly the trap the gate exists to catch: requesting `audio/mp4` succeeds and produces an MP4 file, but it carries Opus, not AAC. Fixtures built from that output would have been mislabelled AAC media.
+
+**Consequences.**
+
+- The AAC fixture chain (units 1b–5) is blocked on this toolchain: no AAC rendition, no two-rendition HLS/DASH audio fixtures, no alternate-audio recovery evidence, therefore **AC1 and AC2 remain unproven**.
+- AC3 (honest unsupported/browser-specific messaging) is unaffected and can still be tested with synthetic engine track objects.
+- The gate is now re-run in the required browser job (`npm run probe:audio-fixtures`) so a future toolchain change is observed rather than assumed. A `BLOCKED` result is reported, never counted as a pass.
+
+**Options to unblock, each needing an explicit decision before any fixture work:**
+
+1. Run the probe on an environment with native AAC encoding (branded Chrome/macOS or Windows, or a Chromium build exposing WebCodecs `AudioEncoder` for `mp4a.40.2`) and, if supported, generate fixtures there with provenance.
+2. An owner-approved permissively licensed AAC encoder or pre-generated CC0 AAC fixture set — a new dependency/media-source decision that this unit does not take.
+3. Re-scope the recovery prototype to Opus renditions (browser-native encode is available), which requires evidence that the chosen adaptive engine and MSE accept Opus in fragmented MP4; without that evidence it is not equivalent.
+
+**Review corrections (same unit).** The first implementation was reviewed read-only by Codex CLI, which found nine defects: audio sample-entry children read from offset 16 instead of 36; a 12-byte `esds` window that discarded a normal descriptor chain; a short `esds` payload accepted as a valid AAC configuration; a 4 KB transfer that could truncate `moov` and hide the truncation; an untested WebCodecs encode path while claiming unavailability; a deadline that only set an exit code; a byte limit checked after materialising the recording; unexpected exceptions folded into a normal BLOCKED result; and unbounded recursive box parsing. All nine are fixed: a realistic 36-byte entry layout, a bounded descriptor walk, strict AudioSpecificConfig validation (reserved/escaped object types, invalid frequencies, channel configuration 0 and truncation rejected), `ftyp`+`moov`-only transfer with an explicit completeness flag, a real `AudioEncoder` encode attempt, a raced deadline with cleanup, chunk-counted byte limits, rethrown unexpected errors, and depth/box budgets. Parser tests grew to 11 cases with realistic fixtures, including a decoy, an invalid configuration, a missing DecoderSpecificInfo, a deep-nesting case and an unexpected-error case. Record: [review](../../agent-runs/2026-10-19-aac-gate-review.md).
+
+The corrected probe still reports **BLOCKED** on Chromium 156.0.8078.4, now reading a real `Opus` sample entry (75 bytes) from an 11,778-byte recording whose initialization transferred completely (641 bytes), with both WebCodecs `AudioEncoder` absent and no `mp4a` entry on the recorded path.
+
+**Rollback.** Revert the probe script, its test, the npm/CI wiring and this record. No media, dependency or runtime state exists to unwind.

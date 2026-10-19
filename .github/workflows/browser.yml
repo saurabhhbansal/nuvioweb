@@ -44,6 +44,12 @@ jobs:
         run: npx playwright install --with-deps webkit
       - name: WebKit engine coverage
         run: NUVIO_PLAYWRIGHT_WEBKIT=1 npx playwright test --project=webkit
+      - name: Audio-fixture generation gate
+        # Records whether browser-native AAC encoding exists. A BLOCKED result is
+        # a gate outcome, not a failure: the AAC fixture chain stays blocked and
+        # is reported, never skipped.
+        run: npm run probe:audio-fixtures
+      - run: npm run test:audio-recovery-gate
       - run: npm run test:addon-fixtures
       - run: npm run test:quality-fixtures
       - run: npm run test:preview
