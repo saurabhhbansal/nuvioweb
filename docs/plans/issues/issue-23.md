@@ -572,3 +572,11 @@ Future source imports remain separate issues and PRs. They must preserve origina
 | Reference forks and native sources | Recorded explicitly but initially unmonitored; enabling them requires reviewed pins and budget allocation |
 
 Issue #23 is complete when fixture-backed monitoring, protected offline checks, reviewed tracker publication, an observed idempotent run, and the documented human parity process are evidenced. It does not require importing the detected changes or resolving unrelated device and live-service gaps.
+
+### PR A executed — state contract and validator (2026-10-19)
+
+Implemented the PR A targets: `docs/upstream/state.json`, `docs/upstream/report.schema.json`, `scripts/check-upstream-state.mjs`, `scripts/upstream-state.test.mjs` and `tests/fixtures/upstream-watch/`.
+
+The state seeds only locally verified provenance: Alpha `web` pin `5624da2…`, tree `ad9ff4c…`, destination `app/alpha`, import commit `920ae80…`, immutable tag, the license audit and seven required notice/manifest paths with pinned upstream blob IDs; Falcon/GYK/Orochi are disabled reference-only sources; decisions and ports are empty at baseline; observation baseline is intentionally absent pending human review. All ceilings match the plan's hard limits.
+
+Executed: `node scripts/check-upstream-state.mjs` exit0,0 errors; `node --test scripts/upstream-state.test.mjs` 8/8 pass,0 skipped (schema/field strictness, source identity/enabled count, import/provenance, license digest and paths, symlinked evidence, decision/port evidence, ceiling enforcement). No network, install or runtime behavior. Stacked on the plans branch until #67 merges, then retargeted to `main`.
