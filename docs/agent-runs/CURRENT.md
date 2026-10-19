@@ -6,7 +6,7 @@ This file is the durable handoff. A new agent must be able to resume from it wit
 
 ## Current state
 
-- Repository `saurabhhbansal/nuvioweb`: `main` at or after `036f7e7` (#12 units 0, 1a, the unit-2 observation step, unit-2 copy + strings, unit-3 policy/loader-budgets, operation record and coordinator merged). No open PRs.
+- Repository `saurabhhbansal/nuvioweb`: `main` at `a8c2df7` (#12 units 0, 1a, the unit-2 observation step, unit-2 copy + strings, unit-3 policy/loader-budgets, operation record and coordinator merged). No open PRs.
 - Hosted development preview: revision `7dcc3717742e04745c018eccd342df0915bbe8fe`, deployment `b6451df5-53cb-45d3-9312-361254bf3463` (all seven hosted guest journeys PASS, 0 uncaught errors); rollback deployment `b48de821` / revision `1f67867` retained. [Receipt](../evidence/preview-refresh-7dcc371-2026-10-19.json)
 - Four required workflows passed on the merged heads `44cbdff` (#66), `c9e4325` (#67) and `38cf2c9` (#70). `docs/PROGRESS.json` reports 26 tickets: 10 verified, 4 in progress (#7, #10, #11, #23), remainder pending.
 - #7 and #10 remain open and environment-gated. #11 unit 6a is merged; unit 6b remains. #23 PR A/B (state contract + read-only collector) are merged; the issue-writing publisher and workflow remain.
