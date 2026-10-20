@@ -731,3 +731,10 @@ test("offline reload cannot complete a new server-valid sync or introduce foreig
   expect(route === null || route === "profileSelection" || route === "home" || route === "quickSetup").toBe(true);
   expect(fixture.unexpected).toEqual([]);
 });
+
+
+test("unknown foreign destinations are recorded even when blocked", async ({ context, page }) => {
+  const fixture = await installIdentityFixture(context);
+  await page.goto("https://unlisted.fixture.invalid/probe").catch(() => {});
+  expect(fixture.unexpected).toEqual([expect.objectContaining({ origin: "https://unlisted.fixture.invalid" })]);
+});

@@ -22,7 +22,7 @@ This is a **finite supported/unsupported policy**, not a claim of conflict-free 
 
 | Case | Current behavior | Disposition |
 | --- | --- | --- |
-| Two independent same-account writers | Both send full snapshots; the later one wins and the earlier edit is lost. | **Unsupported.** Needs a server version/ETag/conflict contract or an owner decision. No client-only safe merge. |
+| Two independent same-account writers | Both send full snapshots; the later one wins and the earlier edit is lost. | **Unsupported.** Needs a server version/ETag/conflict contract with atomic preconditions. No client-only safe merge. |
 | Local set >1000 items | The local cache retains all items; the full-snapshot push is refused without a request and pending remains. | Safe refusal only. A larger library requires pagination/delta API work, not a truncated full snapshot. |
 | Automatic retry / outbox / per-item durability | Not implemented. Pending edits wait for a later explicit mutation. | **Unsupported.** No new backend/outbox/CRDT in this scope. |
 | Multi-tab atomicity | No cross-tab lock. | **Unsupported.** |
@@ -45,5 +45,8 @@ This is a **finite supported/unsupported policy**, not a claim of conflict-free 
 - It does not guarantee delivery after reconnect or reload; pending data is preserved but not retried
   automatically.
 - It does not prove the hosted service's actual transaction/version semantics.
-- It does not replace the still-open live/device evidence in #7 or the owner-gated observations in #120.
+- It does not replace the still-open live/device evidence in #7 or the authorized live observations in #120.
 - The Library tab still requests 1000 rows, so a retained 1001st item is not displayed above 1000; the push refusal is currently console-only with no user-facing indicator.
+
+
+2026-10-20 protocol recheck: [Nuvio public API v1.3](https://nuvio.tv/docs/nuvio-public-api.md) still documents full replacement pushes and delta cursors for reads. It provides no atomic expected-revision/ETag parameter for the replacement. A read cursor or client preflight cannot protect a competing write between read and push. #119 remains open for an atomic server contract plus safe conflict refusal/reconciliation; owner permission is granted and is not the dependency. No live destructive concurrency experiment was used.

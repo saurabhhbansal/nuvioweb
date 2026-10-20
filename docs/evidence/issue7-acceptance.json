@@ -3,7 +3,7 @@
   "issue": 7,
   "repository": "saurabhhbansal/nuvioweb",
   "as_of": "2026-10-20",
-  "source_commit": "aaffee1786e7adbdc888efbe9bd9922780d6e892",
+  "source_commit": "6a39be76a3408905942eabedef233ceb197c666f",
   "original_criteria": [
     {
       "id": "O1",
@@ -65,8 +65,8 @@
       {
         "key": "CH4",
         "issue": 120,
-        "state": "blocked",
-        "scope": "Live A1/A2/A3/A8 owner-gated observations"
+        "state": "open",
+        "scope": "Authorized live A1/A2/A3/A8 observations; genuine provider/device dependencies remain"
       }
     ]
   },
@@ -81,7 +81,7 @@
         "live"
       ],
       "status": "pass",
-      "gate_owner": "executor; live owner",
+      "gate_owner": "executor; authorized executor",
       "result": "Existing Nuvio email sign-in and the exposed QR entry path are synthetically dispositioned; live QR/device semantics remain under #120.",
       "linked_children": [
         "CH1",
@@ -137,7 +137,7 @@
         "live"
       ],
       "status": "partial",
-      "gate_owner": "CH1 executor; CH4 owner observation",
+      "gate_owner": "CH1 executor; CH4 authorized executor",
       "result": "Synthetic built-app coverage now includes two profiles and nonempty add-on/watched/progress/Library data with exact account/profile routing. Live evidence still covers existing controls only, not new propagation.",
       "linked_children": [
         "CH1",
@@ -181,7 +181,7 @@
         "live"
       ],
       "status": "fail",
-      "gate_owner": "CH1 executor / CH4 owner",
+      "gate_owner": "CH1 executor / CH4 authorized executor",
       "result": "Synthetic Save/reload/removal and delayed-response isolation cases remain useful, but a live post-removal nonempty switch failed before response headers and has no established root cause.",
       "linked_children": [
         "CH1",
@@ -270,7 +270,7 @@
         "synthetic"
       ],
       "status": "blocked",
-      "gate_owner": "CH3 executor design/characterization; owner if a backend contract is needed",
+      "gate_owner": "CH3 executor design/characterization; provider for an atomic backend contract",
       "result": "The 1001-item truncation is now a safe refusal backed by a non-truncating store: a 1001st item is retained and the >1000 full push is refused. Two independent full-snapshot writers still lose the earlier edit; repair needs a server conflict/version contract or an owner decision.",
       "linked_children": [
         "CH3"
@@ -313,14 +313,14 @@
       ],
       "status": "pass",
       "gate_owner": "CH2 executor; security owner for unresolved sensitive risk",
-      "result": "Reproduced stale QR publication is fixed at the service publication boundary; screen navigation during a held exchange has no later side effect.",
+      "result": "Independent review reproduced two additional defects at 0212e73; new actual-module regressions now pass after guarded owner lookup/deferred caching and coalesced QR exchange. Live semantics remain A8.",
       "linked_children": [
         "CH2"
       ],
       "resolution": {
         "state": "resolved",
         "resolved_by": "A6",
-        "reference": "docs/evidence/issue7-qr-ownership-2026-10-20.json"
+        "reference": "docs/evidence/issue7-sol-remediation-2026-10-20.json"
       },
       "observations": [
         {
@@ -346,6 +346,30 @@
           "result": "16 lifecycle tests and 5 actual-screen tests pass; probe staleExchangeAccepted false; a later session is preserved across a stale establishment.",
           "artifact": "docs/evidence/issue7-qr-ownership-2026-10-20.json",
           "limitations": "Synthetic service/browser evidence only; already-issued remote/owner requests cannot be undone."
+        },
+        {
+          "kind": "synthetic",
+          "status": "fail",
+          "commit": "0212e733275bcb3b95661b288139b69d8b01c064",
+          "deployment": null,
+          "command_or_observation": "Actual-module deferred QR regression at baseline plus newly added tests",
+          "assertion": "Cancellation must not cache an owner without a session; overlapping approved exchanges must retain the valid login.",
+          "result": "Two reproduced failures: cancelled owner cached; both overlapping exchanges rejected and cleared their tokens.",
+          "artifact": "docs/evidence/issue7-sol-red-2026-10-20.json",
+          "limitations": "Synthetic networking; no live exploit established.",
+          "observed_at": "2026-10-20T04:30:00Z"
+        },
+        {
+          "kind": "synthetic",
+          "status": "pass",
+          "commit": "6a39be76a3408905942eabedef233ceb197c666f",
+          "deployment": null,
+          "command_or_observation": "node --test app/alpha/js/core/auth/qrLoginService.lifecycle.test.mjs scripts/check-issue7-acceptance.test.mjs",
+          "assertion": "Deferred cancelled owner cannot publish cache, retry, refresh or signout; concurrent exchanges establish exactly one retained session.",
+          "result": "Actual-module regressions now retain the correct tokens, owner cache, auth state and marker; expired/cancelled work cannot publish.",
+          "artifact": "docs/evidence/issue7-sol-remediation-2026-10-20.json",
+          "limitations": "Synthetic only; not live provider QR or physical-device acceptance.",
+          "observed_at": "2026-10-20T04:55:00Z"
         }
       ]
     },
@@ -403,8 +427,8 @@
         "review"
       ],
       "status": "blocked",
-      "gate_owner": "CH4 owner; executor only after explicit bounded authorization",
-      "result": "Measured live refresh/rejection/revocation and QR device/consent observations have not been made. The owner paused further live-account work; no replacement synthetic evidence is accepted.",
+      "gate_owner": "CH4 authorized executor; executor only after explicit bounded authorization",
+      "result": "Expanded owner authorization supersedes the live-account pause. Guarded preflight ran login/read/explicit refresh; measured expiry/revocation, hosted new-change propagation and QR/device observations remain incomplete. No routine owner approval is pending.",
       "linked_children": [
         "CH4"
       ],
@@ -416,9 +440,9 @@
           "deployment": "nuvioweb-preview.pages.dev deployment 96f977f4 / revision 8edec42",
           "command_or_observation": "Existing read-only live sign-in/persistence evidence reviewed; no measured expiry, rejection, revocation or QR device observation exists.",
           "assertion": "A live receipt must record the elapsed expiry boundary, refresh outcome and rejection behavior without decoding or exporting token payloads.",
-          "result": "Reload-only evidence is insufficient; the row remains unverified.",
+          "result": "Not yet established by actual live lifecycle/provider QR/device observations; permission is granted for bounded checks.",
           "artifact": "docs/evidence/identity-live-2026-10-19.json",
-          "limitations": "No measured refresh/revocation; no QR consent/device observation.",
+          "limitations": "Historical unrun scope; authorization is now granted. This does not supply natural-expiry, revocation or provider QR/device evidence.",
           "observed_at": "2026-10-19T06:52:13Z"
         },
         {
@@ -428,9 +452,9 @@
           "deployment": null,
           "command_or_observation": "Owner-pause review recorded in the continuity handoff and owner checklist.",
           "assertion": "No live account probe, marker write, device test, credential read or revocation action may run under the present pause.",
-          "result": "Blocked on explicit bounded owner resumption or owner-provided sanitized observations.",
+          "result": "Not yet established by actual live lifecycle/provider QR/device observations; permission is granted for bounded checks.",
           "artifact": "docs/agent-runs/CURRENT.md",
-          "limitations": "External permission gate; no executable live probe is authorized today.",
+          "limitations": "Historical unrun scope; authorization is now granted. This does not supply natural-expiry, revocation or provider QR/device evidence.",
           "observed_at": "2026-10-20T00:50:00Z"
         }
       ]

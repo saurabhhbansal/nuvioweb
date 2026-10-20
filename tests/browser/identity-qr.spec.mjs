@@ -286,3 +286,10 @@ test("an already elapsed QR start leaves Refresh available", async ({ context, p
   expect(fixture.requests.filter((entry) => entry.operation === "exchange")).toHaveLength(0);
   expect(fixture.unexpected).toEqual([]);
 });
+
+
+test("unknown foreign destinations are recorded even when blocked", async ({ context, page }) => {
+  const fixture = await installQrFixture(context);
+  await page.goto("https://unlisted.fixture.invalid/probe").catch(() => {});
+  expect(fixture.unexpected).toEqual([expect.objectContaining({ origin: "https://unlisted.fixture.invalid" })]);
+});
