@@ -76,7 +76,16 @@ test("actual Chromium decodes a finite long fixture and advances after seeking",
     await video.evaluate(v => {v.pause();v.currentTime=35;});
     await expect.poll(() => video.evaluate(v => !v.seeking && Math.abs(v.currentTime-35)<0.1)).toBe(true);
     await video.evaluate(v => v.play());
-    await expect.poll(() => video.evaluate(v => v.currentTime)).toBeGreaterThan(35.1);
+    const frames = await video.evaluate(async v => {
+      if (typeof v.requestVideoFrameCallback !== "function") throw new Error("Video-frame observation unavailable");
+      const next = () => new Promise((resolve, reject) => {
+        const timer = setTimeout(() => reject(new Error("Video-frame observation timed out")), 5000);
+        v.requestVideoFrameCallback((_now, metadata) => {clearTimeout(timer);resolve({time:metadata.mediaTime,frames:metadata.presentedFrames});});
+      });
+      return [await next(), await next()];
+    });
+    assert.ok(frames[1].time > frames[0].time);
+    assert.ok(frames[1].frames > frames[0].frames);
     await video.evaluate(v => v.pause());
   } finally {if(browser)await browser.close();await new Promise(resolve=>server.close(resolve));}
 }));
