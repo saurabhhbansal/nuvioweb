@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 
 const identityOrigin = "https://identity.example.invalid";
+const addonOrigin = "https://addons.example.invalid";
 const accounts = {
   A: { id: "fixture-user-a", owner: "fixture-owner-a", email: "a@example.invalid" },
   B: { id: "fixture-user-b", owner: "fixture-owner-b", email: "b@example.invalid" }
@@ -14,28 +15,147 @@ const library = (alias) => [{
   added_at: 1700000000000
 }];
 
-function token(alias) {
-  const payload = { sub: accounts[alias].id, email: accounts[alias].email, exp: 4102444800 };
+function token(alias, expiresIn = 4102444800) {
+  const payload = { sub: accounts[alias].id, email: accounts[alias].email, exp: expiresIn };
   return `${Buffer.from('{"alg":"none"}').toString("base64url")}.${Buffer.from(JSON.stringify(payload)).toString("base64url")}.synthetic`;
 }
 
-async function installIdentityFixture(context, { criticalGate = null, withCatalog = false, catalogGate = null, libraryGates = {}, allowLibraryWrites = false, backend = null, rejectLibraryWrites = false } = {}) {
+function scopedKey(alias, profileId) {
+  return `${alias}:${profileId}`;
+}
+const libraryKey = (alias, profileId) => `fixture-library-${alias.toLowerCase()}-${profileId}`;
+const watchedKey = (alias, profileId) => `watched-${alias.toLowerCase()}-${profileId}`;
+const progressKey = (alias, profileId) => `progress-${alias.toLowerCase()}-${profileId}`;
+const addonUrl = (alias, profileId) => `${addonOrigin}/${alias.toLowerCase()}-${profileId}`;
+const addonManifestId = (alias, profileId) => `fixture-addon-${alias.toLowerCase()}-${profileId}`;
+
+function libraryRow(alias, profileId) {
+  return {
+    content_id: libraryKey(alias, profileId),
+    content_type: "movie",
+    name: `Fixture ${alias} profile ${profileId} Library`,
+    poster_shape: "POSTER",
+    genres: [],
+    added_at: 1700000000000
+  };
+}
+function watchedRow(alias, profileId, suffix = "") {
+  return {
+    content_id: `${watchedKey(alias, profileId)}${suffix}`,
+    content_type: "movie",
+    title: `Fixture ${alias} profile ${profileId} watched${suffix}`,
+    watched_at: 1700000000000
+  };
+}
+function progressRow(alias, profileId, suffix = "") {
+  return {
+    content_id: `${progressKey(alias, profileId)}${suffix}`,
+    content_type: "movie",
+    title: `Fixture ${alias} profile ${profileId} progress${suffix}`,
+    position_ms: 60000,
+    duration_ms: 120000,
+    updated_at: 1700000000000
+  };
+}
+function addonRow(alias, profileId) {
+  return {
+    url: addonUrl(alias, profileId),
+    enabled: true,
+    sort_order: 0,
+    profile_id: Number(profileId),
+    user_id: accounts[alias].owner
+  };
+}
+
+export function nonemptyBackend() {
+  const state = {
+    libraries: new Map(),
+    watched: new Map(),
+    progress: new Map(),
+    addons: new Map(),
+    libraryWrites: [],
+    unknownWrites: []
+  };
+  for (const alias of Object.keys(accounts)) {
+    for (const profileId of [1, 2]) {
+      const key = scopedKey(alias, profileId);
+      state.libraries.set(key, [libraryRow(alias, profileId)]);
+      state.watched.set(key, [watchedRow(alias, profileId)]);
+      state.progress.set(key, [progressRow(alias, profileId)]);
+      state.addons.set(key, [addonRow(alias, profileId)]);
+    }
+  }
+  return state;
+}
+
+function profileRows(alias, twoProfiles) {
+  if (!twoProfiles) {
+    return [{ profile_index: 1, name: `Fixture ${alias}`, is_primary: true }];
+  }
+  return [
+    {
+      profile_index: 1,
+      name: `Fixture ${alias}`,
+      is_primary: true,
+      uses_primary_addons: false
+    },
+    {
+      profile_index: 2,
+      name: `Fixture ${alias} Two`,
+      is_primary: false,
+      uses_primary_addons: false
+    }
+  ];
+}
+
+async function installIdentityFixture(context, {
+  criticalGate = null,
+  withCatalog = false,
+  catalogGate = null,
+  libraryGates = {},
+  allowLibraryWrites = false,
+  backend = null,
+  rejectLibraryWrites = false,
+  nonempty = false,
+  twoProfiles = false
+} = {}) {
   const requests = [];
+  const completions = [];
   const unexpected = [];
   const settings = new Map();
+  const state = backend || (nonempty ? nonemptyBackend() : null);
   const libraries = backend?.libraries || new Map(Object.keys(accounts).map((alias) => [alias, library(alias)]));
-  const libraryWrites = backend?.libraryWrites || [];
+  const libraryWrites = state?.libraryWrites || backend?.libraryWrites || [];
   const provider = "https://catalog.example.invalid";
   let catalogRequested = false;
+  let offline = false;
   const emptyReads = new Set([
     "sync_pull_profile_locks", "sync_pull_profile_settings_blob", "sync_pull_home_catalog_settings",
-    "sync_pull_collections", "sync_pull_plugins", "sync_pull_watched_items", "sync_pull_watch_progress",
-    "sync_pull_trakt_credentials", "sync_pull_simkl_credentials", "sync_pull_provider_credentials"
+    "sync_pull_collections", "sync_pull_plugins", "sync_pull_trakt_credentials",
+    "sync_pull_simkl_credentials", "sync_pull_provider_credentials"
   ]);
   await context.route("**/*", async (route) => {
     const request = route.request();
     const url = new URL(request.url());
     if (url.origin === "http://127.0.0.1:4371") return route.continue();
+    if (offline && url.origin === identityOrigin) return route.abort("failed");
+    if (url.origin === addonOrigin && nonempty) {
+      const match = url.pathname.match(/^\/([a-z])-(\d)(-new)?\/manifest\.json$/);
+      if (!match) {
+        unexpected.push({ operation: url.pathname, reason: "unknown-addon-path" });
+        return route.abort("blockedbyclient");
+      }
+      const alias = match[1].toUpperCase();
+      const profileId = match[2];
+      return route.fulfill({ json: {
+        id: addonManifestId(alias, profileId),
+        name: `Fixture ${alias} profile ${profileId} addon`,
+        version: "1.0.0",
+        types: ["movie"],
+        resources: [],
+        catalogs: []
+      } });
+    }
     if (url.origin === provider && withCatalog) {
       expect(request.headers().authorization).toBeUndefined();
       expect(request.headers().apikey).toBeUndefined();
@@ -59,7 +179,16 @@ async function installIdentityFixture(context, { criticalGate = null, withCatalo
       const alias = Object.keys(accounts).find((key) => accounts[key].email === body.email);
       if (!alias || body.password !== "synthetic-password") return json({ error: "invalid fixture login" }, 400);
       requests.push({ alias, operation: "password-login" });
+      completions.push({ alias, operation: "password-login" });
       return json({ access_token: token(alias), refresh_token: `fixture-refresh-${alias}`, user: accounts[alias], expires_in: 3600 });
+    }
+    if (url.pathname === "/auth/v1/token" && url.searchParams.get("grant_type") === "refresh_token") {
+      requests.push({ alias: null, operation: "refresh" });
+      const body = request.postDataJSON();
+      const alias = Object.keys(accounts).find((key) => `fixture-refresh-${key}` === body.refresh_token);
+      if (!alias || offline) return json({ error: "invalid_grant" }, 401);
+      completions.push({ alias, operation: "refresh" });
+      return json({ access_token: token(alias), refresh_token: `fixture-refresh-${alias}` });
     }
     if (operation === "get_avatar_catalog" && request.method() === "POST") return json([]);
     const alias = Object.keys(accounts).find((key) => request.headers().authorization === `Bearer ${token(key)}`);
@@ -68,49 +197,111 @@ async function installIdentityFixture(context, { criticalGate = null, withCatalo
       return json({ error: "fixture session required" }, 401);
     }
     requests.push({ alias, operation });
-    if (url.pathname === "/auth/v1/user") return json(accounts[alias]);
-    if (operation === "get_sync_owner") return json(accounts[alias].owner);
-    if (operation === "sync_pull_profiles") return json([{ profile_index: 1, name: `Fixture ${alias}`, is_primary: true }]);
+    if (url.pathname === "/auth/v1/user") { completions.push({ alias, operation }); return json(accounts[alias]); }
+    if (operation === "get_sync_owner") { completions.push({ alias, operation }); return json(accounts[alias].owner); }
+    if (operation === "sync_pull_profiles") {
+      completions.push({ alias, operation });
+      return json(profileRows(alias, twoProfiles));
+    }
+    let body = {};
+    try { body = request.postDataJSON() || {}; } catch { body = {}; }
+    const profileId = String(body.p_profile_id || url.searchParams.get("profile_id")?.replace("eq.", "") || 1);
     if (operation === "sync_pull_library") {
+      requests[requests.length - 1].profileId = profileId;
       if (libraryGates[alias]) await libraryGates[alias].promise;
+      if (nonempty) {
+        completions.push({ alias, operation, profileId });
+        return json(state.libraries.get(scopedKey(alias, profileId)) || []);
+      }
       return json(libraries.get(alias));
     }
     if (allowLibraryWrites && operation === "sync_push_library" && request.method() === "POST") {
-      const body = request.postDataJSON();
-      expect(body.p_profile_id).toBe(1);
+      expect(profileId).toBe("1");
       expect(Array.isArray(body.p_items)).toBe(true);
-      libraryWrites.push({ alias, profileId: body.p_profile_id, items: body.p_items });
+      libraryWrites.push({ alias, profileId: Number(profileId), items: body.p_items });
       if (rejectLibraryWrites) return json({ error: "synthetic write unavailable" }, 503);
-      libraries.set(alias, body.p_items);
+      if (nonempty) state.libraries.set(scopedKey(alias, profileId), body.p_items);
+      else libraries.set(alias, body.p_items);
+      completions.push({ alias, operation, profileId });
       return json(null);
     }
-    if (operation === "sync_pull_profile_settings_blob") {
-      if (criticalGate) await criticalGate.promise;
-      return json(settings.has(alias) ? [{ settings_json: settings.get(alias) }] : []);
+    if (url.pathname === "/rest/v1/addons" && request.method() === "GET") {
+      requests[requests.length - 1].profileId = profileId;
+      if (nonempty) {
+        completions.push({ alias, operation: "addons", profileId });
+        return json(state.addons.get(scopedKey(alias, profileId)) || []);
+      }
+      return json(withCatalog ? [{ url: provider, enabled: true, sort_order: 0 }] : []);
     }
-    // Quick Setup and initial migration write settings through the normal app.
-    // Store only synthetic per-alias data; reject unknown mutations below.
-    if (operation === "sync_push_profile_settings_blob" && request.method() === "POST") {
-      const body = request.postDataJSON();
-      expect(body.p_profile_id).toBe(1);
-      expect(body.p_settings_json).toBeTruthy();
-      settings.set(alias, body.p_settings_json);
-      return json(null);
+    if (operation === "sync_pull_watched_items") {
+      requests[requests.length - 1].profileId = profileId;
+      if (nonempty) {
+        completions.push({ alias, operation, profileId });
+        return json(body.p_page && Number(body.p_page) > 1 ? [] : state.watched.get(scopedKey(alias, profileId)) || []);
+      }
+      return json([]);
     }
-    if (emptyReads.has(operation)) return json([]);
-    if (url.pathname === "/rest/v1/addons" && request.method() === "GET") return json(withCatalog ? [{ url: provider, enabled: true, sort_order: 0 }] : []);
-    if (url.pathname === "/rest/v1/plugins" && request.method() === "GET") return json([]);
+    if (operation === "sync_pull_watch_progress") {
+      requests[requests.length - 1].profileId = profileId;
+      if (nonempty) {
+        completions.push({ alias, operation, profileId });
+        return json(state.progress.get(scopedKey(alias, profileId)) || []);
+      }
+      return json([]);
+    }
     if (operation === "sync_push_watched_items" && request.method() === "POST") {
-      const body = request.postDataJSON();
+      if (nonempty) {
+        if (!Array.isArray(body.p_items)) return json({ error: "invalid watched snapshot" }, 400);
+        state.watched.set(scopedKey(alias, profileId), body.p_items);
+        completions.push({ alias, operation, profileId });
+        return json(null);
+      }
       expect(body.p_profile_id).toBe(1);
       expect(body.p_items).toEqual([]);
       return json(null);
     }
-    if (["register_current_device", "sync_seed_provider_credentials"].includes(operation) && request.method() === "POST") return json(null);
+    if (operation === "sync_push_watch_progress" && request.method() === "POST") {
+      if (!nonempty) {
+        unexpected.push({ operation, method: request.method(), reason: "unexpected-progress-write" });
+        return json({ error: "unimplemented fixture operation" }, 400);
+      }
+      if (!Array.isArray(body.p_items)) return json({ error: "invalid progress snapshot" }, 400);
+      state.progress.set(scopedKey(alias, profileId), body.p_items);
+      completions.push({ alias, operation, profileId });
+      return json(null);
+    }
+    if (operation === "sync_pull_profile_settings_blob" || operation === "sync_pull_home_catalog_settings") {
+      const settingsKey = nonempty ? `${alias}:${profileId}` : alias;
+      if (criticalGate && operation === "sync_pull_profile_settings_blob") await criticalGate.promise;
+      completions.push({ alias, operation, profileId });
+      return json(settings.has(settingsKey) ? [{ settings_json: settings.get(settingsKey) }] : []);
+    }
+    if (operation === "sync_push_profile_settings_blob" && request.method() === "POST") {
+      const expectedProfile = nonempty ? profileId : "1";
+      expect(String(body.p_profile_id)).toBe(expectedProfile);
+      expect(body.p_settings_json).toBeTruthy();
+      settings.set(nonempty ? `${alias}:${profileId}` : alias, body.p_settings_json);
+      completions.push({ alias, operation, profileId });
+      return json(null);
+    }
+    if (emptyReads.has(operation)) { completions.push({ alias, operation }); return json([]); }
+    if (url.pathname === "/rest/v1/plugins" && request.method() === "GET") return json([]);
+    if (["register_current_device", "sync_seed_provider_credentials"].includes(operation) && request.method() === "POST") {
+      completions.push({ alias, operation });
+      return json(null);
+    }
     unexpected.push({ operation, method: request.method() });
     return json({ error: "unimplemented fixture operation" }, 400);
   });
-  return { requests, unexpected, libraryWrites, catalogRequested: () => catalogRequested };
+  return {
+    requests,
+    completions,
+    unexpected,
+    libraryWrites,
+    state,
+    catalogRequested: () => catalogRequested,
+    setOffline: (value) => { offline = Boolean(value); }
+  };
 }
 
 function gate() {
@@ -119,13 +310,25 @@ function gate() {
   return { promise, release };
 }
 
-async function signIn(page, alias) {
+async function signIn(page, alias, profileId = "1") {
   await page.locator("#desktop-auth-email").fill(accounts[alias].email);
   await page.locator("#desktop-auth-password").fill("synthetic-password");
   await page.locator(".desktop-auth-submit").click();
-  await expect(page.locator('#profileSelection .profile-card[data-profile-id="1"]')).toBeVisible();
-  await page.locator('#profileSelection .profile-card[data-profile-id="1"]').click();
+  await expect(page.locator(`#profileSelection .profile-card[data-profile-id="${profileId}"]`)).toBeVisible();
+  await page.locator(`#profileSelection .profile-card[data-profile-id="${profileId}"]`).click();
   await openLibrary(page);
+}
+
+async function selectProfile(page, profileId) {
+  await page.getByRole("button", { name: "Profile", exact: true }).click();
+  await expect(page.locator("#profileSelection")).toBeVisible();
+  await page.locator(`#profileSelection .profile-card[data-profile-id="${profileId}"]`).click();
+  await openLibrary(page);
+  const cards = await page.locator("#library .library-grid-card").evaluateAll((nodes) =>
+    nodes.map((node) => node.getAttribute("data-item-id"))
+  );
+  expect(cards).toHaveLength(1);
+  expect(cards[0]).toMatch(new RegExp(`^fixture-library-[ab]-${profileId}$`));
 }
 
 async function openLibrary(page) {
@@ -140,6 +343,44 @@ async function expectLibrary(page, alias) {
   const other = alias === "A" ? "b" : "a";
   await expect(page.locator(`#library .library-grid-card[data-item-id="fixture-library-${other}"]`)).toHaveCount(0);
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem("savedLibraryItems") || "[]").map((item) => item.contentId))).toEqual([`fixture-library-${alias.toLowerCase()}`]);
+}
+
+async function expectNonemptyLibrary(page, profileId) {
+  const cards = await page.locator("#library .library-grid-card").evaluateAll((nodes) =>
+    nodes.map((node) => node.getAttribute("data-item-id"))
+  );
+  expect(cards).toHaveLength(1);
+  expect(cards[0]).toMatch(new RegExp(`^fixture-library-[ab]-${profileId}$`));
+  const keys = await page.evaluate(() => JSON.parse(localStorage.getItem("savedLibraryItems") || "[]").map((item) => item.contentId));
+  expect(keys).toEqual(cards);
+}
+
+async function localSnapshot(page) {
+  return page.evaluate(() => {
+    const parse = (key, fallback) => {
+      try { return JSON.parse(localStorage.getItem(key) || fallback); }
+      catch { return fallback; }
+    };
+    return {
+      watched: parse("watchedItems", []).map((item) => ({ contentId: item.contentId, profileId: String(item.profileId || "1") })),
+      progress: parse("watchProgressItems", []).map((item) => ({ contentId: item.contentId, profileId: String(item.profileId || "1") })),
+      addons: parse("installedAddonUrls", { profiles: {} }).profiles,
+      library: parse("savedLibraryItems", []).map((item) => ({ contentId: item.contentId, profileId: String(item.profileId || "1") }))
+    };
+  });
+}
+
+async function expectExactScopedData(page, alias, profileId) {
+  const snapshot = await localSnapshot(page);
+  expect(snapshot.library.filter((item) => item.profileId === String(profileId)).map((item) => item.contentId)).toEqual([libraryKey(alias, profileId)]);
+  expect(snapshot.watched.filter((item) => item.profileId === String(profileId)).map((item) => item.contentId)).toContain(watchedKey(alias, profileId));
+  expect(snapshot.progress.filter((item) => item.profileId === String(profileId)).map((item) => item.contentId)).toContain(progressKey(alias, profileId));
+  expect(snapshot.addons[String(profileId)]).toContain(addonUrl(alias, profileId));
+  const foreignAlias = alias === "A" ? "b" : "a";
+  expect(snapshot.library.some((item) => item.contentId.includes(`-${foreignAlias}-`))).toBe(false);
+  expect(snapshot.watched.some((item) => item.contentId.includes(`-${foreignAlias}-`))).toBe(false);
+  expect(snapshot.progress.some((item) => item.contentId.includes(`-${foreignAlias}-`))).toBe(false);
+  expect(Object.values(snapshot.addons).flat().some((url) => url.includes(`/${foreignAlias}-`))).toBe(false);
 }
 
 async function signOut(page) {
@@ -315,5 +556,117 @@ test("failed local removal stays pending across reload and a competing nonempty 
   await expect(page.locator('#library .library-grid-card[data-item-id="fixture-library-b"]')).toHaveCount(0);
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem("savedLibraryItems") || "[]"))).toEqual([]);
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem("savedLibrarySyncState")).profiles["1"].pending)).toBe(true);
+  expect(fixture.unexpected).toEqual([]);
+});
+
+test("two profiles keep distinguishable nonempty add-on, watched, progress and Library sets", async ({ context, page }) => {
+  const fixture = await installIdentityFixture(context, { nonempty: true, twoProfiles: true });
+  await page.goto("/");
+  await signIn(page, "B", "1");
+  await expectNonemptyLibrary(page, "1");
+  await expectExactScopedData(page, "B", 1);
+
+  await selectProfile(page, "2");
+  await expectExactScopedData(page, "B", 2);
+  expect((await localSnapshot(page)).library.filter((item) => item.profileId === "2").map((item) => item.contentId)).toEqual([libraryKey("B", 2)]);
+  expect((await localSnapshot(page)).library.filter((item) => item.profileId === "2").map((item) => item.contentId)).not.toContain(libraryKey("B", 1));
+
+  await selectProfile(page, "1");
+  await expectExactScopedData(page, "B", 1);
+  expect((await localSnapshot(page)).library.filter((item) => item.profileId === "1").map((item) => item.contentId)).not.toContain(libraryKey("B", 2));
+
+  await signOut(page);
+  await signIn(page, "A", "1");
+  await expectNonemptyLibrary(page, "1");
+  await expectExactScopedData(page, "A", 1);
+
+  const operations = fixture.completions.map((entry) => `${entry.alias}:${entry.operation}:${entry.profileId ?? "-"}`);
+  expect(operations).toContain("B:sync_pull_library:1");
+  expect(operations).toContain("B:sync_pull_library:2");
+  expect(operations).toContain("B:sync_pull_watched_items:2");
+  expect(operations).toContain("B:sync_pull_watch_progress:2");
+  expect(operations).toContain("A:sync_pull_library:1");
+  expect(fixture.unexpected).toEqual([]);
+});
+
+test("a synthetic same-profile mutation appears only in an independent receiver context", async ({ browser, context, page }) => {
+  const backend = nonemptyBackend();
+  const writer = await installIdentityFixture(context, { nonempty: true, twoProfiles: true, backend });
+  await page.goto("/");
+  await signIn(page, "B", "1");
+  await expectExactScopedData(page, "B", 1);
+
+  // Fixture backend setup, not an application UI write: add one new key of each domain.
+  backend.watched.set(scopedKey("B", 1), [...backend.watched.get(scopedKey("B", 1)), watchedRow("B", 1, "-new")]);
+  backend.progress.set(scopedKey("B", 1), [...backend.progress.get(scopedKey("B", 1)), progressRow("B", 1, "-new")]);
+  backend.libraries.set(scopedKey("B", 1), [...backend.libraries.get(scopedKey("B", 1)), { ...libraryRow("B", 1), content_id: `${libraryKey("B", 1)}-new`, name: "Fixture B profile 1 new Library" }]);
+  backend.addons.set(scopedKey("B", 1), [...backend.addons.get(scopedKey("B", 1)), { ...addonRow("B", 1), url: addonUrl("B", 1).replace("/b-1", "/b-1-new") }]);
+
+  const receiverContext = await browser.newContext({ serviceWorkers: "block" });
+  try {
+    const receiverFixture = await installIdentityFixture(receiverContext, { nonempty: true, twoProfiles: true, backend });
+    const receiver = await receiverContext.newPage();
+    await receiver.goto("http://127.0.0.1:4371");
+    await signIn(receiver, "B", "1");
+    const snapshot = await localSnapshot(receiver);
+    expect(snapshot.library.map((item) => item.contentId)).toContain(`${libraryKey("B", 1)}-new`);
+    expect(snapshot.watched.map((item) => item.contentId)).toContain(`${watchedKey("B", 1)}-new`);
+    expect(snapshot.progress.map((item) => item.contentId)).toContain(`${progressKey("B", 1)}-new`);
+    expect(snapshot.addons["1"]).toContain(addonUrl("B", 1).replace("/b-1", "/b-1-new"));
+
+    const otherContext = await browser.newContext({ serviceWorkers: "block" });
+    try {
+      const otherFixture = await installIdentityFixture(otherContext, { nonempty: true, twoProfiles: true, backend });
+      const other = await otherContext.newPage();
+      await other.goto("http://127.0.0.1:4371");
+      await signIn(other, "A", "1");
+      await expectExactScopedData(other, "A", 1);
+      const otherSnapshot = await localSnapshot(other);
+      expect(otherSnapshot.library.map((item) => item.contentId)).not.toContain(`${libraryKey("B", 1)}-new`);
+      expect(otherSnapshot.watched.map((item) => item.contentId)).not.toContain(`${watchedKey("B", 1)}-new`);
+      expect(otherSnapshot.progress.map((item) => item.contentId)).not.toContain(`${progressKey("B", 1)}-new`);
+      expect(receiverFixture.unexpected).toEqual([]);
+      expect(otherFixture.unexpected).toEqual([]);
+    } finally {
+      await otherContext.close();
+    }
+    expect(writer.unexpected).toEqual([]);
+  } finally {
+    await receiverContext.close();
+  }
+});
+
+test("expired access with a rejected refresh cannot resume an authenticated session", async ({ context, page }) => {
+  const fixture = await installIdentityFixture(context);
+  await page.goto("/");
+  await signIn(page, "B");
+  await expectLibrary(page, "B");
+  const expired = token("B", Math.floor(Date.now() / 1000) - 3600);
+  await page.evaluate((value) => {
+    localStorage.setItem("access_token", value);
+    localStorage.setItem("refresh_token", "fixture-refresh-revoked");
+  }, expired);
+  await page.reload();
+  await expect(page.locator("#desktop-auth-email")).toBeVisible();
+  await expect(page.locator("#profileSelection")).not.toBeVisible();
+  expect(await page.evaluate(() => history.state?.route)).toMatch(/auth/i);
+  expect(fixture.unexpected).toEqual([]);
+});
+
+test("offline reload cannot complete a new server-valid sync or introduce foreign account data", async ({ context, page }) => {
+  const fixture = await installIdentityFixture(context);
+  await page.goto("/");
+  await signIn(page, "B");
+  await expectLibrary(page, "B");
+  fixture.setOffline(true);
+  const before = fixture.completions.length;
+  await page.reload();
+  await page.waitForTimeout(2000);
+  const snapshot = await localSnapshot(page);
+  const route = await page.evaluate(() => history.state?.route || null);
+  expect(fixture.completions.length).toBe(before);
+  expect(snapshot.library.every((item) => item.contentId.includes("-b") || item.contentId.includes("-b-"))).toBe(true);
+  expect(snapshot.watched.every((item) => item.contentId.includes("-b") || item.contentId.includes("-b-"))).toBe(true);
+  expect(route === null || route === "profileSelection" || route === "home" || route === "quickSetup").toBe(true);
   expect(fixture.unexpected).toEqual([]);
 });

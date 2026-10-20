@@ -1,9 +1,15 @@
 # Issue #7: [M1][P0] Validate existing Nuvio login, sync and profile isolation
 
-**Plan status:** Live session/profile checks passed; sync and synthetic lifecycle verification in progress.
+**Plan status:** Live session/profile checks passed; sync and synthetic lifecycle verification in progress. **2026-10-20:** #7 remains open with children #117–#120 and a fail-closed acceptance gate; see `docs/evidence/issue7-acceptance.json`.
 **Milestone:** M1 · **Priority:** P0  
 **GitHub issue:** https://github.com/saurabhhbansal/nuvioweb/issues/7  
 **Workstream:** [M1 roadmap](https://github.com/saurabhhbansal/nuvioweb/blob/main/docs/ROADMAP.md) · **Agent rules:** [AGENTS.md](https://github.com/saurabhhbansal/nuvioweb/blob/main/AGENTS.md)
+
+## Current disposition — 2026-10-20
+
+Parent #7 stays **open**. Four scoped children now carry the remaining work: [#117](https://github.com/saurabhbansal/nuvioweb/issues/117) (A1–A4 executable gate + nonempty synthetic fixtures), [#118](https://github.com/saurabhbansal/nuvioweb/issues/118) (A6/A7 QR publication/rendering), [#119](https://github.com/saurabhbansal/nuvioweb/issues/119) (A5 Library pending/snapshot/concurrency) and blocked [#120](https://github.com/saurabhbansal/nuvioweb/issues/120) (live A1/A2/A3/A8).
+
+`docs/evidence/issue7-acceptance.json` is the current A1–A8 disposition. The gate's schema mode passes on the honest blocked receipt; its default closure mode returns nonzero until every criterion is genuinely met. Synthetic browser/fixture passes do not replace live service, provider or device evidence, and no historical failing receipt is deleted. The owner's pause on live-account probes/writes/device tests remains in force.
 
 ## Objective and scope
 

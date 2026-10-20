@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "issue": 7,
+  "child": 117,
+  "date": "2026-10-20",
+  "kind": "synthetic",
+  "source_commit": "f30c79f6045786c821047532104c90aa65b861cc",
+  "environment": "pinned Node 22.23.1; inert loopback build served at http://127.0.0.1:4371; Playwright Chromium; all identity and add-on origins intercepted by the synthetic fixture",
+  "build": {
+    "command": "NUVIO_LOCAL_PROPERTIES=\"$PWD/tests/fixtures/build.properties\" npm run build --prefix app/alpha",
+    "asset_build_id": "faf439aa1b55",
+    "service_worker_cache": "nuvio-app-shell-0.1.5-c14417bb5abe",
+    "alpha_build_check": "12 nonempty assets, inert config, no privileged fields"
+  },
+  "commands": [
+    {
+      "argv": ["node", "--test", "scripts/check-issue7-acceptance.test.mjs"],
+      "result": "20 tests; see the validator test receipt in this same commit for the final pass/fail count."
+    },
+    {
+      "argv": ["npx", "playwright", "test", "tests/browser/identity-sync.spec.mjs", "--project=chromium"],
+      "result": "13 passed, 0 failed, 0 skipped (40.3s)"
+    },
+    {
+      "argv": ["node", "--test", "app/alpha/js/core/auth/authManager.lifecycle.test.mjs", "app/alpha/js/core/auth/authManager.test.mjs", "app/alpha/js/core/auth/accountLocalDataReset.test.mjs", "app/alpha/js/core/profile/startupSyncService.test.mjs", "app/alpha/js/core/profile/savedLibrarySyncService.test.mjs"],
+      "result": "55 passed, 0 failed, 0 skipped (567ms)"
+    }
+  ],
+  "browser_tests": [
+    {
+      "title": "built app hydrates nonempty Library and switches B to A to B without clearing storage",
+      "kind": "synthetic",
+      "result": "pass"
+    },
+    {
+      "title": "independent B contexts both hydrate Library while the first page stays open",
+      "kind": "synthetic",
+      "result": "pass"
+    },
+    {
+      "title": "Library hydration resumes after delayed critical settings settle",
+      "kind": "synthetic",
+      "result": "pass"
+    },
+    {
+      "title": "Library hydration reaches the bundled UI while catalog results remain pending",
+      "kind": "synthetic",
+      "result": "pass"
+    },
+    {
+      "title": "late B Library response cannot overwrite A after logout and account switch",
+      "kind": "synthetic",
+      "result": "pass"
+    },
+    {
+      "title": "reload rehydrates the same nonempty Library through a retained synthetic session",
+      "kind": "synthetic",
+      "result": "pass"
+    },
+    {
+      "title": "removing the final saved item sends an empty current-account snapshot from the bundled UI",
+      "kind": "synthetic",
+      "result": "pass"
+    },
+    {
+      "title": "clean independent receiver reflects deletion of the final cloud item on reload",
+      "kind": "synthetic",
+      "result": "pass"
+    },
+    {
+      "title": "failed local removal stays pending across reload and a competing nonempty cloud pull",
+      "kind": "synthetic",
+      "result": "pass"
+    },
+    {
+      "title": "two profiles keep distinguishable nonempty add-on, watched, progress and Library sets",
+      "kind": "synthetic",
+      "result": "pass",
+      "coverage": "Two profiles per synthetic account; profile-scoped sync_pull_watched_items, sync_pull_watch_progress and sync_pull_library use p_profile_id 1 and 2; add-ons use profile_id 1 and 2 because profile 2 has uses_primary_addons=false. Both round trips B profile 1 -> 2 -> 1 and B -> A were asserted."
+    },
+    {
+      "title": "a synthetic same-profile mutation appears only in an independent receiver context",
+      "kind": "synthetic",
+      "result": "pass",
+      "coverage": "The new add-on/watched/progress/Library keys were inserted by the fixture backend, not by an application UI write. A fresh independent B context observed them; a fresh A context did not."
+    },
+    {
+      "title": "expired access with a rejected refresh cannot resume an authenticated session",
+      "kind": "synthetic",
+      "result": "pass",
+      "coverage": "Expired synthetic access token plus a revoked refresh response returns to the sign-in screen; profile selection is hidden. This is a local auth-boundary assertion, not measured provider expiry."
+    },
+    {
+      "title": "offline reload cannot complete a new server-valid sync or introduce foreign account data",
+      "kind": "synthetic",
+      "result": "pass",
+      "coverage": "Identity requests fail at the network boundary; no new fixture completion is recorded; retained local Library/watched keys remain B-only. Cached local continuity is explicitly not a server-valid session claim."
+    }
+  ],
+  "app_ui_versus_fixture_mutations": {
+    "app_ui": [
+      "Sign-in, profile selection, profile switching, Library navigation, final-item removal and sign-out are driven through the bundled application UI.",
+      "Existing Library deletion/reload and pending-removal cases use the real UI save/remove paths."
+    ],
+    "fixture_backend": [
+      "The nonempty add-on, watched-item, progress and Library starting sets are synthetic server responses.",
+      "The same-profile new-key propagation case mutates the fixture backend directly; it does not prove an application write path.",
+      "Expired/revoked refresh and offline failures are synthetic transport controls."
+    ]
+  },
+  "assertions": [
+    "Exact synthetic keys are asserted in the DOM and in the relevant localStorage keys (savedLibraryItems, watchedItems, watchProgressItems, installedAddonUrls).",
+    "Foreign-account keys are asserted absent after both round trips.",
+    "Unknown identity/add-on/catalog routes fail or are recorded as unexpected; no real upstream request is allowed.",
+    "Nonempty controls are required; an empty synthetic response cannot satisfy a nonempty assertion."
+  ],
+  "limitations": [
+    "Synthetic loopback fixture only. It does not prove deployed Nuvio sync, provider authorization, CORS, real device behavior or real new-device propagation.",
+    "No live account, credential, session log, QR or device operation was used.",
+    "The fixture does not exercise an application UI write for add-ons/watched/progress; those mutations are explicitly fixture setup.",
+    "The offline case asserts absence of a new completed server sync and foreign data, not an offline retry or conflict-resolution guarantee."
+  ],
+  "acceptance_rows": {
+    "A1": "Synthetic auth lifecycle and sole identity contract pass; live/QR disposition remains separate.",
+    "A2": "Nonempty profile/add-on/watched/progress/Library routing passes synthetically; live new-data propagation remains unverified.",
+    "A3": "Synthetic isolation and removal cases pass; the unresolved live post-removal failure remains recorded.",
+    "A4": "Synthetic expired/rejected/offline and lifecycle boundaries pass; measured live refresh remains A8."
+  }
+}
