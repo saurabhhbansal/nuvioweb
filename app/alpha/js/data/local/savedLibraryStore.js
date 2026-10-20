@@ -98,10 +98,11 @@ export const SavedLibraryStore = {
     }
     const key = savedLibraryItemKey(normalized);
     const items = this.listAll();
-    const next = [normalized, ...items.filter((entry) => savedLibraryItemKey(entry) !== key)].slice(
-      0,
-      1000
-    );
+    // Never silently evict the oldest item at a 1000-item boundary. A local
+    // set larger than the full-snapshot API can carry is retained here and the
+    // push refuses it instead of deleting remote rows through a truncated
+    // replacement.
+    const next = [normalized, ...items.filter((entry) => savedLibraryItemKey(entry) !== key)];
     const nextItems = dedupeAndSort(next);
     if (itemsSignature(items) === itemsSignature(nextItems)) {
       return;
@@ -163,7 +164,7 @@ export const SavedLibraryStore = {
       .map((item) => normalizeItem(item, pid))
       .filter((item) => Boolean(item.contentId))
     );
-    const nextItems = dedupeAndSort([...normalized, ...keepOtherProfiles]).slice(0, 1000);
+    const nextItems = dedupeAndSort([...normalized, ...keepOtherProfiles]);
     if (itemsSignature(previousProfileItems) === itemsSignature(normalized)) {
       return;
     }

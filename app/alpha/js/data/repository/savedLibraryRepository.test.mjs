@@ -235,3 +235,25 @@ test("fresh remote hydration establishes clean metadata before cache publication
   assert.deepEqual((await f.repository.getAll()).map((item) => item.contentId), ["remote-clean"]);
   assert.equal(f.timers.size, 0);
 });
+
+test("the local store retains a 1001st item instead of evicting the oldest", async (t) => {
+  const f = await fixture(t);
+  for (let index = 0; index < 1001; index += 1) {
+    await f.repository.save({ contentId: `item-${index}` });
+  }
+  const retained = await f.repository.getAll(1001);
+  assert.equal(retained.length, 1001);
+  assert.equal((await f.repository.getAll(1000)).length, 1000);
+  assert.equal(retained.some((item) => item.contentId === "item-0"), true);
+  assert.equal(retained.some((item) => item.contentId === "item-1000"), true);
+});
+
+test("a 1001-item replacement (pull path) is retained without a cap", async (t) => {
+  const f = await fixture(t);
+  const items = Array.from({ length: 1001 }, (_, index) => ({ contentId: `pull-${index}` }));
+  await f.repository.replaceAll(items, "1");
+  const retained = await f.repository.getAll(1001);
+  assert.equal(retained.length, 1001);
+  assert.equal(retained.some((item) => item.contentId === "pull-0"), true);
+  assert.equal(retained.some((item) => item.contentId === "pull-1000"), true);
+});

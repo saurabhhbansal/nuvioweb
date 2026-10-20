@@ -14,7 +14,7 @@ This file is the durable handoff. A new agent must be able to resume from it wit
 
 ## Current selection — 2026-10-20 issue #7 closure execution
 
-- Selected ticket: **[#118](https://github.com/saurabhbansal/nuvioweb/issues/118)** — issue-7 CH2, QR attempt ownership and safe rendering. CH1 [#117](https://github.com/saurabhbansal/nuvioweb/issues/117) is complete and closed. After CH2: [#119](https://github.com/saurabhbansal/nuvioweb/issues/119) (Library pending/snapshot/concurrency characterization). [#120](https://github.com/saurabhbansal/nuvioweb/issues/120) (live A1/A2/A3/A8 + live QR) is **blocked** on explicit bounded owner resumption.
+- Selected ticket: **[#119](https://github.com/saurabhbansal/nuvioweb/issues/119)** — issue-7 CH3, Library pending/snapshot/concurrency characterization and finite safe policy. CH1 [#117](https://github.com/saurabhbansal/nuvioweb/issues/117) and CH2 [#118](https://github.com/saurabhbansal/nuvioweb/issues/118) are complete and closed. [#120](https://github.com/saurabhbansal/nuvioweb/issues/120) (live A1/A2/A3/A8 + live QR) is **blocked** on explicit bounded owner resumption.
 - Parent [#7](https://github.com/saurabhbansal/nuvioweb/issues/7) stays open. Current disposition: [docs/evidence/issue7-acceptance.json](../evidence/issue7-acceptance.json); `node scripts/check-issue7-acceptance.mjs docs/evidence/issue7-acceptance.json --validate` exits0, while the default closure mode exits2 with A2,A3,A5,A8 unmet. Child creation, a synthetic pass or a test count is not parent acceptance.
 - Do **not** continue #10/#11/#12/#23 roadmap work in this run. The material below is preserved historical/paused context, not the current selection.
 
@@ -50,7 +50,8 @@ This file is the durable handoff. A new agent must be able to resume from it wit
 
 ## Relevant plans and evidence
 
-- Issue plans: [issue #7](../plans/issues/issue-7.md) (includes the marker-probe amendment), [issue #117](../plans/issues/issue-117.md), [issue #118](../plans/issues/issue-118.md), issue #119, [issue #10](../plans/issues/issue-10.md).
+- Issue plans: [issue #7](../plans/issues/issue-7.md) (includes the marker-probe amendment), [issue #117](../plans/issues/issue-117.md), [issue #118](../plans/issues/issue-118.md), [issue #119](../plans/issues/issue-119.md), [issue #10](../plans/issues/issue-10.md).
+- Library policy: [LIBRARY_SYNC_POLICY.md](../LIBRARY_SYNC_POLICY.md).
 - Review records: [CH1](2026-10-20-issue7-ch1-review.md), [CH2](2026-10-20-issue7-ch2-review.md).
 - MVP gate: [MVP_ACCEPTANCE.md](../MVP_ACCEPTANCE.md).
 - Identity/sync: [IDENTITY_VERIFICATION.md](../IDENTITY_VERIFICATION.md); switch receipt [identity-switch-diagnosis-2026-10-19.json](../evidence/identity-switch-diagnosis-2026-10-19.json).
