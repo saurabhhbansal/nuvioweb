@@ -115,7 +115,7 @@
         3
       ],
       "progress": {
-        "branch": "m1/issue-117-acceptance-gate",
+        "branch": "main",
         "documents": [
           "docs/IDENTITY_VERIFICATION.md",
           "docs/plans/issues/issue-7.md",
@@ -142,7 +142,8 @@
           "tests/browser/identity-qr.spec.mjs",
           "docs/plans/issues/issue-119.md",
           "docs/LIBRARY_SYNC_POLICY.md",
-          "docs/evidence/issue7-library-policy-2026-10-20.json"
+          "docs/evidence/issue7-library-policy-2026-10-20.json",
+          "docs/evidence/issue7-execution-summary-2026-10-20.json"
         ],
         "verification": [
           "Owner reported initial three Windows/Edge checks passed; browser version and independent-session setup unspecified.",
@@ -170,7 +171,7 @@
           "CH3 #119 bounded Library policy at source 5468b16: push reads up to 1001 items and refuses before sync_push_library when the local set exceeds 1000, sending no request and preserving pending. 45 focused tests pass: failed-mutation reload/pull, legacy pending cache, stale acknowledgement, real-store 1001-item retention, >1000 push refusal, exactly-1000 push and two independent full-snapshot writers.",
           "Two-writer characterization is last-writer-wins: the later full snapshot loses the earlier edit. No server version/ETag/conflict contract is exposed by the checked client, so concurrent-writer repair remains BLOCKED and #119 stays open pending protocol evidence/owner decision."
         ],
-        "remaining": "Issue7 OPEN as acceptance parent. A1/A4/A6/A7 synthetically dispositioned; A2 partial (live new-data propagation), A3 retains the unexplained live post-removal switch, A5 blocked on same-account concurrent-writer protocol (1001-item truncation safely refused; policy published), A8 blocked under #120 (live A1/A2/A3 plus QR consent/expiry/device). Synthetic fixtures do not prove deployed sync, provider authorization, measured expiry/revocation, QR consent/device or cross-device deletion. Historical failing receipts retained. No repeated unchanged-source live probe.",
+        "remaining": "Issue7 OPEN as acceptance parent. A1/A4/A6/A7 synthetically dispositioned; A2 partial (live new-data propagation), A3 retains the unexplained live post-removal switch, A5 blocked on same-account concurrent-writer protocol (real-store 1001-item retention and >1000 push refusal; policy published), A8 blocked under #120 (live A1/A2/A3 plus QR consent/expiry/device). Synthetic fixtures do not prove deployed sync, provider authorization, measured expiry/revocation, QR consent/device or cross-device deletion. Historical failing receipts retained. No repeated unchanged-source live probe.",
         "children": [
           117,
           118,
