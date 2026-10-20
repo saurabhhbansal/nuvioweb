@@ -43,7 +43,13 @@ The validator derives the criterion status from observations instead of trusting
   committed artifact is the reference. Cross-criterion or child-based resolution is rejected because
   synthetic work or a differently scoped child must not erase a live failure.
 - pass/fail observations need a real committed 40-hex commit that exists and is an ancestor of the
-  tested HEAD; an `observed_at` timestamp orders same-criterion evidence.
+  tested HEAD; artifacts must be tracked at HEAD and resolve inside the repository. A resolving
+  observation must be a later git descendant of the failing commit, and an `observed_at` timestamp
+  orders same-criterion evidence. JSON artifacts must not contradict the observation's kind or, for
+  synthetic evidence, its `source_commit`.
+- `--validate` proves internal consistency, not tamper-proof authorship. A non-cooperating contributor
+  can rewrite the receipt, the ledger and the artifacts together; closure still needs owner/technical
+  review and protected merge.
 
 `scripts/check-issue7-acceptance.mjs --validate` checks structure and honesty only and exits 0 for an
 honest blocked receipt. The default full-closure mode exits 2 when the receipt is structurally valid
@@ -95,7 +101,7 @@ structural error, not a warning.
 ## Test commands
 
 ```bash
-node --test scripts/check-issue7-acceptance.test.mjs                                       # 29/29
+node --test scripts/check-issue7-acceptance.test.mjs                                       # 34/34
 node scripts/check-issue7-acceptance.mjs docs/evidence/issue7-acceptance.json --validate   # 0
 node scripts/check-issue7-acceptance.mjs docs/evidence/issue7-acceptance.json              # 2 while blocked
 node scripts/qr-ownership-probe.mjs app/alpha/js --assert-safe                             # red until CH2

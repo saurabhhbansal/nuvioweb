@@ -6,7 +6,7 @@
 // any mapped criterion is unmet, 1 when the receipt is structurally invalid, and
 // 0 only when the original contract is fully evidenced.
 import { execFileSync } from "node:child_process";
-import { existsSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readFileSync, realpathSync, statSync } from "node:fs";
 import { isAbsolute, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -81,7 +81,7 @@ export function isCountOnlyResult(value) {
   const stripped = text
     .replace(/\b\d+(?:\.\d+)?(?:ms|s|secs?|seconds?|mins?|minutes?|h|hours?)\b/g, "")
     .replace(/\b\d+\b/g, "")
-    .replace(/\b(tests?|cases?|pass|passed|all|of|and|with|zero|skips?|in|s|ms|sec|secs|seconds?|mins?|minutes?|hours?)\b/g, "")
+    .replace(/\b(tests?|cases?|specs?|checks?|scenarios?|results?|pass|passed|passing|succeeded|green|ok|all|of|and|with|zero|skips?|in|s|ms|sec|secs|seconds?|mins?|minutes?|hours?)\b/g, "")
     .replace(/[^a-z]/g, "");
   return stripped.length === 0;
 }
@@ -99,13 +99,50 @@ function artifactProblem(root, artifact) {
   if (inside === ".." || inside.startsWith(".." + sep)) return "artifact escapes the repository";
   if (!existsSync(target)) return `artifact does not exist: ${artifact}`;
   try {
-    if (!statSync(target).isFile() || statSync(target).size < 3) {
+    const realRoot = realpathSync(root);
+    const realTarget = realpathSync(target);
+    const realInside = relative(realRoot, realTarget);
+    if (realInside === ".." || realInside.startsWith(".." + sep)) {
+      return `artifact resolves outside the repository: ${artifact}`;
+    }
+    if (!statSync(realTarget).isFile() || statSync(realTarget).size < 3) {
       return `artifact is empty or not a file: ${artifact}`;
     }
-  } catch {
+    execFileSync("git", ["cat-file", "-e", `HEAD:${inside.split(sep).join("/")}`], { cwd: root, stdio: "ignore" });
+  } catch (error) {
+    if (error?.status === 128 || error?.status === 1) return `artifact is not committed at HEAD: ${artifact}`;
     return `artifact is unreadable: ${artifact}`;
   }
   return null;
+}
+
+function canonicalArtifact(root, artifact) {
+  try {
+    return realpathSync(resolve(root, artifact));
+  } catch {
+    return resolve(root, artifact);
+  }
+}
+
+function isAncestor(root, ancestor, descendant) {
+  if (!COMMIT_PATTERN.test(String(ancestor || "")) || !COMMIT_PATTERN.test(String(descendant || ""))) return false;
+  if (ancestor === descendant) return false;
+  try {
+    execFileSync("git", ["merge-base", "--is-ancestor", ancestor, descendant], { cwd: root, stdio: "ignore" });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function artifactDeclaration(root, artifact) {
+  if (!artifact.endsWith(".json")) return null;
+  try {
+    const value = JSON.parse(readFileSync(resolve(root, artifact), "utf8"));
+    return isPlainObject(value) ? value : null;
+  } catch {
+    return null;
+  }
 }
 
 function commitProblem(root, commit) {
@@ -182,7 +219,7 @@ function sameCriterionResolution(criterion, failingObservation) {
 
 function resolutionProblem(root, criterion) {
   const resolution = criterion.resolution;
-  const failing = (criterion.observations || []).filter((item) => item?.status === "fail");
+  const failing = (criterion.observations || []).filter((item) => isPlainObject(item) && item.status === "fail");
   if (!failing.length) {
     if (isPlainObject(resolution) && resolution.state === "resolved") {
       return "a resolved state exists without a failing observation";
@@ -201,6 +238,19 @@ function resolutionProblem(root, criterion) {
   for (const observation of failing) {
     if (!sameCriterionResolution(criterion, observation)) {
       return `resolved failure needs a later same-kind pass observation (${observation.kind}) whose artifact is the reference`;
+    }
+    const resolving = (criterion.observations || []).find((candidate) =>
+      candidate?.status === "pass" &&
+      candidate.kind === observation.kind &&
+      candidate.artifact === resolution.reference &&
+      Date.parse(candidate.observed_at || "") > Date.parse(observation.observed_at || "")
+    );
+    if (!resolving) return "resolved failure has no matching resolving observation";
+    if (canonicalArtifact(root, resolving.artifact) === canonicalArtifact(root, observation.artifact)) {
+      return "resolving artifact is the failing observation's own artifact";
+    }
+    if (!isAncestor(root, observation.commit, resolving.commit)) {
+      return "resolving observation commit must be a later descendant of the failing commit";
     }
   }
   return null;
@@ -240,6 +290,15 @@ function validateObservation(root, criterionId, observation, index) {
   }
   const artifactIssue = artifactProblem(root, observation.artifact);
   if (artifactIssue) errors.push(`${prefix}: ${artifactIssue}`);
+  const declaration = artifactDeclaration(root, observation.artifact);
+  if (declaration && ["synthetic", "live"].includes(observation.kind) && KIND_VALUES.has(declaration.kind) && declaration.kind !== observation.kind) {
+    errors.push(`${prefix}: artifact declares kind ${declaration.kind}, not ${observation.kind}`);
+  }
+  if (observation.kind === "synthetic" && declaration?.kind === "synthetic" && isNonEmptyString(declaration.source_commit)) {
+    if (declaration.source_commit !== observation.commit) {
+      errors.push(`${prefix}: synthetic artifact source_commit does not match the observation commit`);
+    }
+  }
   return errors;
 }
 
@@ -250,7 +309,7 @@ function resolvedFailure(criterion, observation) {
 export function deriveCriterionStatus(criterion) {
   const observations = Array.isArray(criterion?.observations) ? criterion.observations : [];
   if (!observations.length) return "unverified";
-  const active = observations.filter((observation) => !resolvedFailure(criterion, observation));
+  const active = observations.filter((observation) => isPlainObject(observation) && !resolvedFailure(criterion, observation));
   if (!active.length) return "unverified";
   if (active.some((observation) => observation.status === "fail")) return "fail";
   if (active.some((observation) => observation.status === "blocked")) return "blocked";
@@ -265,7 +324,7 @@ export function deriveCriterionStatus(criterion) {
 }
 
 export function deriveUnmetIds(receipt) {
-  return (receipt?.criteria || [])
+  return (Array.isArray(receipt?.criteria) ? receipt.criteria : [])
     .filter((criterion) => deriveCriterionStatus(criterion) !== "pass")
     .map((criterion) => criterion.id);
 }
@@ -352,7 +411,8 @@ export function validateReceipt(receipt, { root = process.cwd() } = {}) {
     if (!isNonEmptyString(child.scope)) errors.push(`${prefix}: missing scope`);
   }
 
-  const criteria = Array.isArray(receipt.criteria) ? receipt.criteria : [];
+  if (!Array.isArray(receipt.criteria)) errors.push("criteria must be an array");
+  const criteria = Array.isArray(receipt.criteria) ? receipt.criteria.filter((criterion) => isPlainObject(criterion)) : [];
   const ids = criteria.map((criterion) => criterion?.id);
   if (new Set(ids).size !== ids.length) errors.push("criteria contain duplicate IDs");
   for (const id of CRITERION_IDS) {
@@ -483,7 +543,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
       process.exitCode = 1;
     } else if (validateOnly) {
       console.log(
-        `Issue #7 acceptance receipt is structurally valid and honest: ${result.unmet_ids.length} unmet (${result.unmet_ids.join(", ")}). Schema validation only; parent remains open.`
+        `Issue #7 acceptance receipt is structurally valid and internally consistent (not a tamper-proof signature): ${result.unmet_ids.length} unmet (${result.unmet_ids.join(", ")}). Schema validation only; parent remains open.`
       );
     } else if (result.met) {
       console.log("Issue #7 acceptance is fully evidenced; closure gate passes.");

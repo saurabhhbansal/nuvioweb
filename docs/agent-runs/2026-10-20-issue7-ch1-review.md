@@ -34,7 +34,7 @@ substitution is recorded here as required by the integration gate.
 
 ## Verification after fixes (executor run)
 
-- `node --test scripts/check-issue7-acceptance.test.mjs` — 29/29 pass.
+- `node --test scripts/check-issue7-acceptance.test.mjs` — 34/34 pass.
 - `node scripts/check-issue7-acceptance.mjs docs/evidence/issue7-acceptance.json --validate` — exit 0.
 - Default closure mode — exit 2 with A1,A2,A3,A5,A6,A7,A8 unmet.
 - `npx playwright test tests/browser/identity-sync.spec.mjs --project=chromium` — 13/13 pass.

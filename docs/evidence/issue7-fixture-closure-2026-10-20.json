@@ -19,7 +19,7 @@
         "--test",
         "scripts/check-issue7-acceptance.test.mjs"
       ],
-      "result": "29 tests; 29 passed, 0 failed, 0 skipped (2.25s)."
+      "result": "34 tests; 34 passed, 0 failed, 0 skipped (4.5s)."
     },
     {
       "argv": [

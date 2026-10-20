@@ -54,7 +54,7 @@ test("schema CLI exits 0 for the honest blocked receipt and full closure exits 2
     encoding: "utf8"
   });
   assert.equal(schema.status, 0, schema.stderr);
-  assert.match(schema.stdout, /structurally valid and honest/);
+  assert.match(schema.stdout, /internally consistent/);
   const closure = spawnSync(process.execPath, ["scripts/check-issue7-acceptance.mjs", receiptPath], {
     cwd: root,
     encoding: "utf8"
@@ -160,7 +160,7 @@ test("a failure resolved by a later same-kind pass on the same criterion is acce
     row.observations.push({
       kind: "live",
       status: "pass",
-      commit: "1f67867ebab7f426672886121d852a643a436414",
+      commit: "18d9cb75933f3eafdfa050afac94b3e6a7b73cf5",
       deployment: "nuvioweb-preview.pages.dev deployment b48de821 / revision 1f67867",
       observed_at: "2026-10-19T17:48:20Z",
       command_or_observation: "Immediate read-only B-to-A-to-B round trip after the failed post-removal switch.",
@@ -179,6 +179,126 @@ test("a failure resolved by a later same-kind pass on the same criterion is acce
   });
   assert.deepEqual(result.errors, []);
   assert.deepEqual(result.unmet_ids, ["A1", "A2", "A5", "A6", "A7", "A8"]);
+});
+
+test("an untracked or aliased artifact cannot resolve a failure", () => {
+  const untracked = mutated((receipt) => {
+    const row = criterion(receipt, "A3");
+    row.observations.push({
+      kind: "live",
+      status: "pass",
+      commit: "18d9cb75933f3eafdfa050afac94b3e6a7b73cf5",
+      deployment: "fixture deployment",
+      observed_at: "2026-10-20T01:00:00Z",
+      command_or_observation: "Untracked artifact mutation.",
+      assertion: "An untracked path must not be accepted as committed evidence.",
+      result: "Mutation only.",
+      artifact: ".git/config",
+      limitations: "Test mutation."
+    });
+    row.resolution = { state: "resolved", resolved_by: "A3", reference: ".git/config" };
+    row.status = "pass";
+    receipt.closure.unmet_ids = ["A1", "A2", "A5", "A6", "A7", "A8"];
+  });
+  assert.ok(hasError(untracked.errors, "artifact is not committed at HEAD"));
+  const alias = mutated((receipt) => {
+    const row = criterion(receipt, "A3");
+    row.observations.push({
+      kind: "live",
+      status: "pass",
+      commit: "18d9cb75933f3eafdfa050afac94b3e6a7b73cf5",
+      deployment: "fixture deployment",
+      observed_at: "2026-10-20T01:00:00Z",
+      command_or_observation: "Aliased artifact mutation.",
+      assertion: "A path alias of the failing artifact must not count as distinct evidence.",
+      result: "Mutation only.",
+      artifact: "docs/evidence/./identity-library-removal-switch-2026-10-19.json",
+      limitations: "Test mutation."
+    });
+    row.resolution = {
+      state: "resolved",
+      resolved_by: "A3",
+      reference: "docs/evidence/./identity-library-removal-switch-2026-10-19.json"
+    };
+    row.status = "pass";
+    receipt.closure.unmet_ids = ["A1", "A2", "A5", "A6", "A7", "A8"];
+  });
+  assert.ok(hasError(alias.errors, "resolving artifact is the failing observation's own artifact"));
+});
+
+test("a resolving commit must be a later descendant of the failing commit", () => {
+  const result = mutated((receipt) => {
+    const row = criterion(receipt, "A3");
+    row.observations.push({
+      kind: "live",
+      status: "pass",
+      commit: "1f67867ebab7f426672886121d852a643a436414",
+      deployment: "nuvioweb-preview.pages.dev deployment b48de821 / revision 1f67867",
+      observed_at: "2026-10-19T17:48:20Z",
+      command_or_observation: "Same-commit read-only rerun.",
+      assertion: "A rerun at the same commit cannot be later evidence for a failure at that commit.",
+      result: "Mutation only.",
+      artifact: "docs/evidence/identity-roundtrip-after-removal-2026-10-19.json",
+      limitations: "Test mutation."
+    });
+    row.resolution = {
+      state: "resolved",
+      resolved_by: "A3",
+      reference: "docs/evidence/identity-roundtrip-after-removal-2026-10-19.json"
+    };
+    row.status = "pass";
+    receipt.closure.unmet_ids = ["A1", "A2", "A5", "A6", "A7", "A8"];
+  });
+  assert.ok(hasError(result.errors, "resolving observation commit must be a later descendant"));
+});
+
+test("a synthetic artifact cannot satisfy a live observation", () => {
+  const result = mutated((receipt) => {
+    const row = criterion(receipt, "A8");
+    row.status = "pass";
+    row.observations = [{
+      kind: "live",
+      status: "pass",
+      commit: "18d9cb75933f3eafdfa050afac94b3e6a7b73cf5",
+      deployment: "self-declared fixture deployment",
+      observed_at: "2026-10-20T00:55:00Z",
+      command_or_observation: "A synthetic fixture artifact relabeled as live.",
+      assertion: "The artifact metadata must agree that this is live evidence.",
+      result: "Mutation only.",
+      artifact: "docs/evidence/issue7-fixture-closure-2026-10-20.json",
+      limitations: "Test mutation."
+    }, {
+      kind: "review",
+      status: "pass",
+      commit: "18d9cb75933f3eafdfa050afac94b3e6a7b73cf5",
+      deployment: null,
+      observed_at: "2026-10-20T00:55:00Z",
+      command_or_observation: "review mutation",
+      assertion: "Review evidence is also required by the immutable mapping.",
+      result: "Mutation only.",
+      artifact: "docs/evidence/issue7-fixture-closure-2026-10-20.json",
+      limitations: "Test mutation."
+    }];
+  });
+  assert.ok(hasError(result.errors, "artifact declares kind synthetic, not live"));
+});
+
+test("a synthetic observation must match its artifact source commit", () => {
+  const result = mutated((receipt) => {
+    criterion(receipt, "A2").observations[0].commit = "d77a9119795890ed05eb29000cb7b7b7956be23c";
+  });
+  assert.ok(hasError(result.errors, "synthetic artifact source_commit does not match the observation commit"));
+});
+
+test("malformed observations and criteria fail cleanly", () => {
+  const nullObservation = mutated((receipt) => {
+    criterion(receipt, "A2").observations.push(null);
+  });
+  assert.ok(hasError(nullObservation.errors, "A2.observations[2]: observation must be an object"));
+  const badCriteria = mutated((receipt) => {
+    receipt.criteria = "not-an-array";
+  });
+  assert.ok(hasError(badCriteria.errors, "criteria must be an array"));
 });
 
 test("a later pass of a different kind cannot resolve a live failure", () => {
@@ -275,6 +395,10 @@ test("a test count cannot be used as a passing result", () => {
   assert.equal(isCountOnlyResult("57/57 tests passed"), true);
   assert.equal(isCountOnlyResult("13 passed, 40.3s"), true);
   assert.equal(isCountOnlyResult("13 passed in 40.3s"), true);
+  assert.equal(isCountOnlyResult("1396 specs green"), true);
+  assert.equal(isCountOnlyResult("All 1396 tests succeeded"), true);
+  assert.equal(isCountOnlyResult("1396 checks passed"), true);
+  assert.equal(isCountOnlyResult("13/13 scenarios ok"), true);
   assert.equal(isCountOnlyResult("13 passed in 40.3s; receiver restored the exact nonempty A key set"), false);
   const result = mutated((receipt) => {
     criterion(receipt, "A2").observations[0].result = "1396/1396 pass";
