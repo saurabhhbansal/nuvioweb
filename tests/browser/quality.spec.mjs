@@ -144,8 +144,26 @@ for (const [scenario, width, height, file] of [
     }));
     expect(initial.duration).toBeGreaterThan(1);
     await video.evaluate((video) => {
-      globalThis.__qualitySeekObservation = { seeked: false, playRejection: null };
-      video.addEventListener("seeked", () => { globalThis.__qualitySeekObservation.seeked = true; }, { once: true });
+      if (typeof video.requestVideoFrameCallback !== "function") throw new Error("Presented-frame API required for this decode/seek claim");
+      const observation = globalThis.__qualitySeekObservation = { seeked: false, playRejection: null, frames: [], frameDeadline: false };
+      video.addEventListener("seeked", () => {
+        observation.seeked = true;
+        let id;
+        const timer = setTimeout(() => { video.cancelVideoFrameCallback(id); observation.frameDeadline = true; }, 5000);
+        const frame = (_, metadata) => {
+          // Register after seeked; the FIRST frame must match the new target.
+          // rVFC is best-effort, not every frame: WebKit may notify the next
+          // genuinely newer presentation >1s later in these low-frame-rate clips.
+          const first = observation.frames[0];
+          if ((!first && metadata.mediaTime >= 0.25 && metadata.mediaTime <= 1.1) ||
+            (first && metadata.mediaTime > first.mediaTime + 0.005 && metadata.mediaTime < video.duration && metadata.presentedFrames > first.presentedFrames)) {
+            observation.frames.push({ mediaTime: metadata.mediaTime, presentedFrames: metadata.presentedFrames, width: metadata.width, height: metadata.height });
+          }
+          if (observation.frames.length >= 2) clearTimeout(timer);
+          else id = video.requestVideoFrameCallback(frame);
+        };
+        id = video.requestVideoFrameCallback(frame);
+      }, { once: true });
       video.pause();
       video.currentTime = 0.4;
       // Some WebKit/GStreamer builds resolve play() only at the end of this
@@ -160,7 +178,10 @@ for (const [scenario, width, height, file] of [
       ended: video.ended,
       error: video.error?.code || null,
       playRejection: globalThis.__qualitySeekObservation.playRejection,
-    }))).toEqual({ seeked: true, advanced: true, seeking: false, ended: false, error: null, playRejection: null });
+      presented: globalThis.__qualitySeekObservation.frames.length === 2 && globalThis.__qualitySeekObservation.frames.every(frame => frame.width === video.videoWidth && frame.height === video.videoHeight),
+      frameDeadline: globalThis.__qualitySeekObservation.frameDeadline,
+    }))).toEqual({ seeked: true, advanced: true, seeking: false, ended: false, error: null, playRejection: null, presented: true, frameDeadline: false });
+    const postSeek = await video.evaluate(() => globalThis.__qualitySeekObservation);
     expect(
       await video.evaluate((video) => video.error?.code || null),
     ).toBeNull();
@@ -209,7 +230,7 @@ for (const [scenario, width, height, file] of [
       () => globalThis.__qualityEngineEvents,
     );
     await testInfo.attach("actual-quality-observation", {
-      body: JSON.stringify({ scenario, outcome: "ORIGINAL_DECODE_AND_SEEK", engine: testInfo.project.name, predictionType, nativePrediction, originalEncodedSourceSha256: original.sha256, servedSourceSha256, initial, media, engineEvents }),
+      body: JSON.stringify({ scenario, outcome: "ORIGINAL_DECODE_AND_SEEK", engine: testInfo.project.name, predictionType, nativePrediction, originalEncodedSourceSha256: original.sha256, servedSourceSha256, containerNormalization: "Lossless canonical test container; exact original encoded packets retained", expectedDuration, postSeek, initial, media, engineEvents }),
       contentType: "application/json",
     });
     const observed = await (

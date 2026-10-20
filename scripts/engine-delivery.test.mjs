@@ -20,8 +20,8 @@ test("post-seek errors and invalid browser duration cannot certify decode", () =
   assert.equal(decodedAndSeeked(good), true);
   assert.equal(decodedAndSeeked({ ...good, seek: { ...good.seek, error: 3 } }), false);
   assert.equal(decodedAndSeeked({ ...good, metadata: { ...good.metadata, duration: Infinity } }), false);
-  assert.equal(decodedAndSeeked({ ...good, seek: { ...good.seek, frameCallbackAvailable: true, postSeekFrame: { firstMediaTime: 8.45, frames: 2, mediaTime: 8.5, width: 3840, height: 2160 } } }), false);
-  assert.equal(decodedAndSeeked({ ...good, seek: { ...good.seek, frameCallbackAvailable: true, postSeekFrame: { firstMediaTime: 0.5, frames: 2, mediaTime: 0.55, width: 3840, height: 2160 } } }), true);
+  assert.equal(decodedAndSeeked({ ...good, seek: { ...good.seek, frameCallbackAvailable: true, postSeekFrame: { firstMediaTime: 8.45, firstPresentedFrames: 5, presentedFrames: 11, frames: 2, mediaTime: 8.5, width: 3840, height: 2160 } } }), false);
+  assert.equal(decodedAndSeeked({ ...good, seek: { ...good.seek, frameCallbackAvailable: true, postSeekFrame: { firstMediaTime: 0.5, firstPresentedFrames: 5, presentedFrames: 11, frames: 2, mediaTime: 1.8, width: 3840, height: 2160 } } }), true);
 });
 
 test("matrix exit distinguishes positive-probe failure and performance gap from unsupported observation", () => {

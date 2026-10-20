@@ -109,18 +109,20 @@ try {
             // Register only after seek completion; a queued pre-seek frame must
             // not certify the new timeline. Accept only a near-target frame.
             const frameAfterSeek = video.requestVideoFrameCallback ? new Promise(resolve => {
-              let id, firstMediaTime = null;
+              let id, firstMediaTime = null, firstPresentedFrames = null;
               const timer = setTimeout(() => { video.cancelVideoFrameCallback(id); resolve(null); }, 10000);
               const onFrame = (_, metadata) => {
-                if (metadata.mediaTime < target - 0.15 || metadata.mediaTime > target + 0.5) {
+                if (firstMediaTime === null) {
+                  if (metadata.mediaTime >= target - 0.15 && metadata.mediaTime <= target + 0.5) {
+                    firstMediaTime = metadata.mediaTime; firstPresentedFrames = metadata.presentedFrames;
+                  }
                   id = video.requestVideoFrameCallback(onFrame); return;
                 }
-                if (firstMediaTime === null) firstMediaTime = metadata.mediaTime;
-                if (metadata.mediaTime <= firstMediaTime + 0.005) {
+                if (metadata.mediaTime <= firstMediaTime + 0.005 || metadata.mediaTime > Math.min(video.duration, target + 2.5) || metadata.presentedFrames <= firstPresentedFrames) {
                   id = video.requestVideoFrameCallback(onFrame); return;
                 }
                 clearTimeout(timer);
-                resolve({ firstMediaTime, frames: 2, mediaTime: metadata.mediaTime, width: metadata.width, height: metadata.height });
+                resolve({ firstMediaTime, firstPresentedFrames, presentedFrames: metadata.presentedFrames, frames: 2, mediaTime: metadata.mediaTime, width: metadata.width, height: metadata.height });
               };
               id = video.requestVideoFrameCallback(onFrame);
             }) : Promise.resolve(null);
