@@ -219,7 +219,9 @@ class AuthManagerClass {
         throw new Error("Authentication attempt was superseded");
       }
       if (typeof canPublish === "function" && !canPublish()) {
-        throw new Error("Authentication publication was cancelled");
+        const error = new Error("Authentication publication was cancelled");
+        error.code = "AUTH_PUBLICATION_CANCELLED";
+        throw error;
       }
     };
     checkAuthAttempt();

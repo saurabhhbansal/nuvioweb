@@ -289,6 +289,33 @@ test("cancelling during owner resolution prevents publication", async () => {
   });
 });
 
+test("a new QR attempt during owner resolution does not publish or clear the new attempt", async () => {
+  const ownerResponse = deferred();
+  const ownerStarted = deferred();
+  await withSession(anonymousSession(), async (url) => {
+    if (url.endsWith("/functions/v1/tv-logins-exchange")) {
+      return json({ access_token: token("qr-account"), refresh_token: "qr-refresh" });
+    }
+    if (url.endsWith("/rest/v1/rpc/get_sync_owner")) {
+      ownerStarted.resolve();
+      return ownerResponse.promise;
+    }
+    throw new Error(`unexpected request ${url}`);
+  }, async () => {
+    const first = QrLoginService.beginAttempt();
+    const pending = QrLoginService.exchange("synthetic-code", "synthetic-nonce", first);
+    await ownerStarted.promise;
+    const second = QrLoginService.beginAttempt();
+    ownerResponse.resolve(json("owner-qr"));
+    assert.equal(await pending, false);
+    assert.equal(QrLoginService.isAttemptActive(first), false);
+    assert.equal(QrLoginService.isAttemptActive(second), true);
+    assert.equal(AuthManager.getAuthState(), AuthState.LOADING);
+    assert.equal(globalThis.localStorage.getItem("nuvioAccountOwnerMarker"), null);
+    assert.equal(SessionStore.accessToken, null);
+  });
+});
+
 test("a start error is redacted for the device nonce", async () => {
   const descriptor = Object.getOwnPropertyDescriptor(globalThis, "crypto");
   const originalWindow = globalThis.window;

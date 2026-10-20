@@ -226,6 +226,10 @@ function isStaleAttemptError(error) {
 }
 
 function beginAttempt() {
+  const previous = activeAttempt;
+  if (previous?.authAttemptId != null && AuthManager.authAttemptSequence === previous.authAttemptId) {
+    AuthManager.beginAuthenticationAttempt();
+  }
   attemptSequence += 1;
   const attempt = {
     id: attemptSequence,
@@ -694,7 +698,9 @@ export const QrLoginService = {
         return false;
       }
       const authAttempt = attempt.authAttemptId;
-      if (authAttempt != null && AuthManager.authAttemptSequence === authAttempt) {
+      const superseded = error?.code === "AUTH_PUBLICATION_CANCELLED" ||
+        (authAttempt != null && AuthManager.authAttemptSequence !== authAttempt);
+      if (!superseded && authAttempt != null) {
         // This exchange still owns the current authentication attempt, so a
         // failed establishment must fail closed and clear its local session.
         await AuthManager.signOut().catch(() => {});
