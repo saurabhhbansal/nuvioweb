@@ -222,7 +222,7 @@ async function installIdentityFixture(context, {
     try { body = request.postDataJSON() || {}; } catch { body = {}; }
     const rawProfile = body.p_profile_id ?? url.searchParams.get("profile_id")?.replace("eq.", "");
     const strictProfileOperations = new Set([
-      "sync_pull_library", "sync_push_library", "sync_pull_watched_items",
+      "sync_pull_library", "sync_push_library_items", "sync_delete_library_items", "sync_pull_watched_items",
       "sync_push_watched_items", "sync_pull_watch_progress", "sync_push_watch_progress",
       "sync_push_profile_settings_blob"
     ]);
@@ -240,13 +240,20 @@ async function installIdentityFixture(context, {
       }
       return json(libraries.get(alias));
     }
-    if (allowLibraryWrites && operation === "sync_push_library" && request.method() === "POST") {
+    if (allowLibraryWrites && ["sync_push_library_items", "sync_delete_library_items"].includes(operation) && request.method() === "POST") {
       expect(profileId).toBe("1");
-      expect(Array.isArray(body.p_items)).toBe(true);
-      libraryWrites.push({ alias, profileId: Number(profileId), items: body.p_items });
+      const isDelete = operation === "sync_delete_library_items";
+      const changes = isDelete ? body.p_keys : body.p_items;
+      expect(Array.isArray(changes)).toBe(true);
+      libraryWrites.push({ alias, profileId: Number(profileId), operation, changes });
       if (rejectLibraryWrites) return json({ error: "synthetic write unavailable" }, 503);
-      if (nonempty) state.libraries.set(scopedKey(alias, profileId), body.p_items);
-      else libraries.set(alias, body.p_items);
+      let current = nonempty ? state.libraries.get(scopedKey(alias, profileId)) || [] : libraries.get(alias) || [];
+      for (const change of changes) {
+        current = current.filter(row => row.content_id !== change.content_id || row.content_type !== change.content_type);
+        if (!isDelete) current.push(change);
+      }
+      if (nonempty) state.libraries.set(scopedKey(alias, profileId), current);
+      else libraries.set(alias, current);
       completions.push({ alias, operation, profileId });
       return json(null);
     }
@@ -535,7 +542,7 @@ test("reload rehydrates the same nonempty Library through a retained synthetic s
   expect(fixture.unexpected).toEqual([]);
 });
 
-test("removing the final saved item sends an empty current-account snapshot from the bundled UI", async ({ context, page }) => {
+test("removing the final saved item sends only its exact current-account delete from the bundled UI", async ({ context, page }) => {
   const fixture = await installIdentityFixture(context, { allowLibraryWrites: true });
   await page.goto("/");
   await signIn(page, "B");
@@ -543,7 +550,7 @@ test("removing the final saved item sends an empty current-account snapshot from
   await page.locator('#library .library-grid-card[data-item-id="fixture-library-b"]').click({ button: "right" });
   await page.getByRole("menuitem", { name: "Remove from Library", exact: true }).click();
   await expect(page.locator('#library .library-grid-card[data-item-id="fixture-library-b"]')).toHaveCount(0);
-  await expect.poll(() => fixture.libraryWrites).toEqual([{ alias: "B", profileId: 1, items: [] }]);
+  await expect.poll(() => fixture.libraryWrites).toEqual([{ alias: "B", profileId: 1, operation: "sync_delete_library_items", changes: [{ content_id: "fixture-library-b", content_type: "movie" }] }]);
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem("savedLibraryItems") || "[]"))).toEqual([]);
   expect(fixture.unexpected).toEqual([]);
 });
@@ -563,7 +570,7 @@ test("clean independent receiver reflects deletion of the final cloud item on re
     await expectLibrary(receiver, "B");
     await page.locator('#library .library-grid-card[data-item-id="fixture-library-b"]').click({ button: "right" });
     await page.getByRole("menuitem", { name: "Remove from Library", exact: true }).click();
-    await expect.poll(() => backend.libraryWrites).toEqual([{ alias: "B", profileId: 1, items: [] }]);
+    await expect.poll(() => backend.libraryWrites).toEqual([{ alias: "B", profileId: 1, operation: "sync_delete_library_items", changes: [{ content_id: "fixture-library-b", content_type: "movie" }] }]);
     expect(backend.libraries.get("B")).toEqual([]);
     expect(backend.libraries.get("A")).toEqual(library("A"));
     const start = observer.requests.length;
@@ -737,4 +744,22 @@ test("unknown foreign destinations are recorded even when blocked", async ({ con
   const fixture = await installIdentityFixture(context);
   await page.goto("https://unlisted.fixture.invalid/probe").catch(() => {});
   expect(fixture.unexpected).toEqual([expect.objectContaining({ origin: "https://unlisted.fixture.invalid" })]);
+});
+
+test("explicit UI deletion preserves an unseen concurrent Library addition", async ({ context, page }) => {
+  const backend = { libraries: new Map(Object.keys(accounts).map(alias => [alias, library(alias)])), libraryWrites: [] };
+  const fixture = await installIdentityFixture(context, { allowLibraryWrites: true, backend });
+  await page.goto("/");
+  await signIn(page, "B");
+  await expectLibrary(page, "B");
+  // A different writer adds a key after this app has pulled its older set.
+  // This is backend setup, not an application Save-path claim.
+  const concurrent = { ...library("B")[0], content_id: "fixture-concurrent-new-key" };
+  backend.libraries.get("B").push(concurrent);
+  await page.locator('#library .library-grid-card[data-item-id="fixture-library-b"]').click({ button: "right" });
+  await page.getByRole("menuitem", { name: "Remove from Library", exact: true }).click();
+  await expect.poll(() => backend.libraryWrites.length).toBe(1);
+  expect(backend.libraries.get("B").map(row => row.content_id)).toEqual([concurrent.content_id]);
+  expect(backend.libraries.get("A")).toEqual(library("A"));
+  expect(fixture.unexpected).toEqual([]);
 });

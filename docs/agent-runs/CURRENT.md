@@ -1,6 +1,6 @@
 # Current issue #7 remediation — 2026-10-20
 
-Implementation owner: Sol 6.1/high. Selected issue: **#7 only**, with acceptance children #117–#120. Baseline `0212e733275bcb3b95661b288139b69d8b01c064`; feature branch `fix/issue-7-review-remediation`. [Plan](../plans/issues/issue-7-sol-remediation.md).
+Implementation owner: Sol 6.1/high. Selected implementation unit: **#119**, within parent #7 remediation. #117/#118 closed after protected PR125 and guard readback; #119/#120/#7 remain open. Baseline `0212e733275bcb3b95661b288139b69d8b01c064`; feature branch `fix/issue-7-review-remediation`. [Plan](../plans/issues/issue-7-sol-remediation.md).
 
 The owner's expanded authorization of 2026-10-20 supersedes the earlier live-account pause. Bounded checks with designated disposable identities, protected integration and the existing dedicated development preview are authorized. No routine owner decision is pending. Preserve secrets, unrelated account data and branch protections.
 
@@ -15,3 +15,12 @@ Run artifacts: `/home/saurabh/workspace/personal/agent-runs/nuvioweb/sol-fix-all
 Preview before this run: `7dcc3717742e04745c018eccd342df0915bbe8fe` / deployment `b6451df5-53cb-45d3-9312-361254bf3463`, retained as rollback. It contains old QR defects and is **not a QR validation candidate**. Use a newly served, reviewed fixed candidate and verify SOURCE.txt plus inventory first. Inert rebuild is required after preview staging before local gates.
 
 Historical context is retained in [pre-remediation snapshot](2026-10-20-pre-sol-continuity.md), explicitly superseded. Do not restart DSH sessions or continue unrelated roadmap work.
+
+
+## After protected PR125 and authorized live work
+
+Runtime remediation merged at `8eec52a7de888d156fac03edd9c523fc16964f7b`; all four required workflows passed at the merge. Existing dedicated preview deployed this exact source (`46d066cf`), 134 inventory hashes verified, automatic worker/source/header checks and all seven hosted guest journeys passed; rollback `b6451df5` retained. Direct live additive Library/history/progress records arrived in an independent disposable session, exact deletes returned204 and all original rows were unchanged. Explicit refresh/local-session revocation/rejection observed; independent A control refresh stayed valid. Credential digest unchanged; no account/media payload exported.
+
+Public API per-item Library operations were a legitimate safe alternative overlooked by the earlier full-snapshot policy. Selected #119 now implements only explicit per-key saves/deletes, never unknown snapshots, preserving unrelated concurrent keys. Same-key order, durable retry/outbox/storage guarantees remain unsupported. Current source/tests/review/hosted results will be recorded in the combined evidence PR; no broad A5 completion claim.
+
+Hosted live driver debugging preserved each failure: initial immediate form check raced mount, then chooser-only wait missed auto-resume, then quick-setup readiness was not awaited. These are driver limitations, not diagnosed causes of the historical post-removal network failure. Do not erase that older failure because of subsequent passes. New revision/observations remain separate receipts.

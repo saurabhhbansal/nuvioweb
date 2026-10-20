@@ -257,3 +257,56 @@ test("a 1001-item replacement (pull path) is retained without a cap", async (t) 
   assert.equal(retained.some((item) => item.contentId === "pull-0"), true);
   assert.equal(retained.some((item) => item.contentId === "pull-1000"), true);
 });
+
+test("debounce retains distinct explicit keys and the final same-key operation", async (t) => {
+  const f = await fixture(t);
+  let received;
+  f.dependencies.SavedLibrarySyncService.push = async (_profile, changes, options) => { received = { changes, options }; return true; };
+  await f.repository.save({ contentId: "first", contentType: "series" });
+  await f.repository.save({ contentId: "second", contentType: "movie" });
+  await f.repository.remove("first");
+  await f.runTimers();
+  assert.deepEqual(received.changes.map(change => [change.kind, change.item.contentId, change.item.contentType]), [
+    ["remove", "first", "series"], ["save", "second", "movie"]
+  ]);
+  assert.equal(received.options.acknowledge, true);
+  assert.equal(received.options.revision, f.repository.getSyncState().revision);
+});
+
+test("later successful explicit operation cannot acknowledge a failed predecessor", async (t) => {
+  const f = await fixture(t);
+  const first = deferred();
+  const options = [];
+  f.dependencies.SavedLibrarySyncService.push = async (_profile, _changes, option) => {
+    options.push(option);
+    return options.length === 1 ? first.promise : true;
+  };
+  await f.repository.save({ contentId: "failed" });
+  await f.runTimers();
+  await f.repository.save({ contentId: "later" });
+  await f.runTimers();
+  first.resolve(false);
+  await f.flush();
+  assert.equal(options.length, 2);
+  assert.equal(options[1].acknowledge, false);
+  assert.equal(f.repository.getSyncState().pending, true);
+});
+
+test("an explicit edit never uploads or acknowledges unknown legacy items", async (t) => {
+  const f = await fixture(t);
+  f.seedLegacy([{ contentId: "legacy", contentType: "movie", profileId: "1" }]);
+  let received;
+  f.dependencies.SavedLibrarySyncService.push = async (_profile, changes, options) => { received = { changes, options }; return true; };
+  await f.repository.save({ contentId: "explicit", contentType: "movie" });
+  await f.runTimers();
+  assert.deepEqual(received.changes.map(change => change.item.contentId), ["explicit"]);
+  assert.equal(received.options.acknowledge, false);
+  assert.equal(f.repository.getSyncState().pending, true);
+});
+
+test("removing an absent local item does not guess a remote content type", async (t) => {
+  const f = await fixture(t);
+  await f.repository.remove("absent");
+  await f.runTimers();
+  assert.deepEqual(f.calls, []);
+});

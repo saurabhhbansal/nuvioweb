@@ -4,7 +4,8 @@ import { savedLibraryRepository } from "../../data/repository/savedLibraryReposi
 import { ProfileManager } from "./profileManager.js";
 
 const PULL_RPC = "sync_pull_library";
-const PUSH_RPC = "sync_push_library";
+const UPSERT_RPC = "sync_push_library_items";
+const DELETE_RPC = "sync_delete_library_items";
 const PULL_PAGE_SIZE = 500;
 const VALID_POSTER_SHAPES = new Set(["POSTER", "LANDSCAPE", "SQUARE"]);
 
@@ -61,7 +62,7 @@ function toRemoteItem(item = {}) {
     description: item.description || "",
     release_info: item.releaseInfo || "",
     imdb_rating: item.imdbRating == null ? null : Number(item.imdbRating),
-    genres: Array.isArray(item.genres) ? item.genres : [],
+    genres: Array.isArray(item.genres) ? [...item.genres] : [],
     addon_base_url: item.addonBaseUrl || null,
     added_at: Number(item.updatedAt || item.addedAt || Date.now())
   };
@@ -118,38 +119,37 @@ export const SavedLibrarySyncService = {
     }
   },
 
-  async push(profileId = null) {
+  async push(profileId = null, changes = null, { revision = null, acknowledge = false } = {}) {
     try {
-      if (!AuthManager.isAuthenticated) {
-        return false;
-      }
+      if (!AuthManager.isAuthenticated) return false;
+      // An unknown pending/legacy snapshot has no safe deletion intent. Never
+      // fall back to full replacement, even when the per-item API is absent.
+      if (!Array.isArray(changes) || !changes.length || changes.some(change =>
+        !["save", "remove"].includes(change?.kind) ||
+        typeof change?.item?.contentId !== "string" || !change.item.contentId.trim() ||
+        !["movie", "series"].includes(change.item.contentType)
+      )) return false;
       const sessionGeneration = AuthManager.getSessionGeneration();
       const resolvedProfileId = resolveProfileId(profileId);
-      const revision = savedLibraryRepository.getSyncState(resolvedProfileId).revision;
-      // The cloud RPC is a full replacement. Reading only the first 1000 items
-      // would silently drop item 1001 from the next snapshot, so refuse instead
-      // and leave the pending revision intact for a later explicit action.
-      const items = await savedLibraryRepository.getAll(1001, resolvedProfileId);
-      if (!AuthManager.isSessionCurrent(sessionGeneration)) return false;
-      if (items.length > 1000) {
-        console.warn("Saved library sync push refused: local snapshot exceeds 1000 items");
-        return false;
+      // Copy every request before awaiting. The caller's later edits cannot
+      // change an issued operation or leak a different account's snapshot.
+      const requests = changes.map(change => ({
+        rpc: change.kind === "save" ? UPSERT_RPC : DELETE_RPC,
+        body: change.kind === "save"
+          ? { p_profile_id: resolvedProfileId, p_items: [toRemoteItem(change.item)] }
+          : { p_profile_id: resolvedProfileId, p_keys: [{ content_id: change.item.contentId, content_type: change.item.contentType }] }
+      }));
+      for (const { rpc, body } of requests) {
+        if (!AuthManager.isSessionCurrent(sessionGeneration)) return false;
+        await SupabaseApi.rpc(rpc, body, true, { expectedSessionGeneration: sessionGeneration });
+        if (!AuthManager.isSessionCurrent(sessionGeneration)) return false;
       }
-      // An explicit final-item removal is an intentionally empty snapshot.
-      await SupabaseApi.rpc(
-        PUSH_RPC,
-        {
-          p_profile_id: resolvedProfileId,
-          p_items: items.map((item) => toRemoteItem(item))
-        },
-        true,
-        { expectedSessionGeneration: sessionGeneration }
-      );
-      if (!AuthManager.isSessionCurrent(sessionGeneration)) return false;
-      savedLibraryRepository.acknowledgeSync(resolvedProfileId, revision);
+      if (acknowledge && Number.isSafeInteger(revision)) savedLibraryRepository.acknowledgeSync(resolvedProfileId, revision);
       return true;
-    } catch (error) {
-      console.warn("Saved library sync push failed", error);
+    } catch {
+      // No provider/account payloads in diagnostics. Failed explicit operations
+      // remain pending locally; already-issued remote calls cannot be undone.
+      console.warn("Saved library explicit sync failed");
       return false;
     }
   }
