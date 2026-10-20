@@ -1,0 +1,122 @@
+{
+  "driverSha256": "3ae2bb094c798fb55831f1e674752c4baefc98c0adda32817c831aeefd5f5c54",
+  "revision": "b5a8679404b98649f9c742abc6aa5da00edc50a9",
+  "started": "2026-10-20T11:28:03.351Z",
+  "finished": "2026-10-20T11:32:10.641Z",
+  "checks": {
+    "encryptedOriginalBackup": true,
+    "initialDisposableScopeEmpty": true,
+    "appCreatedProfile": true,
+    "profileArrivedInIndependentApp": true,
+    "initialAppLibraryEmpty": true,
+    "appAddonWriteObserved": true,
+    "addonCatalogArrivedInIndependentApp": true,
+    "actualAppSaveObserved": true,
+    "savedItemArrivedInIndependentApp": true,
+    "appWatchedWriteObserved": true,
+    "historyArrivedInIndependentApp": true,
+    "historyWatchedBadgeArrivedInIndependentUI": true,
+    "fixtureDecodedDimensions": true,
+    "appDecodedPlayedPausedProgressWrite": true,
+    "progressArrivedInIndependentAppStoreAndUI": true,
+    "finalRemovalReceiverReloadEmpty": true,
+    "foreignProfileAbsent": true,
+    "foreignLibraryTargetAbsent": true,
+    "knownContextsClosed": true,
+    "newProfileAbsentAfterCleanup": true,
+    "originalProfileRowsExceptServerUpdateTimeUnchanged": true,
+    "originalDomainRowsUnchanged": true,
+    "disposableDataAbsentAfterCleanup": true,
+    "browserSessionCleanup": true,
+    "credentialsUnchanged": true
+  },
+  "limits": [
+    "Linux Chromium automation; no physical branded/mobile or QR claim.",
+    "Progress uses ordinary rate1 playback beyond37s, then UI pause/back; hosted fixture seeking is not claimed (observed seekable0 and full-file200 for byte-range requests).",
+    "Profile RPC replaces current declared range; all original row fields and stable identities must remain equal except server-managed updated_at, which may advance. Other original domain rows are compared without exclusions.",
+    "History/addon scope assertions are limited to the new profile and foreign profile/Library absence; expanded cross-profile/domain isolation is a separate observation.",
+    "A newly allocated disposable nonprimary profile is removed with exact profile-scoped cleanup; no stale full snapshot restore."
+  ],
+  "browser": "156.0.8078.4",
+  "os": "Linux ARM64",
+  "cleanup": "exact-profile-deletion-and-readback-complete",
+  "baselineSessionCleanup": true,
+  "fixtureMutationAttempted": true,
+  "issuedWriteOutcomeUnknown": false,
+  "authIssuanceUnresolved": false,
+  "schema_version": 1,
+  "issue": 7,
+  "child": 120,
+  "kind": "live",
+  "source_commit": "b5a8679404b98649f9c742abc6aa5da00edc50a9",
+  "observed_at": "2026-10-20T11:32:10.641Z",
+  "raw_run_status": "incomplete",
+  "required_assertions_complete": true,
+  "raw_receipt_sha256": "674b50b5b60f344cb7e379606be4b763ea318b30422e1571f9f6eca1ed903a60",
+  "raw_receipt": "Durable run app-propagation-long-ui-v12.json",
+  "status": "required-assertions-complete; raw-global-run-incomplete",
+  "automated_driver_review": "propagation-review-v19.md; automated read-only Codex, not independent human approval",
+  "terminal_guard_disposition": {
+    "preserved_raw_status": "incomplete",
+    "unexpected_mutating_requests": [
+      {
+        "context": "foreign",
+        "operation": "sync_push_profile_settings_blob",
+        "method": "POST",
+        "guardState": {
+          "writesAccepted": true,
+          "terminalStopped": false,
+          "writerSubjectMatches": false,
+          "addonWriteConfirmed": true
+        },
+        "shape": {
+          "originalProfile": true,
+          "newProfile": false,
+          "exactEnvelope": false,
+          "array": false,
+          "rowsValid": false
+        }
+      },
+      {
+        "context": "foreign",
+        "operation": "sync_push_profile_settings_blob",
+        "method": "POST",
+        "guardState": {
+          "writesAccepted": false,
+          "terminalStopped": true,
+          "writerSubjectMatches": false,
+          "addonWriteConfirmed": true
+        },
+        "shape": {
+          "originalProfile": true,
+          "newProfile": false,
+          "exactEnvelope": false,
+          "array": false,
+          "rowsValid": false
+        }
+      },
+      {
+        "context": "foreign",
+        "operation": "sync_seed_provider_credentials",
+        "method": "POST",
+        "guardState": {
+          "writesAccepted": false,
+          "terminalStopped": true,
+          "writerSubjectMatches": false,
+          "addonWriteConfirmed": true
+        },
+        "shape": {
+          "originalProfile": true,
+          "newProfile": false,
+          "exactEnvelope": false,
+          "array": false,
+          "rowsValid": false
+        }
+      }
+    ],
+    "cause": "Foreign read-only B-context automatic settings/credential seed requests were denied locally; conservative terminal unexpected-request latch set after the required writer/independent-receiver steps completed. No such write was forwarded. Raw global status is not relabelled passed.",
+    "claim_boundary": "Completed required app-journey phases and exact cleanup only; not an unqualified whole-driver pass. Foreign profile/Library absence assertions also completed. Broader foreign settings/provider/plugin mutation behavior is unverified because denied."
+  },
+  "evidence_method": "Actual app controls create profile/install addon/Save/mark watched/play ordinary rate1 beyond37s/pause/back/remove final Library item. Independent app context observes profile/catalog/Library/watched badge/progress store+ContinueWatching UI, then reload-empty. No direct backend insertion or API-only receiving read substitutes for these actions.",
+  "evidence_review": "docs/agent-runs/2026-10-20-issue120-journey-phase-review.md; bounded required-phase approval, explicitly not whole-run pass or human approval"
+}

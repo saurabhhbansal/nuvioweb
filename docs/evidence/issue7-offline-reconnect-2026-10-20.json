@@ -1,0 +1,471 @@
+{
+  "driverSha256": "adb6b244491acaec26d9fda026bc170469c2416f06f2bf5497d471f61ca677e8",
+  "kind": "live-application-offline-reconnect",
+  "revision": "b5a8679404b98649f9c742abc6aa5da00edc50a9",
+  "started": "2026-10-20T10:30:20.580Z",
+  "checks": {
+    "initialAuthoritativeAppScope": true,
+    "realAutomaticWorker": true,
+    "realWorkerAndCachedConfiguration": true,
+    "offlineNoCompletedServerRead": true,
+    "offlinePrivateScopePreserved": true,
+    "offlineReloadRenderedConfiguredApp": true,
+    "reconnectRestoredAuthoritativeScope": true,
+    "noClockOrTokenChanges": true,
+    "newSessionHandlesLocallyRevoked": true,
+    "credentialFileUnchanged": true
+  },
+  "operations": [
+    {
+      "stage": "app-password-signin",
+      "phase": "initial",
+      "operation": "auth-token",
+      "status": 200
+    },
+    {
+      "stage": "app-password-signin",
+      "phase": "initial",
+      "operation": "get_sync_owner",
+      "status": 200
+    },
+    {
+      "stage": "app-password-signin",
+      "phase": "initial",
+      "operation": "sync_pull_profile_locks",
+      "status": 200
+    },
+    {
+      "stage": "app-password-signin",
+      "phase": "initial",
+      "operation": "sync_pull_profiles",
+      "status": 200
+    },
+    {
+      "stage": "app-password-signin",
+      "phase": "initial",
+      "operation": "get_avatar_catalog",
+      "status": 200
+    },
+    {
+      "stage": "app-password-signin",
+      "phase": "initial",
+      "operation": "sync_pull_profile_settings_blob",
+      "status": 200
+    },
+    {
+      "stage": "app-password-signin",
+      "phase": "initial",
+      "operation": "table-read",
+      "status": 200
+    },
+    {
+      "stage": "app-password-signin",
+      "phase": "initial",
+      "operation": "sync_pull_profile_settings_blob",
+      "status": 200
+    },
+    {
+      "stage": "app-password-signin",
+      "phase": "initial",
+      "operation": "sync_pull_home_catalog_settings",
+      "status": 200
+    },
+    {
+      "stage": "app-password-signin",
+      "phase": "initial",
+      "operation": "sync_pull_home_catalog_settings",
+      "status": 200
+    },
+    {
+      "stage": "app-password-signin",
+      "phase": "initial",
+      "operation": "sync_pull_home_catalog_settings",
+      "status": 200
+    },
+    {
+      "stage": "app-password-signin",
+      "phase": "initial",
+      "operation": "sync_pull_profiles",
+      "status": 200
+    },
+    {
+      "stage": "app-password-signin",
+      "phase": "initial",
+      "operation": "sync_pull_library",
+      "status": 200
+    },
+    {
+      "stage": "app-password-signin",
+      "phase": "initial",
+      "operation": "sync_pull_provider_credentials",
+      "status": 200
+    },
+    {
+      "stage": "app-password-signin",
+      "phase": "initial",
+      "operation": "sync_pull_provider_credentials",
+      "status": 200
+    },
+    {
+      "stage": "app-password-signin",
+      "phase": "initial",
+      "operation": "table-read",
+      "status": 200
+    },
+    {
+      "stage": "app-password-signin",
+      "phase": "initial",
+      "operation": "sync_pull_profile_settings_blob",
+      "status": 200
+    },
+    {
+      "stage": "app-password-signin",
+      "phase": "initial",
+      "operation": "sync_pull_profile_settings_blob",
+      "status": 200
+    },
+    {
+      "stage": "app-password-signin",
+      "phase": "initial",
+      "operation": "sync_pull_watched_items",
+      "status": 200
+    },
+    {
+      "stage": "app-password-signin",
+      "phase": "initial",
+      "operation": "sync_pull_profile_settings_blob",
+      "status": 200
+    },
+    {
+      "stage": "app-password-signin",
+      "phase": "initial",
+      "operation": "sync_pull_profile_settings_blob",
+      "status": 200
+    },
+    {
+      "stage": "app-password-signin",
+      "phase": "initial",
+      "operation": "sync_pull_watch_progress",
+      "status": 200
+    },
+    {
+      "stage": "app-password-signin",
+      "phase": "initial",
+      "operation": "sync_pull_collections",
+      "status": 200
+    },
+    {
+      "stage": "app-password-signin",
+      "phase": "initial",
+      "operation": "sync_pull_profile_settings_blob",
+      "status": 200
+    },
+    {
+      "stage": "controlled-reload-current-scope",
+      "phase": "initial",
+      "operation": "get_sync_owner",
+      "status": 200
+    },
+    {
+      "stage": "controlled-reload-current-scope",
+      "phase": "initial",
+      "operation": "sync_pull_profile_locks",
+      "status": 200
+    },
+    {
+      "stage": "controlled-reload-current-scope",
+      "phase": "initial",
+      "operation": "sync_pull_profiles",
+      "status": 200
+    },
+    {
+      "stage": "controlled-reload-current-scope",
+      "phase": "initial",
+      "operation": "sync_pull_watch_progress",
+      "status": 200
+    },
+    {
+      "stage": "controlled-reload-current-scope",
+      "phase": "initial",
+      "operation": "get_avatar_catalog",
+      "status": 200
+    },
+    {
+      "stage": "controlled-reload-current-scope",
+      "phase": "initial",
+      "operation": "sync_pull_watched_items",
+      "status": 200
+    },
+    {
+      "stage": "controlled-reload-current-scope",
+      "phase": "initial",
+      "operation": "sync_pull_profile_settings_blob",
+      "status": 200
+    },
+    {
+      "stage": "controlled-reload-current-scope",
+      "phase": "initial",
+      "operation": "table-read",
+      "status": 200
+    },
+    {
+      "stage": "controlled-reload-current-scope",
+      "phase": "initial",
+      "operation": "sync_pull_home_catalog_settings",
+      "status": 200
+    },
+    {
+      "stage": "controlled-reload-current-scope",
+      "phase": "initial",
+      "operation": "sync_pull_home_catalog_settings",
+      "status": 200
+    },
+    {
+      "stage": "controlled-reload-current-scope",
+      "phase": "initial",
+      "operation": "sync_pull_home_catalog_settings",
+      "status": 200
+    },
+    {
+      "stage": "controlled-reload-current-scope",
+      "phase": "initial",
+      "operation": "sync_pull_library",
+      "status": 200
+    },
+    {
+      "stage": "controlled-reload-current-scope",
+      "phase": "initial",
+      "operation": "table-read",
+      "status": 200
+    },
+    {
+      "stage": "controlled-reload-current-scope",
+      "phase": "initial",
+      "operation": "sync_pull_provider_credentials",
+      "status": 200
+    },
+    {
+      "stage": "controlled-reload-current-scope",
+      "phase": "initial",
+      "operation": "sync_pull_provider_credentials",
+      "status": 200
+    },
+    {
+      "stage": "controlled-reload-current-scope",
+      "phase": "initial",
+      "operation": "sync_pull_profiles",
+      "status": 200
+    },
+    {
+      "stage": "pre-offline-network-quiet",
+      "phase": "initial",
+      "operation": "sync_pull_watched_items",
+      "status": 200
+    },
+    {
+      "stage": "pre-offline-network-quiet",
+      "phase": "initial",
+      "operation": "sync_pull_profile_settings_blob",
+      "status": 200
+    },
+    {
+      "stage": "pre-offline-network-quiet",
+      "phase": "initial",
+      "operation": "sync_pull_profile_settings_blob",
+      "status": 200
+    },
+    {
+      "stage": "pre-offline-network-quiet",
+      "phase": "initial",
+      "operation": "sync_pull_watch_progress",
+      "status": 200
+    },
+    {
+      "stage": "pre-offline-network-quiet",
+      "phase": "initial",
+      "operation": "sync_pull_profile_settings_blob",
+      "status": 200
+    },
+    {
+      "stage": "pre-offline-network-quiet",
+      "phase": "initial",
+      "operation": "sync_pull_collections",
+      "status": 200
+    },
+    {
+      "stage": "pre-offline-network-quiet",
+      "phase": "initial",
+      "operation": "sync_pull_profile_settings_blob",
+      "status": 200
+    },
+    {
+      "stage": "reconnect-actual-app",
+      "phase": "initial",
+      "operation": "get_sync_owner",
+      "status": 200
+    },
+    {
+      "stage": "reconnect-actual-app",
+      "phase": "initial",
+      "operation": "sync_pull_watch_progress",
+      "status": 200
+    },
+    {
+      "stage": "reconnect-actual-app",
+      "phase": "initial",
+      "operation": "sync_pull_profiles",
+      "status": 200
+    },
+    {
+      "stage": "reconnect-actual-app",
+      "phase": "initial",
+      "operation": "sync_pull_profile_locks",
+      "status": 200
+    },
+    {
+      "stage": "reconnect-actual-app",
+      "phase": "initial",
+      "operation": "sync_pull_watched_items",
+      "status": 200
+    },
+    {
+      "stage": "reconnect-actual-app",
+      "phase": "initial",
+      "operation": "sync_pull_watched_items",
+      "status": 200
+    },
+    {
+      "stage": "reconnect-actual-app",
+      "phase": "initial",
+      "operation": "get_avatar_catalog",
+      "status": 200
+    },
+    {
+      "stage": "reconnect-actual-app",
+      "phase": "initial",
+      "operation": "sync_pull_watch_progress",
+      "status": 200
+    },
+    {
+      "stage": "reconnect-actual-app",
+      "phase": "initial",
+      "operation": "sync_pull_profile_settings_blob",
+      "status": 200
+    },
+    {
+      "stage": "reconnect-actual-app",
+      "phase": "initial",
+      "operation": "table-read",
+      "status": 200
+    },
+    {
+      "stage": "reconnect-actual-app",
+      "phase": "initial",
+      "operation": "sync_pull_home_catalog_settings",
+      "status": 200
+    },
+    {
+      "stage": "reconnect-actual-app",
+      "phase": "initial",
+      "operation": "sync_pull_home_catalog_settings",
+      "status": 200
+    },
+    {
+      "stage": "reconnect-actual-app",
+      "phase": "initial",
+      "operation": "sync_pull_home_catalog_settings",
+      "status": 200
+    },
+    {
+      "stage": "reconnect-actual-app",
+      "phase": "initial",
+      "operation": "sync_pull_library",
+      "status": 200
+    },
+    {
+      "stage": "reconnect-actual-app",
+      "phase": "initial",
+      "operation": "sync_pull_provider_credentials",
+      "status": 200
+    },
+    {
+      "stage": "reconnect-actual-app",
+      "phase": "initial",
+      "operation": "table-read",
+      "status": 200
+    },
+    {
+      "stage": "reconnect-actual-app",
+      "phase": "initial",
+      "operation": "sync_pull_provider_credentials",
+      "status": 200
+    },
+    {
+      "stage": "reconnect-actual-app",
+      "phase": "initial",
+      "operation": "sync_pull_profiles",
+      "status": 200
+    },
+    {
+      "stage": "reconnect-actual-app",
+      "phase": "initial",
+      "operation": "sync_pull_profile_settings_blob",
+      "status": 200
+    },
+    {
+      "stage": "reconnect-actual-app",
+      "phase": "initial",
+      "operation": "sync_pull_profile_settings_blob",
+      "status": 200
+    },
+    {
+      "stage": "reconnect-actual-app",
+      "phase": "initial",
+      "operation": "sync_pull_watched_items",
+      "status": 200
+    },
+    {
+      "stage": "reconnect-actual-app",
+      "phase": "initial",
+      "operation": "sync_pull_profile_settings_blob",
+      "status": 200
+    },
+    {
+      "stage": "reconnect-actual-app",
+      "phase": "initial",
+      "operation": "sync_pull_watch_progress",
+      "status": 200
+    },
+    {
+      "stage": "reconnect-actual-app",
+      "phase": "initial",
+      "operation": "sync_pull_profile_settings_blob",
+      "status": 200
+    },
+    {
+      "stage": "reconnect-actual-app",
+      "phase": "initial",
+      "operation": "sync_pull_collections",
+      "status": 200
+    },
+    {
+      "stage": "reconnect-actual-app",
+      "operation": "new-session-local-logout",
+      "status": 204
+    }
+  ],
+  "limits": [
+    "Linux Chromium/real same-host service worker; no physical device/QR claim.",
+    "All account-data mutations are denied. Only newly issued test session local revocation is requested.",
+    "Page is closed during real remaining lifetime; no forged token/clock changes or synthetic401 trigger. Waiting is not pass.",
+    "Saved/Cloud shelves intentionally show the documented offline message with zero saved cards. Exact private caches remain intact; exact authoritative Library cards are required after reconnect. No offline playback/download claim."
+  ],
+  "browser": "156.0.8078.4",
+  "os": "Linux ARM64",
+  "knownStaticCanonicalRedirects": 1,
+  "deniedAccountDataRequests": 28,
+  "offlineAborts": 35,
+  "status": "passed",
+  "authIssuanceUnresolved": false,
+  "finished": "2026-10-20T10:30:32.826Z"
+}

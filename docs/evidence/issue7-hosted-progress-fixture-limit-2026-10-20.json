@@ -1,0 +1,53 @@
+{
+  "kind": "review",
+  "revision": "b5a8679404b98649f9c742abc6aa5da00edc50a9",
+  "observed_at": "2026-10-20T11:18:00Z",
+  "credentials_used": false,
+  "media": "Optional original120-second VP8/Opus development identity fixture",
+  "node_fetch_observations": [
+    {
+      "method": "HEAD",
+      "status": 200,
+      "content_type": "video/webm",
+      "content_length": null,
+      "accept_ranges": null,
+      "content_range": null
+    },
+    {
+      "method": "GET",
+      "requested_byte_range": "100000-100999",
+      "status": 200,
+      "received_bytes": 344925,
+      "content_length": 344925,
+      "accept_ranges": null,
+      "content_range": null
+    },
+    {
+      "method": "GET",
+      "requested_byte_range": "0-1023",
+      "accept_encoding": "identity",
+      "status": 200,
+      "received_bytes": 344925,
+      "content_length": 344925,
+      "accept_ranges": null,
+      "content_range": null
+    }
+  ],
+  "browser_observations": "public-progress-diagnosis-v2.json: fully buffered0..120.008, seekable0..0, UI click and direct native seek both fail while decoded dimensions/normal advance/pause pass.",
+  "limits": "Observed current candidate only. Does not establish exact static-host/media root cause or general playback compatibility; local range-capable fixture server passed separate seek test. Python urllib probe403 is preserved as an environment/client probe failure, not Nuvio provider failure. Identity progress observation can use ordinary rate1 playback with unchanged qualified position/duration requirements.",
+  "schema_version": 1,
+  "issue": 120,
+  "source_commit": "b5a8679404b98649f9c742abc6aa5da00edc50a9",
+  "ordinary_playback_control": {
+    "kind": "public-guest-fixture-diagnosis",
+    "checks": {
+      "decoded": true,
+      "initialAdvance": true,
+      "naturalPlaybackBeyond37": true
+    },
+    "noCredentials": true,
+    "status": "passed",
+    "finished": "2026-10-20T11:19:51.279Z"
+  },
+  "decision": "Use actual ordinary rate1 playback beyond37s for identity progress verification, with original cloud position32\u201345s/duration119\u2013121s bounds unchanged. This is a routine verification-method choice, not reduced acceptance or a hosted-seek support claim."
+}

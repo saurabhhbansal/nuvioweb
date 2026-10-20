@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "issue": 7,
+  "child": 120,
+  "kind": "live",
+  "source_commit": "b5a8679404b98649f9c742abc6aa5da00edc50a9",
+  "observed_at": "2026-10-20T11:04:35.904Z",
+  "status": "waiting-not-pass",
+  "elapsed_observations": {
+    "direct_expiry": {
+      "status": "waiting; not pass",
+      "expected_at": "2026-10-27T09:53:49.952Z",
+      "secret_storage": "New session only in observer memory; no token/clock changes."
+    },
+    "application_revoked_refresh": {
+      "status": "waiting; not pass",
+      "expected_at": "2026-10-27T10:21:40.792Z",
+      "secret_storage": "Private nonpersistent browser context; Chromium temporary profile may touch disk. Normal close removes it; crash cleanup unverified. Page closed, no app refresh timers.",
+      "early_offline_dom_expectation": "False cached-shelf expectation retained; actual documented offline behavior verified separately."
+    }
+  },
+  "interruption_limits": [
+    "Original direct observer was lost during account/usage interruption, empty final receipt supplies no expiry proof. Its memory-only new-session handle is unavailable; local cleanup unverified.",
+    "Propagation attempt long-ui-v4 exited on an unhandled predispatch API_REJECTED. Separately reviewed exact fixture cleanup verified original rows unchanged; lost newly issued session handles cannot be locally revoked. No account-global revocation attempted.",
+    "All completed normal live attempts verified local-session cleanup and credential digest. No stale full snapshots restored or unrelated records deleted."
+  ],
+  "remaining": "Actual direct natural-expiry and application post-expiry revoked-refresh outcomes are unperformed. Empty final receipts are not evidence of success.",
+  "continuation_review": "docs/evidence/issue7-dsh-continuation-2026-10-20.json",
+  "application_final_status_limit": "Running v3 retains the earlier false cached-shelf check and requires every check true for passed. Future successful expiry/rejection phases cannot make its raw aggregate passed. Preserve the failed assertion and raw status; assess future required lifecycle phases separately with the independent offline-v2 receipt and another automated evidence review. No future success is claimed."
+}

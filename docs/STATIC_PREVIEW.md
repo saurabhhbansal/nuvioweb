@@ -1,6 +1,12 @@
 # Static preview preparation — issue #6
 
-The owner authorized a public preview on 2026-10-18 and supplied the [official Nuvio API docs](https://nuvio.tv/docs). **Public development preview is now verified at https://nuvioweb-preview.pages.dev; see the final deployment evidence below.** The following preparation checkpoints are historical. Existing Cloudflare OAuth access is expired and cannot refresh noninteractively; `wrangler whoami` exited 1. Reconnect with `npx wrangler login` locally; never paste account credentials or API tokens into issues/chat.
+The owner authorized a public preview on 2026-10-18 and supplied the [official Nuvio API docs](https://nuvio.tv/docs). **Public development preview is now verified at https://nuvioweb-preview.pages.dev; see the final deployment evidence below.** The following preparation checkpoints are historical. At that historical preparation checkpoint, Cloudflare OAuth access was expired and could not refresh noninteractively; `wrangler whoami` exited 1. Reconnect with `npx wrangler login` locally; never paste account credentials or API tokens into issues/chat.
+
+## Current served development runtime — 2026-10-20
+
+Exact runtime `b5a8679404b98649f9c742abc6aa5da00edc50a9`, deployment `9d9d6d0d-8617-4ed5-bc91-770038162800`, is verified after protected PR127/131/132. [Checkpoint](evidence/issue7-protected-checkpoint-2026-10-20.json), [shell](evidence/issue7-preview-shell-2026-10-20.json), [guest journeys](evidence/issue7-preview-mvp-2026-10-20.json), [inventory](evidence/issue7-preview-inventory-2026-10-20.json):141 served hashes match143 inventory entries (host rules are not separately served), automatic worker/source/config/headers/reload and all seven guest journeys pass. Cached authorization worked; no new login/account/project/domain/bindings/billing or backend compute. Provider main/Production label describes this dedicated DEVELOPMENT project, not a product production release.
+
+Rollback `c7a3a017-0f5c-459e-b9d9-232cf28c4ec6` remains. Keep current runtime pinned while its two actual-time lifecycle observers wait until27Oct; documentation-only main updates are not uploaded. App offline/reconnect proof is recorded separately; natural expiry/post-expiry revoked refresh remains unperformed. [Optional identity fixture seeking](evidence/issue7-hosted-progress-fixture-limit-2026-10-20.json) is unclaimed on this observed host/Chromium candidate; identity progress uses ordinary37-second playback with unchanged cloud qualification. Historical deployment/access/pending statements below identify earlier checkpoints and are superseded for current state.
 
 ## Configuration and deployment contract
 

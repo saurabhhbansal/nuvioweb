@@ -17,7 +17,9 @@ import {
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const receiptPath = "docs/evidence/issue7-acceptance.json";
-const committed = () => JSON.parse(readFileSync(`${root}${receiptPath}`, "utf8"));
+const currentReceipt = () => JSON.parse(readFileSync(`${root}${receiptPath}`, "utf8"));
+// Fixed unresolved-failure input preserves the original negative cases after later live evidence resolves A3.
+const committed = () => JSON.parse(readFileSync(`${root}docs/evidence/issue7-acceptance-pre-live-consolidation-2026-10-20.json`, "utf8"));
 const criterion = (receipt, id) => receipt.criteria.find((entry) => entry.id === id);
 
 function mutated(change) {
@@ -41,10 +43,10 @@ function withTempRoot(run) {
 }
 
 test("the committed blocked receipt is structurally valid and reports the real unmet set", () => {
-  const receipt = committed();
+  const receipt = currentReceipt();
   const result = validateReceipt(receipt, { root });
   assert.deepEqual(result.errors, []);
-  assert.deepEqual(result.unmet_ids, ["A2", "A3", "A8"]);
+  assert.deepEqual(result.unmet_ids, ["A8"]);
   assert.equal(evaluateClosure(receipt, { root }).met, false);
 });
 

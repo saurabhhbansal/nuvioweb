@@ -1,0 +1,43 @@
+{
+  "driverSha256": "9c569166386ee64b9552380ae36cff9d75aad92ff69e9b0ad7bc9bf19899686e",
+  "revision": "b5a8679404b98649f9c742abc6aa5da00edc50a9",
+  "started": "2026-10-20T11:05:15.843Z",
+  "finished": "2026-10-20T11:07:40.687Z",
+  "status": "incomplete",
+  "failedStage": "app-save",
+  "checks": {
+    "encryptedOriginalBackup": true,
+    "initialDisposableScopeEmpty": true,
+    "appCreatedProfile": true,
+    "profileArrivedInIndependentApp": true,
+    "initialAppLibraryEmpty": true,
+    "appAddonWriteObserved": true,
+    "addonCatalogArrivedInIndependentApp": true,
+    "knownContextsClosed": true,
+    "newProfileAbsentAfterCleanup": true,
+    "originalProfileRowsExceptServerUpdateTimeUnchanged": true,
+    "originalDomainRowsUnchanged": true,
+    "disposableDataAbsentAfterCleanup": true,
+    "browserSessionCleanup": true,
+    "credentialsUnchanged": true
+  },
+  "cleanup": "exact-profile-deletion-and-readback-complete",
+  "baselineSessionCleanup": true,
+  "fixtureMutationAttempted": true,
+  "issuedWriteOutcomeUnknown": false,
+  "authIssuanceUnresolved": false,
+  "limits": [
+    "Linux Chromium automation; no physical branded/mobile or QR claim.",
+    "Profile RPC replaces current declared range; all original row fields and stable identities must remain equal except server-managed updated_at, which may advance. Other original domain rows are compared without exclusions.",
+    "History/addon scope assertions are limited to the new profile and foreign profile/Library absence; expanded cross-profile/domain isolation is a separate observation.",
+    "A newly allocated disposable nonprimary profile is removed with exact profile-scoped cleanup; no stale full snapshot restore."
+  ],
+  "schema_version": 1,
+  "issue": 7,
+  "child": 120,
+  "kind": "live",
+  "source_commit": "b5a8679404b98649f9c742abc6aa5da00edc50a9",
+  "observed_at": "2026-10-20T11:07:40.687Z",
+  "raw_receipt": "Durable run app-propagation-long-ui-v8.json",
+  "disposition": "Profile creation, initially-empty app Library and addon installation/catalog arrival pass in independent app sessions. Complete Save/history/progress/delete journey remains unverified. Later automatic addon sync rejected by driver raw seed URL comparison after successful normalization; terminal guard denied Save before dispatch. Exact cleanup passed, original records unchanged. Not a provider failure or app propagation pass."
+}

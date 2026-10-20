@@ -1,0 +1,130 @@
+{
+  "schema_version": 1,
+  "issue": 7,
+  "child": 120,
+  "kind": "review",
+  "source_commit": "b5a8679404b98649f9c742abc6aa5da00edc50a9",
+  "observed_at": "2026-10-20",
+  "integration": [
+    {
+      "pr": 127,
+      "head": "37809ceed03cbb05def7a14dc3637ffabaa9882a",
+      "merge": "2fa72df6d74ba52f24c3e06c68a5f491c1e4819c",
+      "result": "Protected exact-head checks passed. Actual-merge browser failure preserved; not deployed until scoped fixture repair below."
+    },
+    {
+      "pr": 131,
+      "head": "481dfb15a823013a55530e0b282a831808c12b16",
+      "merge": "0c68170d1247cc8c74a4ab89767660c98b4599bb",
+      "result": "Lawful120s fixture; exact synthetic offline-addon fallback503/wrong-owner negative. All four actual-merge workflows pass."
+    },
+    {
+      "pr": 132,
+      "head": "869f1a19a0a08e42f698a81d66042000b33b8609",
+      "merge": "b5a8679404b98649f9c742abc6aa5da00edc50a9",
+      "result": "Rejected bootstrap refresh local cleanup; all four actual-merge workflows pass. Required governance ready-event reran before protected merge; no bypass."
+    }
+  ],
+  "current_merge_workflows": [
+    {
+      "conclusion": "success",
+      "databaseId": 39405240976,
+      "headSha": "b5a8679404b98649f9c742abc6aa5da00edc50a9",
+      "name": "Documentation checks",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 39405240995,
+      "headSha": "b5a8679404b98649f9c742abc6aa5da00edc50a9",
+      "name": "Roadmap integrity",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 39405240987,
+      "headSha": "b5a8679404b98649f9c742abc6aa5da00edc50a9",
+      "name": "Alpha baseline",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 39405241043,
+      "headSha": "b5a8679404b98649f9c742abc6aa5da00edc50a9",
+      "name": "Browser smoke",
+      "status": "completed"
+    }
+  ],
+  "local_verification": {
+    "focused_auth_reset": 18,
+    "application": 1447,
+    "chromium_pwa": 77,
+    "lint": "pass",
+    "inert_build": "pass",
+    "scope": "Synthetic/local proof; actual service receipts are separate."
+  },
+  "preview": {
+    "project": "nuvioweb-preview",
+    "purpose": "Existing dedicated DEVELOPMENT preview; provider main/Production environment label is not a product production release.",
+    "revision": "b5a8679404b98649f9c742abc6aa5da00edc50a9",
+    "deployment": "9d9d6d0d-8617-4ed5-bc91-770038162800",
+    "inventory_entries": 143,
+    "served_hashes_matched": 141,
+    "shell_and_automatic_worker": "pass",
+    "guest_journeys": "all seven pass",
+    "rollback": "c7a3a017-0f5c-459e-b9d9-232cf28c4ec6",
+    "compute_billing_domain_bindings": "No change."
+  },
+  "owner_decisions": [
+    {
+      "id": "119-bounded-recovery-scope",
+      "answer": "Accept bounded recovery; track stronger guarantees separately"
+    },
+    {
+      "id": "120-device-qr-scope",
+      "answer": "Defer QR/device verification; label limits and track follow-ups"
+    }
+  ],
+  "issue119": {
+    "state": "CLOSED",
+    "closed_at": "2026-10-20T10:13:17Z",
+    "agreed_scope": "Bounded pending/error/manual recovery. Stronger guarantees explicitly deferred to128.",
+    "closure_guard_run": 39406387999,
+    "closure_guard": "success"
+  },
+  "reviews": "Separate Codex gpt-6.1-sol/high read-only actual-diff/driver reviews; automated, not independent human approval. Repository independent approvals=0 remains a documented limitation.",
+  "elapsed_observations": {
+    "direct_expiry": {
+      "status": "waiting; not pass",
+      "expected_at": "2026-10-27T09:53:49.952Z",
+      "secret_storage": "New session only in observer memory; no token/clock changes."
+    },
+    "application_revoked_refresh": {
+      "status": "waiting; not pass",
+      "expected_at": "2026-10-27T10:21:40.792Z",
+      "secret_storage": "Private nonpersistent browser context; Chromium temporary profile may touch disk. Normal close removes it; crash cleanup unverified. Page closed, no app refresh timers.",
+      "early_offline_dom_expectation": "False cached-shelf expectation retained; actual documented offline behavior verified separately."
+    }
+  },
+  "interruption_limits": [
+    "Original direct observer was lost during account/usage interruption, empty final receipt supplies no expiry proof. Its memory-only new-session handle is unavailable; local cleanup unverified.",
+    "Propagation attempt long-ui-v4 exited on an unhandled predispatch API_REJECTED. Separately reviewed exact fixture cleanup verified original rows unchanged; lost newly issued session handles cannot be locally revoked. No account-global revocation attempted.",
+    "All completed normal live attempts verified local-session cleanup and credential digest. No stale full snapshots restored or unrelated records deleted."
+  ],
+  "deferred_unsupported": [
+    {
+      "issue": 128,
+      "scope": "Stronger durable outbox/atomic same-key guarantees"
+    },
+    {
+      "issue": 129,
+      "scope": "Provider QR redirect/approval semantics"
+    },
+    {
+      "issue": 130,
+      "scope": "Physical branded Edge/Safari/mobile identity observation"
+    }
+  ],
+  "remaining": "Complete actual app mutation journey and tighter current failure attribution; natural expiry/application rejected-refresh remain actual elapsed dependencies. Parent7/120 remain open; original O1\u2013O3 and checker guards unchanged.",
+  "historical_checkpoint_note": "The remaining field above preserves this integration snapshot, not the active unmet set. Later required application phases and classified current switch replay supersede those missing-verification dispositions; historical switch cause remains unestablished. Current acceptance is docs/evidence/issue7-acceptance.json; only A8 elapsed outcomes are unmet. DSH continuity and final-status limits are in docs/evidence/issue7-dsh-continuation-2026-10-20.json."
+}

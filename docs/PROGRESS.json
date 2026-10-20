@@ -149,7 +149,14 @@
           "docs/evidence/issue7-sol-hosted-accounts.json",
           "docs/evidence/issue7-sol-live-markers.json",
           "docs/evidence/issue7-sol-live-lifecycle.json",
-          "docs/evidence/issue7-sol-qr-live-observation.json"
+          "docs/evidence/issue7-sol-qr-live-observation.json",
+          "docs/evidence/issue7-protected-checkpoint-2026-10-20.json",
+          "docs/evidence/issue7-offline-reconnect-2026-10-20.json",
+          "docs/evidence/issue7-classified-switch-replay-2026-10-20.json",
+          "docs/evidence/issue7-app-journey-phases-2026-10-20.json",
+          "docs/evidence/issue7-hosted-progress-fixture-limit-2026-10-20.json",
+          "docs/agent-runs/2026-10-20-issue120-journey-phase-review.md",
+          "docs/evidence/issue7-dsh-continuation-2026-10-20.json"
         ],
         "verification": [
           "Owner reported initial three Windows/Edge checks passed; browser version and independent-session setup unspecified.",
@@ -176,9 +183,11 @@
           "CH2 reviewer follow-up: the first review found that a stale exchange could sign out a later session and that cancel during owner resolution could publish. Fixed with an active-attempt establishment predicate, auth-attempt invalidation on cancel, guarded sign-out, and local QR generation when upstream omits an image. 16 lifecycle + 5 screen tests pass; full product 1412 and browser 66.",
           "CH3 #119 bounded Library policy at source 5468b16: push reads up to 1001 items and refuses before sync_push_library when the local set exceeds 1000, sending no request and preserving pending. 45 focused tests pass: failed-mutation reload/pull, legacy pending cache, stale acknowledgement, real-store 1001-item retention, >1000 push refusal, exactly-1000 push and two independent full-snapshot writers.",
           "Two-writer characterization is last-writer-wins: the later full snapshot loses the earlier edit. No server version/ETag/conflict contract is exposed by the checked client, so concurrent-writer repair remains BLOCKED and #119 stays open pending protocol evidence/owner decision.",
-          "2026-10-20 Sol remediation supersedes prior completion/pause claims: two additional QR defects reproduced and repaired, canonical repository corrected, children integrated into completion ledger. Bounded live testing resumed under explicit owner delegation; parent O1-O3 remain unmet pending actual evidence."
+          "2026-10-20 Sol remediation supersedes prior completion/pause claims: two additional QR defects reproduced and repaired, canonical repository corrected, children integrated into completion ledger. Bounded live testing resumed under explicit owner delegation; parent O1-O3 remain unmet pending actual evidence.",
+          "Protected PR127/131/132 are merged. All four workflows pass at canonical b5a8679; dedicated development preview9d9d6d0d has141 served hashes, shell/automatic worker and seven guest journeys pass. #119 closed with completion guard39406387999 success; owner bounded decision supersedes prior atomic-contract block. Actual offline reload/reconnect passes; complete app mutation journey, classified replay and real elapsed observations remain required.",
+          "V12 completed all25 app-journey/foreign-absence/cleanup assertions. Remote writer mutations204 with actual UI actions; independent app shows profile/catalog/Library/watched badge/progress+ContinueWatching, then final-item removal/reload-empty. Exact cleanup preserves original measured state. Raw global run remains incomplete because denied final foreign settings/seed requests conservatively set terminal; no unknown issued write/auth. Separate automated evidence review verifies hashes/order/forwarding and approves A2 completed phases only. No broader foreign background mutation claim. Default closure remains2 for required A8 elapsed observations."
         ],
-        "remaining": "Original O1-O3 remain intact. A2 needs application profile/add-on/history/progress mutation propagation; direct additive API markers and read-only hosted Library round trips passed. A3 preserves unexplained historical pre-header failure. A5 now uses explicit per-item writes; same-key concurrency/durable retry/storage guarantees remain unsupported. A8: explicit refresh and scoped revocation observed; hosted QR start rejects preview redirect400, natural expiry and physical/device observations incomplete. No owner-permission blocker.",
+        "remaining": "Original O1–O3 unchanged. A2 required actual app propagation/Save/history/progress/final-item deletion and independent receiver phases complete; raw V12 overall incomplete due locally denied final foreign background requests is preserved, not a whole-run pass. A3 classified six-step current verification and A5 owner-accepted bounded recovery complete;119 closed. Only A8 required actual elapsed natural expiry/application revoked-refresh remains, due27Oct. DSH confirmed both recorded observer PIDs present and final receipts empty; running app v3 retains an earlier false cached-shelf assertion, so future lifecycle checks need separate phase review rather than a whole-run pass. Stronger guarantees/QR/physical-device work explicitly deferred and unsupported in128–130. No routine owner permission pending.",
         "children": [
           {
             "number": 117,
@@ -192,13 +201,13 @@
           },
           {
             "number": 119,
-            "status": "blocked_external",
-            "scope": "Atomic provider precondition/conflict contract; owner permission granted"
+            "status": "closed",
+            "scope": "Owner-accepted bounded recovery verified through protected PR127/131, canonical checks and successful closure guard; stronger guarantees #128."
           },
           {
             "number": 120,
             "status": "in_progress",
-            "scope": "Authorized live observations; actual provider/device dependencies distinguished"
+            "scope": "Actual app propagation, classified isolation replay and elapsed natural-expiry/rejected-refresh evidence; QR/device explicitly deferred."
           }
         ],
         "historical_verification_note": "Entries before the 2026-10-20 Sol remediation append are dated historical observations. Any earlier pause/owner-decision wording is superseded by AGENTS.md and the current acceptance receipt."
@@ -512,7 +521,7 @@
           "PR A/B merged through protection at38cf2c9 (head10b3b21) after #67 plans and #66 unit6a; PR #68/#69 were folded after review fixes crossed both layers.",
           "State validator10/10 pass and exit0 on the seeded state; collector17/17 offline tests pass with injected fetch/clock; no live GitHub call, workflow, issue write or parity decision.",
           "Read-only Codex review found1P1+12P2; P1 report-path symlink containment and11 P2 contract/budget/licensing/fingerprint/validation issues fixed with regressions; streamed-cancellation/CLI exit coverage documented as remaining.",
-          "Collector enforces state-derived request/byte/time/tree/commit/tag/release/report ceilings, rejects malformed upstream responses, compares import\u2192observed and reviewed\u2192observed, and reports baseline-review-required while the observation baseline is absent."
+          "Collector enforces state-derived request/byte/time/tree/commit/tag/release/report ceilings, rejects malformed upstream responses, compares import→observed and reviewed→observed, and reports baseline-review-required while the observation baseline is absent."
         ],
         "remaining": "PR C publisher requires explicit owner review of the new issues:write permission boundary; PR D workflow wiring and a controlled live read-only smoke are not implemented. Observation baseline, decisions and ports remain unapproved/empty; no monitoring, licensing-completeness or parity claim yet."
       }
@@ -620,10 +629,11 @@
           "docs/plans/issues/issue-119-storage-failures.md",
           "docs/LIBRARY_SYNC_POLICY.md",
           "docs/evidence/issue7-storage-recovery-2026-10-20.json",
-          "docs/evidence/issue7-owner-scope-2026-10-20.json"
+          "docs/evidence/issue7-owner-scope-2026-10-20.json",
+          "docs/evidence/issue7-protected-checkpoint-2026-10-20.json"
         ],
         "verification": [
-          "70 focused actual-module tests pass atf8ee31f;4 browser failure/reload/reconnect/storage cases pass. Separate automated runtime review approved134cac2; final exact-head CI/review/protected merge are required before this proposed completion becomes canonical. Stronger guarantees explicitly tracked in #128."
+          "Protected PR127 exact37809cee merged2fa72df;70 focused and4 targeted browser storage/reload/reconnect/legacy cases pass. Actual-merge browser fixture failure preserved and corrected in protected PR131; all four canonical workflows pass at0c68170 andb5a8679. Served runtime/inventory verified before issue119 closure2026-10-20T10:13:17Z; completion guard39406387999 succeeds. Automated separate actual-diff review, not human approval. Bounded scope accepted by owner; stronger guarantees #128 remain open."
         ]
       }
     },
@@ -647,14 +657,23 @@
           "docs/plans/issues/issue-120-progress-fixture.md",
           "docs/evidence/issue7-long-progress-fixture-2026-10-20.json",
           "docs/plans/issues/issue-120-rejected-refresh-cleanup.md",
-          "docs/evidence/issue7-rejected-refresh-cleanup-2026-10-20.json"
+          "docs/evidence/issue7-rejected-refresh-cleanup-2026-10-20.json",
+          "docs/plans/issues/issue-120-live-checkpoint.md",
+          "docs/evidence/issue7-protected-checkpoint-2026-10-20.json",
+          "docs/evidence/issue7-offline-reconnect-2026-10-20.json",
+          "docs/evidence/issue7-app-journey-phases-2026-10-20.json",
+          "docs/evidence/issue7-hosted-progress-fixture-limit-2026-10-20.json",
+          "docs/agent-runs/2026-10-20-issue120-journey-phase-review.md",
+          "docs/evidence/issue7-dsh-continuation-2026-10-20.json"
         ],
         "verification": [
           "Authorized guarded direct and actual hosted tests executed. Hosted A-B-A-B Library controls exact/restored, additive marker receiver/cleanup/original rows unchanged, explicit refresh and local-session revocation observed; credential integrity unchanged. No natural expiry/new profile/add-on mutation/physical QR claim.",
-          "Owner explicitly deferred QR/device verification with unsupported labels and follow-up tracking. Actual app propagation, historical failure disposition, offline/rejected refresh and natural expiry remain required. Provider issues604800-second sessions; finite memory-only observer targets2026-10-27T08:41:40.775Z; elapsed expiry observation is not complete.",
+          "Owner explicitly deferred QR/device verification with unsupported labels and follow-up tracking. Actual app propagation, historical failure disposition, offline/rejected refresh and natural expiry remain required. Provider issues604800-second sessions; current finite memory-only observer targets2026-10-27T09:53:49.952Z; old observer was interrupted without expiry proof; elapsed expiry observation is not complete.",
           "Deferred provider QR and physical-device work tracked separately as #129/#130; these are unsupported capability labels, not pass receipts.",
           "Original120.008-second/344925-byte CC0 progress fixture staged optionally;7 packaging/actual local media cases pass. Known offline fallback fixture503 correction plus wrong-owner negative case passes2 focused browser tests. This is fixture proof, not live progress propagation. Final protected checks/review remain required.",
-          "Bootstrap displayed signed-out after a rejected refresh but retained credentials and private caches. Actual-module regression reproduced red (12 pass/1 fail). Existing local signOut reset only for still-owned authoritative400/401/403 rejection.429/5xx preserves caches; transient network behavior unchanged. No remote logout or new login system.18 focused/1447 application/2 targeted browser tests pass; final exact-head CI/protected integration required."
+          "Bootstrap displayed signed-out after a rejected refresh but retained credentials and private caches. Actual-module regression reproduced red (12 pass/1 fail). Existing local signOut reset only for still-owned authoritative400/401/403 rejection.429/5xx preserves caches; transient network behavior unchanged. No remote logout or new login system.18 focused/1447 application/2 targeted browser tests pass; final exact-head CI/protected integration required.",
+          "Protected PR131 lawful120s fixture and PR132 rejected-refresh cleanup are merged. All four actual-merge workflows pass atb5a8679. Actual hosted offline reload/reconnect passes with documented offline UI and exact private-state/server comparisons. Separate app revoked-refresh observer targets2026-10-27T10:21:40.792Z; no actual natural-expiry/rejected-refresh pass yet. Earlier proposed integration wording above is historical, superseded by protected checkpoint receipt.",
+          "Required actual app propagation/Save->independentreceiver->finaldelete->reloadempty phases completed in V12; all25 checks and exactcleanup true. Preserve raw overall incomplete status from final foreign background denials; automated evidence review approves only bounded required phases. Actual rate1 playback beyond37s, qualifying cloud position32–45s/duration119–121s and receiver store+Home UI pass; hosted fixture seeking remains unclaimed. Only actual elapsed natural expiry/application revoked-refresh remains required under agreed scope."
         ]
       }
     }
