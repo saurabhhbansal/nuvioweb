@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "issue": 120,
+  "parent": 7,
+  "kind": "synthetic",
+  "source_commit": "548ec3e5ae5948f439d5da16bbe5872fde1bb77c",
+  "observed_at": "2026-10-20",
+  "problem": "Bootstrap displayed signed-out after a rejected refresh but retained credentials and private caches. Actual-module regression reproduced red (12 pass/1 fail).",
+  "repair": "Existing local signOut reset only for still-owned authoritative400/401/403 rejection.429/5xx preserves caches; transient network behavior unchanged. No remote logout or new login system.",
+  "commands": [
+    {
+      "command": "node --test app/alpha/js/core/auth/authManager.lifecycle.test.mjs app/alpha/js/core/auth/authManager.test.mjs app/alpha/js/core/auth/accountLocalDataReset.test.mjs",
+      "result": "18 pass,0 fail including rejection,429/500/503, delayed newer-login ownership and offline controls"
+    },
+    {
+      "command": "NUVIO_LOCAL_PROPERTIES=$PWD/tests/fixtures/build.properties npm run build --prefix app/alpha",
+      "result": "pass; inert fixture build"
+    },
+    {
+      "command": "npx playwright test tests/browser/identity-sync.spec.mjs --grep \"expired access with a rejected refresh|offline reload cannot\"",
+      "result": "2 pass; synthetic identity service and actual bundled app"
+    },
+    {
+      "command": "npm test --prefix app/alpha",
+      "result": "1447 pass,0 fail"
+    },
+    {
+      "command": "npm run lint --prefix app/alpha",
+      "result": "pass"
+    }
+  ],
+  "review": "Separate read-only Codex gpt-6.1-sol/high runtime/test review approved; automated, not independent human approval. Final evidence diff/exact-head required checks/protected integration remain gates.",
+  "security_privacy_cost": "No new recipients/privileges/dependencies/network destinations/hosted compute/billing. Local reset preserves unrelated device state. GPL retained.",
+  "rollback": "Protected revert and prior dedicated development deployment c7a3a017.",
+  "limits": [
+    "Synthetic tests do not establish actual natural expiry/revoked-refresh application behavior.",
+    "Original O1\u2013O3 and A2/A3/A8 remain open.",
+    "All required exact-head and actual-merge workflows must pass before deployment."
+  ]
+}
