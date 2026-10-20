@@ -14,7 +14,7 @@ test.beforeEach(async ({ context, request }) => {
   });
 });
 
-for (const scenario of ["unknown-quality", "declared", "unsupported-mime"]) {
+for (const scenario of ["unknown-quality", "declared", "unsupported-mime", "conflicting-codecs"]) {
   test(`bundled source evidence distinguishes ${scenario} without rewriting original playback`, async ({
     page,
     context,
@@ -76,6 +76,10 @@ for (const scenario of ["unknown-quality", "declared", "unsupported-mime"]) {
           path: testInfo.outputPath(`capability-${viewport.width}.png`),
         });
       }
+    } else if (scenario === "conflicting-codecs") {
+      await expect(source).toContainText("Provider format: webm / vp09.00.10.08 (unverified)");
+      await expect(source).toContainText("Browser support unknown");
+      await expect(source).not.toContainText("Browser predicts native support");
     } else {
       await expect(source).toContainText(
         "Native support not reported; another engine may work",
@@ -154,6 +158,64 @@ test("actual repository/flatten and browser predictions retain explicit fields a
   expect(result.report.decodingStatus).toBe("reported");
   expect(result.report.videoDecoding.supported).toBe(true);
   expect(result.report.scope).toContain("audio/HDR/output unverified");
+});
+
+test("real browser probes keep conflicting configurations unknown and isolated from clean MIME caches", async ({ page }, testInfo) => {
+  await page.goto("/__fixture/harness");
+  const output = await page.evaluate(async (provider) => {
+    const { streamRepository } = await import("/__fixture/source/js/data/repository/streamRepository.js");
+    const { flattenStreams } = await import("/__fixture/source/js/core/streams/streamList.js");
+    const { probeSourceCapabilities } = await import("/__fixture/source/js/core/streams/sourceCapabilities.js");
+    const { normalizeSourceForDisplay } = await import("/__fixture/source/js/ui/components/browserStreamSourceCard.js");
+    const getSource = async (scenario) => {
+      const response = await streamRepository.getStreamsFromAddon(`${provider}/${scenario}`, "movie", "fixture:original");
+      return flattenStreams({ status: "success", data: [{ addonName: "Legal Fixture", streams: response.data }] })[0];
+    };
+    const clean = await getSource("declared");
+    const conflict = await getSource("conflicting-codecs");
+    const configurations = [];
+    const mediaCapabilities = navigator.mediaCapabilities && {
+      decodingInfo(configuration) {
+        configurations.push(configuration);
+        return navigator.mediaCapabilities.decodingInfo(configuration);
+      }
+    };
+    const probe = (source) => probeSourceCapabilities(source.sourceDescriptor, {
+      videoElement: document.createElement("video"), mediaCapabilities
+    });
+    const cleanReport = await probe(clean);
+    const callsBeforeConflict = configurations.length;
+    const conflictReport = await probe(conflict);
+    const display = (source) => normalizeSourceForDisplay(source, {
+      badgeSettings: { showAddonLogo: false }, streamBadgesEnabled: false
+    }).evidenceLines;
+    // A clean card first populates the exact same MIME cache; conflict stays unknown.
+    const cleanLines = display(clean);
+    const conflictLines = display(conflict);
+    return {
+      cleanReport, conflictReport, cleanLines, conflictLines,
+      callsBeforeConflict, callsAfterConflict: configurations.length, configurations,
+      descriptor: conflict.sourceDescriptor,
+      native: document.createElement("video").canPlayType(clean.sourceDescriptor.contentType),
+      url: conflict.url
+    };
+  }, provider);
+  expect(output.descriptor.contentType).toBe('video/webm; codecs="vp8,opus"');
+  expect(output.descriptor.video.codec).toBe("vp09.00.10.08");
+  expect(output.conflictReport).toMatchObject({ native: "unknown", decodingStatus: "unknown", videoDecoding: null });
+  expect(output.callsAfterConflict).toBe(output.callsBeforeConflict);
+  expect(output.conflictLines).toContain("Browser support unknown");
+  expect(output.cleanReport.native).toBe(output.native === "" ? "not-reported" : output.native);
+  expect(output.url).toBe(`${provider}/media/procedural-vp8-opus.webm`);
+  if (output.callsBeforeConflict) {
+    expect(output.configurations).toEqual([{
+      type: "file",
+      video: { contentType: 'video/webm; codecs="vp8"', width: 640, height: 360, bitrate: 100000, framerate: 10 }
+    }]);
+  }
+  await testInfo.attach("codec-declaration-consistency.json", {
+    body: JSON.stringify(output, null, 2), contentType: "application/json"
+  });
 });
 
 test("header/expiry guidance is visible and source metadata cannot render secret URLs or markup", async ({

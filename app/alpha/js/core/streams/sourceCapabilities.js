@@ -122,9 +122,23 @@ export function normalizeSourceDescriptor(descriptor) {
   return normalized;
 }
 
+// Both fields are provider declarations, not competing sources of truth. Without
+// an exact codec match we cannot predict which configuration describes the source.
+// Do not infer aliases or discard the MIME codec list to manufacture agreement.
+export function hasSourceCodecConflict(descriptor) {
+  const mimeType = contentType(descriptor?.contentType);
+  const codec = token(descriptor?.video?.codec);
+  const match = mimeType && /;\s*codecs="([^"]*)"/i.exec(mimeType);
+  return Boolean(codec && match && !match[1].split(",").some((value) => value.trim() === codec));
+}
+
 export function probeNativeSource(descriptor, videoElement) {
   descriptor = normalizeSourceDescriptor(descriptor);
-  if (!descriptor?.contentType || typeof videoElement?.canPlayType !== "function") return "unknown";
+  if (
+    !descriptor?.contentType ||
+    hasSourceCodecConflict(descriptor) ||
+    typeof videoElement?.canPlayType !== "function"
+  ) return "unknown";
   try {
     const result = videoElement.canPlayType(descriptor.contentType);
     return result === "probably" || result === "maybe"
@@ -151,6 +165,7 @@ export async function probeSourceCapabilities(
   };
   const video = descriptor?.video || {};
   if (
+    hasSourceCodecConflict(descriptor) ||
     !descriptor?.contentType?.startsWith("video/") ||
     !/^[a-z0-9._-]+$/i.test(video.codec || "") ||
     ![video.width, video.height, video.bitrate, video.framerate].every((value) =>

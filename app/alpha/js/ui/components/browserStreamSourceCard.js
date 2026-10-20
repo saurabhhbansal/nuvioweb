@@ -7,7 +7,7 @@ import {
 } from "../../core/media/addonLogoCache.js";
 import { matchStreamBadges, normalizeStreamBadgeChipColor } from "../../core/streams/streamBadgeRules.js";
 import { I18n } from "../../i18n/index.js";
-import { describeSource, normalizeSourceDescriptor, probeNativeSource } from "../../core/streams/sourceCapabilities.js";
+import { describeSource, hasSourceCodecConflict, normalizeSourceDescriptor, probeNativeSource } from "../../core/streams/sourceCapabilities.js";
 
 const STREAM_BADGE_LIMIT = 9;
 const nativeReports = new Map();
@@ -16,7 +16,7 @@ function sourceEvidenceLines(source) {
   const descriptor = source.sourceDescriptor
     ? normalizeSourceDescriptor(source.sourceDescriptor) : describeSource(source);
   let native = "unknown";
-  if (descriptor.contentType && typeof document !== "undefined") {
+  if (descriptor.contentType && !hasSourceCodecConflict(descriptor) && typeof document !== "undefined") {
     if (!nativeReports.has(descriptor.contentType)) {
       if (nativeReports.size >= 64) nativeReports.clear();
       nativeReports.set(descriptor.contentType, probeNativeSource(descriptor, document.createElement("video")));

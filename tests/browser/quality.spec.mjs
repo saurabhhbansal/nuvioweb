@@ -1,4 +1,6 @@
 import { test, expect } from "@playwright/test";
+import { readFile } from "node:fs/promises";
+const provenance = JSON.parse(await readFile(new URL("../fixtures/media/quality/provenance.json", import.meta.url), "utf8"));
 const provider = "http://127.0.0.1:4373";
 test.beforeEach(async ({ context, request }) => {
   await request.delete(`${provider}/__fixture/requests`);
@@ -76,12 +78,12 @@ for (const [scenario, width, height, file] of [
     // These fixtures are H.264. A capable engine must decode them; an engine
     // that reports no H.264 support must still surface an explicit, actionable
     // failure instead of hanging. Do not assume Chromium's codec set.
-    const supportsFixtureCodec = await page.evaluate(
-      () =>
-        document
-          .createElement("video")
-          .canPlayType('video/mp4; codecs="avc1.42c02a"') !== "",
+    const original = provenance.files.find(entry => entry.file === (scenario === "quality-1080" ? "original-1080p.mp4" : "original-2160p.mp4"));
+    const predictionType = `video/mp4; codecs="${original.codec}"`;
+    const nativePrediction = await page.evaluate(
+      type => document.createElement("video").canPlayType(type), predictionType,
     );
+    const supportsFixtureCodec = nativePrediction !== "";
     await page.locator('[data-action="playStream"]').click();
     if (!supportsFixtureCodec) {
       const overlay = page.locator("#playerStartupErrorOverlay");
@@ -94,7 +96,7 @@ for (const [scenario, width, height, file] of [
         overlay.locator(".player-startup-error-message"),
       ).not.toBeEmpty();
       await testInfo.attach("unsupported-codec", {
-        body: JSON.stringify({ scenario, message: await overlay.innerText() }),
+        body: JSON.stringify({ scenario, outcome: "UNSUPPORTED_DIAGNOSTIC_NO_DECODE", engine: testInfo.project.name, predictionType, nativePrediction, fixtureSha256: original.sha256, message: await overlay.innerText() }),
         contentType: "application/json",
       });
       await overlay.getByRole("button", { name: "Go Back", exact: true }).click();
@@ -165,21 +167,21 @@ for (const [scenario, width, height, file] of [
     if (scenario === "quality-1080" || scenario === "quality-2160")
       expect(initial.src).toBe(`${provider}/media/quality/${file}`);
     else {
-      expect(initial.src).toMatch(/^blob:http:\/\/127\.0\.0\.1:4371\//);
-      expect(
-        media.some((entry) => entry.path === "/media/quality/2160p/init.mp4"),
-      ).toBe(true);
-      expect(
-        media.some(
-          (entry) => entry.path === "/media/quality/2160p/segment.m4s",
-        ),
-      ).toBe(true);
+      // Both paths must fetch original segments and decode/seek at 4K above.
+      // A native HLS fallback is legitimate; DASH still requires the MSE path.
+      if (scenario === "quality-hls" && initial.src === `${provider}/media/quality/${file}`) {
+        expect(initial.src).toBe(`${provider}/media/quality/2160p/stream.m3u8`);
+      } else {
+        expect(initial.src).toMatch(/^blob:http:\/\/127\.0\.0\.1:4371\//);
+      }
+      expect(media.some(entry => entry.path === "/media/quality/2160p/init.mp4" && [200, 206].includes(entry.status))).toBe(true);
+      expect(media.some(entry => entry.path === "/media/quality/2160p/segment.m4s" && [200, 206].includes(entry.status))).toBe(true);
     }
     const engineEvents = await page.evaluate(
       () => globalThis.__qualityEngineEvents,
     );
     await testInfo.attach("actual-quality-observation", {
-      body: JSON.stringify({ scenario, initial, media, engineEvents }),
+      body: JSON.stringify({ scenario, outcome: "ORIGINAL_DECODE_AND_SEEK", engine: testInfo.project.name, predictionType, nativePrediction, fixtureSha256: original.sha256, initial, media, engineEvents }),
       contentType: "application/json",
     });
     const observed = await (
