@@ -3,7 +3,7 @@
   "issue": 7,
   "repository": "saurabhbansal/nuvioweb",
   "as_of": "2026-10-20",
-  "source_commit": "51488b04b9bf3bce5a1f9d3c5b5c1d0d54635984",
+  "source_commit": "6dd2c33581fb75540a9a955b3009ca1e9d54d1ab",
   "original_criteria": [
     {
       "id": "O1",
@@ -116,7 +116,7 @@
         {
           "kind": "review",
           "status": "pass",
-          "commit": "51488b04b9bf3bce5a1f9d3c5b5c1d0d54635984",
+          "commit": "6dd2c33581fb75540a9a955b3009ca1e9d54d1ab",
           "deployment": null,
           "command_or_observation": "node --test app/alpha/js/core/auth/qrLoginService.lifecycle.test.mjs and npx playwright test tests/browser/identity-qr.spec.mjs --project=chromium",
           "assertion": "The QR entry path uses attempt ownership and common establishment; a cancelled/superseded exchange cannot set authenticated state, write an owner marker or navigate.",
@@ -326,7 +326,7 @@
         {
           "kind": "synthetic",
           "status": "pass",
-          "commit": "51488b04b9bf3bce5a1f9d3c5b5c1d0d54635984",
+          "commit": "6dd2c33581fb75540a9a955b3009ca1e9d54d1ab",
           "deployment": null,
           "observed_at": "2026-10-20T02:00:00Z",
           "command_or_observation": "node --test app/alpha/js/core/auth/qrLoginService.lifecycle.test.mjs; node scripts/qr-ownership-probe.mjs app/alpha/js --assert-safe; npx playwright test tests/browser/identity-qr.spec.mjs --project=chromium",
@@ -357,7 +357,7 @@
         {
           "kind": "review",
           "status": "pass",
-          "commit": "51488b04b9bf3bce5a1f9d3c5b5c1d0d54635984",
+          "commit": "6dd2c33581fb75540a9a955b3009ca1e9d54d1ab",
           "deployment": null,
           "command_or_observation": "Threat-model review of reachable QR sources/sinks and the destination policy, recorded in docs/NUVIO_IDENTITY_CONTRACT.md.",
           "assertion": "No credential-bearing QR content is sent to a third-party renderer, unsafe image markup is not constructed, and residual same-origin token risk is stated.",
@@ -369,7 +369,7 @@
         {
           "kind": "synthetic",
           "status": "pass",
-          "commit": "51488b04b9bf3bce5a1f9d3c5b5c1d0d54635984",
+          "commit": "6dd2c33581fb75540a9a955b3009ca1e9d54d1ab",
           "deployment": null,
           "observed_at": "2026-10-20T02:00:00Z",
           "command_or_observation": "npx playwright test tests/browser/identity-qr.spec.mjs --project=chromium",

@@ -4,7 +4,7 @@
   "child": 118,
   "date": "2026-10-20",
   "kind": "synthetic",
-  "source_commit": "51488b04b9bf3bce5a1f9d3c5b5c1d0d54635984",
+  "source_commit": "6dd2c33581fb75540a9a955b3009ca1e9d54d1ab",
   "environment": "pinned Node 22.23.1 and Chromium via Playwright; actual modules, fake localStorage, mocked Fetch, inert loopback build; no network, account, credential, QR device or live service",
   "red_before_fix": {
     "source_commit": "f30c79f6045786c821047532104c90aa65b861cc",
