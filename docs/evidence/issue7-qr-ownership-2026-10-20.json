@@ -4,7 +4,7 @@
   "child": 118,
   "date": "2026-10-20",
   "kind": "synthetic",
-  "source_commit": "9ff941966371abac387ff770c2efa1215071760f",
+  "source_commit": "51488b04b9bf3bce5a1f9d3c5b5c1d0d54635984",
   "environment": "pinned Node 22.23.1 and Chromium via Playwright; actual modules, fake localStorage, mocked Fetch, inert loopback build; no network, account, credential, QR device or live service",
   "red_before_fix": {
     "source_commit": "f30c79f6045786c821047532104c90aa65b861cc",
@@ -31,7 +31,7 @@
         "--test",
         "app/alpha/js/core/auth/qrLoginService.lifecycle.test.mjs"
       ],
-      "result": "15 passed, 0 failed, 0 skipped",
+      "result": "16 passed, 0 failed, 0 skipped",
       "tests": [
         "a delayed QR exchange cannot overwrite a later session",
         "a delayed anonymous bootstrap cannot publish after logout and a later login",
@@ -42,6 +42,7 @@
         "a delayed AuthManager TV exchange cannot publish over a later session",
         "a delayed email sign-in cannot publish over a later session",
         "a later authentication attempt is not signed out by a stale QR establishment",
+        "a new QR attempt during owner resolution does not publish or clear the new attempt",
         "cancelling during owner resolution prevents publication",
         "a start error is redacted for the device nonce",
         "a stale poll from a superseded attempt is refused before any request",
@@ -95,7 +96,7 @@
         "--prefix",
         "app/alpha"
       ],
-      "result": "1411 passed, 0 failed, 0 skipped"
+      "result": "1412 passed, 0 failed, 0 skipped"
     }
   ],
   "ownership_changes": [

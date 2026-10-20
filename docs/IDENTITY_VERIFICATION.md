@@ -27,7 +27,7 @@ The actual AuthManager failed five deterministic delayed-response scenarios: ref
 
 These are synthetic findings and an unmerged, undeployed fix; the live checks above exercised the older deployed revision. Full regression verification and explicit owner auth review remain required. Existing offline/expiry policy, destinations/scopes and storage format are preserved.
 
-Local refresh-fix regression verification:1114/1114 application tests,31/31 Chromium/PWA journeys, lint, inert build/12-asset check and15/15 docs/governance tests pass. These do not replace the outstanding live/new-data/negative checks.
+Local refresh-fix regression verification:1114/1114 application tests,31/31 Chromium/PWA journeys, lint, inert build/12-asset check and16/16 docs/governance tests pass. These do not replace the outstanding live/new-data/negative checks.
 
 [First hydration attempt](evidence/identity-hydration-attempt-2026-10-19.json) remains recorded as failed/partial: cloud requests returned200 and existing watched/add-on sets matched across A contexts, but the initial progress snapshot differed and the driver checked Sign Out before asynchronous navigation completed. The driver is being corrected to wait for completed/stable hydration and router mounting; no product sync fix or successful Library-isolation claim follows from this attempt. Empty Library controls cannot prove cross-account Library isolation.
 
@@ -206,7 +206,7 @@ Limits: these are loopback synthetic assertions. They do not prove deployed Nuvi
 
 ## QR publication and rendering safety — 2026-10-20 (synthetic, CH2 #118)
 
-**Status: bounded synthetic fix; #7 stays open and live QR remains blocked.** The original service-seam probe at `f30c79f` held the actual `QrLoginService.exchange()` response, completed a real `AuthManager.signOut()`, established a later authenticated session, then released the old response. It reproduced `staleExchangeAccepted: true` and `laterSessionOverwritten: true` (exit1). The same invariant is now a committed lifecycle regression and passes after the fix (15/15), and the committed `scripts/qr-ownership-probe.mjs --assert-safe` exits0 with both fields false.
+**Status: bounded synthetic fix; #7 stays open and live QR remains blocked.** The original service-seam probe at `f30c79f` held the actual `QrLoginService.exchange()` response, completed a real `AuthManager.signOut()`, established a later authenticated session, then released the old response. It reproduced `staleExchangeAccepted: true` and `laterSessionOverwritten: true` (exit1). The same invariant is now a committed lifecycle regression and passes after the fix (16/16), and the committed `scripts/qr-ownership-probe.mjs --assert-safe` exits0 with both fields false.
 
 What changed:
 
@@ -214,7 +214,7 @@ What changed:
 - A successful exchange publishes only through `AuthManager.establishAuthenticatedSession()` with a new authentication attempt. `AuthManager` now advances an authentication-attempt sequence on sign-in, TV exchange, bootstrap and sign-out; delayed email/TV/bootstrap completions cannot overwrite a later session.
 - The screen's signed-out “continue without account” path now calls cleanup before navigating, so leaving during a held exchange cancels the attempt.
 - The external `api.qrserver.com` image fallback is removed. `isSafeQrImageUrl()` accepts only same-origin HTTPS, the loopback/local-dev origin or base64 image data; the screen builds the image with DOM APIs, renders the validated login URL locally with `QrCodeGenerator` when needed, and falls back to an explicit unavailable state only if neither is available. Error text is redacted for the code/nonce.
-- `tests/browser/identity-qr.spec.mjs` drives the actual screen with synthetic start/poll/exchange: current flow with a safe local image, local QR generation when upstream omits an image, hostile image URL inert with local QR fallback and zero external renderer requests, and navigation away during held exchange or owner resolution with no later token/state/navigation side effect. 5/5 pass. The lifecycle suite also covers cancel/supersede during owner resolution and a stale establishment not signing out a later session; 15/15 pass.
+- `tests/browser/identity-qr.spec.mjs` drives the actual screen with synthetic start/poll/exchange: current flow with a safe local image, local QR generation when upstream omits an image, hostile image URL inert with local QR fallback and zero external renderer requests, and navigation away during held exchange or owner resolution with no later token/state/navigation side effect. 5/5 pass. The lifecycle suite also covers cancel/supersede during owner resolution and a stale establishment not signing out a later session; 16/16 pass.
 
 The threat model and destination policy are recorded in [NUVIO_IDENTITY_CONTRACT.md](NUVIO_IDENTITY_CONTRACT.md). Limits: all synthetic; no live QR consent/expiry/nonce/device claim. Tokens remain same-origin localStorage values, so same-origin XSS can still read them; local cleanup is not remote revocation. Live QR stays under #120.
 

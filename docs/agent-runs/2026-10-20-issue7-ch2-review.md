@@ -2,7 +2,7 @@
 
 Scope: child [#118](https://github.com/saurabhbansal/nuvioweb/issues/118), parent #7. Base
 `a92a9ef0abea32d8d549fb00a5d734fde00358b2`. First reviewer pass at `07d9a50`; fixes at
-`9ff941966371abac387ff770c2efa1215071760f` with documentation-only follow-ups.
+`51488b04b9bf3bce5a1f9d3c5b5c1d0d54635984` with documentation-only follow-ups.
 
 **This is an automated technical review, not independent human approval.**
 
@@ -18,6 +18,7 @@ Scope: child [#118](https://github.com/saurabhbansal/nuvioweb/issues/118), paren
 | `cleanup()` cancelled only the last stored attempt id, so an in-flight refreshed attempt could survive back/continue. | P3 | Fixed: screen cleanup cancels the current service attempt; the anonymous caller's tokens are cleared. |
 | `start()` error text was not redacted for the device nonce. | P3 | Fixed: start errors redact the generated nonce; test injects a deterministic nonce and asserts `[redacted]`. |
 | Email/TV establishment failures could leave their just-written tokens after a superseded attempt. | P3 | Fixed with the same ownership rule: sign out only when the attempt is current, otherwise clear only the written pair. New lifecycle tests cover both. |
+| A new QR attempt during owner resolution could be signed out by the old exchange's failure path. | P2 | Fixed: cancelled-publication errors carry `AUTH_PUBLICATION_CANCELLED`, and beginning a new attempt invalidates an old in-flight establishment. The old exchange removes only its own token pair; the new attempt stays active. New lifecycle test covers this. |
 | `isSafeQrImageUrl` accepted any HTTPS URL when no DOM `location` exists and rejected `localhost`. | P3 | Fixed: no-location absolute HTTPS is rejected; both `127.0.0.1` and `localhost` are accepted only when same-origin. |
 | Test/evidence traceability: the lifecycle suite uses the new attempt API and cannot run pre-fix; the genuine red is the planner probe. | P3 | Documented in the evidence: red is the pre-fix actual-module probe at `f30c79f`; the committed probe and lifecycle/browser suites are the green regression. The red command/limitation is explicitly labelled. |
 | CURRENT listed all A1-A8 as unmet; CH2 review record said pending. | P3 | Fixed: CURRENT now lists A2,A3,A5,A8; this record is the completed review disposition. |
@@ -27,10 +28,10 @@ Scope: child [#118](https://github.com/saurabhbansal/nuvioweb/issues/118), paren
 The first reviewer pass was against `07d9a50`. The fixes above are at `9ff9419`; a focused re-review of that
 head is requested before the PR is marked ready. The executor's checks at `9ff9419`:
 
-- `node --test app/alpha/js/core/auth/qrLoginService.lifecycle.test.mjs` — 15/15.
+- `node --test app/alpha/js/core/auth/qrLoginService.lifecycle.test.mjs` — 16/16.
 - `node scripts/qr-ownership-probe.mjs app/alpha/js --assert-safe` — exit 0; stale publication false.
 - `npx playwright test tests/browser/identity-qr.spec.mjs --project=chromium` — 5/5.
-- `npm test --prefix app/alpha` — 1411/1411.
+- `npm test --prefix app/alpha` — 1412/1412.
 - `npx playwright test` — 66/66.
 - `npm run lint --prefix app/alpha`, inert build, `check-alpha-build` — pass.
 - acceptance gate `--validate` — exit 0 with A2,A3,A5,A8 unmet; full closure exit 2.
