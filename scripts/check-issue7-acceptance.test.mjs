@@ -1,13 +1,17 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { spawnSync } from "node:child_process";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 import {
+  contractProblem,
   deriveCriterionStatus,
   deriveUnmetIds,
   evaluateClosure,
   isCountOnlyResult,
+  progressLedgerProblem,
   validateReceipt
 } from "./check-issue7-acceptance.mjs";
 
@@ -15,10 +19,6 @@ const root = fileURLToPath(new URL("../", import.meta.url));
 const receiptPath = "docs/evidence/issue7-acceptance.json";
 const committed = () => JSON.parse(readFileSync(`${root}${receiptPath}`, "utf8"));
 const criterion = (receipt, id) => receipt.criteria.find((entry) => entry.id === id);
-const contextOf = (receipt) => ({
-  criteria: receipt.criteria,
-  childStates: new Map(receipt.ledger.children.map((child) => [child.key, child.state]))
-});
 
 function mutated(change) {
   const receipt = committed();
@@ -28,6 +28,16 @@ function mutated(change) {
 
 function hasError(errors, fragment) {
   return errors.some((error) => error.includes(fragment));
+}
+
+function withTempRoot(run) {
+  const directory = mkdtempSync(join(tmpdir(), "issue7-gate-"));
+  try {
+    mkdirSync(join(directory, "docs"), { recursive: true });
+    return run(directory);
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
 }
 
 test("the committed blocked receipt is structurally valid and reports the real unmet set", () => {
@@ -51,6 +61,19 @@ test("schema CLI exits 0 for the honest blocked receipt and full closure exits 2
   });
   assert.equal(closure.status, 2, closure.stderr);
   assert.match(closure.stderr, /acceptance is unmet/);
+});
+
+test("a structurally invalid receipt exits 1 rather than the unmet exit 2", () => {
+  withTempRoot((directory) => {
+    const path = join(directory, "invalid.json");
+    writeFileSync(path, "{}");
+    const result = spawnSync(process.execPath, ["scripts/check-issue7-acceptance.mjs", path], {
+      cwd: root,
+      encoding: "utf8"
+    });
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /problem\(s\)/);
+  });
 });
 
 test("a missing original criterion is rejected", () => {
@@ -89,11 +112,12 @@ test("synthetic evidence declared as a live pass is rejected by derived status",
     row.observations = [{
       kind: "synthetic",
       status: "pass",
-      commit: "f30c79f6045786c821047532104c90aa65b861cc",
+      commit: "d77a9119795890ed05eb29000cb7b7b7956be23c",
       deployment: null,
+      observed_at: "2026-10-20T00:55:00Z",
       command_or_observation: "npx playwright test tests/browser/identity-sync.spec.mjs --project=chromium",
-      assertion: "A synthetic fixture would prove the observed browser orchestration.",
-      result: "Synthetic browser case passes.",
+      assertion: "A synthetic fixture would prove only the observed browser orchestration.",
+      result: "Synthetic browser case passes with exact keys.",
       artifact: "docs/evidence/issue7-fixture-closure-2026-10-20.json",
       limitations: "Synthetic only."
     }];
@@ -109,22 +133,86 @@ test("an unresolved failed observation keeps the criterion failing", () => {
   assert.equal(deriveCriterionStatus(criterion(committed(), "A3")), "fail");
 });
 
-test("a resolved failure must name a real criterion or child", () => {
+test("a synthetic criterion cannot resolve a live failure", () => {
   const result = mutated((receipt) => {
     criterion(receipt, "A3").resolution = {
       state: "resolved",
-      resolved_by: "A99",
+      resolved_by: "A4",
       reference: "docs/evidence/issue7-fixture-closure-2026-10-20.json"
     };
+    criterion(receipt, "A3").status = "pass";
+    receipt.closure.unmet_ids = ["A1", "A2", "A5", "A6", "A7", "A8"];
   });
-  assert.ok(hasError(result.errors, "resolved_by references an unknown criterion/child: A99"));
+  assert.ok(hasError(result.errors, "A3: only later evidence on the same criterion can resolve a failure"));
+  assert.equal(deriveCriterionStatus(criterion(committed(), "A3")), "fail");
 });
 
-test("a resolved failure with a missing reference artifact is rejected", () => {
+test("a child key cannot collide with a criterion ID", () => {
+  const result = mutated((receipt) => {
+    receipt.ledger.children.push({ key: "A1", issue: 999, state: "closed", scope: "fake" });
+  });
+  assert.ok(hasError(result.errors, "child keys cannot collide with criterion IDs"));
+});
+
+test("a failure resolved by a later same-kind pass on the same criterion is accepted", () => {
+  const result = mutated((receipt) => {
+    const row = criterion(receipt, "A3");
+    row.observations.push({
+      kind: "live",
+      status: "pass",
+      commit: "1f67867ebab7f426672886121d852a643a436414",
+      deployment: "nuvioweb-preview.pages.dev deployment b48de821 / revision 1f67867",
+      observed_at: "2026-10-19T17:48:20Z",
+      command_or_observation: "Immediate read-only B-to-A-to-B round trip after the failed post-removal switch.",
+      assertion: "The later round trip completed all three Library pulls for the current account without a foreign set.",
+      result: "Later live round trip completed; this is the resolving observation, not an explanation of the earlier failure.",
+      artifact: "docs/evidence/identity-roundtrip-after-removal-2026-10-19.json",
+      limitations: "One round trip; causality of the earlier failure remains unestablished."
+    });
+    row.resolution = {
+      state: "resolved",
+      resolved_by: "A3",
+      reference: "docs/evidence/identity-roundtrip-after-removal-2026-10-19.json"
+    };
+    row.status = "pass";
+    receipt.closure.unmet_ids = ["A1", "A2", "A5", "A6", "A7", "A8"];
+  });
+  assert.deepEqual(result.errors, []);
+  assert.deepEqual(result.unmet_ids, ["A1", "A2", "A5", "A6", "A7", "A8"]);
+});
+
+test("a later pass of a different kind cannot resolve a live failure", () => {
+  const result = mutated((receipt) => {
+    const row = criterion(receipt, "A3");
+    row.resolution = {
+      state: "resolved",
+      resolved_by: "A3",
+      reference: "docs/evidence/issue7-fixture-closure-2026-10-20.json"
+    };
+    row.status = "pass";
+    receipt.closure.unmet_ids = ["A1", "A2", "A5", "A6", "A7", "A8"];
+  });
+  assert.ok(hasError(result.errors, "resolved failure needs a later same-kind pass observation (live)"));
+});
+
+test("a resolved failure must reference a later same-kind pass artifact, not an earlier one", () => {
   const result = mutated((receipt) => {
     criterion(receipt, "A3").resolution = {
       state: "resolved",
-      resolved_by: "CH4",
+      resolved_by: "A3",
+      reference: "docs/evidence/identity-library-nonempty-switch-2026-10-19.json"
+    };
+    criterion(receipt, "A3").status = "pass";
+    receipt.closure.unmet_ids = ["A1", "A2", "A5", "A6", "A7", "A8"];
+  });
+  assert.ok(hasError(result.errors, "resolved failure needs a later same-kind pass observation (live)"));
+});
+
+test("a resolved failure must reference an existing artifact", () => {
+  const result = mutated((receipt) => {
+    criterion(receipt, "A3").resolution = {
+      state: "resolved",
+      resolved_by: "A3",
       reference: "docs/evidence/does-not-exist-2026-10-20.json"
     };
   });
@@ -138,11 +226,22 @@ test("a passing observation needs an existing artifact", () => {
   assert.ok(hasError(result.errors, "artifact does not exist"));
 });
 
-test("a passing observation needs a tested 40-hex revision", () => {
+test("a passing observation needs a tested, existing and reachable commit", () => {
   const result = mutated((receipt) => {
     criterion(receipt, "A4").observations[0].commit = null;
   });
-  assert.ok(hasError(result.errors, "pass/fail needs a tested 40-hex commit"));
+  assert.ok(hasError(result.errors, "needs an existing tested 40-hex commit"));
+  const zero = mutated((receipt) => {
+    criterion(receipt, "A4").observations[0].commit = "0".repeat(40);
+  });
+  assert.ok(hasError(zero.errors, "commit does not exist in the repository"));
+});
+
+test("a passing observation needs a valid observed_at timestamp", () => {
+  const result = mutated((receipt) => {
+    delete criterion(receipt, "A4").observations[0].observed_at;
+  });
+  assert.ok(hasError(result.errors, "missing or invalid observed_at timestamp"));
 });
 
 test("a live pass needs a named deployment rather than a bare assertion", () => {
@@ -152,23 +251,42 @@ test("a live pass needs a named deployment rather than a bare assertion", () => 
   assert.ok(hasError(result.errors, "a live pass needs a named deployment/service"));
 });
 
-test("a verified ledger while parent acceptance is unmet is rejected", () => {
-  const result = mutated((receipt) => {
+test("a verified ledger or closed status while parent acceptance is unmet is rejected", () => {
+  const verified = mutated((receipt) => {
     receipt.ledger.issue7.verified = true;
   });
-  assert.ok(hasError(result.errors, "ledger cannot be verified while parent acceptance is unmet"));
+  assert.ok(hasError(verified.errors, "ledger cannot be verified while parent acceptance is unmet"));
+  const closed = mutated((receipt) => {
+    receipt.ledger.issue7.status = "closed";
+  });
+  assert.ok(hasError(closed.errors, "ledger cannot be verified/closed while parent acceptance is unmet"));
+});
+
+test("closure state cannot be met while criteria are unmet or the ledger is unverified", () => {
+  const result = mutated((receipt) => {
+    receipt.closure.state = "met";
+  });
+  assert.ok(hasError(result.errors, "closure cannot be met while criteria are unmet"));
+  assert.ok(hasError(result.errors, "closure cannot be met while the ledger is not verified"));
 });
 
 test("a test count cannot be used as a passing result", () => {
   assert.equal(isCountOnlyResult("1396/1396 pass"), true);
   assert.equal(isCountOnlyResult("57/57 tests passed"), true);
   assert.equal(isCountOnlyResult("13 passed, 40.3s"), true);
+  assert.equal(isCountOnlyResult("13 passed in 40.3s"), true);
   assert.equal(isCountOnlyResult("13 passed in 40.3s; receiver restored the exact nonempty A key set"), false);
-  assert.equal(isCountOnlyResult("The receiver restores the exact nonempty A key set"), false);
   const result = mutated((receipt) => {
     criterion(receipt, "A2").observations[0].result = "1396/1396 pass";
   });
-  assert.ok(hasError(result.errors, "a test/activity count cannot establish a pass"));
+  assert.ok(hasError(result.errors, "a test/activity count or bare label cannot establish a pass"));
+});
+
+test("a bare pass label is not a passing result", () => {
+  const result = mutated((receipt) => {
+    criterion(receipt, "A2").observations[0].result = "passed";
+  });
+  assert.ok(hasError(result.errors, "a test/activity count or bare label cannot establish a pass"));
 });
 
 test("an artifact path escaping the repository is rejected", () => {
@@ -185,84 +303,39 @@ test("an unsupported commit value is rejected even on an unverified observation"
   assert.ok(hasError(result.errors, "commit must be null or 40 lowercase hex characters"));
 });
 
-test("a possible credential string is rejected from evidence", () => {
+test("a possible credential string is rejected from any receipt field", () => {
   const result = mutated((receipt) => {
-    criterion(receipt, "A4").observations[0].assertion = "Observed header Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhIn0.signature";
+    receipt.closure.reason =
+      "Observed header Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhIn0.signature";
   });
-  assert.ok(hasError(result.errors, "possible credential material in evidence"));
+  assert.ok(hasError(result.errors, "possible credential material in the acceptance receipt"));
 });
 
-test("closure state cannot be met while criteria are unmet or the ledger is unverified", () => {
-  const result = mutated((receipt) => {
-    receipt.closure.state = "met";
+test("the committed contract file is required and cannot be silently changed", () => {
+  withTempRoot((directory) => {
+    assert.match(contractProblem(directory), /is missing/);
+    mkdirSync(join(directory, "docs/evidence"), { recursive: true });
+    const contract = JSON.parse(readFileSync(join(root, "docs/evidence/issue7-acceptance-contract.json"), "utf8"));
+    writeFileSync(join(directory, "docs/evidence/issue7-acceptance-contract.json"), JSON.stringify(contract));
+    assert.equal(contractProblem(directory), null);
+    contract.original_criteria[1].original_text = "Profiles sync as convenient";
+    writeFileSync(join(directory, "docs/evidence/issue7-acceptance-contract.json"), JSON.stringify(contract));
+    assert.match(contractProblem(directory), /original criterion O2 text changed/);
   });
-  assert.ok(hasError(result.errors, "closure cannot be met while criteria are unmet"));
-  assert.ok(hasError(result.errors, "closure cannot be met while the ledger is not verified"));
 });
 
-test("a failure cannot be resolved by a blocked child", () => {
-  const result = mutated((receipt) => {
-    criterion(receipt, "A3").resolution = {
-      state: "resolved",
-      resolved_by: "CH4",
-      reference: "docs/evidence/issue7-fixture-closure-2026-10-20.json"
-    };
-    criterion(receipt, "A3").status = "pass";
-    receipt.closure.unmet_ids = ["A1", "A2", "A5", "A6", "A7", "A8"];
+test("the progress ledger must stay in_progress while unmet and verified only when met", () => {
+  withTempRoot((directory) => {
+    const receipt = committed();
+    writeFileSync(join(directory, "docs/PROGRESS.json"), JSON.stringify({ tickets: [{ number: 7, status: "verified" }] }));
+    assert.match(progressLedgerProblem(directory, receipt), /marks #7 verified while acceptance is unmet/);
+    writeFileSync(join(directory, "docs/PROGRESS.json"), JSON.stringify({ tickets: [{ number: 7, status: "pending" }] }));
+    assert.match(progressLedgerProblem(directory, receipt), /must stay in_progress/);
+    writeFileSync(join(directory, "docs/PROGRESS.json"), JSON.stringify({ tickets: [{ number: 7, status: "in_progress" }] }));
+    assert.equal(progressLedgerProblem(directory, receipt), null);
+    const metReceipt = { closure: { state: "met" }, criteria: [], ledger: { issue7: { verified: true } } };
+    assert.match(progressLedgerProblem(directory, metReceipt), /must mark #7 verified when acceptance is met/);
   });
-  assert.ok(hasError(result.errors, "resolved_by CH4 is neither a passing criterion nor a closed child"));
-  assert.equal(deriveCriterionStatus(criterion(committed(), "A3"), { criteria: committed().criteria, childStates: new Map([["CH4", "blocked"]]) }), "fail");
-});
-
-test("a failure cannot be resolved by an open child", () => {
-  const result = mutated((receipt) => {
-    criterion(receipt, "A3").resolution = {
-      state: "resolved",
-      resolved_by: "CH1",
-      reference: "docs/evidence/issue7-fixture-closure-2026-10-20.json"
-    };
-    criterion(receipt, "A3").status = "pass";
-    receipt.closure.unmet_ids = ["A1", "A2", "A5", "A6", "A7", "A8"];
-  });
-  assert.ok(hasError(result.errors, "resolved_by CH1 is neither a passing criterion nor a closed child"));
-});
-
-test("a failure cannot be resolved by a partial criterion", () => {
-  const result = mutated((receipt) => {
-    criterion(receipt, "A3").resolution = {
-      state: "resolved",
-      resolved_by: "A1",
-      reference: "docs/evidence/issue7-fixture-closure-2026-10-20.json"
-    };
-    criterion(receipt, "A3").status = "pass";
-    receipt.closure.unmet_ids = ["A1", "A2", "A5", "A6", "A7", "A8"];
-  });
-  assert.ok(hasError(result.errors, "resolved_by A1 is neither a passing criterion nor a closed child"));
-});
-
-test("a resolution cannot reuse the failing observation artifact as its evidence", () => {
-  const result = mutated((receipt) => {
-    criterion(receipt, "A3").resolution = {
-      state: "resolved",
-      resolved_by: "A4",
-      reference: criterion(receipt, "A3").observations.find((entry) => entry.status === "fail").artifact
-    };
-  });
-  assert.ok(hasError(result.errors, "resolution reference is the failing observation's own artifact"));
-});
-
-test("a failure resolved by a passing criterion with distinct evidence is accepted", () => {
-  const result = mutated((receipt) => {
-    criterion(receipt, "A3").resolution = {
-      state: "resolved",
-      resolved_by: "A4",
-      reference: "docs/evidence/issue7-fixture-closure-2026-10-20.json"
-    };
-    criterion(receipt, "A3").status = "pass";
-    receipt.closure.unmet_ids = ["A1", "A2", "A5", "A6", "A7", "A8"];
-  });
-  assert.deepEqual(result.errors, []);
-  assert.deepEqual(result.unmet_ids, ["A1", "A2", "A5", "A6", "A7", "A8"]);
 });
 
 test("the derived unmet set is evidence-derived, not copied from closure fields", () => {
@@ -272,8 +345,9 @@ test("the derived unmet set is evidence-derived, not copied from closure fields"
   artificial.criteria.find((entry) => entry.id === "A8").observations = [{
     kind: "live",
     status: "pass",
-    commit: "f30c79f6045786c821047532104c90aa65b861cc",
+    commit: "d77a9119795890ed05eb29000cb7b7b7956be23c",
     deployment: "fixture deployment",
+    observed_at: "2026-10-20T00:55:00Z",
     command_or_observation: "named synthetic live-shape observation",
     assertion: "This mutation must remain derived rather than trusted from the declared status.",
     result: "Mutation only.",
@@ -282,13 +356,14 @@ test("the derived unmet set is evidence-derived, not copied from closure fields"
   }, {
     kind: "review",
     status: "pass",
-    commit: "f30c79f6045786c821047532104c90aa65b861cc",
+    commit: "d77a9119795890ed05eb29000cb7b7b7956be23c",
     deployment: null,
+    observed_at: "2026-10-20T00:55:00Z",
     command_or_observation: "review mutation",
     assertion: "Review evidence is also required by the immutable mapping.",
     result: "Mutation only.",
     artifact: "docs/evidence/issue7-fixture-closure-2026-10-20.json",
     limitations: "Test mutation."
   }];
-  assert.equal(deriveCriterionStatus(artificial.criteria.find((entry) => entry.id === "A8"), contextOf(artificial)), "pass");
+  assert.equal(deriveCriterionStatus(artificial.criteria.find((entry) => entry.id === "A8")), "pass");
 });

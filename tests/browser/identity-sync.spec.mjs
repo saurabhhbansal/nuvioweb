@@ -129,6 +129,8 @@ async function installIdentityFixture(context, {
   const provider = "https://catalog.example.invalid";
   let catalogRequested = false;
   let offline = false;
+  let abortedIdentityRequests = 0;
+  let refreshRejections = 0;
   const emptyReads = new Set([
     "sync_pull_profile_locks", "sync_pull_profile_settings_blob", "sync_pull_home_catalog_settings",
     "sync_pull_collections", "sync_pull_plugins", "sync_pull_trakt_credentials",
@@ -138,7 +140,7 @@ async function installIdentityFixture(context, {
     const request = route.request();
     const url = new URL(request.url());
     if (url.origin === "http://127.0.0.1:4371") return route.continue();
-    if (offline && url.origin === identityOrigin) return route.abort("failed");
+    if (offline && url.origin === identityOrigin) { abortedIdentityRequests += 1; return route.abort("failed"); }
     if (url.origin === addonOrigin && nonempty) {
       const match = url.pathname.match(/^\/([a-z])-(\d)(-new)?\/manifest\.json$/);
       if (!match) {
@@ -147,6 +149,12 @@ async function installIdentityFixture(context, {
       }
       const alias = match[1].toUpperCase();
       const profileId = match[2];
+      if (!accounts[alias] || !["1", "2"].includes(profileId)) {
+        unexpected.push({ operation: url.pathname, reason: "unknown-addon-account-or-profile" });
+        return route.abort("blockedbyclient");
+      }
+      expect(request.headers().authorization).toBeUndefined();
+      expect(request.headers().apikey).toBeUndefined();
       return route.fulfill({ json: {
         id: addonManifestId(alias, profileId),
         name: `Fixture ${alias} profile ${profileId} addon`,
@@ -186,7 +194,7 @@ async function installIdentityFixture(context, {
       requests.push({ alias: null, operation: "refresh" });
       const body = request.postDataJSON();
       const alias = Object.keys(accounts).find((key) => `fixture-refresh-${key}` === body.refresh_token);
-      if (!alias || offline) return json({ error: "invalid_grant" }, 401);
+      if (!alias || offline) { refreshRejections += 1; return json({ error: "invalid_grant" }, 401); }
       completions.push({ alias, operation: "refresh" });
       return json({ access_token: token(alias), refresh_token: `fixture-refresh-${alias}` });
     }
@@ -205,7 +213,17 @@ async function installIdentityFixture(context, {
     }
     let body = {};
     try { body = request.postDataJSON() || {}; } catch { body = {}; }
-    const profileId = String(body.p_profile_id || url.searchParams.get("profile_id")?.replace("eq.", "") || 1);
+    const rawProfile = body.p_profile_id ?? url.searchParams.get("profile_id")?.replace("eq.", "");
+    const strictProfileOperations = new Set([
+      "sync_pull_library", "sync_push_library", "sync_pull_watched_items",
+      "sync_push_watched_items", "sync_pull_watch_progress", "sync_push_watch_progress",
+      "sync_push_profile_settings_blob"
+    ]);
+    if (strictProfileOperations.has(operation) && rawProfile == null) {
+      unexpected.push({ operation, reason: "missing-profile-scope" });
+      return json({ error: "missing fixture profile scope" }, 400);
+    }
+    const profileId = String(rawProfile ?? 1);
     if (operation === "sync_pull_library") {
       requests[requests.length - 1].profileId = profileId;
       if (libraryGates[alias]) await libraryGates[alias].promise;
@@ -270,18 +288,23 @@ async function installIdentityFixture(context, {
       completions.push({ alias, operation, profileId });
       return json(null);
     }
-    if (operation === "sync_pull_profile_settings_blob" || operation === "sync_pull_home_catalog_settings") {
+    if (operation === "sync_pull_profile_settings_blob") {
       const settingsKey = nonempty ? `${alias}:${profileId}` : alias;
-      if (criticalGate && operation === "sync_pull_profile_settings_blob") await criticalGate.promise;
+      if (criticalGate) await criticalGate.promise;
       completions.push({ alias, operation, profileId });
       return json(settings.has(settingsKey) ? [{ settings_json: settings.get(settingsKey) }] : []);
     }
-    if (operation === "sync_push_profile_settings_blob" && request.method() === "POST") {
-      const expectedProfile = nonempty ? profileId : "1";
-      expect(String(body.p_profile_id)).toBe(expectedProfile);
-      expect(body.p_settings_json).toBeTruthy();
-      settings.set(nonempty ? `${alias}:${profileId}` : alias, body.p_settings_json);
+    if (operation === "sync_pull_home_catalog_settings") {
       completions.push({ alias, operation, profileId });
+      return json([]);
+    }
+    if (operation === "sync_push_profile_settings_blob" && request.method() === "POST") {
+      const pushedProfile = String(body.p_profile_id);
+      expect(["1", "2"]).toContain(pushedProfile);
+      if (!nonempty) expect(pushedProfile).toBe("1");
+      expect(body.p_settings_json).toBeTruthy();
+      settings.set(nonempty ? `${alias}:${pushedProfile}` : alias, body.p_settings_json);
+      completions.push({ alias, operation, profileId: pushedProfile });
       return json(null);
     }
     if (emptyReads.has(operation)) { completions.push({ alias, operation }); return json([]); }
@@ -300,6 +323,8 @@ async function installIdentityFixture(context, {
     libraryWrites,
     state,
     catalogRequested: () => catalogRequested,
+    abortedIdentityRequests: () => abortedIdentityRequests,
+    refreshRejections: () => refreshRejections,
     setOffline: (value) => { offline = Boolean(value); }
   };
 }
@@ -373,14 +398,23 @@ async function localSnapshot(page) {
 async function expectExactScopedData(page, alias, profileId) {
   const snapshot = await localSnapshot(page);
   expect(snapshot.library.filter((item) => item.profileId === String(profileId)).map((item) => item.contentId)).toEqual([libraryKey(alias, profileId)]);
-  expect(snapshot.watched.filter((item) => item.profileId === String(profileId)).map((item) => item.contentId)).toContain(watchedKey(alias, profileId));
-  expect(snapshot.progress.filter((item) => item.profileId === String(profileId)).map((item) => item.contentId)).toContain(progressKey(alias, profileId));
-  expect(snapshot.addons[String(profileId)]).toContain(addonUrl(alias, profileId));
+  expect(snapshot.watched.filter((item) => item.profileId === String(profileId)).map((item) => item.contentId)).toEqual([watchedKey(alias, profileId)]);
+  expect(snapshot.progress.filter((item) => item.profileId === String(profileId)).map((item) => item.contentId)).toEqual([progressKey(alias, profileId)]);
+  expect(snapshot.addons[String(profileId)]).toEqual([addonUrl(alias, profileId)]);
   const foreignAlias = alias === "A" ? "b" : "a";
   expect(snapshot.library.some((item) => item.contentId.includes(`-${foreignAlias}-`))).toBe(false);
   expect(snapshot.watched.some((item) => item.contentId.includes(`-${foreignAlias}-`))).toBe(false);
   expect(snapshot.progress.some((item) => item.contentId.includes(`-${foreignAlias}-`))).toBe(false);
   expect(Object.values(snapshot.addons).flat().some((url) => url.includes(`/${foreignAlias}-`))).toBe(false);
+}
+
+async function expectNoOtherProfileData(page, alias, profileId) {
+  const snapshot = await localSnapshot(page);
+  const currentProfile = String(profileId);
+  const otherProfile = currentProfile === "1" ? "2" : "1";
+  expect(snapshot.watched.filter((item) => item.profileId === currentProfile).map((item) => item.contentId)).not.toContain(watchedKey(alias, otherProfile));
+  expect(snapshot.progress.filter((item) => item.profileId === currentProfile).map((item) => item.contentId)).not.toContain(progressKey(alias, otherProfile));
+  expect(snapshot.addons[currentProfile]).not.toContain(addonUrl(alias, otherProfile));
 }
 
 async function signOut(page) {
@@ -568,11 +602,13 @@ test("two profiles keep distinguishable nonempty add-on, watched, progress and L
 
   await selectProfile(page, "2");
   await expectExactScopedData(page, "B", 2);
+  await expectNoOtherProfileData(page, "B", 2);
   expect((await localSnapshot(page)).library.filter((item) => item.profileId === "2").map((item) => item.contentId)).toEqual([libraryKey("B", 2)]);
   expect((await localSnapshot(page)).library.filter((item) => item.profileId === "2").map((item) => item.contentId)).not.toContain(libraryKey("B", 1));
 
   await selectProfile(page, "1");
   await expectExactScopedData(page, "B", 1);
+  await expectNoOtherProfileData(page, "B", 1);
   expect((await localSnapshot(page)).library.filter((item) => item.profileId === "1").map((item) => item.contentId)).not.toContain(libraryKey("B", 2));
 
   await signOut(page);
@@ -613,6 +649,10 @@ test("a synthetic same-profile mutation appears only in an independent receiver 
     expect(snapshot.watched.map((item) => item.contentId)).toContain(`${watchedKey("B", 1)}-new`);
     expect(snapshot.progress.map((item) => item.contentId)).toContain(`${progressKey("B", 1)}-new`);
     expect(snapshot.addons["1"]).toContain(addonUrl("B", 1).replace("/b-1", "/b-1-new"));
+    expect(snapshot.library.map((item) => item.contentId).some((key) => key.includes("-a-"))).toBe(false);
+    expect(snapshot.watched.map((item) => item.contentId).some((key) => key.includes("-a-"))).toBe(false);
+    expect(snapshot.progress.map((item) => item.contentId).some((key) => key.includes("-a-"))).toBe(false);
+    expect(Object.values(snapshot.addons).flat().some((url) => url.includes("/a-"))).toBe(false);
 
     const otherContext = await browser.newContext({ serviceWorkers: "block" });
     try {
@@ -646,10 +686,13 @@ test("expired access with a rejected refresh cannot resume an authenticated sess
     localStorage.setItem("access_token", value);
     localStorage.setItem("refresh_token", "fixture-refresh-revoked");
   }, expired);
+  const refreshStart = fixture.requests.length;
   await page.reload();
   await expect(page.locator("#desktop-auth-email")).toBeVisible();
   await expect(page.locator("#profileSelection")).not.toBeVisible();
   expect(await page.evaluate(() => history.state?.route)).toMatch(/auth/i);
+  await expect.poll(() => fixture.requests.slice(refreshStart).some((entry) => entry.operation === "refresh")).toBe(true);
+  expect(fixture.refreshRejections()).toBeGreaterThan(0);
   expect(fixture.unexpected).toEqual([]);
 });
 
@@ -665,6 +708,7 @@ test("offline reload cannot complete a new server-valid sync or introduce foreig
   const snapshot = await localSnapshot(page);
   const route = await page.evaluate(() => history.state?.route || null);
   expect(fixture.completions.length).toBe(before);
+  expect(fixture.abortedIdentityRequests()).toBeGreaterThan(0);
   expect(snapshot.library.every((item) => item.contentId.includes("-b") || item.contentId.includes("-b-"))).toBe(true);
   expect(snapshot.watched.every((item) => item.contentId.includes("-b") || item.contentId.includes("-b-"))).toBe(true);
   expect(route === null || route === "profileSelection" || route === "home" || route === "quickSetup").toBe(true);

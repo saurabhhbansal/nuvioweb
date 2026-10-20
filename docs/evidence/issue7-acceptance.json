@@ -3,7 +3,7 @@
   "issue": 7,
   "repository": "saurabhbansal/nuvioweb",
   "as_of": "2026-10-20",
-  "source_commit": "e92f4d137799a7cef66b5d1ff0ceca349333e2e9",
+  "source_commit": "d77a9119795890ed05eb29000cb7b7b7956be23c",
   "original_criteria": [
     {
       "id": "O1",
@@ -98,7 +98,8 @@
           "assertion": "The configured upstream password exchange is used, no second identity endpoint or persisted password is introduced, and account-local data is reset on identity change.",
           "result": "Focused lifecycle tests pass at the tested source; this is a synthetic contract check, not a live provider claim.",
           "artifact": "docs/evidence/issue7-fixture-closure-2026-10-20.json",
-          "limitations": "Synthetic only; does not prove deployed provider behavior or QR entry-path safety."
+          "limitations": "Synthetic only; does not prove deployed provider behavior or QR entry-path safety.",
+          "observed_at": "2026-10-20T00:55:00Z"
         },
         {
           "kind": "live",
@@ -109,7 +110,8 @@
           "assertion": "An existing Nuvio account signs in through the configured upstream and the application does not create a second account identity.",
           "result": "Scoped live sign-in and persistence checks passed; no library/add-on/history write or refresh evidence.",
           "artifact": "docs/evidence/identity-live-2026-10-19.json",
-          "limitations": "Single Linux Chromium environment; third parties blocked; no measured token expiry, revocation, QR or new-data propagation."
+          "limitations": "Single Linux Chromium environment; third parties blocked; no measured token expiry, revocation, QR or new-data propagation.",
+          "observed_at": "2026-10-19T06:52:13Z"
         },
         {
           "kind": "review",
@@ -120,7 +122,8 @@
           "assertion": "Every exposed entry path must publish identity only through an owned session boundary before A1 can pass.",
           "result": "The QR exchange publishes tokens directly after its awaited response; CH2 must resolve the reproduced stale-publication invariant before the entry surface is dispositioned.",
           "artifact": "docs/evidence/issue7-qr-red-2026-10-20.json",
-          "limitations": "Static/synthetic finding only; not a demonstrated browser exploit or live identity breach."
+          "limitations": "Static/synthetic finding only; not a demonstrated browser exploit or live identity breach.",
+          "observed_at": "2026-10-20T00:50:00Z"
         }
       ]
     },
@@ -150,7 +153,8 @@
           "assertion": "The bundled application pulls distinct nonempty add-on, watched-item, progress and Library keys for the exact signed-in account and selected profile, and a later synthetic backend mutation appears only in that account/profile.",
           "result": "Nonempty profile-scoped fixture assertions pass with foreign keys absent; see the fixture-closure receipt for exact titles.",
           "artifact": "docs/evidence/issue7-fixture-closure-2026-10-20.json",
-          "limitations": "Synthetic loopback fixture; not deployed sync, provider authorization, or real new-device propagation."
+          "limitations": "Synthetic loopback fixture; not deployed sync, provider authorization, or real new-device propagation.",
+          "observed_at": "2026-10-20T00:55:00Z"
         },
         {
           "kind": "live",
@@ -161,7 +165,8 @@
           "assertion": "Distinct owners and existing nonempty add-on/watched/progress controls must be observed before any new-write claim.",
           "result": "Existing controls matched; no new profile/add-on/history/progress mutation propagation was exercised, so the requirement remains unverified live.",
           "artifact": "docs/evidence/identity-local-candidate-2026-10-19.json",
-          "limitations": "Existing-data controls only; single Linux Chromium environment; no mutation, measured refresh or device evidence."
+          "limitations": "Existing-data controls only; single Linux Chromium environment; no mutation, measured refresh or device evidence.",
+          "observed_at": "2026-10-19T07:22:18Z"
         }
       ]
     },
@@ -197,7 +202,8 @@
           "assertion": "Bundled B-to-A-to-B navigation retains only the current account's nonempty Library, a clean independent receiver reflects final-item removal on reload, and a held old response cannot publish after a switch.",
           "result": "The existing nine synthetic browser cases plus the new nonempty profile-scoped controls pass at the tested source.",
           "artifact": "docs/evidence/issue7-fixture-closure-2026-10-20.json",
-          "limitations": "Synthetic responses; cannot diagnose a live request failure or prove hosted server behavior."
+          "limitations": "Synthetic responses; cannot diagnose a live request failure or prove hosted server behavior.",
+          "observed_at": "2026-10-20T00:55:00Z"
         },
         {
           "kind": "live",
@@ -208,7 +214,8 @@
           "assertion": "After an ordinary sign-out and A sign-in, a new A-epoch Library pull returns A's exact nonempty set and no B-only set.",
           "result": "A single nonempty B-to-A switch completed with distinct owners and matching A content.",
           "artifact": "docs/evidence/identity-library-nonempty-switch-2026-10-19.json",
-          "limitations": "One switch only; both Libraries were nonempty but B-to-A-to-B reliability and app Save/removal were not established."
+          "limitations": "One switch only; both Libraries were nonempty but B-to-A-to-B reliability and app Save/removal were not established.",
+          "observed_at": "2026-10-19T17:28:06Z"
         },
         {
           "kind": "live",
@@ -219,7 +226,8 @@
           "assertion": "The current session and nonempty Library must restore without foreign data after an owner removal.",
           "result": "No successful new Library response completed before the deadline. No leak was observed, but the failure remains unexplained.",
           "artifact": "docs/evidence/identity-library-removal-switch-2026-10-19.json",
-          "limitations": "Failure category was not established; a later read-only round trip passed but does not explain this failed run."
+          "limitations": "Failure category was not established; a later read-only round trip passed but does not explain this failed run.",
+          "observed_at": "2026-10-19T17:47:28Z"
         }
       ]
     },
@@ -248,7 +256,8 @@
           "assertion": "A rejected refresh cannot remain authenticated, a delayed old-session response cannot publish into a later session, and offline cached display is not presented as server-valid proof.",
           "result": "Focused lifecycle and sync isolation tests pass at the tested source.",
           "artifact": "docs/evidence/issue7-fixture-closure-2026-10-20.json",
-          "limitations": "Synthetic contract matrix only; no measured provider expiry or revocation."
+          "limitations": "Synthetic contract matrix only; no measured provider expiry or revocation.",
+          "observed_at": "2026-10-20T00:55:00Z"
         }
       ]
     },
@@ -276,7 +285,8 @@
           "assertion": "A failed mutation must survive reload, a reconnect must not falsely report acknowledgement, and item 1001 or a competing newer edit must not be silently discarded.",
           "result": "Existing tests cover pending preservation and clean-snapshot reconciliation, but the 1001-item limit and two-writer lost-update cases are not yet characterized.",
           "artifact": "docs/IDENTITY_VERIFICATION.md",
-          "limitations": "Current behavior is not presented as acceptance; broader offline/concurrent durability remains unsupported pending CH3."
+          "limitations": "Current behavior is not presented as acceptance; broader offline/concurrent durability remains unsupported pending CH3.",
+          "observed_at": "2026-10-20T00:55:00Z"
         }
       ]
     },
@@ -304,13 +314,14 @@
         {
           "kind": "synthetic",
           "status": "fail",
-          "commit": "e92f4d137799a7cef66b5d1ff0ceca349333e2e9",
+          "commit": "f30c79f6045786c821047532104c90aa65b861cc",
           "deployment": null,
           "command_or_observation": "node qr-ownership-probe.mjs <audit-worktree> --assert-safe",
           "assertion": "A QR exchange that completes after signed-out cleanup and a later login must not overwrite the later session.",
           "result": "The probe exited 1: staleExchangeAccepted and laterSessionOverwritten were true.",
           "artifact": "docs/evidence/issue7-qr-red-2026-10-20.json",
-          "limitations": "Actual service module with mocked Fetch and synthetic storage; not a browser journey or live exploit."
+          "limitations": "Actual service module with mocked Fetch and synthetic storage; not a browser journey or live exploit.",
+          "observed_at": "2026-10-20T00:45:00Z"
         }
       ]
     },
@@ -340,7 +351,8 @@
           "assertion": "No credential-bearing QR content may be sent to a third-party renderer, and a hostile image URL must render as inert data.",
           "result": "Both sinks are reachable in source; CH2 must add a finite destination policy and a browser assertion before this is dispositioned.",
           "artifact": "docs/NUVIO_IDENTITY_CONTRACT.md",
-          "limitations": "Static risk assessment; not a reproduced XSS execution and not proof that all application XSS is eliminated."
+          "limitations": "Static risk assessment; not a reproduced XSS execution and not proof that all application XSS is eliminated.",
+          "observed_at": "2026-10-20T00:50:00Z"
         }
       ]
     },
@@ -370,7 +382,8 @@
           "assertion": "A live receipt must record the elapsed expiry boundary, refresh outcome and rejection behavior without decoding or exporting token payloads.",
           "result": "Reload-only evidence is insufficient; the row remains unverified.",
           "artifact": "docs/evidence/identity-live-2026-10-19.json",
-          "limitations": "No measured refresh/revocation; no QR consent/device observation."
+          "limitations": "No measured refresh/revocation; no QR consent/device observation.",
+          "observed_at": "2026-10-19T06:52:13Z"
         },
         {
           "kind": "review",
@@ -381,7 +394,8 @@
           "assertion": "No live account probe, marker write, device test, credential read or revocation action may run under the present pause.",
           "result": "Blocked on explicit bounded owner resumption or owner-provided sanitized observations.",
           "artifact": "docs/agent-runs/CURRENT.md",
-          "limitations": "External permission gate; no executable live probe is authorized today."
+          "limitations": "External permission gate; no executable live probe is authorized today.",
+          "observed_at": "2026-10-20T00:50:00Z"
         }
       ]
     }

@@ -3,8 +3,9 @@
 //
 // `--validate` answers only "is this receipt structurally honest?"; it can exit 0
 // for a blocked parent. The default mode is the closure gate: it exits 2 while
-// any mapped criterion is unmet and 0 only when the original contract is fully
-// evidenced.
+// any mapped criterion is unmet, 1 when the receipt is structurally invalid, and
+// 0 only when the original contract is fully evidenced.
+import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { isAbsolute, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -45,6 +46,7 @@ const CRITERION_STATUSES = new Set(["pass", "partial", "fail", "blocked", "unver
 const RESOLUTION_STATES = new Set(["open", "resolved", "blocked", "not-required"]);
 const CHILD_STATES = new Set(["open", "blocked", "closed", "resolved"]);
 const COMMIT_PATTERN = /^[0-9a-f]{40}$/;
+const CONTRACT_PATH = "docs/evidence/issue7-acceptance-contract.json";
 const SECRET_PATTERNS = [
   /\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{5,}/,
   /\bgh[pousr]_[A-Za-z0-9]{20,}/,
@@ -67,6 +69,11 @@ function sameStringSet(left, right) {
   return a.length === b.length && a.every((value, index) => value === b[index]);
 }
 
+function validTimestamp(value) {
+  if (!isNonEmptyString(value)) return false;
+  return Number.isFinite(Date.parse(value));
+}
+
 // A result such as "1396/1396 pass" mentions no asserted property, only activity.
 export function isCountOnlyResult(value) {
   const text = String(value || "").trim().toLowerCase();
@@ -74,9 +81,14 @@ export function isCountOnlyResult(value) {
   const stripped = text
     .replace(/\b\d+(?:\.\d+)?(?:ms|s|secs?|seconds?|mins?|minutes?|h|hours?)\b/g, "")
     .replace(/\b\d+\b/g, "")
-    .replace(/\b(tests?|cases?|pass|passed|all|of|and|with|zero|skips?|s|ms|sec|secs|seconds?|mins?|minutes?|hours?)\b/g, "")
+    .replace(/\b(tests?|cases?|pass|passed|all|of|and|with|zero|skips?|in|s|ms|sec|secs|seconds?|mins?|minutes?|hours?)\b/g, "")
     .replace(/[^a-z]/g, "");
   return stripped.length === 0;
+}
+
+function isVagueResult(value) {
+  const text = String(value || "").trim().toLowerCase().replace(/[.!]+$/, "");
+  return ["pass", "passed", "ok", "success", "done", "verified", "complete"].includes(text);
 }
 
 function artifactProblem(root, artifact) {
@@ -96,56 +108,100 @@ function artifactProblem(root, artifact) {
   return null;
 }
 
-function receiptContext(receipt) {
-  return {
-    criteria: Array.isArray(receipt?.criteria) ? receipt.criteria : [],
-    childStates: new Map(
-      (Array.isArray(receipt?.ledger?.children) ? receipt.ledger.children : [])
-        .filter((child) => isNonEmptyString(child?.key))
-        .map((child) => [child.key, child.state])
-    )
-  };
-}
-
-function isResolutionEligible(criterion, resolution, context, seen = new Set()) {
-  if (!isPlainObject(resolution) || resolution.state !== "resolved") return false;
-  const resolver = resolution.resolved_by;
-  if (!isNonEmptyString(resolver) || resolver === criterion.id) return false;
-  if (context.childStates?.has(resolver)) {
-    return ["closed", "resolved"].includes(context.childStates.get(resolver));
+function commitProblem(root, commit) {
+  if (!COMMIT_PATTERN.test(String(commit || ""))) return "needs an existing tested 40-hex commit";
+  try {
+    execFileSync("git", ["cat-file", "-e", `${commit}^{commit}`], { cwd: root, stdio: "ignore" });
+  } catch {
+    return `commit does not exist in the repository: ${commit}`;
   }
-  const target = (context.criteria || []).find((entry) => entry?.id === resolver);
-  if (!target) return false;
-  if (seen.has(target.id)) return false;
-  return deriveCriterionStatus(target, context, new Set(seen)) === "pass";
+  try {
+    execFileSync("git", ["merge-base", "--is-ancestor", commit, "HEAD"], { cwd: root, stdio: "ignore" });
+  } catch {
+    return `commit is not an ancestor of the tested HEAD: ${commit}`;
+  }
+  return null;
 }
 
-function resolutionProblem(root, criterion, context) {
+export function contractProblem(root) {
+  const path = resolve(root, CONTRACT_PATH);
+  if (!existsSync(path)) return `${CONTRACT_PATH} is missing`;
+  let contract;
+  try {
+    contract = JSON.parse(readFileSync(path, "utf8"));
+  } catch {
+    return `${CONTRACT_PATH} is not valid JSON`;
+  }
+  if (!isPlainObject(contract) || contract.issue !== 7) return `${CONTRACT_PATH} must describe issue 7`;
+  const original = Array.isArray(contract.original_criteria) ? contract.original_criteria : [];
+  if (original.length !== EXPECTED_ORIGINAL_CRITERIA.length) {
+    return `${CONTRACT_PATH} original_criteria must contain O1, O2 and O3`;
+  }
+  for (const expected of EXPECTED_ORIGINAL_CRITERIA) {
+    const actual = original.find((entry) => entry?.id === expected.id);
+    if (!actual) return `${CONTRACT_PATH} is missing original criterion ${expected.id}`;
+    if (actual.original_text !== expected.original_text) {
+      return `${CONTRACT_PATH} original criterion ${expected.id} text changed`;
+    }
+    if (!sameStringSet(actual.criteria, expected.criteria)) {
+      return `${CONTRACT_PATH} original criterion ${expected.id} mapping changed`;
+    }
+  }
+  for (const [id, expected] of Object.entries(EXPECTED_CRITERIA)) {
+    const actual = contract.criteria?.[id];
+    if (!isPlainObject(actual)) return `${CONTRACT_PATH} is missing criterion ${id}`;
+    if (!sameStringSet(actual.original_ids, expected.original_ids)) {
+      return `${CONTRACT_PATH} criterion ${id} original_ids changed`;
+    }
+    if (!sameStringSet(actual.required_kinds, expected.required_kinds)) {
+      return `${CONTRACT_PATH} criterion ${id} required_kinds changed`;
+    }
+  }
+  return null;
+}
+
+// Only a later, same-kind passing observation on the SAME criterion can resolve a
+// failure. Cross-criterion or child-based resolution would let synthetic work erase
+// a live failure, or let a child close on a different scope.
+function sameCriterionResolution(criterion, failingObservation) {
+  if (failingObservation?.status !== "fail") return false;
+  const resolution = criterion?.resolution;
+  if (!isPlainObject(resolution) || resolution.state !== "resolved") return false;
+  if (resolution.resolved_by !== criterion.id) return false;
+  if (!isNonEmptyString(resolution.reference)) return false;
+  const failingAt = Date.parse(failingObservation.observed_at || "");
+  if (!Number.isFinite(failingAt)) return false;
+  return (criterion.observations || []).some((observation) =>
+    observation?.status === "pass" &&
+    observation.kind === failingObservation.kind &&
+    observation.artifact !== failingObservation.artifact &&
+    Date.parse(observation.observed_at || "") > failingAt &&
+    resolution.reference === observation.artifact
+  );
+}
+
+function resolutionProblem(root, criterion) {
   const resolution = criterion.resolution;
   const failing = (criterion.observations || []).filter((item) => item?.status === "fail");
-  if (!failing.length && !resolution) return null;
+  if (!failing.length) {
+    if (isPlainObject(resolution) && resolution.state === "resolved") {
+      return "a resolved state exists without a failing observation";
+    }
+    return null;
+  }
   if (!isPlainObject(resolution)) return "failure observation has no resolution record";
   if (!RESOLUTION_STATES.has(resolution.state)) return "resolution state is invalid";
   if (resolution.state !== "resolved") return null;
-  if (!isNonEmptyString(resolution.resolved_by)) return "resolved failure has no resolved_by";
-  if (resolution.resolved_by === criterion.id) {
-    return "a criterion cannot resolve its own failure without later evidence";
-  }
-  if (failing.some((observation) => observation.artifact === resolution.reference)) {
-    return "resolution reference is the failing observation's own artifact";
+  if (resolution.resolved_by !== criterion.id) {
+    return "only later evidence on the same criterion can resolve a failure";
   }
   if (!isNonEmptyString(resolution.reference)) return "resolved failure has no reference";
-  if (!/^https?:\/\//.test(resolution.reference)) {
-    const referenceIssue = artifactProblem(root, resolution.reference);
-    if (referenceIssue) return referenceIssue;
-  }
-  const knownResolver = context.childStates?.has(resolution.resolved_by)
-    || (context.criteria || []).some((entry) => entry?.id === resolution.resolved_by);
-  if (!knownResolver) {
-    return `resolved_by references an unknown criterion/child: ${resolution.resolved_by}`;
-  }
-  if (!isResolutionEligible(criterion, resolution, context)) {
-    return `resolved_by ${resolution.resolved_by} is neither a passing criterion nor a closed child`;
+  const referenceIssue = artifactProblem(root, resolution.reference);
+  if (referenceIssue) return referenceIssue;
+  for (const observation of failing) {
+    if (!sameCriterionResolution(criterion, observation)) {
+      return `resolved failure needs a later same-kind pass observation (${observation.kind}) whose artifact is the reference`;
+    }
   }
   return null;
 }
@@ -159,19 +215,21 @@ function validateObservation(root, criterionId, observation, index) {
   for (const field of ["command_or_observation", "assertion", "result", "limitations"]) {
     if (!isNonEmptyString(observation[field])) errors.push(`${prefix}: missing ${field}`);
   }
+  if (!validTimestamp(observation.observed_at)) {
+    errors.push(`${prefix}: missing or invalid observed_at timestamp`);
+  }
   if (observation.status === "pass" && !isNonEmptyString(observation.assertion, 20)) {
     errors.push(`${prefix}: a pass needs a substantive assertion, not a label`);
   }
-  if (observation.status === "pass" && isCountOnlyResult(observation.result)) {
-    errors.push(`${prefix}: a test/activity count cannot establish a pass`);
+  if (observation.status === "pass" && (isCountOnlyResult(observation.result) || isVagueResult(observation.result))) {
+    errors.push(`${prefix}: a test/activity count or bare label cannot establish a pass`);
   }
   if (observation.status === "pass" && isCountOnlyResult(observation.command_or_observation)) {
     errors.push(`${prefix}: a test/activity count cannot establish a pass`);
   }
   if (["pass", "fail"].includes(observation.status)) {
-    if (!COMMIT_PATTERN.test(String(observation.commit || ""))) {
-      errors.push(`${prefix}: pass/fail needs a tested 40-hex commit`);
-    }
+    const commitIssue = commitProblem(root, observation.commit);
+    if (commitIssue) errors.push(`${prefix}: ${commitIssue}`);
   } else if (observation.commit != null && !COMMIT_PATTERN.test(String(observation.commit))) {
     errors.push(`${prefix}: commit must be null or 40 lowercase hex characters`);
   }
@@ -182,25 +240,17 @@ function validateObservation(root, criterionId, observation, index) {
   }
   const artifactIssue = artifactProblem(root, observation.artifact);
   if (artifactIssue) errors.push(`${prefix}: ${artifactIssue}`);
-  const serialized = JSON.stringify(observation);
-  for (const pattern of SECRET_PATTERNS) {
-    if (pattern.test(serialized)) errors.push(`${prefix}: possible credential material in evidence`);
-  }
   return errors;
 }
 
-function resolvedFailure(criterion, observation, context, seen) {
-  if (observation.status !== "fail") return false;
-  return isResolutionEligible(criterion, criterion.resolution, context, seen);
+function resolvedFailure(criterion, observation) {
+  return sameCriterionResolution(criterion, observation);
 }
 
-export function deriveCriterionStatus(criterion, context = {}, seen = new Set()) {
+export function deriveCriterionStatus(criterion) {
   const observations = Array.isArray(criterion?.observations) ? criterion.observations : [];
   if (!observations.length) return "unverified";
-  if (seen.has(criterion?.id)) return "unverified";
-  const nextSeen = new Set(seen);
-  nextSeen.add(criterion.id);
-  const active = observations.filter((observation) => !resolvedFailure(criterion, observation, context, nextSeen));
+  const active = observations.filter((observation) => !resolvedFailure(criterion, observation));
   if (!active.length) return "unverified";
   if (active.some((observation) => observation.status === "fail")) return "fail";
   if (active.some((observation) => observation.status === "blocked")) return "blocked";
@@ -214,13 +264,13 @@ export function deriveCriterionStatus(criterion, context = {}, seen = new Set())
   return "unverified";
 }
 
-export function deriveUnmetIds(receipt, context = receiptContext(receipt)) {
+export function deriveUnmetIds(receipt) {
   return (receipt?.criteria || [])
-    .filter((criterion) => deriveCriterionStatus(criterion, context) !== "pass")
+    .filter((criterion) => deriveCriterionStatus(criterion) !== "pass")
     .map((criterion) => criterion.id);
 }
 
-function progressLedgerProblem(root, receipt) {
+export function progressLedgerProblem(root, receipt) {
   const path = resolve(root, "docs/PROGRESS.json");
   if (!existsSync(path)) return "docs/PROGRESS.json is missing";
   let ledger;
@@ -231,9 +281,20 @@ function progressLedgerProblem(root, receipt) {
   }
   const ticket = (ledger.tickets || []).find((entry) => entry.number === 7);
   if (!ticket) return "docs/PROGRESS.json has no #7 ticket";
-  const derivedMet = receipt?.closure?.state === "met" && deriveUnmetIds(receipt).length === 0;
-  if (!derivedMet && ticket.status === "verified") {
+  const met = receipt?.closure?.state === "met"
+    && deriveUnmetIds(receipt).length === 0
+    && receipt?.ledger?.issue7?.verified === true;
+  if (met) {
+    if (ticket.status !== "verified") {
+      return "docs/PROGRESS.json must mark #7 verified when acceptance is met";
+    }
+    return null;
+  }
+  if (ticket.status === "verified") {
     return "docs/PROGRESS.json marks #7 verified while acceptance is unmet";
+  }
+  if (!["in_progress", "blocked_external"].includes(ticket.status)) {
+    return "docs/PROGRESS.json #7 must stay in_progress/blocked_external while acceptance is unmet";
   }
   return null;
 }
@@ -245,8 +306,14 @@ export function validateReceipt(receipt, { root = process.cwd() } = {}) {
   if (receipt.issue !== 7) errors.push("receipt must describe issue 7");
   if (receipt.repository !== "saurabhbansal/nuvioweb") errors.push("repository must be saurabhbansal/nuvioweb");
   if (!isNonEmptyString(receipt.as_of)) errors.push("as_of is missing");
-  if (!COMMIT_PATTERN.test(String(receipt.source_commit || ""))) {
-    errors.push("source_commit must be a 40-hex tested source revision");
+  const sourceCommitIssue = commitProblem(root, receipt.source_commit);
+  if (sourceCommitIssue) errors.push(`source_commit: ${sourceCommitIssue}`);
+  const contractIssue = contractProblem(root);
+  if (contractIssue) errors.push(contractIssue);
+
+  const serialized = JSON.stringify(receipt);
+  for (const pattern of SECRET_PATTERNS) {
+    if (pattern.test(serialized)) errors.push("possible credential material in the acceptance receipt");
   }
 
   const original = Array.isArray(receipt.original_criteria) ? receipt.original_criteria : [];
@@ -269,7 +336,6 @@ export function validateReceipt(receipt, { root = process.cwd() } = {}) {
 
   const ledgerChildren = Array.isArray(receipt.ledger?.children) ? receipt.ledger.children : [];
   const childKeys = new Set(ledgerChildren.map((child) => child?.key).filter((key) => isNonEmptyString(key)));
-  const context = receiptContext(receipt);
   const seenChildKeys = new Set();
   for (const [index, child] of ledgerChildren.entries()) {
     const prefix = `ledger.children[${index}]`;
@@ -278,6 +344,7 @@ export function validateReceipt(receipt, { root = process.cwd() } = {}) {
       continue;
     }
     if (!isNonEmptyString(child.key)) errors.push(`${prefix}: missing key`);
+    else if (CRITERION_IDS.includes(child.key)) errors.push(`${prefix}: child keys cannot collide with criterion IDs`);
     else if (seenChildKeys.has(child.key)) errors.push(`${prefix}: duplicate child key ${child.key}`);
     else seenChildKeys.add(child.key);
     if (!Number.isInteger(child.issue) || child.issue <= 0) errors.push(`${prefix}: missing real issue number`);
@@ -334,15 +401,15 @@ export function validateReceipt(receipt, { root = process.cwd() } = {}) {
     for (const [index, observation] of criterion.observations.entries()) {
       errors.push(...validateObservation(root, criterion.id, observation, index));
     }
-    const resolutionIssue = resolutionProblem(root, criterion, context);
+    const resolutionIssue = resolutionProblem(root, criterion);
     if (resolutionIssue) errors.push(`${criterion.id}: ${resolutionIssue}`);
-    const derived = deriveCriterionStatus(criterion, context);
+    const derived = deriveCriterionStatus(criterion);
     if (criterion.status !== derived) {
       errors.push(`${criterion.id}: declared status ${criterion.status} contradicts observations (${derived})`);
     }
   }
 
-  const unmet = deriveUnmetIds(receipt, context);
+  const unmet = deriveUnmetIds(receipt);
   const closure = receipt.closure;
   if (!isPlainObject(closure)) {
     errors.push("closure is missing");
@@ -353,20 +420,23 @@ export function validateReceipt(receipt, { root = process.cwd() } = {}) {
       errors.push("closure.unmet_ids does not match evidence-derived unmet criteria");
     }
     if (closure.state === "met" && unmet.length) errors.push("closure cannot be met while criteria are unmet");
-    if (closure.state === "met" && ledgerIssue7 && ledgerIssue7.verified !== true) {
-      errors.push("closure cannot be met while the ledger is not verified");
-    }
-    if (closure.state === "met" && ledgerChildren.some((child) => !["closed", "resolved"].includes(child.state))) {
-      errors.push("closure cannot be met while a linked child is still open");
+    if (closure.state === "met") {
+      if (ledgerIssue7?.verified !== true) errors.push("closure cannot be met while the ledger is not verified");
+      if (ledgerIssue7?.status !== "verified") errors.push("closure cannot be met while the ledger status is not verified");
+      if (ledgerIssue7?.parent_open !== false) errors.push("closure cannot be met while the parent is recorded open");
+      if (ledgerChildren.some((child) => !["closed", "resolved"].includes(child.state))) {
+        errors.push("closure cannot be met while a linked child is still open");
+      }
     }
     if (closure.state !== "met" && unmet.length === 0) {
       errors.push("closure must be met when every criterion passes");
     }
-    if (closure.state !== "met" && ledgerIssue7?.verified === true) {
-      errors.push("ledger cannot be verified while parent acceptance is unmet");
-    }
-    if (closure.state !== "met" && ledgerIssue7?.parent_open !== true) {
-      errors.push("parent must be recorded open while acceptance is unmet");
+    if (closure.state !== "met") {
+      if (ledgerIssue7?.verified === true) errors.push("ledger cannot be verified while parent acceptance is unmet");
+      if (ledgerIssue7?.parent_open !== true) errors.push("parent must be recorded open while acceptance is unmet");
+      if (ledgerIssue7?.status === "verified" || ledgerIssue7?.status === "closed") {
+        errors.push("ledger cannot be verified/closed while parent acceptance is unmet");
+      }
     }
     if (!isNonEmptyString(closure.reason)) errors.push("closure.reason is missing");
   }

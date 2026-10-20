@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "issue": 7,
+  "repository": "saurabhbansal/nuvioweb",
+  "source": "GitHub issue #7 body, preserved without rewording; mapped to A1-A8 by the issue-7 closure plan",
+  "original_criteria": [
+    {
+      "id": "O1",
+      "original_text": "Existing Nuvio account is the only user login",
+      "criteria": ["A1", "A4", "A6", "A7", "A8"]
+    },
+    {
+      "id": "O2",
+      "original_text": "Profiles/addons/watch history synchronize as tested",
+      "criteria": ["A2", "A3", "A5"]
+    },
+    {
+      "id": "O3",
+      "original_text": "No cross-account library or session leakage",
+      "criteria": ["A3", "A4", "A6", "A7", "A8"]
+    }
+  ],
+  "criteria": {
+    "A1": { "original_ids": ["O1"], "required_kinds": ["synthetic", "live"] },
+    "A2": { "original_ids": ["O2"], "required_kinds": ["synthetic", "live"] },
+    "A3": { "original_ids": ["O3", "O2"], "required_kinds": ["synthetic", "live"] },
+    "A4": { "original_ids": ["O1", "O3"], "required_kinds": ["synthetic"] },
+    "A5": { "original_ids": ["O2"], "required_kinds": ["synthetic"] },
+    "A6": { "original_ids": ["O1", "O3"], "required_kinds": ["synthetic"] },
+    "A7": { "original_ids": ["O1", "O3"], "required_kinds": ["synthetic", "review"] },
+    "A8": { "original_ids": ["O1", "O3"], "required_kinds": ["live", "review"] }
+  }
+}
