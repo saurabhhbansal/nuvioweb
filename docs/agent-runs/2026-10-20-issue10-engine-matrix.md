@@ -2,7 +2,7 @@
 
 This handoff is separate from the issue120 checkpoint. **Do not rewrite issue7/120/128–130 acceptance, stop elapsed observers, navigate existing browser/CDP sessions, replace the pinned runtime or deploy the preview.** No such operation was performed by this unit.
 
-## Assignment and proposed integration
+## Assignment and implementation integration
 
 Owner scope: test Chromium once (Chrome/Edge/Brave/Opera), WebKit once (Safari), Gecko once (Firefox), not duplicate brands. [Issue10](https://github.com/saurabhhbansal/nuvioweb/issues/10) remains open for real host certification gaps; [matrix](../ENGINE_CAPABILITY_MATRIX.md) records the exact layers, hardware needs and compute implications. [Plan](../plans/issues/issue-10.md) preceded runtime, native fixture and adaptive fixture changes.
 
@@ -14,7 +14,7 @@ Branch `m2/issue-10-engine-matrix`, base `7c6b8f9c75306b5d345a58b64f4e1c5ea0ae05
 - `586092eafde0eea7c15b2b58eb58be6497c772e3`: lossless adaptive canonical timing, honest WebKit transport observations.
 - `f5f15892d9078cb6e445cd01e529fade2b908c18`: actual post-seek presentation in bundled tests with measured sparse-callback handling. Sustained60 criteria unchanged.
 
-No closing directive, force push, protection override or preview deployment. Protected exact-head and actual-merge checks remain mandatory; pending integration is not a pass.
+No closing directive, force push, protection override or preview deployment. Implementation PR134 is integrated at `6f374174908c7619645f77d3ff110cb3ecf8c912`; all four exact-head and actual-merge contexts passed. [Immutable receipt](../evidence/issue10-integration-2026-10-20.json) binds head/merge/status URLs and measured-source equality. Separate documentation follow-up checks are independent.
 
 ## Separate technical review
 
@@ -73,8 +73,10 @@ Generator executed with private FFmpeg/FFprobe6.1.1 using child LD_LIBRARY_PATH 
 
 No new runtime origin, credentials, authorization recipient, proxy, provider fetch, recovery/retry policy, DRM path, payment or deployment. Test servers serve fixed hash-verified legal files on loopback; routes block nonfixture destinations. Credential flags remain false and synthetic signed-marker redaction is asserted. File reads, generated-file sizes, subprocesses and evaluation windows are bounded. Complete notices and original media provenance remain. Optional compute implications are analytical only: no hosted processing was launched and no billing changed.
 
-The codec-conflict guard is advisory and cache-safe, preserving selectable original streams and header/network precedence. HLS/DASH changes are packet-identical test containers, not a runtime workaround for a real source. Full Chromium regression and all4 exact-head/merge workflows must be observed before integration. Hardware/output gaps remain open after integration; do not close #10 or pretend another browser brand supplies missing evidence.
+The codec-conflict guard is advisory and cache-safe, preserving selectable original streams and header/network precedence. HLS/DASH changes are packet-identical test containers, not a runtime workaround for a real source. Full Chromium77/77, separate PWA2/2 and all4 implementation exact-head/merge workflows were observed passing. Hardware/output gaps remain open after integration; do not close #10 or pretend another browser brand supplies missing evidence.
 
 ## Next action / final integration record
 
-Final native receipt exit3 and bundled classifier/quality27/27,0skip,1.8minutes are observed atf5f1589. Finish full Chromium and docs/ledger/ancestry gates, then publish exact head and protected merge receipts. Then retain #10 open for the concrete host/output gaps in this engine assignment; broader multitrack/audible-output and hosted-provider CORS evidence remains explicitly unresolved in the ledger rather than silently completed; no routine permission request is needed to integrate a reviewed passing reversible unit. Do not change the separate issue120 checkpoint or pinned runtime.
+The documentation-only reconciliation against6f37417 received separate read-only Standards and Spec reviews:0 actionable findings each. Both independently checked source-tree equality and exact current-checkpoint preservation, plus receipt head/merge/context uniqueness and timestamps. Those are automated consistency reviews, not independent human approval or live replay of GitHub checks; the parent queried live immutable check endpoints. No new runtime fixture/browser run is inferred from this receipt update. Its own protected integration remains mandatory.
+
+Final native receipt exit3 and bundled classifier/quality27/27,0skip,1.8minutes are observed atf5f1589. Full Chromium77/77, separate PWA2/2, application1452/1452 and docs/ledger/ancestry gates passed. PR134 protected headabc746a and actual merge6f37417 each passed all4 required contexts; source equality is verified in the immutable integration receipt. This documentation-only reconciliation does not redeploy or change runtime; observe its own final protected head/merge checks before reporting it integrated. Then retain #10 open for the concrete host/output gaps in this engine assignment; broader multitrack/audible-output and hosted-provider CORS evidence remains explicitly unresolved in the ledger rather than silently completed; no routine permission request is needed to integrate a reviewed passing reversible unit. Do not change the separate issue120 checkpoint or pinned runtime.
