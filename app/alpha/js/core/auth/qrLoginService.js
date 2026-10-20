@@ -230,10 +230,25 @@ function beginAttempt() {
   if (previous?.authAttemptId != null && AuthManager.authAttemptSequence === previous.authAttemptId) {
     AuthManager.beginAuthenticationAttempt();
   }
+  if (
+    previous?.qrAccessToken &&
+    SessionStore.accessToken === previous.qrAccessToken &&
+    SessionStore.refreshToken === previous.qrRefreshToken
+  ) {
+    // An approved exchange's account tokens belong to the superseded attempt.
+    // A new QR attempt must start from a fresh anonymous caller, not reuse them.
+    SessionStore.clear();
+  }
+  if (previous) {
+    previous.qrAccessToken = null;
+    previous.qrRefreshToken = null;
+  }
   attemptSequence += 1;
   const attempt = {
     id: attemptSequence,
-    sessionGeneration: AuthManager.getSessionGeneration()
+    sessionGeneration: AuthManager.getSessionGeneration(),
+    qrAccessToken: null,
+    qrRefreshToken: null
   };
   activeAttempt = attempt;
   return attempt.id;
@@ -269,9 +284,18 @@ function cancelAttempt(attemptId = null) {
       AuthManager.beginAuthenticationAttempt();
     }
     // The anonymous caller exists only to start and poll this QR attempt.
-    // Leaving an unapproved attempt behind must not leave its tokens in storage.
-    if (SessionStore.isAnonymousSession) {
+    // An approved exchange may already have written the account pair before its
+    // owner resolution finished, so clear that pair only while it is still the
+    // stored pair. A later session's different tokens are never touched.
+    const ownsStoredPair = cancelled?.qrAccessToken &&
+      SessionStore.accessToken === cancelled.qrAccessToken &&
+      SessionStore.refreshToken === cancelled.qrRefreshToken;
+    if (SessionStore.isAnonymousSession || ownsStoredPair) {
       SessionStore.clear();
+    }
+    if (cancelled) {
+      cancelled.qrAccessToken = null;
+      cancelled.qrRefreshToken = null;
     }
   }
 }
@@ -679,6 +703,8 @@ export const QrLoginService = {
       }
       qrAccessToken = tokens.accessToken;
       qrRefreshToken = tokens.refreshToken;
+      attempt.qrAccessToken = qrAccessToken;
+      attempt.qrRefreshToken = qrRefreshToken;
       SessionStore.accessToken = qrAccessToken;
       SessionStore.refreshToken = qrRefreshToken;
       SessionStore.isAnonymousSession = false;
@@ -688,6 +714,8 @@ export const QrLoginService = {
         canPublish: () => attemptIsActive(attempt)
       });
       attempt.authAttemptId = null;
+      attempt.qrAccessToken = null;
+      attempt.qrRefreshToken = null;
       cancelAttempt(attempt.id);
       return result;
     } catch (error) {
@@ -700,16 +728,20 @@ export const QrLoginService = {
       const authAttempt = attempt.authAttemptId;
       const superseded = error?.code === "AUTH_PUBLICATION_CANCELLED" ||
         (authAttempt != null && AuthManager.authAttemptSequence !== authAttempt);
+      const newerAttemptActive = activeAttempt != null && activeAttempt !== attempt;
       if (!superseded && authAttempt != null) {
         // This exchange still owns the current authentication attempt, so a
         // failed establishment must fail closed and clear its local session.
         await AuthManager.signOut().catch(() => {});
-      } else if (qrAccessToken && SessionStore.accessToken === qrAccessToken && SessionStore.refreshToken === qrRefreshToken) {
-        // A later attempt already owns the session; only remove the QR token
-        // pair this exchange wrote, never the later session's tokens or data.
+      } else if (!newerAttemptActive && qrAccessToken && SessionStore.accessToken === qrAccessToken && SessionStore.refreshToken === qrRefreshToken) {
+        // A later session (not another QR attempt) owns the store; remove only
+        // the QR token pair this exchange wrote. If a new QR attempt is active,
+        // beginAttempt already discarded the old pair.
         SessionStore.clear();
       }
       attempt.authAttemptId = null;
+      attempt.qrAccessToken = null;
+      attempt.qrRefreshToken = null;
       lastError = "QR exchange could not establish the session";
       console.error("QR exchange failed");
       cancelAttempt(attempt.id);

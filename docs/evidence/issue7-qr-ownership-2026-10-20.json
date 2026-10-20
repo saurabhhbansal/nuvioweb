@@ -87,7 +87,7 @@
         "app/alpha/js/core/auth/authManager.test.mjs",
         "app/alpha/js/core/auth/accountLocalDataReset.test.mjs"
       ],
-      "result": "25 passed, 0 failed, 0 skipped (focused auth suite before the final 15-test lifecycle expansion)"
+      "result": "32 passed, 0 failed, 0 skipped (the four focused auth files at the final source)"
     },
     {
       "command": [

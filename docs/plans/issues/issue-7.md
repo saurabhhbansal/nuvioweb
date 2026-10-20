@@ -9,7 +9,7 @@
 
 Parent #7 stays **open**. Four scoped children now carry the remaining work: [#117](https://github.com/saurabhbansal/nuvioweb/issues/117) (A1–A4 executable gate + nonempty synthetic fixtures), [#118](https://github.com/saurabhbansal/nuvioweb/issues/118) (A6/A7 QR publication/rendering), [#119](https://github.com/saurabhbansal/nuvioweb/issues/119) (A5 Library pending/snapshot/concurrency) and blocked [#120](https://github.com/saurabhbansal/nuvioweb/issues/120) (live A1/A2/A3/A8).
 
-**2026-10-20 CH2:** [#118](https://github.com/saurabhbansal/nuvioweb/issues/118) resolves A6/A7 synthetically — QR attempt ownership, common establishment, no external renderer, safe image DOM/policy, 9 lifecycle + 3 screen tests; live QR remains #120. The receipt now has A2,A3,A5,A8 unmet.
+**2026-10-20 CH2:** [#118](https://github.com/saurabhbansal/nuvioweb/issues/118) resolves A6/A7 synthetically — QR attempt ownership, common establishment, no external renderer, safe image DOM/policy, 16 lifecycle + 5 screen tests; live QR remains #120. The receipt now has A2,A3,A5,A8 unmet.
 
 `docs/evidence/issue7-acceptance.json` is the current A1–A8 disposition. The gate's schema mode passes on the honest blocked receipt; its default closure mode returns nonzero until every criterion is genuinely met. Synthetic browser/fixture passes do not replace live service, provider or device evidence, and no historical failing receipt is deleted. The owner's pause on live-account probes/writes/device tests remains in force.
 

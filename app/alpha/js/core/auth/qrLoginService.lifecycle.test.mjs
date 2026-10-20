@@ -279,6 +279,9 @@ test("cancelling during owner resolution prevents publication", async () => {
     const pending = QrLoginService.exchange("synthetic-code", "synthetic-nonce", attemptId);
     await ownerStarted.promise;
     QrLoginService.cancelAttempt(attemptId);
+    assert.equal(SessionStore.accessToken, null);
+    assert.equal(SessionStore.refreshToken, null);
+    assert.equal(globalThis.localStorage.getItem("nuvioAccountOwnerMarker"), null);
     ownerResponse.resolve(json("owner-qr"));
     assert.equal(await pending, false);
     assert.equal(SessionStore.accessToken, null);
@@ -306,6 +309,8 @@ test("a new QR attempt during owner resolution does not publish or clear the new
     const pending = QrLoginService.exchange("synthetic-code", "synthetic-nonce", first);
     await ownerStarted.promise;
     const second = QrLoginService.beginAttempt();
+    assert.equal(SessionStore.accessToken, null);
+    assert.equal(SessionStore.refreshToken, null);
     ownerResponse.resolve(json("owner-qr"));
     assert.equal(await pending, false);
     assert.equal(QrLoginService.isAttemptActive(first), false);
@@ -313,6 +318,9 @@ test("a new QR attempt during owner resolution does not publish or clear the new
     assert.equal(AuthManager.getAuthState(), AuthState.LOADING);
     assert.equal(globalThis.localStorage.getItem("nuvioAccountOwnerMarker"), null);
     assert.equal(SessionStore.accessToken, null);
+    await AuthManager.bootstrap();
+    assert.equal(AuthManager.getAuthState(), AuthState.SIGNED_OUT);
+    assert.equal(globalThis.localStorage.getItem("nuvioAccountOwnerMarker"), null);
   });
 });
 

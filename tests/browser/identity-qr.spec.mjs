@@ -166,12 +166,18 @@ test("a hostile QR image URL is inert and the login URL is rendered locally", as
   expect(fixture.unexpected).toEqual([]);
 });
 
-test("leaving during a held owner resolution has no later publication", async ({ context, page }) => {
+test("leaving during a held owner resolution leaves no persisted account", async ({ context, page }) => {
   const fixture = await installQrFixture(context, { holdOwner: true });
   await openQrScreen(page);
   await fixture.ownerStarted;
   await page.locator("#qr-back-btn").click();
   await expect.poll(() => page.evaluate(() => history.state?.route)).not.toBe("profileSelection");
+  const beforeRelease = await page.evaluate(() => ({
+    access: localStorage.getItem("access_token"),
+    refresh: localStorage.getItem("refresh_token"),
+    owner: localStorage.getItem("nuvioAccountOwnerMarker")
+  }));
+  expect(beforeRelease).toEqual({ access: null, refresh: null, owner: null });
   fixture.releaseOwner();
   await page.waitForTimeout(1200);
   const stored = await page.evaluate(() => ({
@@ -184,6 +190,14 @@ test("leaving during a held owner resolution has no later publication", async ({
   expect(stored.refresh).toBeNull();
   expect(stored.owner).toBeNull();
   expect(stored.route).not.toBe("profileSelection");
+  await page.reload();
+  await page.waitForTimeout(500);
+  const afterReload = await page.evaluate(() => ({
+    access: localStorage.getItem("access_token"),
+    refresh: localStorage.getItem("refresh_token"),
+    owner: localStorage.getItem("nuvioAccountOwnerMarker")
+  }));
+  expect(afterReload).toEqual({ access: null, refresh: null, owner: null });
   expect(fixture.unexpected).toEqual([]);
 });
 
