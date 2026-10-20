@@ -4,7 +4,7 @@
   "child": 117,
   "date": "2026-10-20",
   "kind": "synthetic",
-  "source_commit": "18d9cb75933f3eafdfa050afac94b3e6a7b73cf5",
+  "source_commit": "ecef56026d5c55ae205917405ac51fe41ac0bd38",
   "environment": "pinned Node 22.23.1; inert loopback build served at http://127.0.0.1:4371; Playwright Chromium; all identity and add-on origins intercepted by the synthetic fixture",
   "build": {
     "command": "NUVIO_LOCAL_PROPERTIES=\"$PWD/tests/fixtures/build.properties\" npm run build --prefix app/alpha",

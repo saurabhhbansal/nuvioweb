@@ -3,7 +3,7 @@
   "issue": 7,
   "repository": "saurabhbansal/nuvioweb",
   "as_of": "2026-10-20",
-  "source_commit": "18d9cb75933f3eafdfa050afac94b3e6a7b73cf5",
+  "source_commit": "ecef56026d5c55ae205917405ac51fe41ac0bd38",
   "original_criteria": [
     {
       "id": "O1",
@@ -92,7 +92,7 @@
         {
           "kind": "synthetic",
           "status": "pass",
-          "commit": "18d9cb75933f3eafdfa050afac94b3e6a7b73cf5",
+          "commit": "ecef56026d5c55ae205917405ac51fe41ac0bd38",
           "deployment": null,
           "command_or_observation": "node --test app/alpha/js/core/auth/authManager.lifecycle.test.mjs app/alpha/js/core/auth/authManager.test.mjs app/alpha/js/core/auth/accountLocalDataReset.test.mjs",
           "assertion": "The configured upstream password exchange is used, no second identity endpoint or persisted password is introduced, and account-local data is reset on identity change.",
@@ -116,7 +116,7 @@
         {
           "kind": "review",
           "status": "unverified",
-          "commit": "18d9cb75933f3eafdfa050afac94b3e6a7b73cf5",
+          "commit": "ecef56026d5c55ae205917405ac51fe41ac0bd38",
           "deployment": null,
           "command_or_observation": "Static review of app/alpha/js/core/auth/qrLoginService.js against the closure diagnosis.",
           "assertion": "Every exposed entry path must publish identity only through an owned session boundary before A1 can pass.",
@@ -147,7 +147,7 @@
         {
           "kind": "synthetic",
           "status": "pass",
-          "commit": "18d9cb75933f3eafdfa050afac94b3e6a7b73cf5",
+          "commit": "ecef56026d5c55ae205917405ac51fe41ac0bd38",
           "deployment": null,
           "command_or_observation": "npx playwright test tests/browser/identity-sync.spec.mjs --project=chromium",
           "assertion": "The bundled application pulls distinct nonempty add-on, watched-item, progress and Library keys for the exact signed-in account and selected profile, and a later synthetic backend mutation appears only in that account/profile.",
@@ -196,7 +196,7 @@
         {
           "kind": "synthetic",
           "status": "pass",
-          "commit": "18d9cb75933f3eafdfa050afac94b3e6a7b73cf5",
+          "commit": "ecef56026d5c55ae205917405ac51fe41ac0bd38",
           "deployment": null,
           "command_or_observation": "npx playwright test tests/browser/identity-sync.spec.mjs --project=chromium",
           "assertion": "Bundled B-to-A-to-B navigation retains only the current account's nonempty Library, a clean independent receiver reflects final-item removal on reload, and a held old response cannot publish after a switch.",
@@ -250,7 +250,7 @@
         {
           "kind": "synthetic",
           "status": "pass",
-          "commit": "18d9cb75933f3eafdfa050afac94b3e6a7b73cf5",
+          "commit": "ecef56026d5c55ae205917405ac51fe41ac0bd38",
           "deployment": null,
           "command_or_observation": "node --test app/alpha/js/core/auth/authManager.lifecycle.test.mjs app/alpha/js/core/profile/startupSyncService.test.mjs app/alpha/js/core/profile/savedLibrarySyncService.test.mjs",
           "assertion": "A rejected refresh cannot remain authenticated, a delayed old-session response cannot publish into a later session, and offline cached display is not presented as server-valid proof.",
@@ -279,7 +279,7 @@
         {
           "kind": "synthetic",
           "status": "unverified",
-          "commit": "18d9cb75933f3eafdfa050afac94b3e6a7b73cf5",
+          "commit": "ecef56026d5c55ae205917405ac51fe41ac0bd38",
           "deployment": null,
           "command_or_observation": "Existing savedLibrary state/repository/service tests reviewed; CH3 characterization pending.",
           "assertion": "A failed mutation must survive reload, a reconnect must not falsely report acknowledgement, and item 1001 or a competing newer edit must not be silently discarded.",
@@ -345,7 +345,7 @@
         {
           "kind": "review",
           "status": "unverified",
-          "commit": "18d9cb75933f3eafdfa050afac94b3e6a7b73cf5",
+          "commit": "ecef56026d5c55ae205917405ac51fe41ac0bd38",
           "deployment": null,
           "command_or_observation": "Static review of the QR start/rendering sink and the existing token-storage threat model.",
           "assertion": "No credential-bearing QR content may be sent to a third-party renderer, and a hostile image URL must render as inert data.",
@@ -388,7 +388,7 @@
         {
           "kind": "review",
           "status": "blocked",
-          "commit": "18d9cb75933f3eafdfa050afac94b3e6a7b73cf5",
+          "commit": "ecef56026d5c55ae205917405ac51fe41ac0bd38",
           "deployment": null,
           "command_or_observation": "Owner-pause review recorded in the continuity handoff and owner checklist.",
           "assertion": "No live account probe, marker write, device test, credential read or revocation action may run under the present pause.",
