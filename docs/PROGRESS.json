@@ -279,6 +279,7 @@
           "docs/evidence/issue10-engine-2026-10-20.json",
           "docs/evidence/issue10-generated-media-2026-10-20.json",
           "docs/evidence/issue10-tool-inventory-2026-10-20.json",
+          "docs/evidence/issue10-integration-2026-10-20.json",
           "docs/agent-runs/2026-10-20-issue10-engine-matrix.md"
         ],
         "verifiedLocally": [
@@ -309,7 +310,7 @@
             "Physical HDR10/HLG output uncertified: no evidenced HDR display/compositor or accessible GPU device",
             "Chromium tested-build HEVC decoder integration unresolved on this host; no inherent cross-platform engine limitation established"
           ],
-          "integration": "PR134 proposed until separate automated technical review, all4 exact-head protected contexts and actual merge checks pass; no preview deployment or issue closure",
+          "integration": "PR134 merged at6f374174908c7619645f77d3ff110cb3ecf8c912 from reviewed headabc746ae8e13bd8337800cbba39f642d9c3084c6; all4 exact-head and actual-merge contexts passed, measured app/tooling/tests byte-identical. Immutable issue10 integration receipt; no preview deployment or issue closure",
           "otherScope": "Issue7/120/128-130, elapsed observers, pinned preview/runtime and existing browser sessions unchanged; broader audio/real-provider/DRM evidence not inferred"
         },
         "remaining": [

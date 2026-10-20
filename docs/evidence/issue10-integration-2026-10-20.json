@@ -1,0 +1,129 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-20T17:16:12.428967+00:00",
+  "issue": 10,
+  "issueRemainsOpen": true,
+  "implementationPR": {
+    "headRefOid": "abc746ae8e13bd8337800cbba39f642d9c3084c6",
+    "mergeCommit": {
+      "oid": "6f374174908c7619645f77d3ff110cb3ecf8c912"
+    },
+    "mergedAt": "2026-10-20T17:10:38Z",
+    "state": "MERGED",
+    "url": "https://github.com/saurabhhbansal/nuvioweb/pull/134"
+  },
+  "reviewedHeadChecks": [
+    {
+      "name": "Docs links and checker tests",
+      "head_sha": "abc746ae8e13bd8337800cbba39f642d9c3084c6",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/saurabhhbansal/nuvioweb/actions/runs/39462928412/job/118766767560",
+      "started_at": "2026-10-20T17:04:59Z",
+      "completed_at": "2026-10-20T17:05:24Z"
+    },
+    {
+      "name": "Locked install, build, tests and lint",
+      "head_sha": "abc746ae8e13bd8337800cbba39f642d9c3084c6",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/saurabhhbansal/nuvioweb/actions/runs/39462928439/job/118766767701",
+      "started_at": "2026-10-20T17:04:59Z",
+      "completed_at": "2026-10-20T17:05:43Z"
+    },
+    {
+      "name": "Roadmap and import checks",
+      "head_sha": "abc746ae8e13bd8337800cbba39f642d9c3084c6",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/saurabhhbansal/nuvioweb/actions/runs/39462928459/job/118766767660",
+      "started_at": "2026-10-20T17:04:59Z",
+      "completed_at": "2026-10-20T17:05:20Z"
+    },
+    {
+      "name": "Chromium application smoke",
+      "head_sha": "abc746ae8e13bd8337800cbba39f642d9c3084c6",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/saurabhhbansal/nuvioweb/actions/runs/39462928461/job/118766767706",
+      "started_at": "2026-10-20T17:04:59Z",
+      "completed_at": "2026-10-20T17:09:48Z"
+    }
+  ],
+  "actualMergeChecks": [
+    {
+      "name": "Docs links and checker tests",
+      "head_sha": "6f374174908c7619645f77d3ff110cb3ecf8c912",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/saurabhhbansal/nuvioweb/actions/runs/39463776714/job/118769679019",
+      "started_at": "2026-10-20T17:10:45Z",
+      "completed_at": "2026-10-20T17:10:52Z"
+    },
+    {
+      "name": "Locked install, build, tests and lint",
+      "head_sha": "6f374174908c7619645f77d3ff110cb3ecf8c912",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/saurabhhbansal/nuvioweb/actions/runs/39463776801/job/118769679164",
+      "started_at": "2026-10-20T17:10:45Z",
+      "completed_at": "2026-10-20T17:11:29Z"
+    },
+    {
+      "name": "Roadmap and import checks",
+      "head_sha": "6f374174908c7619645f77d3ff110cb3ecf8c912",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/saurabhhbansal/nuvioweb/actions/runs/39463776661/job/118769677673",
+      "started_at": "2026-10-20T17:10:45Z",
+      "completed_at": "2026-10-20T17:11:05Z"
+    },
+    {
+      "name": "Chromium application smoke",
+      "head_sha": "6f374174908c7619645f77d3ff110cb3ecf8c912",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/saurabhhbansal/nuvioweb/actions/runs/39463776821/job/118769678440",
+      "started_at": "2026-10-20T17:10:44Z",
+      "completed_at": "2026-10-20T17:15:21Z"
+    }
+  ],
+  "requiredContexts": [
+    "Docs links and checker tests",
+    "Locked install, build, tests and lint",
+    "Roadmap and import checks",
+    "Chromium application smoke"
+  ],
+  "measuredSourceRevision": "f5f15892d9078cb6e445cd01e529fade2b908c18",
+  "measuredSourceTreeEqualsIntegratedSource": true,
+  "comparisonPaths": [
+    "app",
+    "scripts",
+    "tests",
+    ".github",
+    "playwright.config.mjs",
+    "package.json",
+    "package-lock.json"
+  ],
+  "reviews": {
+    "type": "Separate automated read-only Standards/Spec substitute; Codex CLI absent, not independent human approval",
+    "unresolvedActionableFindings": 0,
+    "ranges": [
+      "7c6b8f9..2ecc95e",
+      "2ecc95e..5eb75a3",
+      "5eb75a3..98b139f",
+      "98b139f..586092e",
+      "586092e..f5f1589",
+      "f5f1589..39b66bf"
+    ],
+    "finalCorrection": "abc746a corrects Chromium-only77 versus separately executed PWA2 coverage; targeted review confirms resolved"
+  },
+  "limitations": [
+    "Native matrix exit3 remains a failed sustained60 criterion in all engines, not a zero/pass",
+    "Physical HDR output uncertified; Chromium tested-build HEVC gap remains",
+    "Broader multitrack/audible and hosted external-provider CORS limits retained",
+    "No deployment; pinned issue7/120 runtime and elapsed observers untouched",
+    "No issue closure, force push or protection bypass"
+  ],
+  "receiptFollowup": "This document records implementation PR134 only; the documentation follow-up must independently pass its protected head and actual-merge contexts."
+}
