@@ -284,7 +284,10 @@
           "docs/research/issue10-playback-feasibility-2026-10-20.md",
           "docs/research/issue10-frame-hdr-feasibility-2026-10-20.md",
           "docs/research/issue10-hevc-feasibility-2026-10-20.md",
-          "docs/agent-runs/2026-10-20-issue10-engine-matrix.md"
+          "docs/agent-runs/2026-10-20-issue10-engine-matrix.md",
+          "docs/evidence/issue10-real-streams-2026-10-20.json",
+          "docs/evidence/issue10-real-provider-2026-10-20.md",
+          "docs/agent-runs/2026-10-20-issue10-real-provider-handoff.md"
         ],
         "verifiedLocally": [
           "Original1080p/4K MP4 and4K HLS/DASH bundled playback and seek;403/410/CORS failure and return",
@@ -323,14 +326,14 @@
             "Chromium HEVC rejected on tested build/host; exact executable/build/backend cause not isolated. Conditional upstream support is not a runtime pass or inherent engine ban"
           ],
           "integration": "PR134 merged at6f374174908c7619645f77d3ff110cb3ecf8c912 from reviewed headabc746ae8e13bd8337800cbba39f642d9c3084c6; all4 exact-head and actual-merge contexts passed, measured app/tooling/tests byte-identical. Immutable issue10 integration receipt; no preview deployment or issue closure",
-          "otherScope": "Issue7/120/128-130, elapsed observers, pinned preview/runtime and existing browser sessions unchanged; broader audio/real-provider/DRM evidence not inferred"
+          "otherScope": "Issue7/120/128-130, elapsed observers, pinned preview/runtime and existing browser sessions unchanged; broader audio/real-provider/DRM evidence not inferred",
+          "layer": "Historical synthetic/generated/loopback regression only; superseded for acceptance by owner actual installed-provider instruction. All historical subrecords, strict60 predicates, failures and exit3 unchanged."
         },
         "remaining": [
-          "Validate4K60 metrology separately from best-effort JavaScript callback sampling, then obtain sustained compositor/display pacing evidence per engine; no historical result relabelled or hardware purchase prerequisite inferred",
-          "Physical HDR10/HLG preservation/output on a documented compatible pipeline/display; separate24fps HDR decode is not output or combined4K60HDR certification",
-          "Identify actual Chromium executable/build/backend and isolate HEVC rejection, then obtain same-source original-resolution decode/seek on a known-capable setup; source-code feasibility is not measured success",
-          "Retained broader product limit: multitrack audio selection and audible-output observation not established by this video-only engine unit",
-          "Retained broader product limit: hosted external-provider CORS with a legal external origin not established by loopback tests"
+          "#137: Exact actual-source delivery/startup diagnostics: AIOStreams HEVC/AC3 HDR10/HFR-labelled4K MKV fails Chromium, stalls WPE; WPE actual AVC/AAC control also stalls. Gecko3840x2076 metadata/resume clock has zero total frames/media advancement and observer exit2. Actual PenguPlay/2Peckle4K MP4 fails WPE/Gecko. Isolate actual delivery/backend/transport facts and make generic startup-stall actionable; obtain original-resolution delivered frames, sustained actual offered rate and seek/post-seek frames without substituted sources or a universal engine/hardware diagnosis.",
+          "#138: Physical HDR10/PQ/HLG preservation/output on an evidenced compatible engine/OS/backend/display path; input tags,10bit SDR, virtual24bit color and graphics queries are not physical or combined4K60HDR proof.",
+          "Retained existing audio scope: multitrack selection and audible output not established by muted actual-provider observations; existing #12 recovery scope unchanged.",
+          "Retained existing device/DRM scope: no certification of all providers/content/devices or general DRM; broader #24 verification unchanged. Actual selected external-provider observations supersede a blanket never-tested-provider claim, not general CORS/device certification."
         ],
         "currentUnit": {
           "branch": "m1/issue-7-reconciliation-live",
@@ -357,6 +360,46 @@
             "docs/evidence/preview-refresh-2026-10-19.json"
           ],
           "verification": "134/134 artifact hashes, GPL/notices, headers/404/source and automatic worker verified; hosted guest install/catalog/640x360 playback/pause/seek/subtitle/Back/save/reload PASS in Chromium156, third parties blocked,0 uncaught errors; rollback deployment96f977f4/8edec42 retained"
+        },
+        "realProviderAcceptance": {
+          "dateUtc": "2026-10-20",
+          "disposition": "DEFERRED_NOT_VERIFIED_PARENT_REMAINS_OPEN",
+          "parentStatus": "in_progress",
+          "label": "deferred",
+          "layer": "Actual installed/configured-provider acceptance supersedes historical fixtures; no original4K/error completion claim",
+          "documents": [
+            "docs/evidence/issue10-real-streams-2026-10-20.json",
+            "docs/evidence/issue10-real-provider-2026-10-20.md",
+            "docs/agent-runs/2026-10-20-issue10-real-provider-handoff.md"
+          ],
+          "acceptance": {
+            "supported4k": "DEFERRED; unchecked; no actual4K frame case passed",
+            "unknownMetadata": "VERIFIED actual selected cards; checked",
+            "explainableErrors": "PARTIAL; unchecked; actual header/source guidance and Back observed, generic startup-stall unresolved"
+          },
+          "followups": {
+            "actualDeliveryAndStartupDiagnostics": 137,
+            "physicalHdrOutput": 138
+          },
+          "runtime": {
+            "servedRevision": "b5a8679404b98649f9c742abc6aa5da00edc50a9",
+            "repositoryBase": "45d59a16ef19f7bacd70232b98f08150c2081bf7",
+            "deploymentChanged": false,
+            "actualCurrentMainUiClaimed": false
+          },
+          "observations": [
+            "Six installed providers, zero custom/template sources; normal account/profile/app repository/StreamApi/canonical-card path; no source/response replacement, remux, proxy, transcode or paid fallback.",
+            "Chromium156 actual AIOStreams AVC/AAC alternative:1920x1080,30.0003s wall/29.9841s media,720 total frames/2 dropped; pause,seek,new1920x1080 post-seek frame,resume,Back observed; not4K or audible/multitrack proof.",
+            "Chromium real HEVC/AC3 HDR10/HFR-labelled4K MKV startup-source-error; WPE real4K MKV and AVC/AAC control startup-stall,readyState0,no frames; Back observed.",
+            "Gecko real4K MKV metadata3840x2076,readyState1,requested resume clock;30.028s zero media advance and zero total frames, isolated callback not advancing delivery; observer exit2 at controls; not decode/seek proof.",
+            "Actual returned PenguPlay/2Peckle4K MP4 fails WPE and Gecko with startup-source-error/zero dimensions/no first frame;10bit SDR filename and misleading raw observer label are not HDR evidence.",
+            "Actual header-required HLS shows actionable guidance/Back without bypass; no real HLS decoding certification. Actual cards keep format/codec,resolution/HDR,browser support unknown despite rich provider tags.",
+            "Six runs retain240 full allowlisted returned-row observations; per-response count equality and settled canonical-card equality. Dune30-row snapshot does not prove all-provider completion; observer exit0 is not media acceptance.",
+            "Chromium nominal executablePath was nonexistent; installed Playwright1.64 default-headless selector/registry1248 reconstructs chrome-headless-shell156 with SHA256 in receipt; no runtime argv captured. Explicit WPE/Gecko hashes separate.",
+            "Public receipt records allowlist,configured-secret/unexpected-URL scans and deliberate in-memory secret-injection rejection; private state and signed URLs not shared. Initial4GiB ceiling unchanged; all-host RX upper bound is not per-source throughput/billing.",
+            "No universal engine ceiling, inadequate-host-throughput or hardware-purchase diagnosis; physical HDR not measured. Original synthetic strict60 exit3 and predicates unchanged; no deployment, issue7/120/128-130, observer or runtime changes."
+          ],
+          "handoff": "Separate scoped handoff owns final local-session cleanup/public-note/observer checks and protected integration. This record does not invent final tests, future merge success or rollback of already-issued playback/history/provider side effects."
         }
       }
     },

@@ -1,10 +1,29 @@
 # Playback engine matrix — issue #10, 2026-10-20
 
-This unit implements the owner's **engine, not browser-brand** scope for [issue #10](https://github.com/saurabhhbansal/nuvioweb/issues/10). Chromium maps to Chrome/Edge/Brave/Opera, WebKit to Safari and Gecko to Firefox. Each engine runs once; these mappings do not imply physical-device or branded-release certification. [Plan](plans/issues/issue-10.md) · [native raw receipt](evidence/issue10-engine-2026-10-20.json) · [input provenance](evidence/issue10-generated-media-2026-10-20.json).
+## Current actual installed-provider acceptance — DEFERRED, not verified
 
-**Issue #10 stays open.** No physical HDR output or strict sustained4K60 pass is claimed. No preview deployment, live provider/account check, production compute, runtime engine fallback or media transformation was introduced. The other issue7/120/128–130 work, runtime, existing browser sessions and elapsed observers are outside this unit.
+The owner's actual installed-provider acceptance instruction supersedes fixture-based acceptance for [issue #10](https://github.com/saurabhhbansal/nuvioweb/issues/10). The parent remains **OPEN / `in_progress`**, labelled `deferred`: the original4K and explainable-error boxes remain unchecked; unknown metadata is verified in actual source cards. Chromium, WebKit and Gecko are engine cohorts, not duplicated browser-brand or physical-device certifications. [Actual-provider report](evidence/issue10-real-provider-2026-10-20.md) · [full privacy-checked receipt](evidence/issue10-real-streams-2026-10-20.json) · [plan](plans/issues/issue-10.md).
 
-## Evidence layers and native result
+| Actual returned selection / engine | Observed outcome | Acceptance boundary |
+| --- | --- | --- |
+| AIOStreams AVC/AAC1080p MKV / Chromium156 | Actual1920×1080 frames for30.0003s wall /29.9841s media;720 total frames,2 dropped; pause, seek, new post-seek1920×1080 frame, resume and Back observed | Explicit1080p alternative, not a4K pass or silent downscale; no audible/multitrack or physical pacing claim |
+| AIOStreams HEVC/AC3 HDR10/HFR-labelled4K MKV / Chromium156 | `startup-source-error`, no first frame | No actual4K delivery; no isolated container/audio/video/backend cause |
+| Actual AIOStreams4K MKV and AVC/AAC control / WPE WebKit27.2 | `startup-stall`, readyState0, no frames; Back observed | Neither actual source passed; generic stall guidance remains insufficiently actionable |
+| Actual AIOStreams4K MKV / Gecko157 | Metadata3840×2076 and requested resume clock only;30.028s with zero media advancement and zero total frames; isolated callback sample is not advancing playback; observer exit2 at controls | No decode/delivery/seek pass; metadata and resume position do not prove playback |
+| Actual PenguPlay/2Peckle4K MP4 offer / WPE and Gecko | Both `startup-source-error`, zero dimensions/no first frame; Back observed | No4K pass;10bit SDR filename is not HDR evidence |
+| Actual header-required HLS / Chromium | Actionable special-request-header guidance and Back | No bypass and no HLS decoding certification |
+
+**No actual4K frame-delivery case passed.** [#137](https://github.com/saurabhhbansal/nuvioweb/issues/137) owns the exact real-source delivery/startup-stall diagnostics; [#138](https://github.com/saurabhhbansal/nuvioweb/issues/138) owns physical HDR output. No universal engine limitation, inadequate-host-throughput diagnosis or hardware purchase requirement follows from these opaque failures. Retained audio/device/DRM and optional-recovery scopes are not certified here.
+
+The actual app path used the six installed providers and no custom/template source or altered media. The receipt retains all240 returned-row observations across six real-source runs, per-response count equality, actual unknown-card text and privacy/export checks (allowlist, configured-secret/unexpected-URL scans and in-memory secret-injection rejection). Exit0 means completed observation, not accepted playback. Chromium's nominal `executablePath()` was wrong: installed Playwright1.64 default-headless selection reconstructs `chrome-headless-shell` revision1248 /156.0.8078.4 with binary hash in the receipt; runtime argv was not captured. WPE/Gecko explicit binary provenance is separate.
+
+The served runtime remains pinned at `b5a8679404b98649f9c742abc6aa5da00edc50a9`, distinct from repository base `45d59a16ef19f7bacd70232b98f08150c2081bf7`. No deployment or actual-current-main UI claim, runtime/observer change, media transformation or paid fallback follows. [Scoped handoff](agent-runs/2026-10-20-issue10-real-provider-handoff.md).
+
+## Historical synthetic regression evidence — not real-provider acceptance
+
+The remainder preserves the earlier generated/loopback regression unit and its receipts. Chromium maps to Chrome/Edge/Brave/Opera, WebKit to Safari and Gecko to Firefox; mappings never certify every branded platform. [Native raw receipt](evidence/issue10-engine-2026-10-20.json) · [input provenance](evidence/issue10-generated-media-2026-10-20.json). That earlier unit did not perform live-provider acceptance or deploy. All historical strict60 predicates, failures and exit3 remain unchanged; fixture successes do not override the current deferred outcome above.
+
+### Historical evidence layers and native result
 
 Native measurement source: `f5f15892d9078cb6e445cd01e529fade2b908c18`. Ubuntu24.04.5 ARM64, Node22.23.1, Playwright1.64.0; Chromium156.0.8078.4, WebKit27.2 (WPE revision2370), Gecko157.0 (revision1555). User agents falsely report x86/macOS; ELF architecture/provisioning, not UA strings, identifies the host. All tests use disposable browsers and loopback origins, not existing CDP sessions.
 
