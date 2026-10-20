@@ -155,7 +155,8 @@
           "docs/evidence/issue7-classified-switch-replay-2026-10-20.json",
           "docs/evidence/issue7-app-journey-phases-2026-10-20.json",
           "docs/evidence/issue7-hosted-progress-fixture-limit-2026-10-20.json",
-          "docs/agent-runs/2026-10-20-issue120-journey-phase-review.md"
+          "docs/agent-runs/2026-10-20-issue120-journey-phase-review.md",
+          "docs/evidence/issue7-dsh-continuation-2026-10-20.json"
         ],
         "verification": [
           "Owner reported initial three Windows/Edge checks passed; browser version and independent-session setup unspecified.",
@@ -186,7 +187,7 @@
           "Protected PR127/131/132 are merged. All four workflows pass at canonical b5a8679; dedicated development preview9d9d6d0d has141 served hashes, shell/automatic worker and seven guest journeys pass. #119 closed with completion guard39406387999 success; owner bounded decision supersedes prior atomic-contract block. Actual offline reload/reconnect passes; complete app mutation journey, classified replay and real elapsed observations remain required.",
           "V12 completed all25 app-journey/foreign-absence/cleanup assertions. Remote writer mutations204 with actual UI actions; independent app shows profile/catalog/Library/watched badge/progress+ContinueWatching, then final-item removal/reload-empty. Exact cleanup preserves original measured state. Raw global run remains incomplete because denied final foreign settings/seed requests conservatively set terminal; no unknown issued write/auth. Separate automated evidence review verifies hashes/order/forwarding and approves A2 completed phases only. No broader foreign background mutation claim. Default closure remains2 for required A8 elapsed observations."
         ],
-        "remaining": "Original O1–O3 unchanged. A2 required actual app propagation/Save/history/progress/final-item deletion and independent receiver phases complete; raw V12 overall incomplete due locally denied final foreign background requests is preserved, not a whole-run pass. A3 classified six-step current verification and A5 owner-accepted bounded recovery complete;119 closed. Only A8 required actual elapsed natural expiry/application revoked-refresh remains, due27Oct. Stronger guarantees/QR/physical-device work explicitly deferred and unsupported in128–130. No routine owner permission pending.",
+        "remaining": "Original O1–O3 unchanged. A2 required actual app propagation/Save/history/progress/final-item deletion and independent receiver phases complete; raw V12 overall incomplete due locally denied final foreign background requests is preserved, not a whole-run pass. A3 classified six-step current verification and A5 owner-accepted bounded recovery complete;119 closed. Only A8 required actual elapsed natural expiry/application revoked-refresh remains, due27Oct. DSH confirmed both recorded observer PIDs present and final receipts empty; running app v3 retains an earlier false cached-shelf assertion, so future lifecycle checks need separate phase review rather than a whole-run pass. Stronger guarantees/QR/physical-device work explicitly deferred and unsupported in128–130. No routine owner permission pending.",
         "children": [
           {
             "number": 117,
@@ -662,7 +663,8 @@
           "docs/evidence/issue7-offline-reconnect-2026-10-20.json",
           "docs/evidence/issue7-app-journey-phases-2026-10-20.json",
           "docs/evidence/issue7-hosted-progress-fixture-limit-2026-10-20.json",
-          "docs/agent-runs/2026-10-20-issue120-journey-phase-review.md"
+          "docs/agent-runs/2026-10-20-issue120-journey-phase-review.md",
+          "docs/evidence/issue7-dsh-continuation-2026-10-20.json"
         ],
         "verification": [
           "Authorized guarded direct and actual hosted tests executed. Hosted A-B-A-B Library controls exact/restored, additive marker receiver/cleanup/original rows unchanged, explicit refresh and local-session revocation observed; credential integrity unchanged. No natural expiry/new profile/add-on mutation/physical QR claim.",

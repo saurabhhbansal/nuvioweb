@@ -10,6 +10,8 @@ Protected PR127/131/132 are merged; all four workflows pass at canonical runtime
 
 [Required actual app writes/independent receiving UI phases](evidence/issue7-app-journey-phases-2026-10-20.json) complete, including visible watched badge/progress+ContinueWatching and final-item removal/reload-empty. Raw global V12 status stays incomplete due denied final foreign background writes; automated phase review approves bounded A2 evidence, not a whole-driver pass. Natural-expiry and post-expiry application revoked-refresh observers target27Oct09:53:49.952Z and10:21:40.792Z respectively; waiting is not pass. Rejected-refresh cleanup was reproduced red and repaired in PR132, with synthetic tests distinct from unperformed actual expiry. #7/#120 stay open, original O1–O3 and default closure guard unchanged. No routine owner permission pending.
 
+[DSH continuation](evidence/issue7-dsh-continuation-2026-10-20.json) verified both recorded observer PIDs present and final receipts empty, plus public SOURCE/manifest still matching the pinned runtime. The application observer retains its earlier false cached-shelf check, so even successful future lifecycle phases cannot make its raw aggregate pass. Preserve that assertion and review actual expiry/rejection/cleanup phases separately with the independent offline-v2 evidence; no future phase is established yet.
+
 The following dated observations are historical. Their old pause, pending-integration and deployment statements are superseded by this checkpoint and [active acceptance](evidence/issue7-acceptance.json); failed receipts are preserved.
 
 ## Observed live evidence, 2026-10-19

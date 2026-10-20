@@ -24,5 +24,7 @@
     "Propagation attempt long-ui-v4 exited on an unhandled predispatch API_REJECTED. Separately reviewed exact fixture cleanup verified original rows unchanged; lost newly issued session handles cannot be locally revoked. No account-global revocation attempted.",
     "All completed normal live attempts verified local-session cleanup and credential digest. No stale full snapshots restored or unrelated records deleted."
   ],
-  "remaining": "Actual direct natural-expiry and application post-expiry revoked-refresh outcomes are unperformed. Empty final receipts are not evidence of success."
+  "remaining": "Actual direct natural-expiry and application post-expiry revoked-refresh outcomes are unperformed. Empty final receipts are not evidence of success.",
+  "continuation_review": "docs/evidence/issue7-dsh-continuation-2026-10-20.json",
+  "application_final_status_limit": "Running v3 retains the earlier false cached-shelf check and requires every check true for passed. Future successful expiry/rejection phases cannot make its raw aggregate passed. Preserve the failed assertion and raw status; assess future required lifecycle phases separately with the independent offline-v2 receipt and another automated evidence review. No future success is claimed."
 }

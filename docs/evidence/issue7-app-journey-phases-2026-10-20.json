@@ -114,7 +114,7 @@
         }
       }
     ],
-    "cause": "Foreign read-only B-context automatic settings/credential seed requests were denied locally; conservative unknown-mutation latch set after the required writer/independent-receiver steps completed. No such write was forwarded. Raw global status is not relabelled passed.",
+    "cause": "Foreign read-only B-context automatic settings/credential seed requests were denied locally; conservative terminal unexpected-request latch set after the required writer/independent-receiver steps completed. No such write was forwarded. Raw global status is not relabelled passed.",
     "claim_boundary": "Completed required app-journey phases and exact cleanup only; not an unqualified whole-driver pass. Foreign profile/Library absence assertions also completed. Broader foreign settings/provider/plugin mutation behavior is unverified because denied."
   },
   "evidence_method": "Actual app controls create profile/install addon/Save/mark watched/play ordinary rate1 beyond37s/pause/back/remove final Library item. Independent app context observes profile/catalog/Library/watched badge/progress store+ContinueWatching UI, then reload-empty. No direct backend insertion or API-only receiving read substitutes for these actions.",

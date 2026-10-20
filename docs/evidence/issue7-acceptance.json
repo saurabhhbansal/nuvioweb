@@ -518,7 +518,7 @@
           "assertion": "Actual elapsed expiry and rejected/revoked refresh must be observed with current ownership and private-cache cleanup before A8 can pass.",
           "result": "Waiting for provider-issued604800-second lifetime; final receipts are unperformed. Explicit pre-expiry refresh/revocation and synthetic cleanup regressions remain separate evidence, not natural-expiry proof.",
           "artifact": "docs/evidence/issue7-elapsed-lifecycle-checkpoint-2026-10-20.json",
-          "limitations": "Direct session memory-only; private Chromium temporary profile can touch disk. Earlier interrupted observer lost new-session handle with local cleanup unverified; no account-global revocation.",
+          "limitations": "Direct session memory-only; private Chromium temporary profile can touch disk. Earlier interrupted observer lost new-session handle with local cleanup unverified; no account-global revocation. DSH continuation verified both recorded PIDs present and final receipts empty. Running app v3 retains an earlier false cached-shelf check: its raw aggregate cannot pass even if future lifecycle phases succeed. Preserve it; future phase evidence requires separate review against offline-v2 proof, never a rewritten whole-run pass.",
           "observed_at": "2026-10-20T11:04:35.904Z"
         }
       ],

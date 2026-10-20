@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "issue": 7,
+  "child": 120,
+  "kind": "review",
+  "source_commit": "b5a8679404b98649f9c742abc6aa5da00edc50a9",
+  "reviewed_documentation_head": "4f87e0159bf66afb2d6b2388fbf8bd0a23bc3787",
+  "date": "2026-10-20",
+  "status": "continuity-verified; elapsed-outcomes-unperformed",
+  "method": "Read existing sanitized receipts/drivers and recorded observer metadata, inspect host procfs status through filesystem read tools, run required local checks, and fetch only public preview SOURCE/manifest. No new login, live fixture mutation, observer restart or deployment.",
+  "observer_continuity": {
+    "rechecked_at": "2026-10-20T13:45:48Z",
+    "shell_process_visibility": "The workspace-write shell has an isolated PID namespace. Its ps output cannot establish that inherited host observers are absent.",
+    "direct_expiry": {
+      "recorded_pid": 4037002,
+      "host_procfs_name": "node",
+      "host_procfs_state": "S (sleeping)",
+      "expected_at": "2026-10-27T09:53:49.952Z",
+      "driver_sha256": "2c87a86e925ee18f8b61c0206dda9bde419d0174803b6eaeb1a982243f7d93df",
+      "final_receipt_bytes": 0,
+      "result": "Pending; process presence is not proof of eventual expiry/refresh/identity/scope/cleanup success."
+    },
+    "application_revoked_refresh": {
+      "recorded_pid": 4170556,
+      "host_procfs_name": "node",
+      "host_procfs_state": "S (sleeping)",
+      "expected_at": "2026-10-27T10:21:40.792Z",
+      "driver_sha256": "8509fe0a3dece780fb995f5a981fc13a975da783f40433876b381ed4e9cdb45f",
+      "initial_receipt_driver_hash_matches": true,
+      "final_receipt_bytes": 0,
+      "retained_false_check": "offlineReloadRenderedConfiguredApp",
+      "aggregate_status_limit": "The v3 initial receipt already records this check false. The running driver never overwrites it and requires every check true for passed, so even successful future lifecycle phases leave raw aggregate incomplete. Preserve that raw result; do not edit the driver or earlier check.",
+      "future_required_phase_checks": [
+        "actualApplicationRejectedRefresh",
+        "preBootstrapStoredTokensUnmodified",
+        "realJwtExpiryPassed",
+        "rejectionClearedPrivateLibraryAndTokens",
+        "signedOutFormVisible",
+        "newSessionHandlesLocallyRevoked",
+        "credentialFileUnchanged"
+      ],
+      "result": "All future checks remain unperformed. Separate offline-v2 evidence proves documented offline-message/reconnect behavior only, not this observer's cached-shelf predicate or future rejection. Any phase-level consolidation needs another separate automated review and the unchanged closure gate."
+    }
+  },
+  "public_runtime_metadata": {
+    "observed_at": "2026-10-20T11:44:57.389Z",
+    "origin": "https://nuvioweb-preview.pages.dev",
+    "source_status": 200,
+    "source_matches_pinned_runtime": true,
+    "manifest_status": 200,
+    "manifest_matches_pinned_runtime": true,
+    "manifest_entries": 143,
+    "limits": "Metadata-only continuity check, not a new full asset hash attestation or browser run. Prior inventory separately measured 141 served entries; two hosting-configuration entries are excluded there."
+  },
+  "acceptance": {
+    "default_exit_code": 2,
+    "unmet_ids": ["A8"],
+    "structural_validation_exit_code": 0,
+    "parent_and_child_remain_open": true,
+    "historical_switch_cause": "Not reconstructible from retained telemetry; newer classified successful replay is current verification only, never an explanation of the old failure."
+  },
+  "local_verification": {
+    "node_version": "v24.21.0",
+    "test_command": "node --test scripts/check-issue7-acceptance.test.mjs scripts/governance.test.mjs scripts/check-docs.test.mjs",
+    "tests_passed": 50,
+    "tests_failed": 0,
+    "additional_passed_commands": [
+      "node scripts/check-docs.mjs",
+      "node scripts/check-progress.mjs",
+      "node scripts/check-commit-references.mjs b5a8679404b98649f9c742abc6aa5da00edc50a9 HEAD",
+      "node scripts/check-issue7-acceptance.mjs docs/evidence/issue7-acceptance.json --validate",
+      "git diff --check b5a8679404b98649f9c742abc6aa5da00edc50a9 HEAD"
+    ],
+    "limits": "Local checks are not provider/device evidence. Exact-final-head and actual-merge CI remain required; no application build or browser replay is claimed from this local test command."
+  },
+  "security_privacy_cost": "No credential/private-profile reads, exported session values, new recipients/privileges/dependencies, purchases, payment or hosted-compute changes. Existing lost-handle cleanup limits remain; no global revocation or stale restore."
+}
