@@ -152,19 +152,19 @@ Rollback: revert this scoped documentation commit through review and restore mat
 
 - `QrLoginService.start()` receives `qr_image_url`, `qr_content`/`web_url`, code and nonce from `start_tv_login_session`.
 - The service previously fabricated `https://api.qrserver.com/v1/create-qr-code/...data=<login URL>` when upstream omitted an image. That recipient received credential-bearing QR content. The fallback is removed; the service now returns only the upstream image URL or `null`.
-- The screen previously interpolated `qrImageUrl` into `innerHTML`. It now creates the image node with `document.createElement`, sets `src`/`alt` as properties and renders an explicit `data-state="unavailable"` message when the URL is absent or unsafe.
+- The screen previously interpolated `qrImageUrl` into `innerHTML`. It now creates the image node with `document.createElement`, sets `src`/`alt` as properties, and renders the login URL locally with the existing `QrCodeGenerator` when upstream omits an image. It falls back to an explicit `data-state="unavailable"` message only when neither a safe image nor a safe login URL exists.
 - `isSafeQrImageUrl` accepts only a same-origin HTTPS URL, the loopback HTTP origin used by tests, or a base64 `data:image/(png|jpeg|gif|webp)` URL. It rejects `javascript:`, cross-origin, credential-bearing, quote and control-character URLs.
 
 ### Attempt and publication boundary
 
-- A QR attempt has an explicit id tied to the current `AuthManager` session generation. `start`, `poll` and `exchange` check ownership after every await; a superseded/cancelled exchange cannot write tokens, authenticate an anonymous session or navigate. The screen's post-await check is no longer the only protection.
+- A QR attempt has an explicit id tied to the current `AuthManager` session generation. `start`, `poll` and `exchange` check ownership at request/publication boundaries. Common establishment receives an active-attempt predicate and is invalidated on cancel; a cancelled/superseded exchange may have an already-issued owner request in flight, but it cannot set authenticated state, write an owner marker or navigate after the establishment check.
 - Successful exchange publishes through `AuthManager.establishAuthenticatedSession()` with a new authentication attempt. Sign-in, TV exchange, bootstrap and sign-out advance the authentication-attempt sequence so a stale completion cannot overwrite a later session.
 - Cleanup invalidates the attempt and clears an unapproved anonymous caller's tokens. Already-issued remote requests cannot be undone; only local publication is controlled.
 - QR error text is redacted for the code and nonce; console diagnostics use fixed messages.
 
 ### Consent, recipients and residual risk
 
-- No new credential recipient, endpoint, dependency or authentication service is introduced. The QR flow still sends its documented requests only to the configured configured upstream identity origin; the third-party renderer is gone.
+- No new credential recipient, endpoint, dependency or authentication service is introduced. The QR flow still sends its documented requests only to the configured upstream identity origin; the third-party renderer is gone.
 - QR approval/consent/expiry/nonce/device semantics are not verified here. A successful synthetic poll/exchange is not live QR support.
 - Access/refresh tokens remain same-origin `localStorage` values; a same-origin script/XSS can still read them. This change does not replace the storage model, eliminate XSS, or prove server-side revocation. Local cleanup is not remote logout.
 - Review disposition: targeted lifecycle/browser tests and a separate automated review (recorded, not independent human approval) cover the publication and rendering invariants. Live QR remains an owner/service gate.

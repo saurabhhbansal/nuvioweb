@@ -4,7 +4,7 @@
   "child": 118,
   "date": "2026-10-20",
   "kind": "synthetic",
-  "source_commit": "77368cfb934553310e1cf239c219347bbbd4e622",
+  "source_commit": "9ff941966371abac387ff770c2efa1215071760f",
   "environment": "pinned Node 22.23.1 and Chromium via Playwright; actual modules, fake localStorage, mocked Fetch, inert loopback build; no network, account, credential, QR device or live service",
   "red_before_fix": {
     "source_commit": "f30c79f6045786c821047532104c90aa65b861cc",
@@ -21,7 +21,8 @@
     },
     "exit_code": 1,
     "assertion": "stale QR exchange must not overwrite a later session",
-    "limitation": "Actual service module with mocked Fetch and a simulated later session; not a browser journey or live exploit."
+    "limitation": "Actual service module at f30c79f with mocked Fetch and a simulated later session; the probe was a planner artifact, not committed at that revision. Not a browser journey or live exploit.",
+    "probe_origin": "Planner RUN probe (not committed at f30c79f); a committed equivalent was added later at ecef560 and is the maintained green probe."
   },
   "green_after_fix": [
     {
@@ -30,7 +31,7 @@
         "--test",
         "app/alpha/js/core/auth/qrLoginService.lifecycle.test.mjs"
       ],
-      "result": "9 passed, 0 failed, 0 skipped",
+      "result": "15 passed, 0 failed, 0 skipped",
       "tests": [
         "a delayed QR exchange cannot overwrite a later session",
         "a delayed anonymous bootstrap cannot publish after logout and a later login",
@@ -40,6 +41,12 @@
         "a current valid exchange establishes the account through the common path",
         "a delayed AuthManager TV exchange cannot publish over a later session",
         "a delayed email sign-in cannot publish over a later session",
+        "a later authentication attempt is not signed out by a stale QR establishment",
+        "cancelling during owner resolution prevents publication",
+        "a start error is redacted for the device nonce",
+        "a stale poll from a superseded attempt is refused before any request",
+        "a superseded email establishment leaves the later session intact",
+        "a superseded TV exchange leaves the later session intact",
         "the QR image URL policy accepts only local, same-origin or image-data destinations"
       ]
     },
@@ -61,10 +68,12 @@
         "tests/browser/identity-qr.spec.mjs",
         "--project=chromium"
       ],
-      "result": "3 passed, 0 failed, 0 skipped",
+      "result": "5 passed, 0 failed, 0 skipped",
       "tests": [
         "the actual QR screen completes a synthetic current flow with a safe local image",
-        "a hostile QR image URL renders as inert unavailable state and is never requested",
+        "a missing upstream image is rendered locally from the login URL",
+        "a hostile QR image URL is inert and the login URL is rendered locally",
+        "leaving during a held owner resolution has no later publication",
         "leaving the screen during a held exchange has no later token or navigation side effect"
       ]
     },
@@ -77,7 +86,7 @@
         "app/alpha/js/core/auth/authManager.test.mjs",
         "app/alpha/js/core/auth/accountLocalDataReset.test.mjs"
       ],
-      "result": "25 passed, 0 failed, 0 skipped"
+      "result": "25 passed, 0 failed, 0 skipped (focused auth suite before the final 15-test lifecycle expansion)"
     },
     {
       "command": [
@@ -86,31 +95,33 @@
         "--prefix",
         "app/alpha"
       ],
-      "result": "1405 passed, 0 failed, 0 skipped"
+      "result": "1411 passed, 0 failed, 0 skipped"
     }
   ],
   "ownership_changes": [
-    "QrLoginService.beginAttempt/cancelAttempt define an explicit attempt with the current AuthManager session generation. start/poll/exchange accept the attempt id and check ownership after every awaited boundary.",
-    "A superseded or cancelled exchange cannot write tokens, mark an anonymous session authenticated, call get_sync_owner or navigate; the screen's post-await check is no longer the only protection.",
-    "Successful exchange publishes through AuthManager.establishAuthenticatedSession with a new authentication attempt. AuthManager increments an authentication-attempt sequence on sign-in, TV exchange, bootstrap and sign-out so stale email/TV/bootstrap completions cannot overwrite a later session.",
-    "Cleanup invalidates the attempt and clears an unapproved anonymous caller's tokens. Already-issued remote requests cannot be undone; the local publication boundary is what is controlled.",
+    "QrLoginService.beginAttempt/cancelAttempt define an explicit attempt with the current AuthManager session generation. start/poll/exchange accept the attempt id and check ownership at request/publication boundaries.",
+    "A superseded or cancelled exchange cannot publish tokens, set authenticated state, write an owner marker or navigate after the establishment check. An already-issued owner request may be in flight; cancellation bumps the authentication-attempt sequence so the publication predicate rejects it.",
+    "Successful exchange publishes through AuthManager.establishAuthenticatedSession with a new authentication attempt and an active-attempt predicate. AuthManager increments an authentication-attempt sequence on sign-in, TV exchange, bootstrap and sign-out so stale completions cannot overwrite a later session.",
+    "A failed establishment signs out only when the exchange still owns the current authentication attempt; otherwise it removes only the QR token pair it wrote. Email and TV exchange establishment failures use the same rule.",
+    "Cleanup invalidates the current attempt and clears an unapproved anonymous caller's tokens. Already-issued remote requests cannot be undone; the local publication boundary is what is controlled.",
     "QR error text is redacted for the code and device nonce; console diagnostics use fixed messages."
   ],
   "rendering_changes": [
     "Removed the external api.qrserver.com image fallback; start() returns only an upstream qr_image_url or null.",
     "isSafeQrImageUrl accepts same-origin HTTPS, the fixture loopback HTTP origin, or base64 image data; rejects javascript:, cross-origin, credential-bearing and quote/control-character URLs.",
     "The screen creates the image node with document.createElement, sets src/alt as properties and uses textContent for the explicit unavailable state.",
-    "Hostile image URL test asserts no image node, no script execution, no evil-host request and zero external QR renderer requests."
+    "Hostile image URL test asserts no image node, no script execution, no evil-host request and zero external QR renderer requests.",
+    "When upstream omits qr_image_url, the screen uses the existing local QrCodeGenerator with the validated login URL, so the flow does not depend on a third-party renderer. The hostile-image path still rejects the hostile URL and renders the local QR instead."
   ],
   "browser_test_limits": [
     "Synthetic identity/add-on origins only; no live Nuvio service, QR consent or device observation.",
-    "The safe-image test uses the bundled logo as a same-origin stand-in, not a scannable QR code.",
-    "The held-exchange test proves no later local token/state/navigation side effect; it does not prove the upstream exchange was not processed server-side."
+    "The local QR is generated from a synthetic login URL; no real device scans it.",
+    "The held-exchange/owner tests prove no later local token/state/navigation publication; an already-issued owner request may still be in flight."
   ],
   "residual_risks": [
     "Tokens remain in same-origin localStorage; a same-origin script can still read them. This change does not eliminate that architecture or claim the application is XSS-proof.",
     "Local sign-out/cleanup is not proof of remote session revocation.",
     "Live QR approval, consent, expiry, nonce and device behavior remain blocked under #120 and are not claimed here."
   ],
-  "review": "Separate automated technical review recorded in docs/agent-runs/2026-10-20-issue7-ch2-review.md; not independent human approval."
+  "review": "Separate automated technical review recorded in docs/agent-runs/2026-10-20-issue7-ch2-review.md. The reviewer found the establishment cancel/supersede gaps; this source contains the fixes and new tests. Not independent human approval."
 }
