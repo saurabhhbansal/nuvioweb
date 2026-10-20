@@ -15,6 +15,10 @@ const root = fileURLToPath(new URL("../", import.meta.url));
 const receiptPath = "docs/evidence/issue7-acceptance.json";
 const committed = () => JSON.parse(readFileSync(`${root}${receiptPath}`, "utf8"));
 const criterion = (receipt, id) => receipt.criteria.find((entry) => entry.id === id);
+const contextOf = (receipt) => ({
+  criteria: receipt.criteria,
+  childStates: new Map(receipt.ledger.children.map((child) => [child.key, child.state]))
+});
 
 function mutated(change) {
   const receipt = committed();
@@ -196,10 +200,74 @@ test("closure state cannot be met while criteria are unmet or the ledger is unve
   assert.ok(hasError(result.errors, "closure cannot be met while the ledger is not verified"));
 });
 
+test("a failure cannot be resolved by a blocked child", () => {
+  const result = mutated((receipt) => {
+    criterion(receipt, "A3").resolution = {
+      state: "resolved",
+      resolved_by: "CH4",
+      reference: "docs/evidence/issue7-fixture-closure-2026-10-20.json"
+    };
+    criterion(receipt, "A3").status = "pass";
+    receipt.closure.unmet_ids = ["A1", "A2", "A5", "A6", "A7", "A8"];
+  });
+  assert.ok(hasError(result.errors, "resolved_by CH4 is neither a passing criterion nor a closed child"));
+  assert.equal(deriveCriterionStatus(criterion(committed(), "A3"), { criteria: committed().criteria, childStates: new Map([["CH4", "blocked"]]) }), "fail");
+});
+
+test("a failure cannot be resolved by an open child", () => {
+  const result = mutated((receipt) => {
+    criterion(receipt, "A3").resolution = {
+      state: "resolved",
+      resolved_by: "CH1",
+      reference: "docs/evidence/issue7-fixture-closure-2026-10-20.json"
+    };
+    criterion(receipt, "A3").status = "pass";
+    receipt.closure.unmet_ids = ["A1", "A2", "A5", "A6", "A7", "A8"];
+  });
+  assert.ok(hasError(result.errors, "resolved_by CH1 is neither a passing criterion nor a closed child"));
+});
+
+test("a failure cannot be resolved by a partial criterion", () => {
+  const result = mutated((receipt) => {
+    criterion(receipt, "A3").resolution = {
+      state: "resolved",
+      resolved_by: "A1",
+      reference: "docs/evidence/issue7-fixture-closure-2026-10-20.json"
+    };
+    criterion(receipt, "A3").status = "pass";
+    receipt.closure.unmet_ids = ["A1", "A2", "A5", "A6", "A7", "A8"];
+  });
+  assert.ok(hasError(result.errors, "resolved_by A1 is neither a passing criterion nor a closed child"));
+});
+
+test("a resolution cannot reuse the failing observation artifact as its evidence", () => {
+  const result = mutated((receipt) => {
+    criterion(receipt, "A3").resolution = {
+      state: "resolved",
+      resolved_by: "A4",
+      reference: criterion(receipt, "A3").observations.find((entry) => entry.status === "fail").artifact
+    };
+  });
+  assert.ok(hasError(result.errors, "resolution reference is the failing observation's own artifact"));
+});
+
+test("a failure resolved by a passing criterion with distinct evidence is accepted", () => {
+  const result = mutated((receipt) => {
+    criterion(receipt, "A3").resolution = {
+      state: "resolved",
+      resolved_by: "A4",
+      reference: "docs/evidence/issue7-fixture-closure-2026-10-20.json"
+    };
+    criterion(receipt, "A3").status = "pass";
+    receipt.closure.unmet_ids = ["A1", "A2", "A5", "A6", "A7", "A8"];
+  });
+  assert.deepEqual(result.errors, []);
+  assert.deepEqual(result.unmet_ids, ["A1", "A2", "A5", "A6", "A7", "A8"]);
+});
+
 test("the derived unmet set is evidence-derived, not copied from closure fields", () => {
   const receipt = committed();
-  const childKeys = new Set(receipt.ledger.children.map((child) => child.key));
-  assert.deepEqual(deriveUnmetIds(receipt, childKeys), ["A1", "A2", "A3", "A5", "A6", "A7", "A8"]);
+  assert.deepEqual(deriveUnmetIds(receipt), ["A1", "A2", "A3", "A5", "A6", "A7", "A8"]);
   const artificial = structuredClone(receipt);
   artificial.criteria.find((entry) => entry.id === "A8").observations = [{
     kind: "live",
@@ -222,5 +290,5 @@ test("the derived unmet set is evidence-derived, not copied from closure fields"
     artifact: "docs/evidence/issue7-fixture-closure-2026-10-20.json",
     limitations: "Test mutation."
   }];
-  assert.equal(deriveCriterionStatus(artificial.criteria.find((entry) => entry.id === "A8"), childKeys), "pass");
+  assert.equal(deriveCriterionStatus(artificial.criteria.find((entry) => entry.id === "A8"), contextOf(artificial)), "pass");
 });

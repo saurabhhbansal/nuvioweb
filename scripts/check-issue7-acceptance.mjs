@@ -96,23 +96,58 @@ function artifactProblem(root, artifact) {
   return null;
 }
 
-function resolutionProblem(root, criterion, childKeys) {
+function receiptContext(receipt) {
+  return {
+    criteria: Array.isArray(receipt?.criteria) ? receipt.criteria : [],
+    childStates: new Map(
+      (Array.isArray(receipt?.ledger?.children) ? receipt.ledger.children : [])
+        .filter((child) => isNonEmptyString(child?.key))
+        .map((child) => [child.key, child.state])
+    )
+  };
+}
+
+function isResolutionEligible(criterion, resolution, context, seen = new Set()) {
+  if (!isPlainObject(resolution) || resolution.state !== "resolved") return false;
+  const resolver = resolution.resolved_by;
+  if (!isNonEmptyString(resolver) || resolver === criterion.id) return false;
+  if (context.childStates?.has(resolver)) {
+    return ["closed", "resolved"].includes(context.childStates.get(resolver));
+  }
+  const target = (context.criteria || []).find((entry) => entry?.id === resolver);
+  if (!target) return false;
+  if (seen.has(target.id)) return false;
+  return deriveCriterionStatus(target, context, new Set(seen)) === "pass";
+}
+
+function resolutionProblem(root, criterion, context) {
   const resolution = criterion.resolution;
-  const hasFailure = (criterion.observations || []).some((item) => item?.status === "fail");
-  if (!hasFailure && !resolution) return null;
+  const failing = (criterion.observations || []).filter((item) => item?.status === "fail");
+  if (!failing.length && !resolution) return null;
   if (!isPlainObject(resolution)) return "failure observation has no resolution record";
   if (!RESOLUTION_STATES.has(resolution.state)) return "resolution state is invalid";
   if (resolution.state !== "resolved") return null;
   if (!isNonEmptyString(resolution.resolved_by)) return "resolved failure has no resolved_by";
-  if (!CRITERION_IDS.includes(resolution.resolved_by) && !childKeys.has(resolution.resolved_by)) {
-    return `resolved_by references an unknown criterion/child: ${resolution.resolved_by}`;
-  }
   if (resolution.resolved_by === criterion.id) {
     return "a criterion cannot resolve its own failure without later evidence";
   }
+  if (failing.some((observation) => observation.artifact === resolution.reference)) {
+    return "resolution reference is the failing observation's own artifact";
+  }
   if (!isNonEmptyString(resolution.reference)) return "resolved failure has no reference";
-  if (/^https?:\/\//.test(resolution.reference)) return null;
-  return artifactProblem(root, resolution.reference);
+  if (!/^https?:\/\//.test(resolution.reference)) {
+    const referenceIssue = artifactProblem(root, resolution.reference);
+    if (referenceIssue) return referenceIssue;
+  }
+  const knownResolver = context.childStates?.has(resolution.resolved_by)
+    || (context.criteria || []).some((entry) => entry?.id === resolution.resolved_by);
+  if (!knownResolver) {
+    return `resolved_by references an unknown criterion/child: ${resolution.resolved_by}`;
+  }
+  if (!isResolutionEligible(criterion, resolution, context)) {
+    return `resolved_by ${resolution.resolved_by} is neither a passing criterion nor a closed child`;
+  }
+  return null;
 }
 
 function validateObservation(root, criterionId, observation, index) {
@@ -154,21 +189,18 @@ function validateObservation(root, criterionId, observation, index) {
   return errors;
 }
 
-function resolvedFailure(criterion, observation, childKeys) {
+function resolvedFailure(criterion, observation, context, seen) {
   if (observation.status !== "fail") return false;
-  const resolution = criterion.resolution;
-  if (!isPlainObject(resolution) || resolution.state !== "resolved") return false;
-  if (!isNonEmptyString(resolution.resolved_by)) return false;
-  if (!CRITERION_IDS.includes(resolution.resolved_by) && !childKeys.has(resolution.resolved_by)) {
-    return false;
-  }
-  return true;
+  return isResolutionEligible(criterion, criterion.resolution, context, seen);
 }
 
-export function deriveCriterionStatus(criterion, childKeys = new Set()) {
+export function deriveCriterionStatus(criterion, context = {}, seen = new Set()) {
   const observations = Array.isArray(criterion?.observations) ? criterion.observations : [];
   if (!observations.length) return "unverified";
-  const active = observations.filter((observation) => !resolvedFailure(criterion, observation, childKeys));
+  if (seen.has(criterion?.id)) return "unverified";
+  const nextSeen = new Set(seen);
+  nextSeen.add(criterion.id);
+  const active = observations.filter((observation) => !resolvedFailure(criterion, observation, context, nextSeen));
   if (!active.length) return "unverified";
   if (active.some((observation) => observation.status === "fail")) return "fail";
   if (active.some((observation) => observation.status === "blocked")) return "blocked";
@@ -182,9 +214,9 @@ export function deriveCriterionStatus(criterion, childKeys = new Set()) {
   return "unverified";
 }
 
-export function deriveUnmetIds(receipt, childKeys = new Set()) {
+export function deriveUnmetIds(receipt, context = receiptContext(receipt)) {
   return (receipt?.criteria || [])
-    .filter((criterion) => deriveCriterionStatus(criterion, childKeys) !== "pass")
+    .filter((criterion) => deriveCriterionStatus(criterion, context) !== "pass")
     .map((criterion) => criterion.id);
 }
 
@@ -199,7 +231,7 @@ function progressLedgerProblem(root, receipt) {
   }
   const ticket = (ledger.tickets || []).find((entry) => entry.number === 7);
   if (!ticket) return "docs/PROGRESS.json has no #7 ticket";
-  const derivedMet = receipt?.closure?.state === "met" && deriveUnmetIds(receipt, new Set((receipt?.ledger?.children || []).map((child) => child?.key))).length === 0;
+  const derivedMet = receipt?.closure?.state === "met" && deriveUnmetIds(receipt).length === 0;
   if (!derivedMet && ticket.status === "verified") {
     return "docs/PROGRESS.json marks #7 verified while acceptance is unmet";
   }
@@ -237,6 +269,7 @@ export function validateReceipt(receipt, { root = process.cwd() } = {}) {
 
   const ledgerChildren = Array.isArray(receipt.ledger?.children) ? receipt.ledger.children : [];
   const childKeys = new Set(ledgerChildren.map((child) => child?.key).filter((key) => isNonEmptyString(key)));
+  const context = receiptContext(receipt);
   const seenChildKeys = new Set();
   for (const [index, child] of ledgerChildren.entries()) {
     const prefix = `ledger.children[${index}]`;
@@ -301,15 +334,15 @@ export function validateReceipt(receipt, { root = process.cwd() } = {}) {
     for (const [index, observation] of criterion.observations.entries()) {
       errors.push(...validateObservation(root, criterion.id, observation, index));
     }
-    const resolutionIssue = resolutionProblem(root, criterion, childKeys);
+    const resolutionIssue = resolutionProblem(root, criterion, context);
     if (resolutionIssue) errors.push(`${criterion.id}: ${resolutionIssue}`);
-    const derived = deriveCriterionStatus(criterion, childKeys);
+    const derived = deriveCriterionStatus(criterion, context);
     if (criterion.status !== derived) {
       errors.push(`${criterion.id}: declared status ${criterion.status} contradicts observations (${derived})`);
     }
   }
 
-  const unmet = deriveUnmetIds(receipt, childKeys);
+  const unmet = deriveUnmetIds(receipt, context);
   const closure = receipt.closure;
   if (!isPlainObject(closure)) {
     errors.push("closure is missing");
