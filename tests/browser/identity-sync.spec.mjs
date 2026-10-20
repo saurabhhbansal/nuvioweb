@@ -111,6 +111,7 @@ function profileRows(alias, twoProfiles) {
 async function installIdentityFixture(context, {
   criticalGate = null,
   withCatalog = false,
+  withSaveFixture = false,
   catalogGate = null,
   libraryGates = {},
   allowLibraryWrites = false,
@@ -169,13 +170,14 @@ async function installIdentityFixture(context, {
       expect(request.headers().apikey).toBeUndefined();
       if (url.pathname === "/manifest.json") return route.fulfill({ json: {
         id: "fixture-catalog", name: "Synthetic catalog", version: "1.0.0", types: ["movie"],
-        resources: ["catalog"], catalogs: [{ id: "fixture", type: "movie", name: "Fixture catalog" }]
+        resources: withSaveFixture ? ["catalog", "meta"] : ["catalog"], catalogs: [{ id: "fixture", type: "movie", name: "Fixture catalog" }]
       } });
       if (url.pathname.startsWith("/catalog/movie/fixture")) {
         catalogRequested = true;
         if (catalogGate) await catalogGate.promise;
-        return route.fulfill({ json: { metas: [] } });
+        return route.fulfill({ json: { metas: withSaveFixture ? [{id: "fixture-new-save", type: "movie", name: "Synthetic save recovery fixture"}] : [] } });
       }
+      if (withSaveFixture && ["/meta/movie/fixture-new-save.json", "/meta/movie/fixture-library-b.json"].includes(url.pathname)) return route.fulfill({json: {meta: {id: "fixture-new-save", type: "movie", name: "Synthetic save recovery fixture"}}});
       unexpected.push({ operation: url.pathname, reason: "unknown-catalog-path" });
       return route.abort("blockedbyclient");
     }
@@ -294,6 +296,7 @@ async function installIdentityFixture(context, {
     }
     if (operation === "sync_push_watch_progress" && request.method() === "POST") {
       if (!nonempty) {
+        if (withSaveFixture && alias === "B" && profileId === "1" && Array.isArray(body.p_entries) && body.p_entries.length === 0) return json(null);
         unexpected.push({ operation, method: request.method(), reason: "unexpected-progress-write" });
         return json({ error: "unimplemented fixture operation" }, 400);
       }
@@ -601,6 +604,7 @@ test("failed local removal stays pending across reload and a competing nonempty 
   await expect(page.locator('#library .library-grid-card[data-item-id="fixture-library-b"]')).toHaveCount(0);
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem("savedLibraryItems") || "[]"))).toEqual([]);
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem("savedLibrarySyncState")).profiles["1"].pending)).toBe(true);
+  await expect(page.getByRole("status").filter({hasText: "Automatic retry is unavailable"})).toBeVisible();
   expect(fixture.unexpected).toEqual([]);
 });
 
@@ -761,5 +765,57 @@ test("explicit UI deletion preserves an unseen concurrent Library addition", asy
   await expect.poll(() => backend.libraryWrites.length).toBe(1);
   expect(backend.libraries.get("B").map(row => row.content_id)).toEqual([concurrent.content_id]);
   expect(backend.libraries.get("A")).toEqual(library("A"));
+  expect(fixture.unexpected).toEqual([]);
+});
+
+for (const key of ["savedLibraryItems", "savedLibrarySyncState"]) {
+  test(`device storage failure for ${key} refuses UI removal and cloud writes`, async ({context, page}) => {
+    const errors = [];
+    page.on("pageerror", error => errors.push(error.message));
+    const fixture = await installIdentityFixture(context, {allowLibraryWrites: true});
+    await page.goto("/");
+    await signIn(page, "B");
+    await expectLibrary(page, "B");
+    await page.evaluate(key => {
+      const original = Storage.prototype.setItem;
+      Storage.prototype.setItem = function(name, value) {
+        if (name === key) throw new DOMException("Synthetic storage quota", "QuotaExceededError");
+        return original.call(this, name, value);
+      };
+    }, key);
+    await page.locator('#library .library-grid-card[data-item-id="fixture-library-b"]').click({button: "right"});
+    await page.getByRole("menuitem", {name: "Remove from Library", exact: true}).click();
+    await expect(page.getByText("Library change could not be confirmed", {exact: true})).toBeVisible();
+    await expect(page.locator('#library .library-grid-card[data-item-id="fixture-library-b"]')).toHaveCount(1);
+    await page.waitForTimeout(750);
+    expect(fixture.libraryWrites).toEqual([]);
+    expect(errors).toEqual([]);
+    expect(fixture.unexpected).toEqual([]);
+  });
+}
+
+test("failed UI save survives reload and reconnect without false sync or unrelated-row loss", async ({context, page}) => {
+  const fixture = await installIdentityFixture(context, {allowLibraryWrites: true, rejectLibraryWrites: true, withCatalog: true, withSaveFixture: true});
+  await page.goto("/");
+  await signIn(page, "B");
+  await expectLibrary(page, "B");
+  await page.getByRole("button", {name: "Home", exact: true}).click();
+  const card = page.locator('#home .home-poster-card[data-item-id="fixture-new-save"]').first();
+  await expect(card).toBeVisible();
+  await card.click();
+  await expect(page.locator('[data-action="toggleLibrary"]')).toBeVisible();
+  const rejected = page.waitForResponse(r => new URL(r.url()).pathname === "/rest/v1/rpc/sync_push_library_items");
+  await page.locator('[data-action="toggleLibrary"]').click();
+  expect((await rejected).status()).toBe(503);
+  fixture.setOffline(true);
+  await page.reload();
+  await expect.poll(fixture.abortedIdentityRequests).toBeGreaterThan(0);
+  fixture.setOffline(false);
+  await page.reload();
+  await openLibrary(page);
+  await expect(page.locator('#library .library-grid-card[data-item-id="fixture-new-save"]')).toBeVisible();
+  await expect(page.locator('#library .library-grid-card[data-item-id="fixture-library-b"]')).toBeVisible();
+  await expect(page.getByRole("status").filter({hasText: "Automatic retry is unavailable"})).toBeVisible();
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem("savedLibrarySyncState")).profiles["1"].pending)).toBe(true);
   expect(fixture.unexpected).toEqual([]);
 });

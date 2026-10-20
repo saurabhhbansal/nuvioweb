@@ -1,0 +1,22 @@
+{
+  "issue": 7,
+  "date": "2026-10-20",
+  "kind": "owner-decision",
+  "responses": [
+    {
+      "id": "119-bounded-recovery-scope",
+      "answer": "Accept bounded recovery; track stronger guarantees separately"
+    },
+    {
+      "id": "120-device-qr-scope",
+      "answer": "Defer QR/device verification; label limits and track follow-ups"
+    }
+  ],
+  "preserved": [
+    "Original O1\u2013O3",
+    "Required actual application propagation and account isolation",
+    "Natural expiry and offline/rejected-refresh observations",
+    "Default acceptance checker and evidence requirements"
+  ],
+  "limitations": "Deferral is not evidence of QR or physical-device support. No durable retry or atomic same-key ordering guarantee is claimed."
+}
