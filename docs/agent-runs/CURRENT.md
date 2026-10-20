@@ -95,3 +95,20 @@ This file is the durable handoff. A new agent must be able to resume from it wit
 6. Do not repeat an unchanged live probe and do not run another live marker write; the one bounded marker is complete with verified cleanup. A deterministic synthetic reproduction is required before any sync runtime change.
 7. #10 remains open for automated WebKit coverage, multitrack/audible audio, hosted external-provider CORS and 4K60/HDR; branded Edge/Safari/mobile spot checks are optional per owner direction. #11 unit 6a is complete (test-only browser engine + builder); unit 6b still needs the default-off app seam, stager emission, CSP decision and independent security/dependency review.
 8. Goal: keep the persisted objective active; do not mark complete until #7/#10 and the roadmap gates are genuinely satisfied.
+
+## Session close — 2026-10-20
+
+Nothing is in flight: `main` is clean at the head above, there are no open PRs, no stashes and no uncommitted changes.
+
+**Finished and merged (all through the protected workflow, each with plan + tests + a separate automated review whose findings were fixed first):** startup-failure classification (#77) and WebKit engine coverage in the required browser job (#79); hosted preview refresh to `7dcc371`/`b6451df5` with 134/134 hashes verified, seven of seven guest journeys passing and the previous deployment retained for rollback (#89); HDR declaration honesty (#93); the audio-availability copy, its `strings.xml` resources, an i18n parity guard and the controller accessor (#94, #95, #99, #100); dialog blocking plus the unknown/predicted note, with `applyAudioTrack` refusing at the activation boundary (#102, #103, #104); and six reviewed recovery-loader pieces — request policy (#106), deadlines (#108), response policy (#110), range header (#111), loader stats (#112), single-flight ownership (#114).
+
+**Blocked, and on what:**
+
+- **#12 units 1b, 4, 5; AC1/AC2; all real selection evidence** — the AAC fixture gate. Pinned Chromium exposes no WebCodecs `AudioEncoder` and `MediaRecorder` genuinely emits `audio/mp4;codecs=opus`; the gate is recorded in [audio-fixture-gate-2026-10-19.json](../evidence/audio-fixture-gate-2026-10-19.json) and reproducible in CI. Needs one owner decision: an AAC-capable environment, an approved encoder/CC0 AAC fixture source, or an evidenced Opus re-scope.
+- **#11 unit 6b-2** — the CSP/`wasm-unsafe-eval` decision plus an independent security review; automated passes cannot substitute.
+- **#23 PR C** — the `issues: write` publisher boundary.
+- **#7** — live-account evidence, which the owner paused.
+
+**Next engineering unit (needs a fresh context):** assemble the loader's fetch path on top of the six pieces — streamed byte budgets with no unbounded fallback, `onAbort`, overlapping-load rejection wired through the single-flight guard, `config.loader` installation behind an explicit switch — then the coordinator. The sixteen review findings in [the loader review](2026-10-19-recovery-loader-review.md) are the specification.
+
+**Baselines at close:** 1396 application tests, 57 browser tests, 12-asset inert build, docs/ledger/governance checks passing. After any `npm run preview:stage`, rebuild with `NUVIO_LOCAL_PROPERTIES=$PWD/tests/fixtures/build.properties` before running local gates.
