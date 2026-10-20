@@ -154,7 +154,7 @@ test("a child key cannot collide with a criterion ID", () => {
   assert.ok(hasError(result.errors, "child keys cannot collide with criterion IDs"));
 });
 
-test("a failure resolved by a later same-kind pass on the same criterion is accepted", () => {
+test("a later same-kind pass resolves a failure without erasing another incomplete observation", () => {
   const result = mutated((receipt) => {
     const row = criterion(receipt, "A3");
     row.observations.push({
@@ -174,11 +174,11 @@ test("a failure resolved by a later same-kind pass on the same criterion is acce
       resolved_by: "A3",
       reference: "docs/evidence/identity-roundtrip-after-removal-2026-10-19.json"
     };
-    row.status = "pass";
+    row.status = "partial";
     receipt.closure.unmet_ids = deriveUnmetIds(receipt);
   });
   assert.deepEqual(result.errors, []);
-  assert.deepEqual(result.unmet_ids, ["A2", "A5", "A8"]);
+  assert.deepEqual(result.unmet_ids, ["A2", "A3", "A5", "A8"]);
 });
 
 test("an untracked or aliased artifact cannot resolve a failure", () => {
@@ -294,7 +294,7 @@ test("malformed observations and criteria fail cleanly", () => {
   const nullObservation = mutated((receipt) => {
     criterion(receipt, "A2").observations.push(null);
   });
-  assert.ok(hasError(nullObservation.errors, "A2.observations[2]: observation must be an object"));
+  assert.ok(nullObservation.errors.some(error => /^A2\.observations\[\d+\]: observation must be an object$/.test(error)));
   const badCriteria = mutated((receipt) => {
     receipt.criteria = "not-an-array";
   });
