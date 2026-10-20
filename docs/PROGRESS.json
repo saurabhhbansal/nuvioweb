@@ -643,12 +643,15 @@
           "docs/evidence/issue7-sol-live-markers.json",
           "docs/evidence/issue7-sol-live-lifecycle.json",
           "docs/evidence/issue7-sol-qr-live-observation.json",
-          "docs/evidence/issue7-sol-capabilities.json"
+          "docs/evidence/issue7-sol-capabilities.json",
+          "docs/plans/issues/issue-120-progress-fixture.md",
+          "docs/evidence/issue7-long-progress-fixture-2026-10-20.json"
         ],
         "verification": [
           "Authorized guarded direct and actual hosted tests executed. Hosted A-B-A-B Library controls exact/restored, additive marker receiver/cleanup/original rows unchanged, explicit refresh and local-session revocation observed; credential integrity unchanged. No natural expiry/new profile/add-on mutation/physical QR claim.",
           "Owner explicitly deferred QR/device verification with unsupported labels and follow-up tracking. Actual app propagation, historical failure disposition, offline/rejected refresh and natural expiry remain required. Provider issues604800-second sessions; finite memory-only observer targets2026-10-27T08:41:40.775Z; elapsed expiry observation is not complete.",
-          "Deferred provider QR and physical-device work tracked separately as #129/#130; these are unsupported capability labels, not pass receipts."
+          "Deferred provider QR and physical-device work tracked separately as #129/#130; these are unsupported capability labels, not pass receipts.",
+          "Original120.008-second/344925-byte CC0 progress fixture staged optionally;7 packaging/actual local media cases pass. Known offline fallback fixture503 correction plus wrong-owner negative case passes2 focused browser tests. This is fixture proof, not live progress propagation. Final protected checks/review remain required."
         ]
       }
     }

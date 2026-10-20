@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "issue": 7,
+  "child": 120,
+  "kind": "synthetic",
+  "source_commit": "f966c532864762259554879273a068bf98d01194",
+  "observed_at": "2026-10-20T09:12:23.788659+00:00",
+  "commands": [
+    {
+      "command": "node scripts/generate-progress-media.mjs",
+      "result": "Original CC0 VP8/Opus media generated:344925bytes, ffprobe duration120.008seconds."
+    },
+    {
+      "command": "node --test scripts/stage-identity-progress-demo.test.mjs scripts/stage-legal-demo.test.mjs scripts/prepare-static-preview.test.mjs",
+      "result": "7 passed including actual local Chromium finite duration,160x90 decoded dimensions, seek35s and continued playback; hash/provenance/same-host static URLs checked."
+    },
+    {
+      "command": "npx playwright test tests/browser/identity-sync.spec.mjs --project=chromium --grep \"failed UI save|offline add-on fallback denial\"",
+      "result": "2 passed: actual bundled failed save/offline reload/reconnect remains pending with original rows retained; exact authenticated synthetic fallback503 recognized, wrong-owner fallback remains unexpected."
+    }
+  ],
+  "initial_failures": [
+    "Local media seek failed because the disposable HTTP test server omitted Range responses;206 support corrected the test server, not product playback.",
+    "Main PR127 merge2fa72df browser fixture failed when a delayed GET tv_addons fallback arrived just after reconnect; exact authenticated known fallback now denied503, unknown scopes/methods still fail."
+  ],
+  "limits": [
+    "No live Nuvio write or receiving-app observation is proved by these tests.",
+    "No authentication/sync duration guard, account isolation policy or default closure checker changed.",
+    "Long fixture is optional static development content only; no auto-install/new backend/compute/production/payment change.",
+    "CC0 rectangles and sine tone are original generated content; no third-party film, audio or account data.",
+    "Required final exact-head review/CI and protected merge plus deployment readback remain necessary."
+  ]
+}
