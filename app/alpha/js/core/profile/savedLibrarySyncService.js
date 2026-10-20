@@ -114,7 +114,7 @@ export const SavedLibrarySyncService = {
       await savedLibraryRepository.replaceAll(remoteItems, resolvedProfileId);
       return remoteItems;
     } catch (error) {
-      console.warn("Saved library sync pull failed", error);
+      console.warn("Saved library sync pull failed");
       return [];
     }
   },

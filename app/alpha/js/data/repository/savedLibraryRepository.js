@@ -86,9 +86,14 @@ function commitLocalEdit(profileId, mutation) {
 
 class SavedLibraryRepository {
   getSyncState(profileId = activeProfileId()) {
-    if (AuthManager.isAuthenticated && !SavedLibrarySyncState.has(profileId) &&
-      SavedLibraryStore.listForProfile(profileId).length) {
-      // An older cache may contain unsynced edits; never infer that it is clean.
+    if (AuthManager.isAuthenticated && !SavedLibrarySyncState.has(profileId)) {
+      try {
+        if (!SavedLibraryStore.listForProfile(profileId, true).length) return SavedLibrarySyncState.get(profileId);
+      } catch {
+        // Unreadable legacy items may contain unsynced intent. Refuse hydration
+        // until explicit reconciliation rather than recording a clean baseline.
+        unconfirmedProfiles.add(sessionProfileKey(profileId));
+      }
       return SavedLibrarySyncState.markPending(profileId);
     }
     return SavedLibrarySyncState.get(profileId);
@@ -140,6 +145,7 @@ class SavedLibraryRepository {
   }
 
   async replaceAll(items, profileId = activeProfileId()) {
+    SavedLibraryStore.listForProfile(profileId, true);
     if (!SavedLibrarySyncState.has(profileId)) {
       // Establish a clean baseline before store notifications can trigger reads.
       SavedLibrarySyncState.acknowledge(profileId, 0);
