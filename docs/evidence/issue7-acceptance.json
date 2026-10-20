@@ -2,8 +2,8 @@
   "schema_version": 1,
   "issue": 7,
   "repository": "saurabhhbansal/nuvioweb",
-  "as_of": "2026-10-20",
-  "source_commit": "083eb89f78a2a0f3dd5810eac951a14404d1a7fc",
+  "as_of": "2026-10-20T08:57:37.288410+00:00",
+  "source_commit": "f8ee31f2c76b6dc21afa37bef22536387c0ffd50",
   "original_criteria": [
     {
       "id": "O1",
@@ -60,13 +60,13 @@
         "key": "CH3",
         "issue": 119,
         "state": "open",
-        "scope": "A5 Library pending-edit, snapshot-limit and concurrent-writer policy"
+        "scope": "Owner-accepted A5 bounded storage/pending/error/manual-reconciliation policy; stronger guarantees #128"
       },
       {
         "key": "CH4",
         "issue": 120,
-        "state": "blocked",
-        "scope": "Authorized live scope partially executed; provider QR redirect/semantics, physical-device and remaining lifecycle/new-change evidence unresolved"
+        "state": "open",
+        "scope": "Required actual app propagation/isolation/offline/rejection/natural expiry; QR/device work explicitly deferred to #129/#130"
       }
     ]
   },
@@ -293,9 +293,9 @@
       "required_kinds": [
         "synthetic"
       ],
-      "status": "blocked",
-      "gate_owner": "CH3 executor design/characterization; provider for an atomic backend contract",
-      "result": "Explicit per-item operations now replace the unsafe full snapshot path; distinct clients keep unrelated keys, exact deletion preserves concurrent additions, and failed/legacy predecessors cannot be acknowledged. Same-key concurrent ordering, per-key durable retry and storage-failure guarantees remain unsupported; parent A5 stays blocked.",
+      "status": "pass",
+      "gate_owner": "#119 bounded recovery implementation and protected integration; stronger guarantees tracked in #128",
+      "result": "Bounded pending/error/manual reconciliation is implemented and tested, including storage denial, unconfirmed writes, failed save/delete reload/reconnect, legacy state, unrelated keys and false acknowledgement refusal. Owner explicitly moved durable replay/atomic same-key guarantees to #128.",
       "linked_children": [
         "CH3"
       ],
@@ -303,40 +303,20 @@
         {
           "kind": "synthetic",
           "status": "pass",
-          "commit": "aaffee1786e7adbdc888efbe9bd9922780d6e892",
+          "commit": "f8ee31f2c76b6dc21afa37bef22536387c0ffd50",
           "deployment": null,
-          "observed_at": "2026-10-20T02:50:00Z",
-          "command_or_observation": "node --test app/alpha/js/core/profile/savedLibrarySyncService.test.mjs app/alpha/js/data/repository/savedLibraryRepository.test.mjs app/alpha/js/data/local/savedLibrarySyncState.test.mjs",
-          "assertion": "A failed edit survives reload and a competing pull; a legacy nonempty cache is pending; a stale acknowledgement cannot clear a newer edit; a local set over 1000 items is refused before sync_push_library.",
-          "result": "45 focused tests pass. The real store/repository retains a 1001st item via save and replaceAll/replaceForProfile; the >1000 push refuses without a request and pending stays.",
-          "artifact": "docs/evidence/issue7-library-policy-2026-10-20.json",
-          "limitations": "Synthetic characterization only; no live Library write or server conflict observation."
-        },
-        {
-          "kind": "synthetic",
-          "status": "blocked",
-          "commit": "aaffee1786e7adbdc888efbe9bd9922780d6e892",
-          "deployment": null,
-          "observed_at": "2026-10-20T02:50:00Z",
-          "command_or_observation": "Two independent full-snapshot writers characterized against the existing sync_push_library contract.",
-          "assertion": "Two clients saving from independent snapshots must not silently lose an earlier edit.",
-          "result": "Same-key atomic conflict ordering and durable retry/storage guarantees are not provided; the documented additive alternative safely addresses distinct keys and is implemented separately.",
-          "artifact": "docs/LIBRARY_SYNC_POLICY.md",
-          "limitations": "No same-key conflict-free, durable outbox or storage-quota recovery claim. Provider precondition/contract is required for stronger cross-device ordering; owner permission granted."
-        },
-        {
-          "kind": "synthetic",
-          "status": "pass",
-          "commit": "083eb89f78a2a0f3dd5810eac951a14404d1a7fc",
-          "deployment": null,
-          "command_or_observation": "Focused actual-module explicit Library queue/service regressions",
-          "assertion": "Distinct clients preserve unrelated keys; delayed failed/legacy predecessors cannot be acknowledged; typed identities remain distinct.",
-          "result": "Baseline distinct-writer loss reproduced before repair; additive/exact-delete requests now preserve baseline and both new keys, with pending guards retained.",
-          "artifact": "docs/LIBRARY_SYNC_POLICY.md",
-          "limitations": "Bounded explicit operations only; blocked broader same-key ordering/durable-retry/storage guarantees remain in another observation.",
-          "observed_at": "2026-10-20T05:26:35.840084+00:00"
+          "observed_at": "2026-10-20T08:57:37.288410+00:00",
+          "command_or_observation": "node --test app/alpha/js/data/local/savedLibrarySyncState.test.mjs app/alpha/js/data/repository/savedLibraryRepository.test.mjs app/alpha/js/core/profile/savedLibrarySyncService.test.mjs",
+          "assertion": "Failed or unconfirmed Library edits, including unreadable legacy state, cannot dispatch unsafe writes or become falsely clean after reload, recovery or later successful edits. Explicit typed writes preserve unrelated keys.",
+          "result": "70 actual-module tests pass; bundled browser failure/reload/reconnect/storage fixtures expose guidance and retain pending. Manual reconciliation and stronger follow-up scope are explicit.",
+          "artifact": "docs/evidence/issue7-storage-recovery-2026-10-20.json",
+          "limitations": "Synthetic services in browser fixtures; this receipt is not live propagation proof.; No automatic durable outbox/replay, multi-tab lock or atomic same-key server conflict guarantee.; No durability claim when browser storage itself is unavailable. Already-issued server operations cannot be undone."
         }
-      ]
+      ],
+      "superseded_disposition": {
+        "artifact": "docs/evidence/issue7-acceptance-pre-bounded-recovery-2026-10-20.json",
+        "reason": "Original blocked broader guarantees retained verbatim in this archived receipt. Owner explicitly accepted bounded scope in issue7-owner-scope-2026-10-20.json; current passing evidence covers A5 at that agreed scope. No failed experiment erased or checker weakened."
+      }
     },
     {
       "id": "A6",
@@ -513,9 +493,8 @@
     "unmet_ids": [
       "A2",
       "A3",
-      "A5",
       "A8"
     ],
-    "reason": "A1/A4/A6/A7 have bounded evidence; original O1-O3 remain unmet: A2 live new-change propagation, A3 historical unexplained pre-header switch failure, A5 atomic provider conflict/durable retry contract, A8 actual lifecycle/QR/device observations. Owner authorization is granted."
+    "reason": "A5 has owner-accepted bounded recovery evidence. Actual app propagation, historical failure disposition and required live lifecycle/offline/isolation evidence remain incomplete. Natural expiry observer awaits the real seven-day boundary; QR/physical devices are explicitly deferred with #129/#130. O1\u2013O3 remain unchanged and open."
   }
 }

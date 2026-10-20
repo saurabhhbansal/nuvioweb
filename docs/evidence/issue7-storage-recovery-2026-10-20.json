@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "issue": 7,
+  "child": 119,
+  "kind": "synthetic",
+  "source_commit": "f8ee31f2c76b6dc21afa37bef22536387c0ffd50",
+  "observed_at": "2026-10-20T08:57:37.288410+00:00",
+  "scope": "Owner-accepted bounded pending/error/manual reconciliation; stronger durability and atomic same-key guarantees tracked in #128.",
+  "commands": [
+    {
+      "command": "node --test app/alpha/js/data/local/savedLibrarySyncState.test.mjs app/alpha/js/data/repository/savedLibraryRepository.test.mjs app/alpha/js/core/profile/savedLibrarySyncService.test.mjs",
+      "result": "70 passed,0 failed; actual repository/store/state/service/helper recovery regression included."
+    },
+    {
+      "command": "npx playwright test tests/browser/identity-sync.spec.mjs --project=chromium --grep \"failed UI save|device storage failure|failed local removal\"",
+      "result": "4 passed at preceding runtime with failure/reload/reconnect/storage UI coverage; exact final-head complete browser CI remains required."
+    }
+  ],
+  "assertions": [
+    "Failed local write/read or pending metadata persistence refuses mutation/dispatch and shows fixed guidance.",
+    "Committed write with unreadable readback retains pending; later same-batch/in-flight success cannot acknowledge it.",
+    "No post-commit item lookup can omit an otherwise verified queued key.",
+    "Unreadable removal is refused rather than treated as absent.",
+    "Failed clean metadata acknowledgement stays pending.",
+    "Unreadable legacy items during actual pull cannot establish clean state or be overwritten after storage recovery.",
+    "Failed save/delete survive reload/reconnect with unrelated rows preserved and manual pending status.",
+    "Existing >1000 local retention, explicit per-key writes, stale-revision/session ownership and failed/legacy predecessor regressions remain passing."
+  ],
+  "red_evidence": [
+    "storage-red.log",
+    "review-batch-red.log",
+    "review-lookup-red.log",
+    "review-legacy-red.log"
+  ],
+  "review": "Read-only Codex gpt-6.1-sol/high automated runtime approval at134cac2; lint-only unused catch binding removed atf8ee31f. Exact final diff/checks required before protected merge. Not independent human approval.",
+  "manual_resolution": "Compare intended changes with a separate client and repeat only intended keys. Earlier unconfirmed changes remain pending. Sign-out discards device pending state; record changes before explicitly choosing that reset. No blind snapshot retry.",
+  "limitations": [
+    "Synthetic services in browser fixtures; this receipt is not live propagation proof.",
+    "No automatic durable outbox/replay, multi-tab lock or atomic same-key server conflict guarantee.",
+    "No durability claim when browser storage itself is unavailable. Already-issued server operations cannot be undone.",
+    "Original O1\u2013O3 and live/expiry/offline/isolation requirements remain; QR and physical-device verification explicitly deferred to #129/#130."
+  ]
+}

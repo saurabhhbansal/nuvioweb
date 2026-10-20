@@ -609,24 +609,21 @@
     {
       "number": 119,
       "title": "[#7] Library pending/snapshot/conflict policy",
-      "status": "in_progress",
+      "status": "verified",
       "dependencies": [
         3,
         6
       ],
-      "progress": {
-        "branch": "fix/issue-119-storage-failures",
+      "completion": {
         "pr": 127,
         "documents": [
-          "docs/LIBRARY_SYNC_POLICY.md",
-          "docs/plans/issues/issue-7-sol-remediation.md",
           "docs/plans/issues/issue-119-storage-failures.md",
+          "docs/LIBRARY_SYNC_POLICY.md",
+          "docs/evidence/issue7-storage-recovery-2026-10-20.json",
           "docs/evidence/issue7-owner-scope-2026-10-20.json"
         ],
         "verification": [
-          "Actual stale snapshots reproduced loss, explicit-key regression preserves both writers/baseline; 57 focused tests and 1432 application tests passed at runtime083eb89. Separate review findings repaired; final exact-head CI/review required. No broad A5 completion.",
-          "Owner accepted bounded recovery; durable outbox/atomic same-key ordering are follow-up scope. Storage failure/unqueued acknowledgement regressions reproduced red;67 focused tests pass and4 targeted browser cases pass. Protected exact-head review/CI/integration remain required; no A5 completion claim yet.",
-          "Review edge cases reproduced red and fixed: item write succeeded/readback failed, later batch acknowledgement, fallible post-save lookup, unreadable remove.69 focused regressions pass. Stronger guarantees tracked in #128; no provider blocker for bounded policy."
+          "70 focused actual-module tests pass atf8ee31f;4 browser failure/reload/reconnect/storage cases pass. Separate automated runtime review approved134cac2; final exact-head CI/review/protected merge are required before this proposed completion becomes canonical. Stronger guarantees explicitly tracked in #128."
         ]
       }
     },
