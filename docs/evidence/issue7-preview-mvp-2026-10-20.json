@@ -1,0 +1,23 @@
+{
+  "sourceRevision": "b5a8679404b98649f9c742abc6aa5da00edc50a9",
+  "url": "https://nuvioweb-preview.pages.dev",
+  "browser": "156.0.8078.4",
+  "platform": "linux",
+  "architecture": "arm64",
+  "mode": "actual hosted HTTPS app and optional same-host legal demo; guest; third parties blocked",
+  "journeys": {
+    "guestEntry": "PASS",
+    "addonInstallCatalog": "PASS",
+    "sourcePlayback": "PASS",
+    "pauseSeekResume": "PASS",
+    "subtitleActiveCue": "PASS",
+    "returnToBrowsing": "PASS",
+    "saveReloadPersistence": "PASS"
+  },
+  "decodedDimensions": [
+    640,
+    360
+  ],
+  "uncaughtPageErrors": 0,
+  "limits": "No real account/service, external-provider CORS, audible/multitrack output, named Chrome/Edge, other browser/mobile or complete offline claim. Automatic-worker verification is separate."
+}

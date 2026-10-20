@@ -1,0 +1,718 @@
+{
+  "revision": "b5a8679404b98649f9c742abc6aa5da00edc50a9",
+  "checkedAt": "2026-10-20T10:09:15.723Z",
+  "inventoryEntries": 143,
+  "servedEntries": 141,
+  "allMatched": true,
+  "hostConfigurationFilesExcluded": [
+    "_headers",
+    "_redirects"
+  ],
+  "results": [
+    {
+      "path": "assets/brand/app_logo_wordmark.png",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "404.html",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/brand/nuvio-favicon.png",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/brand/pwa-apple-touch-icon-180.png",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/brand/pwa-icon-192.png",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/brand/pwa-icon-512.png",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/brand/pwa-icon-maskable-192.png",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/brand/pwa-icon-maskable-512.png",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/brand/app_logo_mark.png",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/icons/ic_player_aspect_ratio.svg",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/icons/ic_chevron_compact_left.png",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/icons/ic_player_audio_outline.svg",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/icons/ic_player_audio_filled.svg",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/icons/ic_player_back.svg",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/icons/ic_player_episodes.svg",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/icons/ic_player_fullscreen_exit.svg",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/icons/ic_player_external.svg",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/icons/ic_player_more.svg",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/icons/ic_player_fullscreen.svg",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/icons/ic_player_pause.svg",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/icons/ic_player_picture_in_picture.svg",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/icons/ic_player_play.svg",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/icons/discover_compass.svg",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/icons/ic_player_skip_next.svg",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/icons/ic_player_source.svg",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/icons/ic_player_volume_muted.svg",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/icons/ic_player_subtitles.svg",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "app.bundle.js",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/icons/imdb_logo_2016.svg",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/icons/ic_player_volume.svg",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/icons/mdblist_metacritic.png",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/icons/mdblist_audience.png",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/icons/mdblist_letterboxd.svg",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/icons/library_add_plus.svg",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/icons/mdblist_tomatoes.svg",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/icons/sidebar_library.svg",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/icons/mdblist_tmdb.svg",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/icons/mdblist_trakt.svg",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/icons/sidebar_home.svg",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/icons/sidebar_plugin.svg",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/icons/sidebar_search.svg",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/icons/trakt_tv_favicon.svg",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/icons/sidebar_settings.svg",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/icons/simkl_tv_glyph.svg",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/icons/trailer_play_button.svg",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/images/icon.png",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/images/largeIcon.png",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/images/nuviotv.png",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/images/quick-setup-external-player-close.jpg",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/icons/trakt_tv_glyph.svg",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/icons/visibility_off.svg",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/icons/visibility.svg",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/images/splash.png",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/libs/dash.all.min.js",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/images/quick-setup-manual-outcome.jpg",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/libs/hls.js.LICENSE",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/images/quick-setup-manual-position.jpg",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/libs/hls.min.js",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/libs/libbitsub.LICENSE",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/libs/libbitsub_bg.wasm",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/libs/qrcode-generator.js",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/runtime/legacy-features.js",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "boot-guard.js",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/images/quick-setup-return-notification.jpg",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "core-js.bundle.js",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "css/base.css",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "css/components.css",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "css/layout.css",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "assets/libs/dashjs.LICENSE.md",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "css/desktop.css",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "css/themes.css",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "demo/identity-progress/manifest.json",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "demo/catalog/movie/original.json",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "demo/identity-progress/catalog/movie/original.json",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "demo/identity-progress/LICENSE.txt",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "demo/identity-progress/media/original-progress-vp8-opus.webm",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "demo/identity-progress/meta/movie/nuvioweb-identity-watched-original.json",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "demo/identity-progress/media/provenance.json",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "demo/identity-progress/meta/movie/nuvioweb-identity-progress-original.json",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "demo/identity-progress/stream/movie/nuvioweb-identity-watched-original.json",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "demo/identity-progress/stream/movie/nuvioweb-identity-progress-original.json",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "demo/media/procedural-vp8-opus.webm",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "demo/media/english.vtt",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "demo/meta/movie/nuvioweb-demo-original.json",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "demo/manifest.json",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "demo/LICENSE.txt",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "demo/poster.svg",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "demo/media/provenance.json",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "index.html",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "manifest.webmanifest",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "nuvio.env.js",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "res/values-ar/strings.xml",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "demo/stream/movie/nuvioweb-demo-original.json",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "res/values-bs/strings.xml",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "res/values-cs/strings.xml",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "demo/subtitles/movie/nuvioweb-demo-original.json",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "res/values-de/strings.xml",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "res/values-el/strings.xml",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "res/values-es-419/strings.xml",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "res/values-es/strings.xml",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "LICENSE.txt",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "res/values-fr/strings.xml",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "res/values-he/strings.xml",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "res/values-hu/strings.xml",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "res/values-hi/strings.xml",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "res/values-id/strings.xml",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "res/values-it/strings.xml",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "res/values-lt/strings.xml",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "res/values-nl/strings.xml",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "res/values-ja/strings.xml",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "res/values-no/strings.xml",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "res/values-pl/strings.xml",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "res/values-pt-pt/strings.xml",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "res/values-pt-br/strings.xml",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "res/values-ro/strings.xml",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "res/values-ru/strings.xml",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "res/values-sk/strings.xml",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "res/values-sv/strings.xml",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "res/values-sl/strings.xml",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "res/values-tr/strings.xml",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "res/values-ta/strings.xml",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "res/values-vi/strings.xml",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "res/values-zh-cn/strings.xml",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "res/values/strings.xml",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "SOURCE.txt",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "third-party/core-js/LICENSE",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "third-party/dashjs/dist/dash.all.min.js.LICENSE.txt",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "third-party/dashjs/LICENSE.md",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "sw.js",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "res/values/colors.xml",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "third-party/jszip/LICENSE.markdown",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "third-party/hls.js/LICENSE",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "third-party/libbitsub/pkg/LICENSE",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "third-party/lie/license.md",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "res/values/themes.xml",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "third-party/immediate/LICENSE.txt",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "third-party/setimmediate/LICENSE.txt",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "third-party/libbitsub/LICENSE",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "third-party/pako/LICENSE",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "UPSTREAM_SOURCES.md",
+      "status": 200,
+      "hashMatched": true
+    },
+    {
+      "path": "youtube-proxy.html",
+      "status": 200,
+      "hashMatched": true
+    }
+  ]
+}

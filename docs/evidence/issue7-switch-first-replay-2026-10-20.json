@@ -1,0 +1,5967 @@
+{
+  "driverSha256": "f46acba18ab62ab7b0d196513f5bc1847e545f4e6f4eaae109627dc9141e6556",
+  "kind": "live-application-read-only",
+  "revision": "b5a8679404b98649f9c742abc6aa5da00edc50a9",
+  "started": "2026-10-20T10:18:09.935Z",
+  "checks": {
+    "bothOrdersCompleted": true,
+    "distinctNonemptyAccounts": true,
+    "contextsClosed": true,
+    "newSessionLocalCleanup": true,
+    "credentialsUnchanged": true
+  },
+  "steps": [
+    {
+      "order": "A-B-A",
+      "alias": "A",
+      "epoch": 1,
+      "checks": {
+        "currentSessionCompletedPulls": true,
+        "exactFiveDomainStoreControl": true,
+        "exactRenderedLibrary": true,
+        "nonemptyLibrary": true,
+        "explicitProfileScope": true,
+        "returnRestored": null,
+        "distinctOwner": true
+      },
+      "serverProfileDefaultOnly": false
+    },
+    {
+      "order": "A-B-A",
+      "alias": "B",
+      "epoch": 2,
+      "checks": {
+        "currentSessionCompletedPulls": true,
+        "exactFiveDomainStoreControl": true,
+        "exactRenderedLibrary": true,
+        "nonemptyLibrary": true,
+        "explicitProfileScope": true,
+        "returnRestored": null,
+        "distinctOwner": true
+      },
+      "serverProfileDefaultOnly": true
+    },
+    {
+      "order": "A-B-A",
+      "alias": "A",
+      "epoch": 3,
+      "checks": {
+        "currentSessionCompletedPulls": true,
+        "exactFiveDomainStoreControl": true,
+        "exactRenderedLibrary": true,
+        "nonemptyLibrary": true,
+        "explicitProfileScope": true,
+        "returnRestored": true,
+        "distinctOwner": true
+      },
+      "serverProfileDefaultOnly": false
+    },
+    {
+      "order": "B-A-B",
+      "alias": "B",
+      "epoch": 4,
+      "checks": {
+        "currentSessionCompletedPulls": true,
+        "exactFiveDomainStoreControl": true,
+        "exactRenderedLibrary": true,
+        "nonemptyLibrary": true,
+        "explicitProfileScope": true,
+        "returnRestored": true,
+        "distinctOwner": true
+      },
+      "serverProfileDefaultOnly": true
+    },
+    {
+      "order": "B-A-B",
+      "alias": "A",
+      "epoch": 5,
+      "checks": {
+        "currentSessionCompletedPulls": true,
+        "exactFiveDomainStoreControl": true,
+        "exactRenderedLibrary": true,
+        "nonemptyLibrary": true,
+        "explicitProfileScope": true,
+        "returnRestored": true,
+        "distinctOwner": true
+      },
+      "serverProfileDefaultOnly": false
+    },
+    {
+      "order": "B-A-B",
+      "alias": "B",
+      "epoch": 6,
+      "checks": {
+        "currentSessionCompletedPulls": true,
+        "exactFiveDomainStoreControl": true,
+        "exactRenderedLibrary": true,
+        "nonemptyLibrary": true,
+        "explicitProfileScope": true,
+        "returnRestored": true,
+        "distinctOwner": true
+      },
+      "serverProfileDefaultOnly": true
+    }
+  ],
+  "events": [
+    {
+      "epoch": 1,
+      "alias": "A",
+      "operation": "external-origin",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "epoch": 1,
+      "alias": "A",
+      "operation": "external-origin",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "id": 1,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "auth-token",
+      "phase": "start"
+    },
+    {
+      "id": 1,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "auth-token",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 363
+    },
+    {
+      "id": 1,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "auth-token",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 363
+    },
+    {
+      "id": 2,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "get_sync_owner",
+      "phase": "start"
+    },
+    {
+      "id": 2,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "get_sync_owner",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 250
+    },
+    {
+      "id": 2,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "get_sync_owner",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 250
+    },
+    {
+      "id": 3,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_profiles",
+      "phase": "start"
+    },
+    {
+      "id": 4,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_profile_locks",
+      "phase": "start"
+    },
+    {
+      "id": 5,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "other",
+      "phase": "start"
+    },
+    {
+      "epoch": 1,
+      "alias": "A",
+      "operation": "other",
+      "phase": "harness-denial",
+      "method": "POST"
+    },
+    {
+      "id": 5,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "other",
+      "phase": "before-headers-failure",
+      "category": "harness-denial",
+      "currentEpoch": true,
+      "elapsedMs": 10
+    },
+    {
+      "id": 4,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_profile_locks",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 195
+    },
+    {
+      "id": 4,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_profile_locks",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 195
+    },
+    {
+      "id": 3,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_profiles",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 256
+    },
+    {
+      "id": 3,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_profiles",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 256
+    },
+    {
+      "id": 6,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "get_avatar_catalog",
+      "phase": "start"
+    },
+    {
+      "epoch": 1,
+      "alias": "A",
+      "operation": "external-origin",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "epoch": 1,
+      "alias": "A",
+      "operation": "external-origin",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "id": 7,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "start"
+    },
+    {
+      "id": 8,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "addons-read",
+      "phase": "start"
+    },
+    {
+      "id": 9,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_home_catalog_settings",
+      "phase": "start"
+    },
+    {
+      "id": 10,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "get_avatar_catalog",
+      "phase": "start"
+    },
+    {
+      "id": 6,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "get_avatar_catalog",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 249
+    },
+    {
+      "id": 6,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "get_avatar_catalog",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 249
+    },
+    {
+      "id": 11,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "other",
+      "phase": "start"
+    },
+    {
+      "epoch": 1,
+      "alias": "A",
+      "operation": "other",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "id": 12,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "other",
+      "phase": "start"
+    },
+    {
+      "epoch": 1,
+      "alias": "A",
+      "operation": "other",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "id": 13,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "other",
+      "phase": "start"
+    },
+    {
+      "epoch": 1,
+      "alias": "A",
+      "operation": "other",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "id": 11,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "other",
+      "phase": "before-headers-failure",
+      "category": "harness-denial",
+      "currentEpoch": true,
+      "elapsedMs": 5
+    },
+    {
+      "id": 12,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "other",
+      "phase": "before-headers-failure",
+      "category": "harness-denial",
+      "currentEpoch": true,
+      "elapsedMs": 6
+    },
+    {
+      "id": 13,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "other",
+      "phase": "before-headers-failure",
+      "category": "harness-denial",
+      "currentEpoch": true,
+      "elapsedMs": 5
+    },
+    {
+      "id": 8,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "addons-read",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 195
+    },
+    {
+      "id": 8,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "addons-read",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 196
+    },
+    {
+      "id": 7,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 203
+    },
+    {
+      "id": 7,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 204
+    },
+    {
+      "id": 14,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "start"
+    },
+    {
+      "id": 10,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "get_avatar_catalog",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 192
+    },
+    {
+      "id": 10,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "get_avatar_catalog",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 193
+    },
+    {
+      "id": 15,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "other",
+      "phase": "start"
+    },
+    {
+      "epoch": 1,
+      "alias": "A",
+      "operation": "other",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "id": 15,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "other",
+      "phase": "before-headers-failure",
+      "category": "harness-denial",
+      "currentEpoch": true,
+      "elapsedMs": 5
+    },
+    {
+      "id": 14,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 187
+    },
+    {
+      "id": 14,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 187
+    },
+    {
+      "id": 16,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "other",
+      "phase": "start"
+    },
+    {
+      "epoch": 1,
+      "alias": "A",
+      "operation": "other",
+      "phase": "harness-denial",
+      "method": "POST"
+    },
+    {
+      "id": 16,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "other",
+      "phase": "before-headers-failure",
+      "category": "harness-denial",
+      "currentEpoch": true,
+      "elapsedMs": 7
+    },
+    {
+      "id": 9,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_home_catalog_settings",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 691
+    },
+    {
+      "id": 9,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_home_catalog_settings",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 692
+    },
+    {
+      "id": 17,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_home_catalog_settings",
+      "phase": "start"
+    },
+    {
+      "id": 18,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_home_catalog_settings",
+      "phase": "start"
+    },
+    {
+      "id": 18,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_home_catalog_settings",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 178
+    },
+    {
+      "id": 18,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_home_catalog_settings",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 179
+    },
+    {
+      "id": 17,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_home_catalog_settings",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 233
+    },
+    {
+      "id": 17,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_home_catalog_settings",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 235
+    },
+    {
+      "id": 19,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_profiles",
+      "phase": "start"
+    },
+    {
+      "id": 20,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_library",
+      "phase": "start"
+    },
+    {
+      "epoch": 1,
+      "alias": "A",
+      "operation": "external-origin",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "epoch": 1,
+      "alias": "A",
+      "operation": "external-origin",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "epoch": 1,
+      "alias": "A",
+      "operation": "external-origin",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "epoch": 1,
+      "alias": "A",
+      "operation": "external-origin",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "epoch": 1,
+      "alias": "A",
+      "operation": "external-origin",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "epoch": 1,
+      "alias": "A",
+      "operation": "external-origin",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "id": 21,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_watched_items",
+      "phase": "start"
+    },
+    {
+      "id": 22,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_watch_progress",
+      "phase": "start"
+    },
+    {
+      "id": 23,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_provider_credentials",
+      "phase": "start"
+    },
+    {
+      "id": 24,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "other",
+      "phase": "start"
+    },
+    {
+      "epoch": 1,
+      "alias": "A",
+      "operation": "other",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "id": 25,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_provider_credentials",
+      "phase": "start"
+    },
+    {
+      "id": 26,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "other",
+      "phase": "start"
+    },
+    {
+      "epoch": 1,
+      "alias": "A",
+      "operation": "other",
+      "phase": "harness-denial",
+      "method": "POST"
+    },
+    {
+      "id": 27,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_collections",
+      "phase": "start"
+    },
+    {
+      "id": 28,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "other",
+      "phase": "start"
+    },
+    {
+      "id": 24,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "other",
+      "phase": "before-headers-failure",
+      "category": "harness-denial",
+      "currentEpoch": true,
+      "elapsedMs": 41
+    },
+    {
+      "id": 26,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "other",
+      "phase": "before-headers-failure",
+      "category": "harness-denial",
+      "currentEpoch": true,
+      "elapsedMs": 38
+    },
+    {
+      "id": 20,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_library",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 201
+    },
+    {
+      "id": 20,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_library",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 201
+    },
+    {
+      "epoch": 1,
+      "alias": "A",
+      "operation": "external-origin",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "epoch": 1,
+      "alias": "A",
+      "operation": "external-origin",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "id": 25,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_provider_credentials",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 209
+    },
+    {
+      "id": 25,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_provider_credentials",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 209
+    },
+    {
+      "id": 19,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_profiles",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 254
+    },
+    {
+      "id": 19,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_profiles",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 254
+    },
+    {
+      "id": 29,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "start"
+    },
+    {
+      "id": 30,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "start"
+    },
+    {
+      "id": 23,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_provider_credentials",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 254
+    },
+    {
+      "id": 23,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_provider_credentials",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 254
+    },
+    {
+      "id": 28,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "other",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 257
+    },
+    {
+      "id": 28,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "other",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 257
+    },
+    {
+      "id": 29,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 236
+    },
+    {
+      "id": 29,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 237
+    },
+    {
+      "id": 31,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "start"
+    },
+    {
+      "id": 21,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_watched_items",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 499
+    },
+    {
+      "id": 21,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_watched_items",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 499
+    },
+    {
+      "id": 30,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 250
+    },
+    {
+      "id": 30,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 250
+    },
+    {
+      "id": 32,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "start"
+    },
+    {
+      "id": 22,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_watch_progress",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 512
+    },
+    {
+      "id": 22,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_watch_progress",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 512
+    },
+    {
+      "id": 33,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "start"
+    },
+    {
+      "id": 31,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 238
+    },
+    {
+      "id": 31,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 240
+    },
+    {
+      "id": 32,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 244
+    },
+    {
+      "id": 32,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 246
+    },
+    {
+      "id": 33,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 181
+    },
+    {
+      "id": 33,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 181
+    },
+    {
+      "id": 34,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "other",
+      "phase": "start"
+    },
+    {
+      "epoch": 1,
+      "alias": "A",
+      "operation": "other",
+      "phase": "harness-denial",
+      "method": "POST"
+    },
+    {
+      "id": 34,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "other",
+      "phase": "before-headers-failure",
+      "category": "harness-denial",
+      "currentEpoch": true,
+      "elapsedMs": 2
+    },
+    {
+      "id": 27,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_collections",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 807
+    },
+    {
+      "id": 27,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_collections",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 810
+    },
+    {
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_profiles",
+      "phase": "control-headers",
+      "status": 200
+    },
+    {
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_library",
+      "phase": "control-headers",
+      "status": 200
+    },
+    {
+      "id": 35,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_watched_items",
+      "phase": "start"
+    },
+    {
+      "id": 36,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_watch_progress",
+      "phase": "start"
+    },
+    {
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_watched_items",
+      "phase": "control-headers",
+      "status": 200
+    },
+    {
+      "id": 36,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_watch_progress",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 484
+    },
+    {
+      "id": 36,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_watch_progress",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 484
+    },
+    {
+      "id": 35,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_watched_items",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 499
+    },
+    {
+      "id": 35,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_watched_items",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 499
+    },
+    {
+      "id": 37,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "other",
+      "phase": "start"
+    },
+    {
+      "epoch": 1,
+      "alias": "A",
+      "operation": "other",
+      "phase": "harness-denial",
+      "method": "POST"
+    },
+    {
+      "id": 37,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "other",
+      "phase": "before-headers-failure",
+      "category": "harness-denial",
+      "currentEpoch": true,
+      "elapsedMs": 3
+    },
+    {
+      "id": 38,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "other",
+      "phase": "start"
+    },
+    {
+      "epoch": 1,
+      "alias": "A",
+      "operation": "other",
+      "phase": "harness-denial",
+      "method": "POST"
+    },
+    {
+      "id": 38,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "other",
+      "phase": "before-headers-failure",
+      "category": "harness-denial",
+      "currentEpoch": true,
+      "elapsedMs": 2
+    },
+    {
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_watch_progress",
+      "phase": "control-headers",
+      "status": 200
+    },
+    {
+      "epoch": 1,
+      "alias": "A",
+      "operation": "read_addons",
+      "phase": "control-headers",
+      "status": 200
+    },
+    {
+      "id": 39,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_profiles",
+      "phase": "start"
+    },
+    {
+      "id": 40,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_profile_locks",
+      "phase": "start"
+    },
+    {
+      "id": 40,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_profile_locks",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 167
+    },
+    {
+      "id": 40,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_profile_locks",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 167
+    },
+    {
+      "id": 39,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_profiles",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 182
+    },
+    {
+      "id": 39,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "sync_pull_profiles",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 184
+    },
+    {
+      "id": 41,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "other",
+      "phase": "start"
+    },
+    {
+      "epoch": 1,
+      "alias": "A",
+      "operation": "other",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "id": 42,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "other",
+      "phase": "start"
+    },
+    {
+      "epoch": 1,
+      "alias": "A",
+      "operation": "other",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "id": 43,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "other",
+      "phase": "start"
+    },
+    {
+      "epoch": 1,
+      "alias": "A",
+      "operation": "other",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "id": 41,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "other",
+      "phase": "before-headers-failure",
+      "category": "harness-denial",
+      "currentEpoch": true,
+      "elapsedMs": 10
+    },
+    {
+      "id": 42,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "other",
+      "phase": "before-headers-failure",
+      "category": "harness-denial",
+      "currentEpoch": true,
+      "elapsedMs": 9
+    },
+    {
+      "id": 43,
+      "epoch": 1,
+      "alias": "A",
+      "operation": "other",
+      "phase": "before-headers-failure",
+      "category": "harness-denial",
+      "currentEpoch": true,
+      "elapsedMs": 11
+    },
+    {
+      "epoch": 2,
+      "alias": "B",
+      "operation": "external-origin",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "epoch": 2,
+      "alias": "B",
+      "operation": "external-origin",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "id": 44,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "auth-token",
+      "phase": "start"
+    },
+    {
+      "id": 44,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "auth-token",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 256
+    },
+    {
+      "id": 44,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "auth-token",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 258
+    },
+    {
+      "id": 45,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "get_sync_owner",
+      "phase": "start"
+    },
+    {
+      "id": 45,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "get_sync_owner",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 208
+    },
+    {
+      "id": 45,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "get_sync_owner",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 208
+    },
+    {
+      "id": 46,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "sync_pull_profiles",
+      "phase": "start"
+    },
+    {
+      "id": 47,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "sync_pull_profile_locks",
+      "phase": "start"
+    },
+    {
+      "id": 48,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "other",
+      "phase": "start"
+    },
+    {
+      "epoch": 2,
+      "alias": "B",
+      "operation": "other",
+      "phase": "harness-denial",
+      "method": "POST"
+    },
+    {
+      "id": 48,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "other",
+      "phase": "before-headers-failure",
+      "category": "harness-denial",
+      "currentEpoch": true,
+      "elapsedMs": 3
+    },
+    {
+      "id": 47,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "sync_pull_profile_locks",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 174
+    },
+    {
+      "id": 47,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "sync_pull_profile_locks",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 174
+    },
+    {
+      "id": 46,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "sync_pull_profiles",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 184
+    },
+    {
+      "id": 46,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "sync_pull_profiles",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 184
+    },
+    {
+      "id": 49,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "get_avatar_catalog",
+      "phase": "start"
+    },
+    {
+      "id": 49,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "get_avatar_catalog",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 168
+    },
+    {
+      "id": 49,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "get_avatar_catalog",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 168
+    },
+    {
+      "epoch": 2,
+      "alias": "B",
+      "operation": "external-origin",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "epoch": 2,
+      "alias": "B",
+      "operation": "external-origin",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "id": 50,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "start"
+    },
+    {
+      "id": 51,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "addons-read",
+      "phase": "start"
+    },
+    {
+      "id": 52,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "sync_pull_home_catalog_settings",
+      "phase": "start"
+    },
+    {
+      "id": 51,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "addons-read",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 179
+    },
+    {
+      "id": 51,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "addons-read",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 179
+    },
+    {
+      "id": 50,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 200
+    },
+    {
+      "id": 50,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 202
+    },
+    {
+      "id": 53,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "start"
+    },
+    {
+      "id": 52,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "sync_pull_home_catalog_settings",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 246
+    },
+    {
+      "id": 52,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "sync_pull_home_catalog_settings",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 247
+    },
+    {
+      "id": 54,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "sync_pull_home_catalog_settings",
+      "phase": "start"
+    },
+    {
+      "id": 55,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "sync_pull_home_catalog_settings",
+      "phase": "start"
+    },
+    {
+      "id": 53,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 171
+    },
+    {
+      "id": 53,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 171
+    },
+    {
+      "id": 56,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "other",
+      "phase": "start"
+    },
+    {
+      "epoch": 2,
+      "alias": "B",
+      "operation": "other",
+      "phase": "harness-denial",
+      "method": "POST"
+    },
+    {
+      "id": 56,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "other",
+      "phase": "before-headers-failure",
+      "category": "harness-denial",
+      "currentEpoch": true,
+      "elapsedMs": 2
+    },
+    {
+      "id": 55,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "sync_pull_home_catalog_settings",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 170
+    },
+    {
+      "id": 55,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "sync_pull_home_catalog_settings",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 170
+    },
+    {
+      "id": 54,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "sync_pull_home_catalog_settings",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 232
+    },
+    {
+      "id": 54,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "sync_pull_home_catalog_settings",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 233
+    },
+    {
+      "id": 57,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "sync_pull_profiles",
+      "phase": "start"
+    },
+    {
+      "id": 58,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "sync_pull_library",
+      "phase": "start"
+    },
+    {
+      "epoch": 2,
+      "alias": "B",
+      "operation": "external-origin",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "epoch": 2,
+      "alias": "B",
+      "operation": "external-origin",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "id": 59,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "sync_pull_watched_items",
+      "phase": "start"
+    },
+    {
+      "id": 60,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "sync_pull_watch_progress",
+      "phase": "start"
+    },
+    {
+      "id": 61,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "sync_pull_provider_credentials",
+      "phase": "start"
+    },
+    {
+      "id": 62,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "sync_pull_provider_credentials",
+      "phase": "start"
+    },
+    {
+      "id": 63,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "other",
+      "phase": "start"
+    },
+    {
+      "epoch": 2,
+      "alias": "B",
+      "operation": "other",
+      "phase": "harness-denial",
+      "method": "POST"
+    },
+    {
+      "id": 64,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "sync_pull_collections",
+      "phase": "start"
+    },
+    {
+      "id": 65,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "other",
+      "phase": "start"
+    },
+    {
+      "id": 63,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "other",
+      "phase": "before-headers-failure",
+      "category": "harness-denial",
+      "currentEpoch": true,
+      "elapsedMs": 14
+    },
+    {
+      "id": 61,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "sync_pull_provider_credentials",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 178
+    },
+    {
+      "id": 61,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "sync_pull_provider_credentials",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 178
+    },
+    {
+      "id": 65,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "other",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 178
+    },
+    {
+      "id": 65,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "other",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 178
+    },
+    {
+      "id": 59,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "sync_pull_watched_items",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 184
+    },
+    {
+      "id": 59,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "sync_pull_watched_items",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 184
+    },
+    {
+      "id": 58,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "sync_pull_library",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 196
+    },
+    {
+      "id": 58,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "sync_pull_library",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 196
+    },
+    {
+      "epoch": 2,
+      "alias": "B",
+      "operation": "external-origin",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "id": 64,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "sync_pull_collections",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 192
+    },
+    {
+      "id": 64,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "sync_pull_collections",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 192
+    },
+    {
+      "id": 57,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "sync_pull_profiles",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 241
+    },
+    {
+      "id": 57,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "sync_pull_profiles",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 245
+    },
+    {
+      "id": 62,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "sync_pull_provider_credentials",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 242
+    },
+    {
+      "id": 62,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "sync_pull_provider_credentials",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 243
+    },
+    {
+      "id": 60,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "sync_pull_watch_progress",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 251
+    },
+    {
+      "id": 60,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "sync_pull_watch_progress",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 252
+    },
+    {
+      "epoch": 2,
+      "alias": "B",
+      "operation": "sync_pull_profiles",
+      "phase": "control-headers",
+      "status": 200
+    },
+    {
+      "epoch": 2,
+      "alias": "B",
+      "operation": "sync_pull_library",
+      "phase": "control-headers",
+      "status": 200
+    },
+    {
+      "epoch": 2,
+      "alias": "B",
+      "operation": "sync_pull_watched_items",
+      "phase": "control-headers",
+      "status": 200
+    },
+    {
+      "id": 66,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "start"
+    },
+    {
+      "epoch": 2,
+      "alias": "B",
+      "operation": "sync_pull_watch_progress",
+      "phase": "control-headers",
+      "status": 200
+    },
+    {
+      "id": 66,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 235
+    },
+    {
+      "id": 66,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 235
+    },
+    {
+      "id": 67,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "other",
+      "phase": "start"
+    },
+    {
+      "epoch": 2,
+      "alias": "B",
+      "operation": "other",
+      "phase": "harness-denial",
+      "method": "POST"
+    },
+    {
+      "id": 67,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "other",
+      "phase": "before-headers-failure",
+      "category": "harness-denial",
+      "currentEpoch": true,
+      "elapsedMs": 2
+    },
+    {
+      "epoch": 2,
+      "alias": "B",
+      "operation": "read_addons",
+      "phase": "control-headers",
+      "status": 200
+    },
+    {
+      "id": 68,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "sync_pull_profiles",
+      "phase": "start"
+    },
+    {
+      "id": 69,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "sync_pull_profile_locks",
+      "phase": "start"
+    },
+    {
+      "id": 68,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "sync_pull_profiles",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 237
+    },
+    {
+      "id": 68,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "sync_pull_profiles",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 237
+    },
+    {
+      "id": 69,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "sync_pull_profile_locks",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 259
+    },
+    {
+      "id": 69,
+      "epoch": 2,
+      "alias": "B",
+      "operation": "sync_pull_profile_locks",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 259
+    },
+    {
+      "epoch": 3,
+      "alias": "A",
+      "operation": "external-origin",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "epoch": 3,
+      "alias": "A",
+      "operation": "external-origin",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "id": 70,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "auth-token",
+      "phase": "start"
+    },
+    {
+      "id": 70,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "auth-token",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 361
+    },
+    {
+      "id": 70,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "auth-token",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 362
+    },
+    {
+      "id": 71,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "get_sync_owner",
+      "phase": "start"
+    },
+    {
+      "id": 71,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "get_sync_owner",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 268
+    },
+    {
+      "id": 71,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "get_sync_owner",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 268
+    },
+    {
+      "id": 72,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_profiles",
+      "phase": "start"
+    },
+    {
+      "id": 73,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_profile_locks",
+      "phase": "start"
+    },
+    {
+      "id": 74,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "other",
+      "phase": "start"
+    },
+    {
+      "epoch": 3,
+      "alias": "A",
+      "operation": "other",
+      "phase": "harness-denial",
+      "method": "POST"
+    },
+    {
+      "id": 74,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "other",
+      "phase": "before-headers-failure",
+      "category": "harness-denial",
+      "currentEpoch": true,
+      "elapsedMs": 5
+    },
+    {
+      "id": 72,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_profiles",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 225
+    },
+    {
+      "id": 72,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_profiles",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 226
+    },
+    {
+      "id": 73,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_profile_locks",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 236
+    },
+    {
+      "id": 73,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_profile_locks",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 239
+    },
+    {
+      "id": 75,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "get_avatar_catalog",
+      "phase": "start"
+    },
+    {
+      "epoch": 3,
+      "alias": "A",
+      "operation": "external-origin",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "epoch": 3,
+      "alias": "A",
+      "operation": "external-origin",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "id": 76,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "start"
+    },
+    {
+      "id": 77,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "addons-read",
+      "phase": "start"
+    },
+    {
+      "id": 78,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_home_catalog_settings",
+      "phase": "start"
+    },
+    {
+      "id": 75,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "get_avatar_catalog",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 264
+    },
+    {
+      "id": 75,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "get_avatar_catalog",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 264
+    },
+    {
+      "id": 79,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "other",
+      "phase": "start"
+    },
+    {
+      "epoch": 3,
+      "alias": "A",
+      "operation": "other",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "id": 80,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "other",
+      "phase": "start"
+    },
+    {
+      "epoch": 3,
+      "alias": "A",
+      "operation": "other",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "id": 81,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "other",
+      "phase": "start"
+    },
+    {
+      "epoch": 3,
+      "alias": "A",
+      "operation": "other",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "id": 79,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "other",
+      "phase": "before-headers-failure",
+      "category": "harness-denial",
+      "currentEpoch": true,
+      "elapsedMs": 10
+    },
+    {
+      "id": 80,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "other",
+      "phase": "before-headers-failure",
+      "category": "harness-denial",
+      "currentEpoch": true,
+      "elapsedMs": 5
+    },
+    {
+      "id": 81,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "other",
+      "phase": "before-headers-failure",
+      "category": "harness-denial",
+      "currentEpoch": true,
+      "elapsedMs": 21
+    },
+    {
+      "id": 82,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "other",
+      "phase": "start"
+    },
+    {
+      "epoch": 3,
+      "alias": "A",
+      "operation": "other",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "id": 82,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "other",
+      "phase": "before-headers-failure",
+      "category": "harness-denial",
+      "currentEpoch": true,
+      "elapsedMs": 5
+    },
+    {
+      "id": 77,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "addons-read",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 326
+    },
+    {
+      "id": 76,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 327
+    },
+    {
+      "id": 77,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "addons-read",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 327
+    },
+    {
+      "id": 76,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 329
+    },
+    {
+      "id": 83,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "start"
+    },
+    {
+      "id": 78,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_home_catalog_settings",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 499
+    },
+    {
+      "id": 78,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_home_catalog_settings",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 499
+    },
+    {
+      "id": 84,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_home_catalog_settings",
+      "phase": "start"
+    },
+    {
+      "id": 85,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_home_catalog_settings",
+      "phase": "start"
+    },
+    {
+      "id": 83,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 236
+    },
+    {
+      "id": 83,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 237
+    },
+    {
+      "id": 86,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "other",
+      "phase": "start"
+    },
+    {
+      "epoch": 3,
+      "alias": "A",
+      "operation": "other",
+      "phase": "harness-denial",
+      "method": "POST"
+    },
+    {
+      "id": 86,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "other",
+      "phase": "before-headers-failure",
+      "category": "harness-denial",
+      "currentEpoch": true,
+      "elapsedMs": 2
+    },
+    {
+      "id": 84,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_home_catalog_settings",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 185
+    },
+    {
+      "id": 84,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_home_catalog_settings",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 185
+    },
+    {
+      "id": 85,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_home_catalog_settings",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 227
+    },
+    {
+      "id": 85,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_home_catalog_settings",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 227
+    },
+    {
+      "id": 87,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_profiles",
+      "phase": "start"
+    },
+    {
+      "id": 88,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_library",
+      "phase": "start"
+    },
+    {
+      "epoch": 3,
+      "alias": "A",
+      "operation": "external-origin",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "epoch": 3,
+      "alias": "A",
+      "operation": "external-origin",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "epoch": 3,
+      "alias": "A",
+      "operation": "external-origin",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "epoch": 3,
+      "alias": "A",
+      "operation": "external-origin",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "epoch": 3,
+      "alias": "A",
+      "operation": "external-origin",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "epoch": 3,
+      "alias": "A",
+      "operation": "external-origin",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "id": 89,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_watched_items",
+      "phase": "start"
+    },
+    {
+      "id": 90,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_watch_progress",
+      "phase": "start"
+    },
+    {
+      "id": 91,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_provider_credentials",
+      "phase": "start"
+    },
+    {
+      "id": 92,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_provider_credentials",
+      "phase": "start"
+    },
+    {
+      "id": 93,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "other",
+      "phase": "start"
+    },
+    {
+      "epoch": 3,
+      "alias": "A",
+      "operation": "other",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "id": 94,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "other",
+      "phase": "start"
+    },
+    {
+      "epoch": 3,
+      "alias": "A",
+      "operation": "other",
+      "phase": "harness-denial",
+      "method": "POST"
+    },
+    {
+      "id": 95,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_collections",
+      "phase": "start"
+    },
+    {
+      "id": 96,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "other",
+      "phase": "start"
+    },
+    {
+      "id": 93,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "other",
+      "phase": "before-headers-failure",
+      "category": "harness-denial",
+      "currentEpoch": true,
+      "elapsedMs": 15
+    },
+    {
+      "id": 94,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "other",
+      "phase": "before-headers-failure",
+      "category": "harness-denial",
+      "currentEpoch": true,
+      "elapsedMs": 14
+    },
+    {
+      "id": 88,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_library",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 177
+    },
+    {
+      "id": 88,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_library",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 178
+    },
+    {
+      "epoch": 3,
+      "alias": "A",
+      "operation": "external-origin",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "epoch": 3,
+      "alias": "A",
+      "operation": "external-origin",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "id": 91,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_provider_credentials",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 207
+    },
+    {
+      "id": 96,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "other",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 203
+    },
+    {
+      "id": 91,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_provider_credentials",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 207
+    },
+    {
+      "id": 96,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "other",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 203
+    },
+    {
+      "id": 92,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_provider_credentials",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 214
+    },
+    {
+      "id": 92,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_provider_credentials",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 214
+    },
+    {
+      "id": 87,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_profiles",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 243
+    },
+    {
+      "id": 87,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_profiles",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 246
+    },
+    {
+      "id": 97,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "start"
+    },
+    {
+      "id": 98,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "start"
+    },
+    {
+      "id": 98,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 175
+    },
+    {
+      "id": 98,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 176
+    },
+    {
+      "id": 99,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "start"
+    },
+    {
+      "id": 97,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 239
+    },
+    {
+      "id": 97,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 239
+    },
+    {
+      "id": 100,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "start"
+    },
+    {
+      "id": 99,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 186
+    },
+    {
+      "id": 99,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 186
+    },
+    {
+      "id": 90,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_watch_progress",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 660
+    },
+    {
+      "id": 90,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_watch_progress",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 660
+    },
+    {
+      "id": 89,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_watched_items",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 681
+    },
+    {
+      "id": 89,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_watched_items",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 681
+    },
+    {
+      "id": 100,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 255
+    },
+    {
+      "id": 100,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 255
+    },
+    {
+      "id": 95,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_collections",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 795
+    },
+    {
+      "id": 95,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_collections",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 796
+    },
+    {
+      "id": 101,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "start"
+    },
+    {
+      "id": 101,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 176
+    },
+    {
+      "id": 101,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 176
+    },
+    {
+      "id": 102,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "other",
+      "phase": "start"
+    },
+    {
+      "epoch": 3,
+      "alias": "A",
+      "operation": "other",
+      "phase": "harness-denial",
+      "method": "POST"
+    },
+    {
+      "id": 102,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "other",
+      "phase": "before-headers-failure",
+      "category": "harness-denial",
+      "currentEpoch": true,
+      "elapsedMs": 2
+    },
+    {
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_profiles",
+      "phase": "control-headers",
+      "status": 200
+    },
+    {
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_library",
+      "phase": "control-headers",
+      "status": 200
+    },
+    {
+      "id": 103,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_watched_items",
+      "phase": "start"
+    },
+    {
+      "id": 104,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_watch_progress",
+      "phase": "start"
+    },
+    {
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_watched_items",
+      "phase": "control-headers",
+      "status": 200
+    },
+    {
+      "id": 103,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_watched_items",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 511
+    },
+    {
+      "id": 103,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_watched_items",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 511
+    },
+    {
+      "id": 104,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_watch_progress",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 642
+    },
+    {
+      "id": 104,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_watch_progress",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 642
+    },
+    {
+      "id": 105,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "other",
+      "phase": "start"
+    },
+    {
+      "epoch": 3,
+      "alias": "A",
+      "operation": "other",
+      "phase": "harness-denial",
+      "method": "POST"
+    },
+    {
+      "id": 105,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "other",
+      "phase": "before-headers-failure",
+      "category": "harness-denial",
+      "currentEpoch": true,
+      "elapsedMs": 4
+    },
+    {
+      "id": 106,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "other",
+      "phase": "start"
+    },
+    {
+      "epoch": 3,
+      "alias": "A",
+      "operation": "other",
+      "phase": "harness-denial",
+      "method": "POST"
+    },
+    {
+      "id": 106,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "other",
+      "phase": "before-headers-failure",
+      "category": "harness-denial",
+      "currentEpoch": true,
+      "elapsedMs": 2
+    },
+    {
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_watch_progress",
+      "phase": "control-headers",
+      "status": 200
+    },
+    {
+      "epoch": 3,
+      "alias": "A",
+      "operation": "read_addons",
+      "phase": "control-headers",
+      "status": 200
+    },
+    {
+      "id": 107,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_profiles",
+      "phase": "start"
+    },
+    {
+      "id": 108,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_profile_locks",
+      "phase": "start"
+    },
+    {
+      "id": 108,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_profile_locks",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 178
+    },
+    {
+      "id": 108,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_profile_locks",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 178
+    },
+    {
+      "id": 107,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_profiles",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 233
+    },
+    {
+      "id": 107,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "sync_pull_profiles",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 233
+    },
+    {
+      "id": 109,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "other",
+      "phase": "start"
+    },
+    {
+      "epoch": 3,
+      "alias": "A",
+      "operation": "other",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "id": 110,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "other",
+      "phase": "start"
+    },
+    {
+      "epoch": 3,
+      "alias": "A",
+      "operation": "other",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "id": 111,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "other",
+      "phase": "start"
+    },
+    {
+      "epoch": 3,
+      "alias": "A",
+      "operation": "other",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "id": 109,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "other",
+      "phase": "before-headers-failure",
+      "category": "harness-denial",
+      "currentEpoch": true,
+      "elapsedMs": 3
+    },
+    {
+      "id": 110,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "other",
+      "phase": "before-headers-failure",
+      "category": "harness-denial",
+      "currentEpoch": true,
+      "elapsedMs": 4
+    },
+    {
+      "id": 111,
+      "epoch": 3,
+      "alias": "A",
+      "operation": "other",
+      "phase": "before-headers-failure",
+      "category": "harness-denial",
+      "currentEpoch": true,
+      "elapsedMs": 4
+    },
+    {
+      "epoch": 4,
+      "alias": "B",
+      "operation": "external-origin",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "epoch": 4,
+      "alias": "B",
+      "operation": "external-origin",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "id": 1,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "auth-token",
+      "phase": "start"
+    },
+    {
+      "id": 1,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "auth-token",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 371
+    },
+    {
+      "id": 1,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "auth-token",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 372
+    },
+    {
+      "id": 2,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "get_sync_owner",
+      "phase": "start"
+    },
+    {
+      "id": 2,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "get_sync_owner",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 247
+    },
+    {
+      "id": 2,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "get_sync_owner",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 247
+    },
+    {
+      "id": 3,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "sync_pull_profiles",
+      "phase": "start"
+    },
+    {
+      "id": 4,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "sync_pull_profile_locks",
+      "phase": "start"
+    },
+    {
+      "id": 5,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "other",
+      "phase": "start"
+    },
+    {
+      "epoch": 4,
+      "alias": "B",
+      "operation": "other",
+      "phase": "harness-denial",
+      "method": "POST"
+    },
+    {
+      "id": 5,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "other",
+      "phase": "before-headers-failure",
+      "category": "harness-denial",
+      "currentEpoch": true,
+      "elapsedMs": 4
+    },
+    {
+      "id": 4,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "sync_pull_profile_locks",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 182
+    },
+    {
+      "id": 4,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "sync_pull_profile_locks",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 182
+    },
+    {
+      "id": 3,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "sync_pull_profiles",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 232
+    },
+    {
+      "id": 3,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "sync_pull_profiles",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 232
+    },
+    {
+      "id": 6,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "get_avatar_catalog",
+      "phase": "start"
+    },
+    {
+      "epoch": 4,
+      "alias": "B",
+      "operation": "external-origin",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "epoch": 4,
+      "alias": "B",
+      "operation": "external-origin",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "id": 7,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "start"
+    },
+    {
+      "id": 8,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "addons-read",
+      "phase": "start"
+    },
+    {
+      "id": 9,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "sync_pull_home_catalog_settings",
+      "phase": "start"
+    },
+    {
+      "id": 6,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "get_avatar_catalog",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 245
+    },
+    {
+      "id": 6,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "get_avatar_catalog",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 245
+    },
+    {
+      "id": 7,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 216
+    },
+    {
+      "id": 7,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 229
+    },
+    {
+      "id": 10,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "start"
+    },
+    {
+      "id": 9,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "sync_pull_home_catalog_settings",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 272
+    },
+    {
+      "id": 9,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "sync_pull_home_catalog_settings",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 273
+    },
+    {
+      "id": 11,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "sync_pull_home_catalog_settings",
+      "phase": "start"
+    },
+    {
+      "id": 12,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "sync_pull_home_catalog_settings",
+      "phase": "start"
+    },
+    {
+      "id": 8,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "addons-read",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 285
+    },
+    {
+      "id": 8,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "addons-read",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 291
+    },
+    {
+      "id": 12,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "sync_pull_home_catalog_settings",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 187
+    },
+    {
+      "id": 12,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "sync_pull_home_catalog_settings",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 187
+    },
+    {
+      "id": 10,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 246
+    },
+    {
+      "id": 10,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 249
+    },
+    {
+      "id": 11,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "sync_pull_home_catalog_settings",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 249
+    },
+    {
+      "id": 11,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "sync_pull_home_catalog_settings",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 249
+    },
+    {
+      "id": 13,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "other",
+      "phase": "start"
+    },
+    {
+      "epoch": 4,
+      "alias": "B",
+      "operation": "other",
+      "phase": "harness-denial",
+      "method": "POST"
+    },
+    {
+      "id": 13,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "other",
+      "phase": "before-headers-failure",
+      "category": "harness-denial",
+      "currentEpoch": true,
+      "elapsedMs": 2
+    },
+    {
+      "id": 14,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "sync_pull_profiles",
+      "phase": "start"
+    },
+    {
+      "id": 15,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "sync_pull_library",
+      "phase": "start"
+    },
+    {
+      "epoch": 4,
+      "alias": "B",
+      "operation": "external-origin",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "epoch": 4,
+      "alias": "B",
+      "operation": "external-origin",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "id": 16,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "sync_pull_watched_items",
+      "phase": "start"
+    },
+    {
+      "id": 17,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "sync_pull_watch_progress",
+      "phase": "start"
+    },
+    {
+      "id": 18,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "sync_pull_provider_credentials",
+      "phase": "start"
+    },
+    {
+      "id": 19,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "sync_pull_provider_credentials",
+      "phase": "start"
+    },
+    {
+      "id": 20,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "other",
+      "phase": "start"
+    },
+    {
+      "epoch": 4,
+      "alias": "B",
+      "operation": "other",
+      "phase": "harness-denial",
+      "method": "POST"
+    },
+    {
+      "id": 21,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "sync_pull_collections",
+      "phase": "start"
+    },
+    {
+      "id": 22,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "other",
+      "phase": "start"
+    },
+    {
+      "id": 20,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "other",
+      "phase": "before-headers-failure",
+      "category": "harness-denial",
+      "currentEpoch": true,
+      "elapsedMs": 32
+    },
+    {
+      "id": 16,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "sync_pull_watched_items",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 187
+    },
+    {
+      "id": 16,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "sync_pull_watched_items",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 187
+    },
+    {
+      "id": 18,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "sync_pull_provider_credentials",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 193
+    },
+    {
+      "id": 18,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "sync_pull_provider_credentials",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 194
+    },
+    {
+      "id": 19,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "sync_pull_provider_credentials",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 218
+    },
+    {
+      "id": 19,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "sync_pull_provider_credentials",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 218
+    },
+    {
+      "id": 21,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "sync_pull_collections",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 221
+    },
+    {
+      "id": 21,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "sync_pull_collections",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 221
+    },
+    {
+      "id": 15,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "sync_pull_library",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 237
+    },
+    {
+      "id": 15,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "sync_pull_library",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 237
+    },
+    {
+      "id": 14,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "sync_pull_profiles",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 248
+    },
+    {
+      "id": 14,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "sync_pull_profiles",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 248
+    },
+    {
+      "id": 17,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "sync_pull_watch_progress",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 246
+    },
+    {
+      "id": 17,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "sync_pull_watch_progress",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 247
+    },
+    {
+      "epoch": 4,
+      "alias": "B",
+      "operation": "external-origin",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "id": 22,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "other",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 278
+    },
+    {
+      "id": 22,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "other",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 278
+    },
+    {
+      "epoch": 4,
+      "alias": "B",
+      "operation": "sync_pull_profiles",
+      "phase": "control-headers",
+      "status": 200
+    },
+    {
+      "epoch": 4,
+      "alias": "B",
+      "operation": "sync_pull_library",
+      "phase": "control-headers",
+      "status": 200
+    },
+    {
+      "id": 23,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "start"
+    },
+    {
+      "epoch": 4,
+      "alias": "B",
+      "operation": "sync_pull_watched_items",
+      "phase": "control-headers",
+      "status": 200
+    },
+    {
+      "id": 23,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 225
+    },
+    {
+      "id": 23,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 226
+    },
+    {
+      "id": 24,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "other",
+      "phase": "start"
+    },
+    {
+      "epoch": 4,
+      "alias": "B",
+      "operation": "other",
+      "phase": "harness-denial",
+      "method": "POST"
+    },
+    {
+      "id": 24,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "other",
+      "phase": "before-headers-failure",
+      "category": "harness-denial",
+      "currentEpoch": true,
+      "elapsedMs": 2
+    },
+    {
+      "epoch": 4,
+      "alias": "B",
+      "operation": "sync_pull_watch_progress",
+      "phase": "control-headers",
+      "status": 200
+    },
+    {
+      "epoch": 4,
+      "alias": "B",
+      "operation": "read_addons",
+      "phase": "control-headers",
+      "status": 200
+    },
+    {
+      "id": 25,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "sync_pull_profiles",
+      "phase": "start"
+    },
+    {
+      "id": 26,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "sync_pull_profile_locks",
+      "phase": "start"
+    },
+    {
+      "id": 26,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "sync_pull_profile_locks",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 233
+    },
+    {
+      "id": 26,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "sync_pull_profile_locks",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 233
+    },
+    {
+      "id": 25,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "sync_pull_profiles",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 252
+    },
+    {
+      "id": 25,
+      "epoch": 4,
+      "alias": "B",
+      "operation": "sync_pull_profiles",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 252
+    },
+    {
+      "epoch": 5,
+      "alias": "A",
+      "operation": "external-origin",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "epoch": 5,
+      "alias": "A",
+      "operation": "external-origin",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "id": 27,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "auth-token",
+      "phase": "start"
+    },
+    {
+      "id": 27,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "auth-token",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 351
+    },
+    {
+      "id": 27,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "auth-token",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 351
+    },
+    {
+      "id": 28,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "get_sync_owner",
+      "phase": "start"
+    },
+    {
+      "id": 28,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "get_sync_owner",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 254
+    },
+    {
+      "id": 28,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "get_sync_owner",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 255
+    },
+    {
+      "id": 29,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_profiles",
+      "phase": "start"
+    },
+    {
+      "id": 30,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_profile_locks",
+      "phase": "start"
+    },
+    {
+      "id": 31,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "other",
+      "phase": "start"
+    },
+    {
+      "epoch": 5,
+      "alias": "A",
+      "operation": "other",
+      "phase": "harness-denial",
+      "method": "POST"
+    },
+    {
+      "id": 31,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "other",
+      "phase": "before-headers-failure",
+      "category": "harness-denial",
+      "currentEpoch": true,
+      "elapsedMs": 3
+    },
+    {
+      "id": 29,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_profiles",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 232
+    },
+    {
+      "id": 29,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_profiles",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 232
+    },
+    {
+      "id": 30,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_profile_locks",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 236
+    },
+    {
+      "id": 30,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_profile_locks",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 236
+    },
+    {
+      "id": 32,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "get_avatar_catalog",
+      "phase": "start"
+    },
+    {
+      "epoch": 5,
+      "alias": "A",
+      "operation": "external-origin",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "epoch": 5,
+      "alias": "A",
+      "operation": "external-origin",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "id": 33,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "start"
+    },
+    {
+      "id": 34,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "addons-read",
+      "phase": "start"
+    },
+    {
+      "id": 35,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_home_catalog_settings",
+      "phase": "start"
+    },
+    {
+      "id": 32,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "get_avatar_catalog",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 239
+    },
+    {
+      "id": 32,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "get_avatar_catalog",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 239
+    },
+    {
+      "id": 36,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "other",
+      "phase": "start"
+    },
+    {
+      "epoch": 5,
+      "alias": "A",
+      "operation": "other",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "id": 37,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "other",
+      "phase": "start"
+    },
+    {
+      "epoch": 5,
+      "alias": "A",
+      "operation": "other",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "id": 38,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "other",
+      "phase": "start"
+    },
+    {
+      "epoch": 5,
+      "alias": "A",
+      "operation": "other",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "id": 36,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "other",
+      "phase": "before-headers-failure",
+      "category": "harness-denial",
+      "currentEpoch": true,
+      "elapsedMs": 2
+    },
+    {
+      "id": 37,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "other",
+      "phase": "before-headers-failure",
+      "category": "harness-denial",
+      "currentEpoch": true,
+      "elapsedMs": 2
+    },
+    {
+      "id": 38,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "other",
+      "phase": "before-headers-failure",
+      "category": "harness-denial",
+      "currentEpoch": true,
+      "elapsedMs": 1
+    },
+    {
+      "id": 39,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "other",
+      "phase": "start"
+    },
+    {
+      "epoch": 5,
+      "alias": "A",
+      "operation": "other",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "id": 39,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "other",
+      "phase": "before-headers-failure",
+      "category": "harness-denial",
+      "currentEpoch": true,
+      "elapsedMs": 5
+    },
+    {
+      "id": 33,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 232
+    },
+    {
+      "id": 33,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 232
+    },
+    {
+      "id": 34,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "addons-read",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 241
+    },
+    {
+      "id": 40,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "start"
+    },
+    {
+      "id": 34,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "addons-read",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 243
+    },
+    {
+      "id": 40,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 237
+    },
+    {
+      "id": 40,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 237
+    },
+    {
+      "id": 41,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "other",
+      "phase": "start"
+    },
+    {
+      "epoch": 5,
+      "alias": "A",
+      "operation": "other",
+      "phase": "harness-denial",
+      "method": "POST"
+    },
+    {
+      "id": 41,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "other",
+      "phase": "before-headers-failure",
+      "category": "harness-denial",
+      "currentEpoch": true,
+      "elapsedMs": 1
+    },
+    {
+      "id": 35,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_home_catalog_settings",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 661
+    },
+    {
+      "id": 35,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_home_catalog_settings",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 661
+    },
+    {
+      "id": 42,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_home_catalog_settings",
+      "phase": "start"
+    },
+    {
+      "id": 43,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_home_catalog_settings",
+      "phase": "start"
+    },
+    {
+      "id": 42,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_home_catalog_settings",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 237
+    },
+    {
+      "id": 42,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_home_catalog_settings",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 238
+    },
+    {
+      "id": 43,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_home_catalog_settings",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 242
+    },
+    {
+      "id": 43,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_home_catalog_settings",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 242
+    },
+    {
+      "id": 44,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_profiles",
+      "phase": "start"
+    },
+    {
+      "id": 45,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_library",
+      "phase": "start"
+    },
+    {
+      "epoch": 5,
+      "alias": "A",
+      "operation": "external-origin",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "epoch": 5,
+      "alias": "A",
+      "operation": "external-origin",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "epoch": 5,
+      "alias": "A",
+      "operation": "external-origin",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "epoch": 5,
+      "alias": "A",
+      "operation": "external-origin",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "epoch": 5,
+      "alias": "A",
+      "operation": "external-origin",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "epoch": 5,
+      "alias": "A",
+      "operation": "external-origin",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "id": 46,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_watched_items",
+      "phase": "start"
+    },
+    {
+      "id": 47,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_watch_progress",
+      "phase": "start"
+    },
+    {
+      "id": 48,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_provider_credentials",
+      "phase": "start"
+    },
+    {
+      "id": 49,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_provider_credentials",
+      "phase": "start"
+    },
+    {
+      "id": 50,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "other",
+      "phase": "start"
+    },
+    {
+      "epoch": 5,
+      "alias": "A",
+      "operation": "other",
+      "phase": "harness-denial",
+      "method": "POST"
+    },
+    {
+      "id": 51,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_collections",
+      "phase": "start"
+    },
+    {
+      "id": 52,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "other",
+      "phase": "start"
+    },
+    {
+      "id": 53,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "other",
+      "phase": "start"
+    },
+    {
+      "epoch": 5,
+      "alias": "A",
+      "operation": "other",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "id": 50,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "other",
+      "phase": "before-headers-failure",
+      "category": "harness-denial",
+      "currentEpoch": true,
+      "elapsedMs": 15
+    },
+    {
+      "id": 53,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "other",
+      "phase": "before-headers-failure",
+      "category": "harness-denial",
+      "currentEpoch": true,
+      "elapsedMs": 10
+    },
+    {
+      "id": 48,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_provider_credentials",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 186
+    },
+    {
+      "id": 48,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_provider_credentials",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 186
+    },
+    {
+      "id": 52,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "other",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 183
+    },
+    {
+      "id": 52,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "other",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 183
+    },
+    {
+      "id": 49,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_provider_credentials",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 204
+    },
+    {
+      "id": 49,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_provider_credentials",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 204
+    },
+    {
+      "id": 44,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_profiles",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 244
+    },
+    {
+      "id": 44,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_profiles",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 245
+    },
+    {
+      "id": 54,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "start"
+    },
+    {
+      "id": 55,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "start"
+    },
+    {
+      "id": 45,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_library",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 253
+    },
+    {
+      "id": 45,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_library",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 253
+    },
+    {
+      "epoch": 5,
+      "alias": "A",
+      "operation": "external-origin",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "epoch": 5,
+      "alias": "A",
+      "operation": "external-origin",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "id": 55,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 235
+    },
+    {
+      "id": 55,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 235
+    },
+    {
+      "id": 56,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "start"
+    },
+    {
+      "id": 54,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 242
+    },
+    {
+      "id": 54,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 242
+    },
+    {
+      "id": 57,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "start"
+    },
+    {
+      "id": 46,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_watched_items",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 673
+    },
+    {
+      "id": 46,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_watched_items",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 673
+    },
+    {
+      "id": 58,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "start"
+    },
+    {
+      "id": 47,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_watch_progress",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 680
+    },
+    {
+      "id": 47,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_watch_progress",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 680
+    },
+    {
+      "id": 57,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 230
+    },
+    {
+      "id": 57,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 230
+    },
+    {
+      "id": 56,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 247
+    },
+    {
+      "id": 56,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 247
+    },
+    {
+      "id": 51,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_collections",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 854
+    },
+    {
+      "id": 51,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_collections",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 855
+    },
+    {
+      "id": 58,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 238
+    },
+    {
+      "id": 58,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 238
+    },
+    {
+      "id": 59,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "other",
+      "phase": "start"
+    },
+    {
+      "epoch": 5,
+      "alias": "A",
+      "operation": "other",
+      "phase": "harness-denial",
+      "method": "POST"
+    },
+    {
+      "id": 59,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "other",
+      "phase": "before-headers-failure",
+      "category": "harness-denial",
+      "currentEpoch": true,
+      "elapsedMs": 1
+    },
+    {
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_profiles",
+      "phase": "control-headers",
+      "status": 200
+    },
+    {
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_library",
+      "phase": "control-headers",
+      "status": 200
+    },
+    {
+      "id": 60,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_watched_items",
+      "phase": "start"
+    },
+    {
+      "id": 61,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_watch_progress",
+      "phase": "start"
+    },
+    {
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_watched_items",
+      "phase": "control-headers",
+      "status": 200
+    },
+    {
+      "id": 61,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_watch_progress",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 481
+    },
+    {
+      "id": 61,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_watch_progress",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 481
+    },
+    {
+      "id": 60,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_watched_items",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 668
+    },
+    {
+      "id": 60,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_watched_items",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 668
+    },
+    {
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_watch_progress",
+      "phase": "control-headers",
+      "status": 200
+    },
+    {
+      "id": 62,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "other",
+      "phase": "start"
+    },
+    {
+      "epoch": 5,
+      "alias": "A",
+      "operation": "other",
+      "phase": "harness-denial",
+      "method": "POST"
+    },
+    {
+      "id": 62,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "other",
+      "phase": "before-headers-failure",
+      "category": "harness-denial",
+      "currentEpoch": true,
+      "elapsedMs": 2
+    },
+    {
+      "id": 63,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "other",
+      "phase": "start"
+    },
+    {
+      "epoch": 5,
+      "alias": "A",
+      "operation": "other",
+      "phase": "harness-denial",
+      "method": "POST"
+    },
+    {
+      "id": 63,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "other",
+      "phase": "before-headers-failure",
+      "category": "harness-denial",
+      "currentEpoch": true,
+      "elapsedMs": 1
+    },
+    {
+      "epoch": 5,
+      "alias": "A",
+      "operation": "read_addons",
+      "phase": "control-headers",
+      "status": 200
+    },
+    {
+      "id": 64,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_profiles",
+      "phase": "start"
+    },
+    {
+      "id": 65,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_profile_locks",
+      "phase": "start"
+    },
+    {
+      "id": 65,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_profile_locks",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 162
+    },
+    {
+      "id": 65,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_profile_locks",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 163
+    },
+    {
+      "id": 64,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_profiles",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 236
+    },
+    {
+      "id": 64,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "sync_pull_profiles",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 237
+    },
+    {
+      "id": 66,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "other",
+      "phase": "start"
+    },
+    {
+      "epoch": 5,
+      "alias": "A",
+      "operation": "other",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "id": 67,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "other",
+      "phase": "start"
+    },
+    {
+      "epoch": 5,
+      "alias": "A",
+      "operation": "other",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "id": 68,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "other",
+      "phase": "start"
+    },
+    {
+      "epoch": 5,
+      "alias": "A",
+      "operation": "other",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "id": 66,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "other",
+      "phase": "before-headers-failure",
+      "category": "harness-denial",
+      "currentEpoch": true,
+      "elapsedMs": 3
+    },
+    {
+      "id": 67,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "other",
+      "phase": "before-headers-failure",
+      "category": "harness-denial",
+      "currentEpoch": true,
+      "elapsedMs": 4
+    },
+    {
+      "id": 68,
+      "epoch": 5,
+      "alias": "A",
+      "operation": "other",
+      "phase": "before-headers-failure",
+      "category": "harness-denial",
+      "currentEpoch": true,
+      "elapsedMs": 3
+    },
+    {
+      "epoch": 6,
+      "alias": "B",
+      "operation": "external-origin",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "epoch": 6,
+      "alias": "B",
+      "operation": "external-origin",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "id": 69,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "auth-token",
+      "phase": "start"
+    },
+    {
+      "id": 69,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "auth-token",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 308
+    },
+    {
+      "id": 69,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "auth-token",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 308
+    },
+    {
+      "id": 70,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "get_sync_owner",
+      "phase": "start"
+    },
+    {
+      "id": 70,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "get_sync_owner",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 261
+    },
+    {
+      "id": 70,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "get_sync_owner",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 261
+    },
+    {
+      "id": 71,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "sync_pull_profiles",
+      "phase": "start"
+    },
+    {
+      "id": 72,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "sync_pull_profile_locks",
+      "phase": "start"
+    },
+    {
+      "id": 73,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "other",
+      "phase": "start"
+    },
+    {
+      "epoch": 6,
+      "alias": "B",
+      "operation": "other",
+      "phase": "harness-denial",
+      "method": "POST"
+    },
+    {
+      "id": 73,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "other",
+      "phase": "before-headers-failure",
+      "category": "harness-denial",
+      "currentEpoch": true,
+      "elapsedMs": 2
+    },
+    {
+      "id": 72,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "sync_pull_profile_locks",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 187
+    },
+    {
+      "id": 72,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "sync_pull_profile_locks",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 187
+    },
+    {
+      "id": 71,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "sync_pull_profiles",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 243
+    },
+    {
+      "id": 71,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "sync_pull_profiles",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 243
+    },
+    {
+      "id": 74,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "get_avatar_catalog",
+      "phase": "start"
+    },
+    {
+      "epoch": 6,
+      "alias": "B",
+      "operation": "external-origin",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "epoch": 6,
+      "alias": "B",
+      "operation": "external-origin",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "id": 75,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "start"
+    },
+    {
+      "id": 76,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "addons-read",
+      "phase": "start"
+    },
+    {
+      "id": 77,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "sync_pull_home_catalog_settings",
+      "phase": "start"
+    },
+    {
+      "id": 74,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "get_avatar_catalog",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 236
+    },
+    {
+      "id": 74,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "get_avatar_catalog",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 236
+    },
+    {
+      "id": 75,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 179
+    },
+    {
+      "id": 75,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 179
+    },
+    {
+      "id": 78,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "start"
+    },
+    {
+      "id": 76,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "addons-read",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 234
+    },
+    {
+      "id": 76,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "addons-read",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 235
+    },
+    {
+      "id": 77,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "sync_pull_home_catalog_settings",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 236
+    },
+    {
+      "id": 77,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "sync_pull_home_catalog_settings",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 236
+    },
+    {
+      "id": 79,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "sync_pull_home_catalog_settings",
+      "phase": "start"
+    },
+    {
+      "id": 80,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "sync_pull_home_catalog_settings",
+      "phase": "start"
+    },
+    {
+      "id": 78,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 172
+    },
+    {
+      "id": 78,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 172
+    },
+    {
+      "id": 81,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "other",
+      "phase": "start"
+    },
+    {
+      "epoch": 6,
+      "alias": "B",
+      "operation": "other",
+      "phase": "harness-denial",
+      "method": "POST"
+    },
+    {
+      "id": 81,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "other",
+      "phase": "before-headers-failure",
+      "category": "harness-denial",
+      "currentEpoch": true,
+      "elapsedMs": 7
+    },
+    {
+      "id": 79,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "sync_pull_home_catalog_settings",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 231
+    },
+    {
+      "id": 79,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "sync_pull_home_catalog_settings",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 231
+    },
+    {
+      "id": 80,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "sync_pull_home_catalog_settings",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 232
+    },
+    {
+      "id": 80,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "sync_pull_home_catalog_settings",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 232
+    },
+    {
+      "id": 82,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "sync_pull_profiles",
+      "phase": "start"
+    },
+    {
+      "id": 83,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "sync_pull_library",
+      "phase": "start"
+    },
+    {
+      "epoch": 6,
+      "alias": "B",
+      "operation": "external-origin",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "epoch": 6,
+      "alias": "B",
+      "operation": "external-origin",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "id": 84,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "sync_pull_watched_items",
+      "phase": "start"
+    },
+    {
+      "id": 85,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "sync_pull_watch_progress",
+      "phase": "start"
+    },
+    {
+      "id": 86,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "sync_pull_provider_credentials",
+      "phase": "start"
+    },
+    {
+      "id": 87,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "sync_pull_provider_credentials",
+      "phase": "start"
+    },
+    {
+      "id": 88,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "other",
+      "phase": "start"
+    },
+    {
+      "epoch": 6,
+      "alias": "B",
+      "operation": "other",
+      "phase": "harness-denial",
+      "method": "POST"
+    },
+    {
+      "id": 89,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "sync_pull_collections",
+      "phase": "start"
+    },
+    {
+      "id": 90,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "other",
+      "phase": "start"
+    },
+    {
+      "id": 88,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "other",
+      "phase": "before-headers-failure",
+      "category": "harness-denial",
+      "currentEpoch": true,
+      "elapsedMs": 8
+    },
+    {
+      "id": 84,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "sync_pull_watched_items",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 175
+    },
+    {
+      "id": 84,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "sync_pull_watched_items",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 175
+    },
+    {
+      "id": 87,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "sync_pull_provider_credentials",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 182
+    },
+    {
+      "id": 87,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "sync_pull_provider_credentials",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 182
+    },
+    {
+      "id": 89,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "sync_pull_collections",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 179
+    },
+    {
+      "id": 89,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "sync_pull_collections",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 179
+    },
+    {
+      "id": 90,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "other",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 179
+    },
+    {
+      "id": 90,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "other",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 179
+    },
+    {
+      "id": 82,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "sync_pull_profiles",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 245
+    },
+    {
+      "id": 82,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "sync_pull_profiles",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 245
+    },
+    {
+      "id": 86,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "sync_pull_provider_credentials",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 244
+    },
+    {
+      "id": 86,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "sync_pull_provider_credentials",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 244
+    },
+    {
+      "id": 85,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "sync_pull_watch_progress",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 248
+    },
+    {
+      "id": 85,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "sync_pull_watch_progress",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 249
+    },
+    {
+      "id": 83,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "sync_pull_library",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 255
+    },
+    {
+      "id": 83,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "sync_pull_library",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 255
+    },
+    {
+      "epoch": 6,
+      "alias": "B",
+      "operation": "external-origin",
+      "phase": "harness-denial",
+      "method": "GET"
+    },
+    {
+      "epoch": 6,
+      "alias": "B",
+      "operation": "sync_pull_profiles",
+      "phase": "control-headers",
+      "status": 200
+    },
+    {
+      "epoch": 6,
+      "alias": "B",
+      "operation": "sync_pull_library",
+      "phase": "control-headers",
+      "status": 200
+    },
+    {
+      "id": 91,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "start"
+    },
+    {
+      "epoch": 6,
+      "alias": "B",
+      "operation": "sync_pull_watched_items",
+      "phase": "control-headers",
+      "status": 200
+    },
+    {
+      "id": 91,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 229
+    },
+    {
+      "id": 91,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "sync_pull_profile_settings_blob",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 229
+    },
+    {
+      "id": 92,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "other",
+      "phase": "start"
+    },
+    {
+      "epoch": 6,
+      "alias": "B",
+      "operation": "other",
+      "phase": "harness-denial",
+      "method": "POST"
+    },
+    {
+      "id": 92,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "other",
+      "phase": "before-headers-failure",
+      "category": "harness-denial",
+      "currentEpoch": true,
+      "elapsedMs": 2
+    },
+    {
+      "epoch": 6,
+      "alias": "B",
+      "operation": "sync_pull_watch_progress",
+      "phase": "control-headers",
+      "status": 200
+    },
+    {
+      "epoch": 6,
+      "alias": "B",
+      "operation": "read_addons",
+      "phase": "control-headers",
+      "status": 200
+    },
+    {
+      "id": 93,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "sync_pull_profiles",
+      "phase": "start"
+    },
+    {
+      "id": 94,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "sync_pull_profile_locks",
+      "phase": "start"
+    },
+    {
+      "id": 93,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "sync_pull_profiles",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 229
+    },
+    {
+      "id": 93,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "sync_pull_profiles",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 229
+    },
+    {
+      "id": 94,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "sync_pull_profile_locks",
+      "phase": "headers",
+      "status": 200,
+      "currentEpoch": true,
+      "elapsedMs": 243
+    },
+    {
+      "id": 94,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "sync_pull_profile_locks",
+      "phase": "body-complete",
+      "currentEpoch": true,
+      "elapsedMs": 243
+    },
+    {
+      "id": null,
+      "epoch": 6,
+      "alias": "B",
+      "operation": "other",
+      "phase": "upstream-header-phase-unobserved-failure",
+      "category": "unclassified-network",
+      "currentEpoch": true
+    }
+  ],
+  "limits": [
+    "Both orders use one context per order, retained across sign-out/sign-in; all account-data mutations denied. No new UI-write propagation claim.",
+    "Historical pre-header failure lacks request-owned/error/timeout telemetry; exact old cause cannot be reconstructed. New replay does not establish that cause.",
+    "Linux Chromium only; provider QR and physical devices are deferred.",
+    "Private controls compare normalized profile fields, typed Library IDs, watched type/title/episode/time, progress video/episode/position/duration/time, and ordered addon URL/enabled/name; no raw payloads exported. Public API documents explicit limit200 and servercap200 for progress; refuse a full page. Server profiles may be absent; existing primary local default is labelled separately, never represented as synchronized profile data."
+  ],
+  "browser": "156.0.8078.4",
+  "os": "Linux ARM64",
+  "lastComparison": {
+    "profiles": true,
+    "library": true,
+    "watched": true,
+    "progress": true,
+    "addons": true,
+    "explicitScope": true,
+    "activeProfile": true
+  },
+  "status": "passed",
+  "authIssuanceUnresolved": false,
+  "finished": "2026-10-20T10:18:42.875Z"
+}
