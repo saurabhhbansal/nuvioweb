@@ -1,5 +1,5 @@
 {
-  "asOf": "2026-10-19",
+  "asOf": "2026-10-20",
   "sourceOfTruth": "Acceptance evidence and protected PRs; GitHub issue labels alone are insufficient",
   "tickets": [
     {
@@ -115,7 +115,7 @@
         3
       ],
       "progress": {
-        "branch": "m1/issue-7-reconciliation-live",
+        "branch": "m1/issue-117-acceptance-gate",
         "documents": [
           "docs/IDENTITY_VERIFICATION.md",
           "docs/plans/issues/issue-7.md",
@@ -124,7 +124,18 @@
           "docs/evidence/identity-switch-diagnosis-2026-10-19.json",
           "docs/evidence/identity-marker-diagnosis-2026-10-19.json",
           "docs/evidence/identity-roundtrip-diagnosis-2026-10-19.json",
-          "docs/agent-runs/2026-10-19-private-tooling-incident.md"
+          "docs/agent-runs/2026-10-19-private-tooling-incident.md",
+          "docs/evidence/issue7-acceptance.json",
+          "docs/evidence/issue7-fixture-closure-2026-10-20.json",
+          "docs/evidence/issue7-qr-red-2026-10-20.json",
+          "scripts/check-issue7-acceptance.mjs",
+          "scripts/check-issue7-acceptance.test.mjs",
+          "tests/browser/identity-sync.spec.mjs",
+          "docs/plans/issues/issue-117.md",
+          "docs/ISSUE_7_OWNER_CHECKS.md",
+          "docs/agent-runs/2026-10-20-issue7-ch1-review.md",
+          "docs/evidence/issue7-acceptance-contract.json",
+          "scripts/qr-ownership-probe.mjs"
         ],
         "verification": [
           "Owner reported initial three Windows/Edge checks passed; browser version and independent-session setup unspecified.",
@@ -137,9 +148,23 @@
           "Hosted1f67867/deployment b48de821 B-to-A diagnosis: distinct owners; fresh A control164 watched/156 progress, B0/0; actual Sign Out then A sign-in/primary-profile activation followed by a new A-epoch Library200 at about5.9s; A-epoch watched164/progress156 match fresh A exactly with no B set. Older missing-pull barrier not reproduced with corrected activation waits; both Libraries empty, so no Library isolation claim and no older-run root cause established.",
           "One bounded synthetic marker at hosted1f67867: B cloud empty, empty incremental/delete probes204, single insert204, post-insert count1; independent B local+UI present; A local absent and cloud count0. B-to-A-to-B did not restore the marker; the returning-B Library/watched/progress requests failed before response headers (category not captured). Exact-key delete204, B cloud count0, original key set unchanged, private note removed.",
           "Immediate read-only B-to-A-to-B round trip: all three Library pulls200 (returning-B about6.7s) with no Library/watched/progress failures; four unrelated critical reads categorised FAILED. Marker failure not reproduced deterministically.",
-          "Owner-created nonempty Library evidence on hosted1f67867: each account had1 item; fresh controls distinct owners and1 row each; B-to-A restored A's1 row (fingerprint equal to fresh A, different from B) with no foreign set, watched164/progress156 unchanged,0 page errors. Scoped B-to-A isolation only; B-to-A-to-B, app Save/delete and deletion propagation remain unverified."
+          "Owner-created nonempty Library evidence on hosted1f67867: each account had1 item; fresh controls distinct owners and1 row each; B-to-A restored A's1 row (fingerprint equal to fresh A, different from B) with no foreign set, watched164/progress156 unchanged,0 page errors. Scoped B-to-A isolation only; B-to-A-to-B, app Save/delete and deletion propagation remain unverified.",
+          "Issue7 closure split created after duplicate check: #117 (A1-A4 executable gate/fixtures), #118 (A6/A7 QR), #119 (A5 Library policy), blocked #120 (live A1/A2/A3/A8). Linked from #7; child creation is not parent acceptance.",
+          "Fail-closed acceptance gate added at scripts/check-issue7-acceptance.mjs with docs/evidence/issue7-acceptance.json. Schema --validate exits0 on the honest blocked receipt; default closure exits2 with unmet A1,A2,A3,A5,A6,A7,A8. 34 negative/positive validator tests pass, including actual-receipt mutations for missing IDs, synthetic-as-live, unresolved failure, missing artifact/revision/deployment, invalid resolution and premature ledger verification.",
+          "tests/browser/identity-sync.spec.mjs extended to 13 passing synthetic Chromium cases on inert loopback build at pinned Node22.23.1: two profiles with nonempty distinguishable add-on/watched/progress/Library keys, exact p_profile_id/profile_id routing, B1->2->1 and B->A round trips, foreign-account absence, a same-profile fixture-backend mutation seen only in an independent B context, expired/rejected-refresh sign-out and offline no-new-server-sync/no-foreign-data boundaries. All synthetic; mutations via application UI versus fixture backend distinguished in the receipt.",
+          "A1/A4 focused auth/startup/sync suite 55/55 pass at source f30c79f. No runtime product change in this unit; no live account, credential, QR, device or revocation operation.",
+          "QR stale-publication red invariant recorded in docs/evidence/issue7-qr-red-2026-10-20.json (actual service module, mocked Fetch, sign-out then later session then delayed completion overwrote it). CH2 #118 owns the fix; no live exploit claim.",
+          "Child #120 remains blocked on explicit bounded owner resumption; the owner pause on live-account probes/writes/device tests is unchanged.",
+          "Gate hardening at source 2c1d237: a failure may be resolved only by a later same-kind pass observation on the same criterion whose committed artifact is the reference; cross-criterion/child resolution, zero/nonexistent commits, missing observed_at, child/criterion key collisions, ledger status inconsistency and whole-receipt credential strings are rejected. The immutable O1-O3/A1-A8 mapping is committed in docs/evidence/issue7-acceptance-contract.json. 29 validator tests pass; the honest blocked receipt still validates and full closure exits2.",
+          "Follow-up gate hardening: artifacts must be tracked at HEAD and realpath-contained; the resolving observation commit must be a later git descendant of the failing commit; JSON artifact kind/source_commit must agree; malformed receipts and count-only synonyms are handled. 34 tests pass. The trust boundary is documented: schema validation is internal consistency, not tamper-proof authorship; full closure still needs protected review."
         ],
-        "remaining": "Issue7 OPEN. Hosted nonempty B-to-A Library isolation now passes scoped with owner-created items (A restored its own1 item, no B set; watched164/progress156 unchanged). B-to-A-to-B restoration remains flaky (failed once, immediate repeat passed) and is not deterministic. No further live marker write. App Save/remove propagation, cross-client deletion, live push/expiry/revocation/QR/offline and named-device evidence remain open. Failed/legacy local edits still lack retry/resolution UI; snapshot concurrent writers and cross-tab conflicts remain. Next work: app-level Save/remove test if owner authorizes, independent #10 device/audio/HDR evidence, and a deterministic synthetic reproduction before any sync runtime change."
+        "remaining": "Issue7 OPEN as acceptance parent. Receipt A4 pass synthetic; A1/A2 partial (live/QR), A3 fail on the unresolved live post-removal switch, A5 unverified (#119), A6 fail and A7 unverified (#118), A8 blocked (#120). Synthetic fixtures do not prove deployed sync, provider authorization, measured expiry/revocation, QR consent/device or cross-device deletion. Historical failing receipts retained. Owner-created A/B Library items must not be deleted by automation. No repeated unchanged-source live probe.",
+        "children": [
+          117,
+          118,
+          119,
+          120
+        ]
       }
     },
     {

@@ -21,6 +21,14 @@ jobs:
           node-version-file: .node-version
       - run: node --test scripts/governance.test.mjs
       - run: node scripts/check-progress.mjs
+      # Issue #7's evidence gate uses only the existing read-only contents scope.
+      # The schema/honesty mode is expected to pass while the parent is blocked;
+      # the full closure command remains a release/closure step and exits 2 until
+      # every mapped criterion is genuinely met.
+      - name: Issue #7 acceptance gate tests and receipt validation
+        run: |
+          node --test scripts/check-issue7-acceptance.test.mjs
+          node scripts/check-issue7-acceptance.mjs docs/evidence/issue7-acceptance.json --validate
       - name: Check every new ancestry commit
         env:
           PR_TITLE: ${{ github.event.pull_request.title }}

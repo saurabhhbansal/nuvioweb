@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "issue": 7,
+  "date": "2026-10-20",
+  "kind": "synthetic",
+  "source_commit": "f30c79f6045786c821047532104c90aa65b861cc",
+  "module_under_test": "app/alpha/js/core/auth/qrLoginService.js",
+  "command": [
+    "node",
+    "scripts/qr-ownership-probe.mjs",
+    "app/alpha/js",
+    "--assert-safe"
+  ],
+  "environment": "Node.js with the actual QR service module, fake localStorage and a mocked Fetch implementation; no network, browser, account or credential.",
+  "scenario": "Start the real QR exchange with a deliberately held response; complete a real AuthManager sign-out; establish a later authenticated session with different synthetic tokens; release the old exchange response.",
+  "assertion": "stale QR exchange must not overwrite a later session",
+  "observed": {
+    "requests": 1,
+    "staleExchangeAccepted": true,
+    "laterSessionOverwritten": true
+  },
+  "exit_code": 1,
+  "result": "FAIL (expected red): the delayed service response wrote the old access/refresh tokens and authenticated state over the later synthetic session.",
+  "limitations": [
+    "Service seam with a simulated later session; not a browser journey and not a live exploit.",
+    "The screen post-await stale-session check runs after the service has already published tokens, so it cannot undo this write.",
+    "No production source change is recorded in this artifact; the maintained lifecycle regression is added by CH2 (#118)."
+  ],
+  "follow_up": "CH2 (#118) must port this invariant to a committed lifecycle regression, prove the failure first, and then add attempt/session ownership at the service publication boundary.",
+  "probe_commit": "ecef56026d5c55ae205917405ac51fe41ac0bd38"
+}
