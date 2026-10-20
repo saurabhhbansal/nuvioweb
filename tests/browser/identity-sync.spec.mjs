@@ -724,6 +724,12 @@ test("expired access with a rejected refresh cannot resume an authenticated sess
   expect(await page.evaluate(() => history.state?.route)).toMatch(/auth/i);
   await expect.poll(() => fixture.requests.slice(refreshStart).some((entry) => entry.operation === "refresh")).toBe(true);
   expect(fixture.refreshRejections()).toBeGreaterThan(0);
+  expect(await page.evaluate(() => ({
+    access: localStorage.getItem("access_token"),
+    refresh: localStorage.getItem("refresh_token"),
+    privateStoresEmpty: ["savedLibraryItems", "watchedItems", "watchProgressItems"].every(key =>
+      JSON.parse(localStorage.getItem(key) || "[]").length === 0)
+  }))).toEqual({ access: null, refresh: null, privateStoresEmpty: true });
   expect(fixture.unexpected).toEqual([]);
 });
 
