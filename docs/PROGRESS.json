@@ -151,7 +151,8 @@
           "docs/evidence/issue7-sol-live-lifecycle.json",
           "docs/evidence/issue7-sol-qr-live-observation.json",
           "docs/evidence/issue7-protected-checkpoint-2026-10-20.json",
-          "docs/evidence/issue7-offline-reconnect-2026-10-20.json"
+          "docs/evidence/issue7-offline-reconnect-2026-10-20.json",
+          "docs/evidence/issue7-classified-switch-replay-2026-10-20.json"
         ],
         "verification": [
           "Owner reported initial three Windows/Edge checks passed; browser version and independent-session setup unspecified.",
@@ -181,7 +182,7 @@
           "2026-10-20 Sol remediation supersedes prior completion/pause claims: two additional QR defects reproduced and repaired, canonical repository corrected, children integrated into completion ledger. Bounded live testing resumed under explicit owner delegation; parent O1-O3 remain unmet pending actual evidence.",
           "Protected PR127/131/132 are merged. All four workflows pass at canonical b5a8679; dedicated development preview9d9d6d0d has141 served hashes, shell/automatic worker and seven guest journeys pass. #119 closed with completion guard39406387999 success; owner bounded decision supersedes prior atomic-contract block. Actual offline reload/reconnect passes; complete app mutation journey, classified replay and real elapsed observations remain required."
         ],
-        "remaining": "Original O1–O3 unchanged. A5 passes owner-accepted bounded recovery; #119 closed, stronger guarantees deferred to #128. A2 actual profile/add-on UI propagation passed but complete app Save/history/progress/final-delete receiver journey remains. A3 needs classified replay/disposition of historical failure. A8 actual offline reload/reconnect passed; natural expiry and post-expiry revoked refresh wait until 2026-10-27. QR/physical-device work explicitly deferred, unsupported in #129/#130. No routine owner permission pending.",
+        "remaining": "Original O1–O3 unchanged. A5 passes owner-accepted bounded recovery; #119 closed, stronger guarantees deferred to #128. A2 actual profile/add-on UI propagation passed but complete app Save/history/progress/final-delete receiver journey remains. A3 current verification passes classified six-step replay; historical failure retained with missing causal telemetry explicitly unreconstructible. A8 actual offline reload/reconnect passed; natural expiry and post-expiry revoked refresh wait until 2026-10-27. QR/physical-device work explicitly deferred, unsupported in #129/#130. No routine owner permission pending.",
         "children": [
           {
             "number": 117,
