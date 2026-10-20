@@ -214,6 +214,9 @@ async function installIdentityFixture(context, {
       return json({ error: "fixture session required" }, 401);
     }
     requests.push({ alias, operation });
+    if (withSaveFixture && request.method() === "GET" && url.pathname === "/rest/v1/tv_addons" && url.searchParams.size === 3 && url.searchParams.get("owner_id") === `eq.${accounts[alias].owner}` && url.searchParams.get("select") === "*" && url.searchParams.get("order") === "position.asc") {
+      return json({error: "Known fixture fallback unavailable"}, 503);
+    }
     if (url.pathname === "/auth/v1/user") { completions.push({ alias, operation }); return json(accounts[alias]); }
     if (operation === "get_sync_owner") { completions.push({ alias, operation }); return json(accounts[alias].owner); }
     if (operation === "sync_pull_profiles") {
@@ -818,4 +821,20 @@ test("failed UI save survives reload and reconnect without false sync or unrelat
   await expect(page.getByRole("status").filter({hasText: "Automatic retry is unavailable"})).toBeVisible();
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem("savedLibrarySyncState")).profiles["1"].pending)).toBe(true);
   expect(fixture.unexpected).toEqual([]);
+});
+
+test("offline add-on fallback denial recognizes only the exact authenticated fixture owner", async ({context, page}) => {
+  const fixture = await installIdentityFixture(context, {withSaveFixture: true});
+  await page.goto("/");
+  const status = await page.evaluate(async ({origin, access, owner}) => {
+    const url = origin + "/rest/v1/tv_addons?" + new URLSearchParams({owner_id: "eq." + owner, select: "*", order: "position.asc"});
+    return (await fetch(url, {headers: {Authorization: "Bearer " + access}})).status;
+  }, {origin: identityOrigin, access: token("B"), owner: accounts.B.owner});
+  expect(status).toBe(503);
+  expect(fixture.unexpected).toEqual([]);
+  await page.evaluate(async ({origin, access, owner}) => {
+    const url = origin + "/rest/v1/tv_addons?" + new URLSearchParams({owner_id: "eq." + owner, select: "*", order: "position.asc"});
+    await fetch(url, {headers: {Authorization: "Bearer " + access}});
+  }, {origin: identityOrigin, access: token("B"), owner: accounts.A.owner});
+  expect(fixture.unexpected).toEqual([{operation: "/rest/v1/tv_addons", method: "GET"}]);
 });
