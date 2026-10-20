@@ -590,7 +590,7 @@ test("failed local removal stays pending across reload and a competing nonempty 
   await signIn(page, "B");
   await expectLibrary(page, "B");
   await page.locator('#library .library-grid-card[data-item-id="fixture-library-b"]').click({ button: "right" });
-  const rejected = page.waitForResponse((response) => new URL(response.url()).pathname === "/rest/v1/rpc/sync_push_library");
+  const rejected = page.waitForResponse((response) => new URL(response.url()).pathname === "/rest/v1/rpc/sync_delete_library_items");
   await page.getByRole("menuitem", { name: "Remove from Library", exact: true }).click();
   expect((await rejected).status()).toBe(503);
   await expect(page.locator('#library .library-grid-card[data-item-id="fixture-library-b"]')).toHaveCount(0);

@@ -20,7 +20,7 @@ function queueSavedLibraryCloudSync(profileId, change, delayMs = 500) {
   const profileKey = `${sessionGeneration}:${String(profileId || "1")}`;
   let batch = savedLibrarySyncBatches.get(profileKey);
   if (!batch) {
-    batch = { changes: new Map(), acknowledge: !previousState.pending || savedLibrarySyncInFlightByProfile.has(profileKey) };
+    batch = { changes: new Map(), predecessor: savedLibrarySyncInFlightByProfile.get(profileKey), acknowledge: !previousState.pending || savedLibrarySyncInFlightByProfile.has(profileKey) };
     savedLibrarySyncBatches.set(profileKey, batch);
   }
   batch.revision = state.revision;
@@ -33,7 +33,7 @@ function queueSavedLibraryCloudSync(profileId, change, delayMs = 500) {
     savedLibrarySyncTimers.delete(profileKey);
     savedLibrarySyncBatches.delete(profileKey);
     if (!isCurrent()) return;
-    const inFlight = savedLibrarySyncInFlightByProfile.get(profileKey);
+    const inFlight = savedLibrarySyncInFlightByProfile.get(profileKey) || batch.predecessor;
     const pushPromise = Promise.resolve(inFlight).catch(() => false)
       .then(async (priorSucceeded) => {
         if (!isCurrent()) return false;
@@ -83,15 +83,15 @@ class SavedLibraryRepository {
     }
     this.getSyncState(profileId);
     SavedLibraryStore.upsert(item, profileId);
-    queueSavedLibraryCloudSync(profileId, { kind: "save", item: SavedLibraryStore.findByContentId(item.contentId, profileId) });
+    queueSavedLibraryCloudSync(profileId, { kind: "save", item: SavedLibraryStore.listForProfile(profileId).find(saved => saved.contentId === item.contentId && saved.contentType === String(item.contentType || item.itemType || item.type || "movie")) });
   }
 
   async remove(contentId, profileId = activeProfileId()) {
     this.getSyncState(profileId);
-    const item = SavedLibraryStore.findByContentId(contentId, profileId);
-    if (!item) return;
+    const items = SavedLibraryStore.listForProfile(profileId).filter(item => item.contentId === contentId);
+    if (!items.length) return;
     SavedLibraryStore.remove(contentId, profileId);
-    queueSavedLibraryCloudSync(profileId, { kind: "remove", item });
+    for (const item of items) queueSavedLibraryCloudSync(profileId, { kind: "remove", item });
   }
 
   async toggle(item, profileId = activeProfileId()) {
@@ -101,12 +101,11 @@ class SavedLibraryRepository {
     this.getSyncState(profileId);
     const exists = SavedLibraryStore.findByContentId(item.contentId, profileId);
     if (exists) {
-      SavedLibraryStore.remove(item.contentId, profileId);
-      queueSavedLibraryCloudSync(profileId, { kind: "remove", item: exists });
+      await this.remove(item.contentId, profileId);
       return false;
     }
     SavedLibraryStore.upsert(item, profileId);
-    queueSavedLibraryCloudSync(profileId, { kind: "save", item: SavedLibraryStore.findByContentId(item.contentId, profileId) });
+    queueSavedLibraryCloudSync(profileId, { kind: "save", item: SavedLibraryStore.listForProfile(profileId).find(saved => saved.contentId === item.contentId && saved.contentType === String(item.contentType || item.itemType || item.type || "movie")) });
     return true;
   }
 

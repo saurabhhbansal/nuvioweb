@@ -310,3 +310,56 @@ test("removing an absent local item does not guess a remote content type", async
   await f.runTimers();
   assert.deepEqual(f.calls, []);
 });
+
+test("a failed predecessor settling before the next debounce cannot be forgotten", async (t) => {
+  const f = await fixture(t);
+  const first = deferred();
+  const options = [];
+  f.dependencies.SavedLibrarySyncService.push = async (_profile, _changes, option) => { options.push(option); return options.length === 1 ? first.promise : true; };
+  await f.repository.save({ contentId: "failed" });
+  await f.runTimers();
+  await f.repository.save({ contentId: "later" });
+  first.resolve(false);
+  await f.flush();
+  await f.runTimers();
+  assert.equal(options[1].acknowledge, false);
+  assert.equal(f.repository.getSyncState().pending, true);
+});
+
+test("same content ID with two types sends each explicit typed removal", async (t) => {
+  const f = await fixture(t);
+  let changes;
+  f.dependencies.SavedLibrarySyncService.push = async (_profile, received) => { changes = received; return true; };
+  await f.repository.save({ contentId: "shared", contentType: "movie" });
+  await f.repository.save({ contentId: "shared", contentType: "series" });
+  await f.repository.remove("shared");
+  await f.runTimers();
+  assert.deepEqual(changes.map(change => [change.kind, change.item.contentType]).sort(), [["remove", "movie"], ["remove", "series"]]);
+  assert.deepEqual(await f.repository.getAll(), []);
+});
+
+test("legacy predecessor outcome survives settling before successor debounce", async (t) => {
+  const f = await fixture(t);
+  f.seedLegacy([{ contentId: "legacy", contentType: "movie", profileId: "1" }]);
+  const first = deferred();
+  const options = [];
+  f.dependencies.SavedLibrarySyncService.push = async (_profile, _changes, option) => { options.push(option); return options.length === 1 ? first.promise : true; };
+  await f.repository.save({ contentId: "first-explicit" });
+  await f.runTimers();
+  await f.repository.save({ contentId: "second-explicit" });
+  first.resolve(true);
+  await f.flush();
+  await f.runTimers();
+  assert.equal(options[0].acknowledge, false);
+  assert.equal(options[1].acknowledge, false);
+});
+
+test("same ID with distinct types retains both explicit saves", async (t) => {
+  const f = await fixture(t);
+  let changes;
+  f.dependencies.SavedLibrarySyncService.push = async (_profile, received) => { changes = received; return true; };
+  await f.repository.save({ contentId: "shared", contentType: "movie" });
+  await f.repository.save({ contentId: "shared", contentType: "series" });
+  await f.runTimers();
+  assert.deepEqual(changes.map(change => [change.kind, change.item.contentType]).sort(), [["save", "movie"], ["save", "series"]]);
+});
