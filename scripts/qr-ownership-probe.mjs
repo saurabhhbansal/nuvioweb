@@ -46,7 +46,8 @@ SessionStore.accessToken = token("synthetic-initial");
 SessionStore.refreshToken = "synthetic-initial";
 AuthManager.setState(AuthState.AUTHENTICATED);
 
-const exchange = QrLoginService.exchange("synthetic-code", "synthetic-nonce");
+const attemptId = QrLoginService.beginAttempt();
+const exchange = QrLoginService.exchange("synthetic-code", "synthetic-nonce", attemptId);
 await requestStarted;
 await AuthManager.signOut();
 SessionStore.accessToken = token("synthetic-later");

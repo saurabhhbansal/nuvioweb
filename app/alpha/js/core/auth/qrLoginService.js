@@ -2,10 +2,11 @@ import { SUPABASE_URL, SUPABASE_ANON_KEY, TV_LOGIN_WEB_BASE_URL } from "../../co
 import { Environment } from "../../platform/environment.js";
 import { SessionStore } from "../storage/sessionStore.js";
 import { AuthManager } from "./authManager.js";
-import { AuthState } from "./authState.js";
 import { fetchSupabaseAuth } from "./supabaseAuthFetch.js";
 
 let lastError = null;
+let activeAttempt = null;
+let attemptSequence = 0;
 
 function hasQrAuthConfig() {
   return Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
@@ -204,11 +205,108 @@ function extractSessionTokens(payload) {
   return { accessToken, refreshToken };
 }
 
-async function ensureQrSessionAuthenticated({ forceNewAnonymous = false } = {}) {
+function redactSecrets(value, secrets = []) {
+  let text = String(value || "");
+  for (const secret of secrets) {
+    const normalized = String(secret || "").trim();
+    if (normalized.length < 4) continue;
+    text = text.split(normalized).join("[redacted]");
+  }
+  return text;
+}
+
+function staleAttemptError() {
+  const error = new Error("QR login attempt was superseded");
+  error.code = "STALE_QR_ATTEMPT";
+  return error;
+}
+
+function isStaleAttemptError(error) {
+  return error?.code === "STALE_QR_ATTEMPT";
+}
+
+function beginAttempt() {
+  const previous = activeAttempt;
+  if (previous?.authAttemptId != null && AuthManager.authAttemptSequence === previous.authAttemptId) {
+    AuthManager.beginAuthenticationAttempt();
+  }
+  if (
+    previous?.qrAccessToken &&
+    SessionStore.accessToken === previous.qrAccessToken &&
+    SessionStore.refreshToken === previous.qrRefreshToken
+  ) {
+    // An approved exchange's account tokens belong to the superseded attempt.
+    // A new QR attempt must start from a fresh anonymous caller, not reuse them.
+    SessionStore.clear();
+  }
+  if (previous) {
+    previous.qrAccessToken = null;
+    previous.qrRefreshToken = null;
+  }
+  attemptSequence += 1;
+  const attempt = {
+    id: attemptSequence,
+    sessionGeneration: AuthManager.getSessionGeneration(),
+    qrAccessToken: null,
+    qrRefreshToken: null
+  };
+  activeAttempt = attempt;
+  return attempt.id;
+}
+
+function currentAttempt(attemptId = null) {
+  if (!activeAttempt) return null;
+  if (attemptId != null && activeAttempt.id !== attemptId) return null;
+  return activeAttempt;
+}
+
+function attemptIsActive(attempt) {
+  return Boolean(attempt) && activeAttempt === attempt;
+}
+
+function attemptIsOwned(attempt) {
+  return attemptIsActive(attempt) &&
+    AuthManager.getSessionGeneration() === attempt.sessionGeneration;
+}
+
+function assertAttemptOwned(attempt) {
+  if (!attemptIsOwned(attempt)) throw staleAttemptError();
+}
+
+function cancelAttempt(attemptId = null) {
+  if (attemptId == null || activeAttempt?.id === attemptId) {
+    const cancelled = activeAttempt;
+    activeAttempt = null;
+    attemptSequence += 1;
+    // A cancel during the final owner resolution must invalidate the
+    // establishment that is already in flight, not let it publish afterwards.
+    if (cancelled?.authAttemptId != null && AuthManager.authAttemptSequence === cancelled.authAttemptId) {
+      AuthManager.beginAuthenticationAttempt();
+    }
+    // The anonymous caller exists only to start and poll this QR attempt.
+    // An approved exchange may already have written the account pair before its
+    // owner resolution finished, so clear that pair only while it is still the
+    // stored pair. A later session's different tokens are never touched.
+    const ownsStoredPair = cancelled?.qrAccessToken &&
+      SessionStore.accessToken === cancelled.qrAccessToken &&
+      SessionStore.refreshToken === cancelled.qrRefreshToken;
+    if (SessionStore.isAnonymousSession || ownsStoredPair) {
+      SessionStore.clear();
+    }
+    if (cancelled) {
+      cancelled.qrAccessToken = null;
+      cancelled.qrRefreshToken = null;
+    }
+  }
+}
+
+async function ensureQrSessionAuthenticated({ forceNewAnonymous = false, attempt = null } = {}) {
+  assertAttemptOwned(attempt);
   if (forceNewAnonymous) {
     const wasAnonymous = SessionStore.isAnonymousSession;
     if (!wasAnonymous && SessionStore.refreshToken) {
       const refreshed = await AuthManager.refreshSessionIfNeeded({ force: true });
+      assertAttemptOwned(attempt);
       if (refreshed && SessionStore.accessToken && !isJwtExpired(SessionStore.accessToken, 0)) {
         return true;
       }
@@ -216,6 +314,7 @@ async function ensureQrSessionAuthenticated({ forceNewAnonymous = false } = {}) 
         return true;
       }
     }
+    assertAttemptOwned(attempt);
     SessionStore.accessToken = null;
     SessionStore.refreshToken = null;
     SessionStore.isAnonymousSession = false;
@@ -230,6 +329,7 @@ async function ensureQrSessionAuthenticated({ forceNewAnonymous = false } = {}) 
       return true;
     }
     const refreshed = await AuthManager.refreshSessionIfNeeded();
+    assertAttemptOwned(attempt);
     if (refreshed && SessionStore.accessToken && !isJwtExpired(SessionStore.accessToken)) {
       return true;
     }
@@ -284,12 +384,12 @@ async function ensureQrSessionAuthenticated({ forceNewAnonymous = false } = {}) 
   let payload;
   try {
     payload = await tryAnonymousSignup();
+    assertAttemptOwned(attempt);
   } catch (firstError) {
-    payload = await tryAnonymousToken().catch((secondError) => {
-      throw new Error(
-        `${firstError?.message || "anonymous signup failed"} | ${secondError?.message || "anonymous token failed"}`
-      );
-    });
+    if (isStaleAttemptError(firstError)) throw firstError;
+    assertAttemptOwned(attempt);
+    payload = await tryAnonymousToken();
+    assertAttemptOwned(attempt);
   }
 
   const tokens = extractSessionTokens(payload);
@@ -297,29 +397,36 @@ async function ensureQrSessionAuthenticated({ forceNewAnonymous = false } = {}) 
     throw new Error("Anonymous auth did not return session tokens");
   }
 
+  assertAttemptOwned(attempt);
   SessionStore.accessToken = tokens.accessToken;
   SessionStore.refreshToken = tokens.refreshToken;
   SessionStore.isAnonymousSession = true;
   return true;
 }
 
-async function fetchWithCallerSessionRecovery(requestFactory) {
-  await ensureQrSessionAuthenticated();
+async function fetchWithCallerSessionRecovery(requestFactory, attempt) {
+  await ensureQrSessionAuthenticated({ attempt });
+  assertAttemptOwned(attempt);
   let response = await requestFactory();
+  assertAttemptOwned(attempt);
   if (response.ok || response.status !== 401) {
     return response;
   }
 
   const firstErrorText = await parseErrorText(response);
+  assertAttemptOwned(attempt);
   if (!isCallerSessionRejected(firstErrorText)) {
     throw new Error(firstErrorText || `HTTP ${response.status}`);
   }
 
-  await ensureQrSessionAuthenticated({ forceNewAnonymous: true });
-  return requestFactory();
+  await ensureQrSessionAuthenticated({ forceNewAnonymous: true, attempt });
+  assertAttemptOwned(attempt);
+  response = await requestFactory();
+  assertAttemptOwned(attempt);
+  return response;
 }
 
-async function startRpc(deviceNonce, redirectBaseUrl, includeDeviceName = true) {
+async function startRpc(deviceNonce, redirectBaseUrl, includeDeviceName, attempt) {
   const payload = {
     p_device_nonce: deviceNonce,
     p_redirect_base_url: redirectBaseUrl
@@ -337,7 +444,8 @@ async function startRpc(deviceNonce, redirectBaseUrl, includeDeviceName = true) 
         Authorization: `Bearer ${getBearerToken()}`
       },
       body: JSON.stringify(payload)
-    })
+    }),
+    attempt
   );
 
   if (!response.ok) {
@@ -349,19 +457,81 @@ async function startRpc(deviceNonce, redirectBaseUrl, includeDeviceName = true) 
   return data?.[0] || null;
 }
 
+export function isSafeQrLoginUrl(value) {
+  try {
+    const url = new URL(String(value || ""));
+    if (url.username || url.password) return false;
+    if (url.protocol === "https:") return true;
+    return url.protocol === "http:" && ["127.0.0.1", "localhost"].includes(url.hostname);
+  } catch {
+    return false;
+  }
+}
+
+export function isSafeQrImageUrl(value) {
+  const text = String(value || "").trim();
+  if (!text) return false;
+  if (/["'<>`]/.test(text)) return false;
+  if (Array.from(text).some((character) => character.charCodeAt(0) < 32)) return false;
+  if (/^data:image\/(?:png|jpeg|gif|webp);base64,[a-z0-9+/=\s]+$/i.test(text)) {
+    return true;
+  }
+  let url;
+  try {
+    const baseHref = typeof globalThis.location?.href === "string" ? globalThis.location.href : undefined;
+    url = new URL(text, baseHref);
+  } catch {
+    return false;
+  }
+  if (url.username || url.password) return false;
+  const base = typeof globalThis.location?.href === "string" ? new URL(globalThis.location.href) : null;
+  if (!base) return false;
+  if (url.protocol === "https:") {
+    return url.origin === base.origin;
+  }
+  if (url.protocol === "http:" && ["127.0.0.1", "localhost"].includes(url.hostname)) {
+    return url.origin === base.origin;
+  }
+  return false;
+}
+
 export const QrLoginService = {
   getLastError() {
     return lastError;
   },
 
-  async start() {
+  beginAttempt,
+
+  cancelAttempt,
+
+  isAttemptActive(attemptId) {
+    return Boolean(currentAttempt(attemptId));
+  },
+
+  isSafeQrImageUrl,
+
+  async start(attemptId = null) {
     lastError = null;
+    let attempt = null;
+    if (attemptId == null) {
+      const id = beginAttempt();
+      attempt = currentAttempt(id);
+    } else {
+      attempt = currentAttempt(attemptId);
+    }
+    if (!attempt) {
+      lastError = "QR login attempt is not active";
+      return null;
+    }
+    let deviceNonce = "";
     try {
       if (!hasQrAuthConfig()) {
         throw new Error("QR auth is not configured");
       }
-      await ensureQrSessionAuthenticated();
-      const deviceNonce = generateDeviceNonce();
+      assertAttemptOwned(attempt);
+      await ensureQrSessionAuthenticated({ attempt });
+      assertAttemptOwned(attempt);
+      deviceNonce = generateDeviceNonce();
       const redirectCandidates = buildRedirectCandidates();
       if (!redirectCandidates.length) {
         throw new Error("Missing redirect_base_url configuration");
@@ -371,20 +541,25 @@ export const QrLoginService = {
       let lastStartError = null;
 
       for (const redirectCandidate of redirectCandidates) {
+        assertAttemptOwned(attempt);
         try {
-          session = await startRpc(deviceNonce, redirectCandidate, true);
+          session = await startRpc(deviceNonce, redirectCandidate, true, attempt);
+          assertAttemptOwned(attempt);
           if (session) {
             break;
           }
         } catch (error) {
+          if (isStaleAttemptError(error)) throw error;
           const message = String(error?.message || "");
           if (isLegacyStartSignatureError(message)) {
             try {
-              session = await startRpc(deviceNonce, redirectCandidate, false);
+              session = await startRpc(deviceNonce, redirectCandidate, false, attempt);
+              assertAttemptOwned(attempt);
               if (session) {
                 break;
               }
             } catch (legacyError) {
+              if (isStaleAttemptError(legacyError)) throw legacyError;
               lastStartError = legacyError;
               continue;
             }
@@ -394,6 +569,7 @@ export const QrLoginService = {
         }
       }
 
+      assertAttemptOwned(attempt);
       if (!session) {
         if (lastStartError) {
           throw new Error(
@@ -406,22 +582,32 @@ export const QrLoginService = {
       return {
         code: session.code,
         loginUrl: session.qr_content || session.web_url || null,
-        qrImageUrl:
-          session.qr_image_url ||
-          `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(session.qr_content || session.web_url || "")}`,
+        qrImageUrl: session.qr_image_url || null,
         expiresAt: toEpochMillis(session),
         pollIntervalSeconds: Number(session.poll_interval_seconds || 3),
-        deviceNonce
+        deviceNonce,
+        attemptId: attempt.id
       };
     } catch (error) {
-      lastError = String(error?.message || "QR start failed");
-      console.error("QR start error:", error);
+      if (isStaleAttemptError(error)) {
+        lastError = "QR login attempt was superseded";
+        cancelAttempt(attempt.id);
+        return null;
+      }
+      lastError = redactSecrets(String(error?.message || "QR start failed"), [deviceNonce]);
+      console.error("QR start failed");
+      cancelAttempt(attempt.id);
       return null;
     }
   },
 
-  async poll(code, deviceNonce) {
+  async poll(code, deviceNonce, attemptId = null) {
     lastError = null;
+    const attempt = currentAttempt(attemptId);
+    if (!attempt) {
+      lastError = "QR login attempt is not active";
+      return null;
+    }
     try {
       if (!hasQrAuthConfig()) {
         lastError = "QR auth is not configured";
@@ -439,30 +625,47 @@ export const QrLoginService = {
             p_code: code,
             p_device_nonce: deviceNonce
           })
-        })
+        }),
+        attempt
       );
 
       if (!response.ok) {
-        lastError = await parseErrorText(response);
+        lastError = redactSecrets(await parseErrorText(response), [code, deviceNonce]);
         return null;
       }
 
       const data = await response.json();
+      assertAttemptOwned(attempt);
       return data?.[0]?.status || null;
     } catch (error) {
-      lastError = String(error?.message || "QR poll failed");
-      console.error("QR poll error:", error);
+      if (isStaleAttemptError(error)) {
+        lastError = "QR login attempt was superseded";
+        cancelAttempt(attempt.id);
+        return null;
+      }
+      lastError = redactSecrets(String(error?.message || "QR poll failed"), [code, deviceNonce]);
+      console.error("QR poll failed");
       return null;
     }
   },
 
-  async exchange(code, deviceNonce) {
+  async exchange(code, deviceNonce, attemptId = null) {
     lastError = null;
+    const attempt = currentAttempt(attemptId);
+    if (!attempt) {
+      lastError = "QR login attempt is not active";
+      return false;
+    }
+    let qrAccessToken = null;
+    let qrRefreshToken = null;
     try {
       if (!hasQrAuthConfig()) {
         lastError = "QR auth is not configured";
         return false;
       }
+      await ensureQrSessionAuthenticated({ attempt });
+      assertAttemptOwned(attempt);
+      const generation = AuthManager.getSessionGeneration();
       const response = await fetchWithCallerSessionRecovery(() =>
         fetchSupabaseAuth("/functions/v1/tv-logins-exchange", {
           method: "POST",
@@ -475,16 +678,21 @@ export const QrLoginService = {
             code,
             device_nonce: deviceNonce
           })
-        })
+        }),
+        attempt
       );
-
+      assertAttemptOwned(attempt);
+      if (AuthManager.getSessionGeneration() !== generation) throw staleAttemptError();
       if (!response.ok) {
-        lastError = await parseErrorText(response);
-        console.error("Exchange failed", lastError);
+        lastError = redactSecrets(await parseErrorText(response), [code, deviceNonce]);
+        console.error("QR exchange rejected");
         return false;
       }
 
       const result = await response.json();
+      assertAttemptOwned(attempt);
+      if (AuthManager.getSessionGeneration() !== generation) throw staleAttemptError();
+      if (!SessionStore.isAnonymousSession) throw staleAttemptError();
       const tokens = extractSessionTokens(result) || {
         accessToken: result?.access_token || null,
         refreshToken: result?.refresh_token || null
@@ -493,19 +701,55 @@ export const QrLoginService = {
         lastError = "QR exchange missing session tokens";
         return false;
       }
-      SessionStore.accessToken = tokens.accessToken;
-      SessionStore.refreshToken = tokens.refreshToken;
+      qrAccessToken = tokens.accessToken;
+      qrRefreshToken = tokens.refreshToken;
+      attempt.qrAccessToken = qrAccessToken;
+      attempt.qrRefreshToken = qrRefreshToken;
+      SessionStore.accessToken = qrAccessToken;
+      SessionStore.refreshToken = qrRefreshToken;
       SessionStore.isAnonymousSession = false;
-      AuthManager.setState(AuthState.AUTHENTICATED);
+      const authAttempt = AuthManager.beginAuthenticationAttempt();
+      attempt.authAttemptId = authAttempt;
+      await AuthManager.establishAuthenticatedSession(authAttempt, {
+        canPublish: () => attemptIsActive(attempt)
+      });
+      attempt.authAttemptId = null;
+      attempt.qrAccessToken = null;
+      attempt.qrRefreshToken = null;
+      cancelAttempt(attempt.id);
       return result;
     } catch (error) {
-      lastError = String(error?.message || "QR exchange failed");
-      console.error("QR exchange error:", error);
+      if (isStaleAttemptError(error)) {
+        lastError = "QR login attempt was superseded";
+        attempt.authAttemptId = null;
+        cancelAttempt(attempt.id);
+        return false;
+      }
+      const authAttempt = attempt.authAttemptId;
+      const superseded = error?.code === "AUTH_PUBLICATION_CANCELLED" ||
+        (authAttempt != null && AuthManager.authAttemptSequence !== authAttempt);
+      const newerAttemptActive = activeAttempt != null && activeAttempt !== attempt;
+      if (!superseded && authAttempt != null) {
+        // This exchange still owns the current authentication attempt, so a
+        // failed establishment must fail closed and clear its local session.
+        await AuthManager.signOut().catch(() => {});
+      } else if (!newerAttemptActive && qrAccessToken && SessionStore.accessToken === qrAccessToken && SessionStore.refreshToken === qrRefreshToken) {
+        // A later session (not another QR attempt) owns the store; remove only
+        // the QR token pair this exchange wrote. If a new QR attempt is active,
+        // beginAttempt already discarded the old pair.
+        SessionStore.clear();
+      }
+      attempt.authAttemptId = null;
+      attempt.qrAccessToken = null;
+      attempt.qrRefreshToken = null;
+      lastError = "QR exchange could not establish the session";
+      console.error("QR exchange failed");
+      cancelAttempt(attempt.id);
       return false;
     }
   },
 
   cleanup() {
-    // no-op: timers are owned by screen
+    cancelAttempt();
   }
 };

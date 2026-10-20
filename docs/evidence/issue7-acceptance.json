@@ -3,7 +3,7 @@
   "issue": 7,
   "repository": "saurabhbansal/nuvioweb",
   "as_of": "2026-10-20",
-  "source_commit": "ecef56026d5c55ae205917405ac51fe41ac0bd38",
+  "source_commit": "6dd2c33581fb75540a9a955b3009ca1e9d54d1ab",
   "original_criteria": [
     {
       "id": "O1",
@@ -80,9 +80,9 @@
         "synthetic",
         "live"
       ],
-      "status": "partial",
+      "status": "pass",
       "gate_owner": "executor; live owner",
-      "result": "Existing Nuvio email sign-in, persistence and profile controls are separately evidenced, but the exposed QR entry path still lacks a safe publication/rendering disposition.",
+      "result": "Existing Nuvio email sign-in and the exposed QR entry path are synthetically dispositioned; live QR/device semantics remain under #120.",
       "linked_children": [
         "CH1",
         "CH2",
@@ -115,15 +115,15 @@
         },
         {
           "kind": "review",
-          "status": "unverified",
-          "commit": "ecef56026d5c55ae205917405ac51fe41ac0bd38",
+          "status": "pass",
+          "commit": "6dd2c33581fb75540a9a955b3009ca1e9d54d1ab",
           "deployment": null,
-          "command_or_observation": "Static review of app/alpha/js/core/auth/qrLoginService.js against the closure diagnosis.",
-          "assertion": "Every exposed entry path must publish identity only through an owned session boundary before A1 can pass.",
-          "result": "The QR exchange publishes tokens directly after its awaited response; CH2 must resolve the reproduced stale-publication invariant before the entry surface is dispositioned.",
-          "artifact": "docs/evidence/issue7-qr-red-2026-10-20.json",
-          "limitations": "Static/synthetic finding only; not a demonstrated browser exploit or live identity breach.",
-          "observed_at": "2026-10-20T00:50:00Z"
+          "command_or_observation": "node --test app/alpha/js/core/auth/qrLoginService.lifecycle.test.mjs and npx playwright test tests/browser/identity-qr.spec.mjs --project=chromium",
+          "assertion": "The QR entry path uses attempt ownership and common establishment; a cancelled/superseded exchange cannot set authenticated state, write an owner marker or navigate.",
+          "result": "16 lifecycle tests and 5 actual-screen QR tests pass, including cancel/supersede during owner resolution and local QR rendering.",
+          "artifact": "docs/evidence/issue7-qr-ownership-2026-10-20.json",
+          "limitations": "Synthetic only; live QR consent/expiry/device remains #120. A cancelled attempt may leave an already-issued owner request in flight, but it cannot publish.",
+          "observed_at": "2026-10-20T02:00:00Z"
         }
       ]
     },
@@ -299,16 +299,16 @@
       "required_kinds": [
         "synthetic"
       ],
-      "status": "fail",
+      "status": "pass",
       "gate_owner": "CH2 executor; security owner for unresolved sensitive risk",
-      "result": "The actual QR service accepts a delayed exchange after a completed sign-out and overwrites a later authenticated session. The screen's post-await check runs too late to undo service token publication.",
+      "result": "Reproduced stale QR publication is fixed at the service publication boundary; screen navigation during a held exchange has no later side effect.",
       "linked_children": [
         "CH2"
       ],
       "resolution": {
-        "state": "open",
-        "resolved_by": null,
-        "reference": null
+        "state": "resolved",
+        "resolved_by": "A6",
+        "reference": "docs/evidence/issue7-qr-ownership-2026-10-20.json"
       },
       "observations": [
         {
@@ -322,6 +322,18 @@
           "artifact": "docs/evidence/issue7-qr-red-2026-10-20.json",
           "limitations": "Actual service module with mocked Fetch and synthetic storage; not a browser journey or live exploit.",
           "observed_at": "2026-10-20T00:45:00Z"
+        },
+        {
+          "kind": "synthetic",
+          "status": "pass",
+          "commit": "6dd2c33581fb75540a9a955b3009ca1e9d54d1ab",
+          "deployment": null,
+          "observed_at": "2026-10-20T02:00:00Z",
+          "command_or_observation": "node --test app/alpha/js/core/auth/qrLoginService.lifecycle.test.mjs; node scripts/qr-ownership-probe.mjs app/alpha/js --assert-safe; npx playwright test tests/browser/identity-qr.spec.mjs --project=chromium",
+          "assertion": "A delayed/cancelled QR exchange cannot publish tokens, owner state or navigation after a later session or a cancel; cancellation during owner resolution is checked before state publication.",
+          "result": "16 lifecycle tests and 5 actual-screen tests pass; probe staleExchangeAccepted false; a later session is preserved across a stale establishment.",
+          "artifact": "docs/evidence/issue7-qr-ownership-2026-10-20.json",
+          "limitations": "Synthetic service/browser evidence only; already-issued remote/owner requests cannot be undone."
         }
       ]
     },
@@ -335,24 +347,36 @@
         "synthetic",
         "review"
       ],
-      "status": "unverified",
+      "status": "pass",
       "gate_owner": "CH2 executor; owner for material security disposition",
-      "result": "The source constructs a third-party QR-renderer URL containing QR content and interpolates qrImageUrl into innerHTML. The risk is concrete but no exploit was executed.",
+      "result": "The third-party QR renderer and innerHTML image sink are removed; a finite destination policy and an explicit unavailable state are tested.",
       "linked_children": [
         "CH2"
       ],
       "observations": [
         {
           "kind": "review",
-          "status": "unverified",
-          "commit": "ecef56026d5c55ae205917405ac51fe41ac0bd38",
+          "status": "pass",
+          "commit": "6dd2c33581fb75540a9a955b3009ca1e9d54d1ab",
           "deployment": null,
-          "command_or_observation": "Static review of the QR start/rendering sink and the existing token-storage threat model.",
-          "assertion": "No credential-bearing QR content may be sent to a third-party renderer, and a hostile image URL must render as inert data.",
-          "result": "Both sinks are reachable in source; CH2 must add a finite destination policy and a browser assertion before this is dispositioned.",
+          "command_or_observation": "Threat-model review of reachable QR sources/sinks and the destination policy, recorded in docs/NUVIO_IDENTITY_CONTRACT.md.",
+          "assertion": "No credential-bearing QR content is sent to a third-party renderer, unsafe image markup is not constructed, and residual same-origin token risk is stated.",
+          "result": "The external renderer is removed, the finite destination policy is documented, and residual localStorage XSS risk is explicit.",
           "artifact": "docs/NUVIO_IDENTITY_CONTRACT.md",
-          "limitations": "Static risk assessment; not a reproduced XSS execution and not proof that all application XSS is eliminated.",
-          "observed_at": "2026-10-20T00:50:00Z"
+          "limitations": "Not an XSS-proof application and not independent human review.",
+          "observed_at": "2026-10-20T02:00:00Z"
+        },
+        {
+          "kind": "synthetic",
+          "status": "pass",
+          "commit": "6dd2c33581fb75540a9a955b3009ca1e9d54d1ab",
+          "deployment": null,
+          "observed_at": "2026-10-20T02:00:00Z",
+          "command_or_observation": "npx playwright test tests/browser/identity-qr.spec.mjs --project=chromium",
+          "assertion": "A hostile quote/event-handler image URL is inert; the login URL is rendered locally; no external QR renderer is requested; a safe same-origin image also renders.",
+          "result": "5 actual-screen browser tests pass with zero external renderer requests, including the local QR fallback.",
+          "artifact": "docs/evidence/issue7-qr-ownership-2026-10-20.json",
+          "limitations": "Synthetic same-origin image stand-in; no live QR display or device claim."
         }
       ]
     },
@@ -403,14 +427,11 @@
   "closure": {
     "state": "open",
     "unmet_ids": [
-      "A1",
       "A2",
       "A3",
       "A5",
-      "A6",
-      "A7",
       "A8"
     ],
-    "reason": "The original O1-O3 contract is not satisfied: QR publication/rendering is unresolved, live new-data sync and a post-removal switch lack an explained result, and measured expiry/revocation/device observations are owner-gated. Synthetic coverage does not replace those obligations."
+    "reason": "A6/A7 are resolved synthetically and A1/A4 pass. Parent O1-O3 are still unmet: live new-data sync (A2), the unexplained live post-removal switch (A3), the Library pending/snapshot/concurrency policy (A5) and owner-gated live expiry/revocation/QR/device observations (A8)."
   }
 }
