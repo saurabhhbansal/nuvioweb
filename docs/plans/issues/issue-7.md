@@ -1,5 +1,8 @@
 # Issue #7: [M1][P0] Validate existing Nuvio login, sync and profile isolation
 
+**Current 2026-10-20 update:** Sol is executing the [review remediation](issue-7-sol-remediation.md) under expanded owner authorization; the earlier live-account pause is superseded. Prior CH2 completion claims below were bounded and overturned by two reproduced defects in the independent review. A6 requires the new regressions/review. Parent O1–O3 remain intact; current acceptance is in [the receipt](../../evidence/issue7-acceptance.json).
+
+
 **Plan status:** Live session/profile checks passed; sync and synthetic lifecycle verification in progress. **2026-10-20:** #7 remains open with children #117–#120 and a fail-closed acceptance gate; see `docs/evidence/issue7-acceptance.json`.
 **Milestone:** M1 · **Priority:** P0  
 **GitHub issue:** https://github.com/saurabhhbansal/nuvioweb/issues/7  
@@ -7,9 +10,9 @@
 
 ## Current disposition — 2026-10-20
 
-Parent #7 stays **open**. Four scoped children now carry the remaining work: [#117](https://github.com/saurabhbansal/nuvioweb/issues/117) (A1–A4 executable gate + nonempty synthetic fixtures), [#118](https://github.com/saurabhbansal/nuvioweb/issues/118) (A6/A7 QR publication/rendering), [#119](https://github.com/saurabhbansal/nuvioweb/issues/119) (A5 Library pending/snapshot/concurrency) and blocked [#120](https://github.com/saurabhbansal/nuvioweb/issues/120) (live A1/A2/A3/A8).
+Parent #7 stays **open**. Four scoped children now carry the remaining work: [#117](https://github.com/saurabhhbansal/nuvioweb/issues/117) (A1–A4 executable gate + nonempty synthetic fixtures), [#118](https://github.com/saurabhhbansal/nuvioweb/issues/118) (A6/A7 QR publication/rendering), [#119](https://github.com/saurabhhbansal/nuvioweb/issues/119) (A5 Library pending/snapshot/concurrency) and blocked [#120](https://github.com/saurabhhbansal/nuvioweb/issues/120) (live A1/A2/A3/A8).
 
-**2026-10-20 CH2:** [#118](https://github.com/saurabhbansal/nuvioweb/issues/118) resolves A6/A7 synthetically — QR attempt ownership, common establishment, no external renderer, safe image DOM/policy, 16 lifecycle + 5 screen tests; live QR remains #120. **CH3:** [#119](https://github.com/saurabhbansal/nuvioweb/issues/119) refuses a >1000-item full snapshot and publishes [LIBRARY_SYNC_POLICY.md](../../LIBRARY_SYNC_POLICY.md); two-writer repair stays blocked. The receipt has A2,A3,A5,A8 unmet.
+**2026-10-20 CH2:** [#118](https://github.com/saurabhhbansal/nuvioweb/issues/118) resolves A6/A7 synthetically — QR attempt ownership, common establishment, no external renderer, safe image DOM/policy, 16 lifecycle + 5 screen tests; live QR remains #120. **CH3:** [#119](https://github.com/saurabhhbansal/nuvioweb/issues/119) refuses a >1000-item full snapshot and publishes [LIBRARY_SYNC_POLICY.md](../../LIBRARY_SYNC_POLICY.md); two-writer repair stays blocked. The receipt has A2,A3,A5,A8 unmet.
 
 `docs/evidence/issue7-acceptance.json` is the current A1–A8 disposition. The gate's schema mode passes on the honest blocked receipt; its default closure mode returns nonzero until every criterion is genuinely met. Synthetic browser/fixture passes do not replace live service, provider or device evidence, and no historical failing receipt is deleted. The owner's pause on live-account probes/writes/device tests remains in force.
 

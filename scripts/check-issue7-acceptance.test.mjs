@@ -491,3 +491,10 @@ test("the derived unmet set is evidence-derived, not copied from closure fields"
   }];
   assert.equal(deriveCriterionStatus(artificial.criteria.find((entry) => entry.id === "A8")), "pass");
 });
+
+
+test("canonical repository identity is accepted and the misspelled owner rejected", () => {
+  assert.equal(committed().repository, "saurabhhbansal/nuvioweb");
+  const result = mutated((receipt) => { receipt.repository = "saurabhbansal/nuvioweb"; });
+  assert.ok(hasError(result.errors, "repository must be saurabhhbansal/nuvioweb"));
+});

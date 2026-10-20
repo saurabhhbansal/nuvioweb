@@ -1,6 +1,6 @@
 # Issue #7 CH3 technical review record — 2026-10-20
 
-Scope: child [#119](https://github.com/saurabhbansal/nuvioweb/issues/119), parent #7. Base
+Scope: child [#119](https://github.com/saurabhhbansal/nuvioweb/issues/119), parent #7. Base
 `2116e5b8c70a248a0cd642a1c741eac2dbd06fed`. First reviewer pass at `17b41b3`; fixes at
 `aaffee1786e7adbdc888efbe9bd9922780d6e892` with documentation-only follow-ups.
 
@@ -29,8 +29,7 @@ Scope: child [#119](https://github.com/saurabhbansal/nuvioweb/issues/119), paren
 
 ## Re-review
 
-The first reviewer pass was at `17b41b3`. A focused re-review of the fixed head is requested before
-the PR is marked ready. The central claim is now two-layer: the real store retains 1001 items and the
+The first reviewer pass was at `17b41b3`. A focused re-review was requested then; this record does not establish that it occurred at the final integrated head. The central claim is now two-layer: the real store retains 1001 items and the
 service refuses the >1000 full snapshot.
 
 ## Limits
@@ -38,3 +37,6 @@ service refuses the >1000 full snapshot.
 Synthetic characterization only. Two same-account writers remain last-writer-wins and unsupported; no
 server conflict/version contract was observed. A5 stays blocked; no live Library write or offline
 durability claim.
+
+
+Historical review limit corrected 2026-10-20: the independent review inspected all changes through `0212e733275bcb3b95661b288139b69d8b01c064`, reproduced two QR defects and reported remaining fixture/ledger/evidence gaps. The Sol remediation has a new separate automated actual-diff review; historic findings are not a current exact-head clearance.

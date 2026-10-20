@@ -1,0 +1,16 @@
+{
+  "date": "2026-10-20",
+  "kind": "synthetic",
+  "baseline": "0212e733275bcb3b95661b288139b69d8b01c064",
+  "command": "node --test app/alpha/js/core/auth/qrLoginService.lifecycle.test.mjs",
+  "result": {
+    "pass": 15,
+    "fail": 2
+  },
+  "failures": [
+    "cancelled owner lookup cached ownership without a session",
+    "overlapping exchanges cancelled the valid session"
+  ],
+  "log": "RUN/qr-red.log",
+  "limits": "Actual modules with deferred synthetic networking; no live exploit claim."
+}

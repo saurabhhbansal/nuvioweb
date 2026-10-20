@@ -1,0 +1,64 @@
+{
+  "date": "2026-10-20",
+  "baseline": "0212e733275bcb3b95661b288139b69d8b01c064",
+  "runtime_source": "6a39be76a3408905942eabedef233ceb197c666f",
+  "kind": "synthetic",
+  "status": "pass-at-recorded-source",
+  "regressions": {
+    "cancelled_owner_cache": "Actual-module regression failed at baseline (owner cached without session); now guarded and establishment cache deferred until final publication. Cancelled owner 401/403 cannot refresh/retry/signout later session.",
+    "overlapping_exchange": "Actual-module regression failed at baseline; one exchange promise per active attempt now keeps the valid login. Screen serializes outstanding polls.",
+    "expiry": "Screen countdown is started, deadline/server expiry invalidate attempts, refresh is re-enabled and late approval cannot exchange.",
+    "fixture": "Both B-A-B and A-B-A use all four nonempty domains and both profiles. Explicit inert denials are finite; unknown destinations are recorded. Backend mutation setup remains distinct from app writes.",
+    "canonical_repository": "Validator/contract/receipt/links use saurabhhbansal/nuvioweb; misspelled owner rejected."
+  },
+  "executed": [
+    {
+      "command": "node --test app/alpha/js/core/auth/qrLoginService.lifecycle.test.mjs",
+      "snapshot": "baseline plus red regressions",
+      "result": "15 pass, 2 fail (cache and concurrent exchange)",
+      "log": "qr-red.log"
+    },
+    {
+      "command": "node --test app/alpha/js/core/auth/qrLoginService.lifecycle.test.mjs scripts/check-issue7-acceptance.test.mjs",
+      "snapshot": "6a39be76a3408905942eabedef233ceb197c666f",
+      "result": "54 pass, zero fail",
+      "log": "focused-final.log"
+    },
+    {
+      "command": "npm test --prefix app/alpha",
+      "snapshot": "6a39be76a3408905942eabedef233ceb197c666f",
+      "result": "1420 pass, zero fail on rerun",
+      "log": "app-tests-final.log"
+    },
+    {
+      "command": "npx playwright test tests/browser/identity-sync.spec.mjs --project=chromium",
+      "snapshot": "intermediate; final suite follows",
+      "result": "13 pass, zero fail",
+      "log": "identity-browser.log"
+    },
+    {
+      "command": "npx playwright test tests/browser/identity-qr.spec.mjs --project=chromium",
+      "snapshot": "intermediate; final suite follows",
+      "result": "8 pass, zero fail",
+      "log": "qr-browser.log"
+    }
+  ],
+  "failed_attempts": [
+    "Initial full application run: 1419/1420; unrelated log-flood sandbox test exceeded 350ms under simultaneous local load. Unchanged rerun passed 1420/1420.",
+    "Early automated review observed wall-clock token-fixture flake; helper now pins its epoch.",
+    "Early cancellation observer awaited JSON despite intentional pre-body cancellation; changed to observe response task completion. Known guest add-on paths now explicitly denied; unknown destinations still fail."
+  ],
+  "review": "Separate automated read-only technical review approved the actual diff 0212e73 through a527d518d901d8cedaa0d75df536961f9fd97cdd with no material runtime findings, independently rerunning 54 focused tests. Early fixture/expiry/driver findings were repaired. Subsequent current-evidence wording corrections are recorded separately; automated review is not human approval.",
+  "live_preflight": {
+    "kind": "live",
+    "scope": "designated disposable account login, read-only profiles/Library, explicit pre-expiry refresh",
+    "artifact": "private RUN/live-preflight.json; sanitized fields only",
+    "result": "Both logins/Library reads 200; explicit refresh 200 with identity preserved. B documented profile set empty; partial not acceptance. Credential digest unchanged."
+  },
+  "limits": [
+    "No hosted/deployed or live QR claim from synthetic tests.",
+    "No natural expiry/revocation/new-data propagation/physical-device claim.",
+    "No account/media payloads or secrets in evidence.",
+    "Parent A2,A3,A5,A8 remain unmet; historical live failure preserved."
+  ]
+}

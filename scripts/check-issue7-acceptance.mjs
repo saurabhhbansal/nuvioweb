@@ -363,7 +363,7 @@ export function validateReceipt(receipt, { root = process.cwd() } = {}) {
   if (!isPlainObject(receipt)) return { errors: ["receipt must be a JSON object"], unmet_ids: CRITERION_IDS };
   if (receipt.schema_version !== 1) errors.push("schema_version must be 1");
   if (receipt.issue !== 7) errors.push("receipt must describe issue 7");
-  if (receipt.repository !== "saurabhbansal/nuvioweb") errors.push("repository must be saurabhbansal/nuvioweb");
+  if (receipt.repository !== "saurabhhbansal/nuvioweb") errors.push("repository must be saurabhhbansal/nuvioweb");
   if (!isNonEmptyString(receipt.as_of)) errors.push("as_of is missing");
   const sourceCommitIssue = commitProblem(root, receipt.source_commit);
   if (sourceCommitIssue) errors.push(`source_commit: ${sourceCommitIssue}`);

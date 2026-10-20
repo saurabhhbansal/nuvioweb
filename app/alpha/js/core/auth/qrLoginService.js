@@ -261,7 +261,8 @@ function currentAttempt(attemptId = null) {
 }
 
 function attemptIsActive(attempt) {
-  return Boolean(attempt) && activeAttempt === attempt;
+  return Boolean(attempt) && activeAttempt === attempt &&
+    (attempt.expiresAt == null || Date.now() < attempt.expiresAt);
 }
 
 function attemptIsOwned(attempt) {
@@ -579,11 +580,13 @@ export const QrLoginService = {
         throw new Error("Empty response from start_tv_login_session");
       }
 
+      attempt.expiresAt = toEpochMillis(session);
+      assertAttemptOwned(attempt);
       return {
         code: session.code,
         loginUrl: session.qr_content || session.web_url || null,
         qrImageUrl: session.qr_image_url || null,
-        expiresAt: toEpochMillis(session),
+        expiresAt: attempt.expiresAt,
         pollIntervalSeconds: Number(session.poll_interval_seconds || 3),
         deviceNonce,
         attemptId: attempt.id
@@ -649,7 +652,18 @@ export const QrLoginService = {
     }
   },
 
-  async exchange(code, deviceNonce, attemptId = null) {
+  exchange(code, deviceNonce, attemptId = null) {
+    const attempt = currentAttempt(attemptId);
+    if (!attempt) return Promise.resolve(false);
+    // Poll callbacks and other callers may overlap. Share the entire exchange,
+    // including owner resolution, rather than cancel this attempt's own tokens.
+    if (!attempt.exchangePromise) {
+      attempt.exchangePromise = this.exchangeOwned(code, deviceNonce, attempt.id);
+    }
+    return attempt.exchangePromise;
+  },
+
+  async exchangeOwned(code, deviceNonce, attemptId) {
     lastError = null;
     const attempt = currentAttempt(attemptId);
     if (!attempt) {

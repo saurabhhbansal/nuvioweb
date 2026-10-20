@@ -13,10 +13,11 @@ const { SessionStore } = await import("../storage/sessionStore.js");
 const { AuthState } = await import("./authState.js");
 
 // Unsigned synthetic input for control-flow tests, never identity proof.
+const tokenEpoch = Math.floor(Date.now() / 1000);
 function token(subject, expiresIn = 3600) {
   const payload = Buffer.from(JSON.stringify({
     sub: subject,
-    exp: Math.floor(Date.now() / 1000) + expiresIn
+    exp: tokenEpoch + expiresIn
   })).toString("base64url");
   return `fixture.${payload}.fixture-signature`;
 }
@@ -287,6 +288,8 @@ test("cancelling during owner resolution prevents publication", async () => {
     assert.equal(SessionStore.accessToken, null);
     assert.equal(SessionStore.refreshToken, null);
     assert.notEqual(AuthManager.getAuthState(), AuthState.AUTHENTICATED);
+    assert.equal(AuthManager.cachedEffectiveUserId, null);
+    await assert.rejects(AuthManager.getEffectiveUserId(), /Missing valid session token/);
     assert.equal(globalThis.localStorage.getItem("nuvioAccountOwnerMarker"), null);
     assert.equal(QrLoginService.isAttemptActive(attemptId), false);
   });
@@ -439,3 +442,63 @@ test("the QR image URL policy accepts only local, same-origin or image-data dest
   }
   assert.equal(isSafeQrImageUrl("https://evil.example.invalid/qr.png"), false);
 });
+
+
+test("overlapping approved exchanges share one publication and retain the valid session", async () => {
+  const ownerResponse = deferred();
+  const ownerStarted = deferred();
+  let exchangeCalls = 0;
+  await withSession(anonymousSession(), async (url) => {
+    if (url.endsWith("/functions/v1/tv-logins-exchange")) {
+      exchangeCalls += 1;
+      return json({ access_token: token("qr-account"), refresh_token: "qr-refresh" });
+    }
+    if (url.endsWith("/rest/v1/rpc/get_sync_owner")) {
+      ownerStarted.resolve();
+      return ownerResponse.promise;
+    }
+    throw new Error(`unexpected request ${url}`);
+  }, async () => {
+    const attempt = QrLoginService.beginAttempt();
+    const first = QrLoginService.exchange("synthetic-code", "synthetic-nonce", attempt);
+    await ownerStarted.promise;
+    const second = QrLoginService.exchange("synthetic-code", "synthetic-nonce", attempt);
+    ownerResponse.resolve(json("owner-qr"));
+    const results = await Promise.all([first, second]);
+    assert.ok(results.every(Boolean));
+    assert.equal(exchangeCalls, 1);
+    assert.equal(SessionStore.accessToken, token("qr-account"));
+    assert.equal(AuthManager.cachedEffectiveUserId, "owner-qr");
+    assert.equal(AuthManager.getAuthState(), AuthState.AUTHENTICATED);
+  });
+});
+
+
+for (const failureStatus of [401, 403]) {
+  test(`cancelled owner HTTP ${failureStatus} cannot retry, refresh or sign out a later session`, async () => {
+    const response = deferred();
+    const started = deferred();
+    const calls = [];
+    await withSession(anonymousSession(), async (url) => {
+      calls.push(url);
+      if (url.endsWith("/functions/v1/tv-logins-exchange")) return json({ access_token: token("qr"), refresh_token: "qr-refresh" });
+      if (url.endsWith("/rest/v1/rpc/get_sync_owner")) { started.resolve(); return response.promise; }
+      throw new Error("unexpected request");
+    }, async () => {
+      const attempt = QrLoginService.beginAttempt();
+      const pending = QrLoginService.exchange("synthetic-code", "synthetic-nonce", attempt);
+      await started.promise;
+      QrLoginService.cancelAttempt(attempt);
+      AuthManager.beginAuthenticationAttempt();
+      SessionStore.accessToken = token("later");
+      SessionStore.refreshToken = "later-refresh";
+      AuthManager.setState(AuthState.AUTHENTICATED);
+      response.resolve(json({ error: "rejected" }, failureStatus));
+      assert.equal(await pending, false);
+      assert.equal(calls.length, 2);
+      assert.equal(SessionStore.accessToken, token("later"));
+      assert.equal(AuthManager.cachedEffectiveUserId, null);
+      assert.equal(AuthManager.getAuthState(), AuthState.AUTHENTICATED);
+    });
+  });
+}

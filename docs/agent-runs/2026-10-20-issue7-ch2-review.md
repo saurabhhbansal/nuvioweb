@@ -1,6 +1,6 @@
 # Issue #7 CH2 technical review record — 2026-10-20
 
-Scope: child [#118](https://github.com/saurabhbansal/nuvioweb/issues/118), parent #7. Base
+Scope: child [#118](https://github.com/saurabhhbansal/nuvioweb/issues/118), parent #7. Base
 `a92a9ef0abea32d8d549fb00a5d734fde00358b2`. First reviewer pass at `07d9a50`; fixes at
 `6dd2c33581fb75540a9a955b3009ca1e9d54d1ab` with documentation-only follow-ups.
 
@@ -26,8 +26,7 @@ Scope: child [#118](https://github.com/saurabhbansal/nuvioweb/issues/118), paren
 
 ## Re-review
 
-The first reviewer pass was against `07d9a50`. The fixes above are at `9ff9419`; a focused re-review of that
-head is requested before the PR is marked ready. The executor's checks at `9ff9419`:
+The first reviewer pass was against `07d9a50`. The fixes above are at `9ff9419`; a focused re-review was requested at that time. This historical text does not prove it occurred at the final integrated head. The executor's checks at `9ff9419`:
 
 - `node --test app/alpha/js/core/auth/qrLoginService.lifecycle.test.mjs` — 16/16.
 - `node scripts/qr-ownership-probe.mjs app/alpha/js --assert-safe` — exit 0; stale publication false.
@@ -42,3 +41,6 @@ head is requested before the PR is marked ready. The executor's checks at `9ff94
 Synthetic/local only. No live QR consent, expiry, nonce or device observation. Tokens remain
 same-origin localStorage values and this change is not an XSS-proof claim. An already-issued remote
 or owner request cannot be undone; only local publication is controlled.
+
+
+Historical review limit corrected 2026-10-20: the independent review inspected all changes through `0212e733275bcb3b95661b288139b69d8b01c064`, reproduced two QR defects and reported remaining fixture/ledger/evidence gaps. The Sol remediation has a new separate automated actual-diff review; historic findings are not a current exact-head clearance.
