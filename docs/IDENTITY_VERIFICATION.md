@@ -2,6 +2,16 @@
 
 Status: in progress. Source pin Alpha5624da2; application still uses the existing Nuvio account flow. No duplicate identity implementation. [Execution plan](plans/issues/issue-7.md), [owner checklist](ISSUE_7_OWNER_CHECKS.md), [identity contract](NUVIO_IDENTITY_CONTRACT.md).
 
+## Current verification checkpoint — 2026-10-20
+
+Protected PR127/131/132 are merged; all four workflows pass at canonical runtimeb5a8679. Dedicated preview deployment9d9d6d0d has141 served hashes, automatic worker/shell and seven guest journeys passing. [Protected checkpoint](evidence/issue7-protected-checkpoint-2026-10-20.json). #119 closed after accepted bounded recovery and successful completion guard; stronger guarantees/QR/physical-device work explicitly deferred to open unsupported #128–#130.
+
+[Classified A-B-A and B-A-B replay](evidence/issue7-classified-switch-replay-2026-10-20.json) passes exact current five-domain state and nonempty Library UI with no unexplained active API failures. Historical pre-header failure is retained: missing old telemetry prevents causal diagnosis. Current replay supplies no app-write propagation claim. [Actual offline reload/reconnect](evidence/issue7-offline-reconnect-2026-10-20.json) passes documented offline UI, exact owner/profile/private stores and reconnect server controls. Earlier cached-card expectation failed because Saved/Cloud deliberately displays an offline message; raw failed receipt remains durable.
+
+Complete app writes/independent receiver journey remains in progress. Natural-expiry and post-expiry application revoked-refresh observers target27Oct09:53:49.952Z and10:21:40.792Z respectively; waiting is not pass. Rejected-refresh cleanup was reproduced red and repaired in PR132, with synthetic tests distinct from unperformed actual expiry. #7/#120 stay open, original O1–O3 and default closure guard unchanged. No routine owner permission pending.
+
+The following dated observations are historical. Their old pause, pending-integration and deployment statements are superseded by this checkpoint and [active acceptance](evidence/issue7-acceptance.json); failed receipts are preserved.
+
 ## Observed live evidence, 2026-10-19
 
 [Sanitized receipt](evidence/identity-live-2026-10-19.json) records13 observations against deployed preview8edec42, Chromium156.0.8078.4 on LinuxARM64. Owner separately reports the initial three checks on Windows/Microsoft Edge; version and independent-session arrangement are not yet recorded.

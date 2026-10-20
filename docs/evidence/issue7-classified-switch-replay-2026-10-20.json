@@ -1,0 +1,134 @@
+{
+  "driverSha256": "dd92cb65264f8ad96237a47032f9a6d03fb315d054f2913856f3e86e5214963e",
+  "revision": "b5a8679404b98649f9c742abc6aa5da00edc50a9",
+  "started": "2026-10-20T11:04:03.579Z",
+  "finished": "2026-10-20T11:04:35.904Z",
+  "checks": {
+    "noUnexplainedActiveApiFailure": true,
+    "bothOrdersCompleted": true,
+    "distinctNonemptyAccounts": true,
+    "contextsClosed": true,
+    "newSessionLocalCleanup": true,
+    "credentialsUnchanged": true
+  },
+  "steps": [
+    {
+      "order": "A-B-A",
+      "alias": "A",
+      "epoch": 1,
+      "checks": {
+        "currentSessionCompletedPulls": true,
+        "exactFiveDomainStoreControl": true,
+        "exactRenderedLibrary": true,
+        "nonemptyLibrary": true,
+        "explicitProfileScope": true,
+        "returnRestored": null,
+        "distinctOwner": true
+      },
+      "serverProfileDefaultOnly": false
+    },
+    {
+      "order": "A-B-A",
+      "alias": "B",
+      "epoch": 2,
+      "checks": {
+        "currentSessionCompletedPulls": true,
+        "exactFiveDomainStoreControl": true,
+        "exactRenderedLibrary": true,
+        "nonemptyLibrary": true,
+        "explicitProfileScope": true,
+        "returnRestored": null,
+        "distinctOwner": true
+      },
+      "serverProfileDefaultOnly": true
+    },
+    {
+      "order": "A-B-A",
+      "alias": "A",
+      "epoch": 3,
+      "checks": {
+        "currentSessionCompletedPulls": true,
+        "exactFiveDomainStoreControl": true,
+        "exactRenderedLibrary": true,
+        "nonemptyLibrary": true,
+        "explicitProfileScope": true,
+        "returnRestored": true,
+        "distinctOwner": true
+      },
+      "serverProfileDefaultOnly": false
+    },
+    {
+      "order": "B-A-B",
+      "alias": "B",
+      "epoch": 4,
+      "checks": {
+        "currentSessionCompletedPulls": true,
+        "exactFiveDomainStoreControl": true,
+        "exactRenderedLibrary": true,
+        "nonemptyLibrary": true,
+        "explicitProfileScope": true,
+        "returnRestored": true,
+        "distinctOwner": true
+      },
+      "serverProfileDefaultOnly": true
+    },
+    {
+      "order": "B-A-B",
+      "alias": "A",
+      "epoch": 5,
+      "checks": {
+        "currentSessionCompletedPulls": true,
+        "exactFiveDomainStoreControl": true,
+        "exactRenderedLibrary": true,
+        "nonemptyLibrary": true,
+        "explicitProfileScope": true,
+        "returnRestored": true,
+        "distinctOwner": true
+      },
+      "serverProfileDefaultOnly": false
+    },
+    {
+      "order": "B-A-B",
+      "alias": "B",
+      "epoch": 6,
+      "checks": {
+        "currentSessionCompletedPulls": true,
+        "exactFiveDomainStoreControl": true,
+        "exactRenderedLibrary": true,
+        "nonemptyLibrary": true,
+        "explicitProfileScope": true,
+        "returnRestored": true,
+        "distinctOwner": true
+      },
+      "serverProfileDefaultOnly": true
+    }
+  ],
+  "limits": [
+    "Both orders use one context per order, retained across sign-out/sign-in; all account-data mutations denied. No new UI-write propagation claim.",
+    "Historical pre-header failure lacks request-owned/error/timeout telemetry; exact old cause cannot be reconstructed. New replay does not establish that cause.",
+    "Linux Chromium only; provider QR and physical devices are deferred.",
+    "Private controls compare normalized profile fields, typed Library IDs, watched type/title/episode/time, progress video/episode/position/duration/time, and ordered addon URL/enabled/name; no raw payloads exported. Public API documents explicit limit200 and servercap200 for progress; refuse a full page. Server profiles may be absent; existing primary local default is labelled separately, never represented as synchronized profile data."
+  ],
+  "browser": "156.0.8078.4",
+  "os": "Linux ARM64",
+  "status": "passed",
+  "authIssuanceUnresolved": false,
+  "schema_version": 1,
+  "issue": 7,
+  "child": 120,
+  "kind": "live",
+  "source_commit": "b5a8679404b98649f9c742abc6aa5da00edc50a9",
+  "observed_at": "2026-10-20T11:04:35.904Z",
+  "raw_receipt": "Durable run switch-replay-v2.json",
+  "automated_review": "switch-replay-review-v3.md; automated Codex read-only, not human approval",
+  "failure_disposition": {
+    "historical": "Exact old pre-header failure cause cannot be reconstructed: handler lacked request ownership, phase/error, dispatch/abort context. It is retained as an instrumentation limitation, not relabelled a provider failure or product root cause.",
+    "current": "Finite six-step replay validates successful completed current-epoch pulls, exact five-domain state and nonempty Library DOM in both orders. All observed API failures are explicit intentional harness denials; zero unexplained active API failures.",
+    "limits": "Does not establish historical cause, stress reliability, device verification or app write propagation. Earlier first-replay trailing unclassified context failure is superseded only for current verification by this classified replay."
+  },
+  "telemetry_summary": {
+    "events": 705,
+    "intentional_api_denials": 55,
+    "unexplained_active_api_failures": 0
+  }
+}
