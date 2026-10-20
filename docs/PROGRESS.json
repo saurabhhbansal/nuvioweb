@@ -145,7 +145,11 @@
           "docs/evidence/issue7-library-policy-2026-10-20.json",
           "docs/evidence/issue7-execution-summary-2026-10-20.json",
           "docs/plans/issues/issue-7-sol-remediation.md",
-          "docs/evidence/issue7-sol-remediation-2026-10-20.json"
+          "docs/evidence/issue7-sol-remediation-2026-10-20.json",
+          "docs/evidence/issue7-sol-hosted-accounts.json",
+          "docs/evidence/issue7-sol-live-markers.json",
+          "docs/evidence/issue7-sol-live-lifecycle.json",
+          "docs/evidence/issue7-sol-qr-live-observation.json"
         ],
         "verification": [
           "Owner reported initial three Windows/Edge checks passed; browser version and independent-session setup unspecified.",
@@ -174,17 +178,17 @@
           "Two-writer characterization is last-writer-wins: the later full snapshot loses the earlier edit. No server version/ETag/conflict contract is exposed by the checked client, so concurrent-writer repair remains BLOCKED and #119 stays open pending protocol evidence/owner decision.",
           "2026-10-20 Sol remediation supersedes prior completion/pause claims: two additional QR defects reproduced and repaired, canonical repository corrected, children integrated into completion ledger. Bounded live testing resumed under explicit owner delegation; parent O1-O3 remain unmet pending actual evidence."
         ],
-        "remaining": "A2: actual new-change propagation in independent hosted contexts; authorized testing in progress. A3: preserve historical unexplained pre-header failure; new read-only checks alone cannot resolve it. A5: atomic provider expected-revision contract and safe reconciliation; durable retry/storage guarantees unsupported. A8: measured natural expiry/revocation, official QR semantics and physical/device evidence where unavailable. No routine owner permission pending.",
+        "remaining": "Original O1-O3 remain intact. A2 needs application profile/add-on/history/progress mutation propagation; direct additive API markers and read-only hosted Library round trips passed. A3 preserves unexplained historical pre-header failure. A5 now uses explicit per-item writes; same-key concurrency/durable retry/storage guarantees remain unsupported. A8: explicit refresh and scoped revocation observed; hosted QR start rejects preview redirect400, natural expiry and physical/device observations incomplete. No owner-permission blocker.",
         "children": [
           {
             "number": 117,
-            "status": "verified-after-protected-PR125",
-            "scope": "Synthetic fixtures/validator only; parent remains open"
+            "status": "closed",
+            "scope": "Actual bounded synthetic criteria met; protected PR125 merged; closure guards passed and issues remained closed."
           },
           {
             "number": 118,
-            "status": "verified-after-protected-PR125",
-            "scope": "Bounded QR safety regressions/review; no live QR claim"
+            "status": "closed",
+            "scope": "Actual bounded synthetic criteria met; protected PR125 merged; closure guards passed and issues remained closed."
           },
           {
             "number": 119,
@@ -610,12 +614,23 @@
         3,
         6
       ],
-      "blocker": "Published Nuvio API v1.3 exposes full replacement Library snapshots without atomic expected-revision/ETag preconditions. Two-writer characterization loses prior writer; no client-only safe cross-device merge. Durable retry/storage guarantees also unsupported; docs/LIBRARY_SYNC_POLICY.md. No owner permission is pending."
+      "blocker": "Distinct-key unsafe snapshot loss repaired with documented additive/exact-delete operations in PR126. Remaining original scope: atomic same-key cross-client order/version conflict contract and durable per-key retry/storage-failure guarantees. No owner permission is pending.",
+      "progress": {
+        "branch": "fix/issue-119-explicit-library-writes",
+        "pr": 126,
+        "documents": [
+          "docs/LIBRARY_SYNC_POLICY.md",
+          "docs/plans/issues/issue-7-sol-remediation.md"
+        ],
+        "verification": [
+          "Actual stale snapshots reproduced loss, explicit-key regression preserves both writers/baseline; 57 focused tests and 1432 application tests passed at runtime083eb89. Separate review findings repaired; final exact-head CI/review required. No broad A5 completion."
+        ]
+      }
     },
     {
       "number": 120,
       "title": "[#7] Authorized hosted live lifecycle and device evidence",
-      "status": "in_progress",
+      "status": "blocked_external",
       "dependencies": [
         3,
         6
@@ -623,12 +638,18 @@
       "progress": {
         "documents": [
           "docs/ISSUE_7_OWNER_CHECKS.md",
-          "docs/evidence/issue7-acceptance.json"
+          "docs/evidence/issue7-acceptance.json",
+          "docs/evidence/issue7-sol-hosted-accounts.json",
+          "docs/evidence/issue7-sol-live-markers.json",
+          "docs/evidence/issue7-sol-live-lifecycle.json",
+          "docs/evidence/issue7-sol-qr-live-observation.json",
+          "docs/evidence/issue7-sol-capabilities.json"
         ],
         "verification": [
-          "Owner resumed bounded testing 2026-10-20. Direct login/read/explicit refresh observed; fixed hosted candidate and remaining live/device checks in progress."
+          "Authorized guarded direct and actual hosted tests executed. Hosted A-B-A-B Library controls exact/restored, additive marker receiver/cleanup/original rows unchanged, explicit refresh and local-session revocation observed; credential integrity unchanged. No natural expiry/new profile/add-on mutation/physical QR claim."
         ]
-      }
+      },
+      "blocker": "Actual hosted QR signup200 then start400 rejects the dedicated preview redirect; provider needs an allowed redirect plus documented approval/nonce semantics. No physical Edge/Safari/mobile device connector or local branded browsers available. Other live rows remain explicitly incomplete, not attributed to owner permission."
     }
   ],
   "integrationPolicy": "Only default-branch records are authoritative; entries in an unmerged PR are proposed until their evidence PR merges."

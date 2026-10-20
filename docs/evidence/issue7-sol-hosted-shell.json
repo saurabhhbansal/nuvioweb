@@ -1,0 +1,83 @@
+{
+  "url": "https://nuvioweb-preview.pages.dev",
+  "sourceRevision": "8eec52a7de888d156fac03edd9c523fc16964f7b",
+  "browser": "156.0.8078.4",
+  "observations": [
+    {
+      "path": "index.html",
+      "status": 200,
+      "cacheControl": "no-cache",
+      "hashMatched": true
+    },
+    {
+      "path": "app.bundle.js",
+      "status": 200,
+      "cacheControl": "no-cache",
+      "hashMatched": true
+    },
+    {
+      "path": "sw.js",
+      "status": 200,
+      "cacheControl": "no-cache, no-store",
+      "hashMatched": true
+    },
+    {
+      "path": "nuvio.env.js",
+      "status": 200,
+      "cacheControl": "no-cache, no-store",
+      "hashMatched": true
+    },
+    {
+      "path": "SOURCE.txt",
+      "status": 200,
+      "cacheControl": "no-cache",
+      "hashMatched": true
+    },
+    {
+      "path": "LICENSE.txt",
+      "status": 200,
+      "cacheControl": "no-cache",
+      "hashMatched": true
+    },
+    {
+      "path": "UPSTREAM_SOURCES.md",
+      "status": 200,
+      "cacheControl": "no-cache",
+      "hashMatched": true
+    },
+    {
+      "path": "third-party/dashjs/dist/dash.all.min.js.LICENSE.txt",
+      "status": 200,
+      "cacheControl": "no-cache",
+      "hashMatched": true
+    },
+    {
+      "path": "third-party/core-js/LICENSE",
+      "status": 200,
+      "cacheControl": "no-cache",
+      "hashMatched": true
+    },
+    {
+      "path": "third-party/jszip/LICENSE.markdown",
+      "status": 200,
+      "cacheControl": "no-cache",
+      "hashMatched": true
+    }
+  ],
+  "missingAssetApi404": true,
+  "matchingSourceReachable": true,
+  "automaticWorkerController": true,
+  "cacheNames": [
+    "nuvio-app-shell-0.1.5-1ade6835faf4"
+  ],
+  "guestNavigationReload": true,
+  "aliasRoute": true,
+  "pageErrors": [],
+  "blockedExternalOrigins": [
+    "https://fonts.googleapis.com",
+    "https://api.nuvio.tv",
+    "https://v3-cinemeta.strem.io",
+    "https://opensubtitles-v3.strem.io"
+  ],
+  "limits": "No live login/sync, populated catalog, media playback, offline completeness or other-browser claim."
+}

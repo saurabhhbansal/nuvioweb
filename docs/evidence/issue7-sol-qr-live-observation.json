@@ -1,0 +1,29 @@
+{
+  "kind": "hosted-live",
+  "revision": "8eec52a7de888d156fac03edd9c523fc16964f7b",
+  "operations": [
+    {
+      "operation": "signup",
+      "status": 200
+    },
+    {
+      "operation": "start_tv_login_session",
+      "status": 400
+    },
+    {
+      "operation": "start_tv_login_session",
+      "status": 400
+    }
+  ],
+  "checks": {
+    "qrReady": false,
+    "localAnonymousSessionCleared": true
+  },
+  "limits": [
+    "One fresh anonymous QR start/poll observation, no account approval/exchange, no QR payload/storage/screenshot output. Already-issued server requests cannot be undone."
+  ],
+  "browser": "156.0.8078.4",
+  "os": "Linux ARM64",
+  "category": "provider-redirect-rejection",
+  "status": "blocked-service"
+}

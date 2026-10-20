@@ -4,6 +4,8 @@ import { fileURLToPath } from "node:url";
 import { build } from "esbuild";
 
 let revision = 0;
+const saveChange = (id = "synthetic-item") => [{ kind: "save", item: { contentId: id, contentType: "movie" } }];
+const deleteChange = (id = "synthetic-item") => [{ kind: "remove", item: { contentId: id, contentType: "movie" } }];
 async function fixture(t) {
   let generation = 1;
   let authenticated = true;
@@ -111,7 +113,7 @@ for (const malformed of [null, {}, [{ name: "missing content identity" }]]) {
 test("successful push acknowledges its current pending revision", async (t) => {
   const f = await fixture(t);
   f.markPending();
-  assert.equal(await f.service.push(2), true);
+  assert.equal(await f.service.push(2, saveChange(), { revision: f.state().revision, acknowledge: true }), true);
   assert.deepEqual(f.state(), { revision: 1, pending: false });
 });
 
@@ -120,7 +122,7 @@ test("old successful push cannot acknowledge a newer local edit", async (t) => {
   f.markPending();
   let release;
   f.dependencies.SupabaseApi.rpc = () => new Promise((resolve) => { release = resolve; });
-  const pending = f.service.push(2);
+  const pending = f.service.push(2, saveChange(), { revision: f.state().revision, acknowledge: true });
   await turn();
   f.markPending();
   release(null);
@@ -137,7 +139,7 @@ test("pull started with pending edits cannot publish an older snapshot after tho
     ? new Promise((resolve) => { release = resolve; }) : Promise.resolve(null);
   const pulling = f.service.pull(2);
   await turn();
-  assert.equal(await f.service.push(2), true);
+  assert.equal(await f.service.push(2, saveChange(), { revision: f.state().revision, acknowledge: true }), true);
   assert.equal(f.state().pending, false);
   release([{ content_id: "cloud-before-push" }]);
   assert.deepEqual((await pulling).map((item) => item.contentId), ["local-edit"]);
@@ -150,7 +152,7 @@ test("failed reads and writes preserve local cache and pending revision", async 
   f.markPending();
   f.dependencies.SupabaseApi.rpc = async () => { throw new Error("synthetic offline"); };
   assert.deepEqual(await f.service.pull(2), []);
-  assert.equal(await f.service.push(2), false);
+  assert.equal(await f.service.push(2, saveChange(), { revision: f.state().revision, acknowledge: true }), false);
   assert.deepEqual(f.local().map((item) => item.contentId), ["offline-local"]);
   assert.deepEqual(f.state(), { revision: 1, pending: true });
 });
@@ -168,36 +170,36 @@ test("old account pull cannot publish into a later session", async (t) => {
   assert.deepEqual(f.local().map((item) => item.contentId), ["new-account-cache"]);
 });
 
-test("empty explicit Library snapshot reaches the existing API to remove the final remote item", async (t) => {
+test("explicit final-item deletion sends only its exact identity", async (t) => {
   const f = await fixture(t);
-  assert.equal(await f.service.push(), true);
-  assert.deepEqual(f.calls, [["sync_push_library", { p_profile_id: 2, p_items: [] }, true, { expectedSessionGeneration: 1 }]]);
+  assert.equal(await f.service.push(2, deleteChange()), true);
+  assert.deepEqual(f.calls, [["sync_delete_library_items", { p_profile_id: 2, p_keys: [{ content_id: "synthetic-item", content_type: "movie" }] }, true, { expectedSessionGeneration: 1 }]]);
 });
 
-test("nonempty snapshot keeps profile and remote field mapping", async (t) => {
+test("explicit upsert keeps profile and remote field mapping", async (t) => {
   const f = await fixture(t);
-  f.dependencies.savedLibraryRepository.getAll = async () => [{ contentId: "synthetic-item", title: "Synthetic title", updatedAt: 17, posterShape: "square" }];
-  assert.equal(await f.service.push(3), true);
-  assert.deepEqual(f.calls, [["sync_push_library", {
+  assert.equal(await f.service.push(3, [{ kind: "save", item: { contentId: "synthetic-item", contentType: "movie", title: "Synthetic title", updatedAt: 17, posterShape: "square" } }]), true);
+  assert.deepEqual(f.calls, [["sync_push_library_items", {
     p_profile_id: 3,
     p_items: [{ content_id: "synthetic-item", content_type: "movie", name: "Synthetic title", poster: null, poster_shape: "SQUARE", background: null, description: "", release_info: "", imdb_rating: null, genres: [], addon_base_url: null, added_at: 17 }]
   }, true, { expectedSessionGeneration: 1 }]]);
 });
 
 for (const action of ["switchAccount", "signOut"]) {
-  test(`snapshot preparation crossing ${action} never dispatches a Library write`, async (t) => {
+  test(`account change between explicit operations stops remaining writes: ${action}`, async (t) => {
     const f = await fixture(t);
     let release;
-    f.dependencies.savedLibraryRepository.getAll = () => new Promise((resolve) => { release = resolve; });
-    const pending = f.service.push(1);
+    f.dependencies.SupabaseApi.rpc = (...args) => { f.calls.push(args); return new Promise(resolve => { release = resolve; }); };
+    const pending = f.service.push(1, [...saveChange("first"), ...saveChange("second")]);
+    await turn();
     f[action]();
-    release([{ contentId: "old-account-item" }]);
+    release(null);
     assert.equal(await pending, false);
-    assert.deepEqual(f.calls, []);
+    assert.equal(f.calls.length, 1);
   });
 }
 
-test("rejected snapshot returns failure without claiming synchronization", async (t) => {
+test("rejected explicit delete returns failure without claiming synchronization", async (t) => {
   const f = await fixture(t);
   f.dependencies.savedLibraryRepository.getAll = async () => [{ contentId: "synthetic-item" }];
   f.dependencies.SupabaseApi.rpc = async () => { throw new Error("synthetic rejection"); };
@@ -205,8 +207,8 @@ test("rejected snapshot returns failure without claiming synchronization", async
   const warnings = [];
   console.warn = (message) => warnings.push(message);
   try {
-    assert.equal(await f.service.push(1), false);
-    assert.deepEqual(warnings, ["Saved library sync push failed"]);
+    assert.equal(await f.service.push(1, deleteChange()), false);
+    assert.deepEqual(warnings, ["Saved library explicit sync failed"]);
   } finally { console.warn = originalWarn; }
 });
 
@@ -259,12 +261,12 @@ async function transportFixture(t) {
 
 const turn = () => new Promise((resolve) => setImmediate(resolve));
 
-test("real transport never publishes an old snapshot after account switch during token refresh", async (t) => {
+test("real transport never sends an old explicit delete after account switch during token refresh", async (t) => {
   const f = await transportFixture(t);
   let release;
   f.dependencies.AuthManager.isAccessTokenExpired = () => true;
   f.dependencies.AuthManager.refreshSessionIfNeeded = () => new Promise((resolve) => { release = resolve; });
-  const pending = f.service.push(1);
+  const pending = f.service.push(1, deleteChange());
   await turn();
   f.switchAccount();
   release(true);
@@ -281,7 +283,7 @@ test("old401 cannot refresh or retry a Library write using the later account", a
     f.calls.push({ url, options });
     return f.calls.length === 1 ? new Promise((resolve) => { release = resolve; }) : new Response("null");
   };
-  const pending = f.service.push(1);
+  const pending = f.service.push(1, deleteChange());
   await turn();
   f.switchAccount();
   release(new Response('{"error":"synthetic expired A"}', { status: 401 }));
@@ -290,15 +292,15 @@ test("old401 cannot refresh or retry a Library write using the later account", a
   assert.equal(refreshes, 0);
 });
 
-test("same-session transport refresh still sends the empty snapshot with rotated token", async (t) => {
+test("same-session transport refresh sends the exact delete with rotated token", async (t) => {
   const f = await transportFixture(t);
   f.dependencies.AuthManager.isAccessTokenExpired = () => true;
   f.dependencies.AuthManager.refreshSessionIfNeeded = async () => { f.session.accessToken = "fixture-A-rotated"; return true; };
-  assert.equal(await f.service.push(1), true);
+  assert.equal(await f.service.push(1, deleteChange()), true);
   assert.equal(f.calls.length, 1);
   assert.equal(f.calls[0].options.headers.Authorization, "Bearer fixture-A-rotated");
   assert.equal(f.calls[0].options.expectedSessionGeneration, undefined);
-  assert.deepEqual(JSON.parse(f.calls[0].options.body), { p_profile_id: 1, p_items: [] });
+  assert.deepEqual(JSON.parse(f.calls[0].options.body), { p_profile_id: 1, p_keys: [{ content_id: "synthetic-item", content_type: "movie" }] });
 });
 
 test("account change during401 refresh prevents the retry", async (t) => {
@@ -306,7 +308,7 @@ test("account change during401 refresh prevents the retry", async (t) => {
   let release;
   globalThis.fetch = async (url, options) => { f.calls.push({ url, options }); return new Response("expired", { status: 401 }); };
   f.dependencies.AuthManager.refreshSessionIfNeeded = () => new Promise((resolve) => { release = resolve; });
-  const pending = f.service.push(1);
+  const pending = f.service.push(1, deleteChange());
   await turn();
   f.switchAccount();
   release(true);
@@ -314,69 +316,86 @@ test("account change during401 refresh prevents the retry", async (t) => {
   assert.equal(f.calls.length, 1);
 });
 
-test("same-session401 refresh retries the unchanged snapshot with rotated credentials", async (t) => {
+test("same-session401 refresh retries the unchanged exact delete with rotated credentials", async (t) => {
   const f = await transportFixture(t);
   globalThis.fetch = async (url, options) => {
     f.calls.push({ url, options });
     return new Response(f.calls.length === 1 ? "expired" : "null", { status: f.calls.length === 1 ? 401 : 200 });
   };
   f.dependencies.AuthManager.refreshSessionIfNeeded = async () => { f.session.accessToken = "fixture-A-rotated"; return true; };
-  assert.equal(await f.service.push(1), true);
+  assert.equal(await f.service.push(1, deleteChange()), true);
   assert.equal(f.calls.length, 2);
   assert.equal(f.calls[0].options.headers.Authorization, "Bearer fixture-A-access");
   assert.equal(f.calls[1].options.headers.Authorization, "Bearer fixture-A-rotated");
   assert.equal(f.calls[0].options.body, f.calls[1].options.body);
 });
 
-test("a local snapshot over 1000 items is refused without issuing a write", async (t) => {
+test("unknown legacy snapshots are refused with no remote operation", async (t) => {
   const f = await fixture(t);
   f.markPending();
-  let requestedLimit = null;
-  f.dependencies.savedLibraryRepository.getAll = async (limit) => {
-    requestedLimit = limit;
-    return Array.from({ length: 1001 }, (_, index) => ({ contentId: `item-${index}` }));
-  };
-  let writes = 0;
-  f.dependencies.SupabaseApi.rpc = async () => { writes += 1; return null; };
+  f.seedLocal(Array.from({ length: 1001 }, (_, index) => ({ contentId: `item-${index}` })));
   assert.equal(await f.service.push(2), false);
-  assert.equal(requestedLimit, 1001);
-  assert.equal(writes, 0);
-  assert.deepEqual(f.state(), { revision: 1, pending: true });
-  assert.deepEqual(f.warnings, ["Saved library sync push refused: local snapshot exceeds 1000 items"]);
+  assert.equal(f.calls.length, 0);
+  assert.equal(f.state().pending, true);
+  assert.equal(await f.service.push(2, saveChange("new-explicit-item")), true);
+  assert.equal(f.calls[0][0], "sync_push_library_items");
+  assert.equal(f.calls[0][1].p_items.length, 1);
+  assert.equal(f.state().pending, true);
 });
 
-test("two independent full-snapshot writers lose the earlier edit (unsupported characterization)", async (t) => {
+for (const changes of [[], [{ kind: "remove", item: { contentId: "id" } }], [{ kind: "replace", item: { contentId: "id", contentType: "movie" } }]]) {
+  test(`invalid explicit change is refused: ${JSON.stringify(changes)}`, async (t) => {
+    const f = await fixture(t);
+    assert.equal(await f.service.push(2, changes), false);
+    assert.equal(f.calls.length, 0);
+  });
+}
+
+test("two stale clients writing distinct explicit keys preserve both edits and baseline", async (t) => {
   const first = await fixture(t);
   const second = await fixture(t);
+  let remote = [{ content_id: "baseline", content_type: "movie" }];
+  const rpc = async (name, body) => {
+    if (name === "sync_push_library_items") {
+      for (const row of body.p_items) remote = remote.filter(item => item.content_id !== row.content_id).concat(row);
+    } else if (name === "sync_delete_library_items") {
+      remote = remote.filter(item => !body.p_keys.some(key => key.content_id === item.content_id && key.content_type === item.content_type));
+    } else if (name === "sync_push_library") remote = body.p_items;
+    else throw new Error("Unexpected RPC");
+  };
+  first.dependencies.SupabaseApi.rpc = rpc;
+  second.dependencies.SupabaseApi.rpc = rpc;
   first.seedLocal([{ contentId: "writer-a" }]);
   second.seedLocal([{ contentId: "writer-b" }]);
-  first.markPending();
-  second.markPending();
-  let remote = [{ content_id: "baseline" }];
-  first.dependencies.SupabaseApi.rpc = async (...args) => {
-    if (args[0] === "sync_push_library") remote = args[1].p_items;
-    return null;
-  };
-  second.dependencies.SupabaseApi.rpc = async (...args) => {
-    if (args[0] === "sync_push_library") remote = args[1].p_items;
-    return null;
-  };
-  assert.equal(await first.service.push(2), true);
-  assert.equal(first.state().pending, false);
-  assert.equal(await second.service.push(2), true);
-  assert.equal(second.state().pending, false);
-  assert.deepEqual(remote.map((item) => item.content_id), ["writer-b"]);
-  assert.equal(remote.some((item) => item.content_id === "writer-a"), false);
+  assert.equal(await first.service.push(2, [{ kind: "save", item: { contentId: "writer-a", contentType: "movie" } }]), true);
+  assert.equal(await second.service.push(2, [{ kind: "save", item: { contentId: "writer-b", contentType: "movie" } }]), true);
+  assert.deepEqual(remote.map(row => row.content_id).sort(), ["baseline", "writer-a", "writer-b"]);
+  assert.equal(await first.service.push(2, [{ kind: "remove", item: { contentId: "writer-a", contentType: "movie" } }]), true);
+  assert.deepEqual(remote.map(row => row.content_id).sort(), ["baseline", "writer-b"]);
 });
 
-test("exactly 1000 items still sends the full snapshot", async (t) => {
+test("request snapshots cannot be mutated while a preceding operation waits", async (t) => {
+  const f = await fixture(t);
+  let release;
+  const changes = [...saveChange("first"), ...saveChange("second")];
+  f.dependencies.SupabaseApi.rpc = (...args) => {
+    f.calls.push(args);
+    return f.calls.length === 1 ? new Promise(resolve => { release = resolve; }) : Promise.resolve(null);
+  };
+  const pending = f.service.push(2, changes);
+  changes[1].item.contentId = "changed-later";
+  changes[1].item.genres = ["changed-later"];
+  release(null);
+  assert.equal(await pending, true);
+  assert.equal(f.calls[1][1].p_items[0].content_id, "second");
+  assert.deepEqual(f.calls[1][1].p_items[0].genres, []);
+});
+
+test("missing per-item provider capability fails closed without legacy fallback", async (t) => {
   const f = await fixture(t);
   f.markPending();
-  f.dependencies.savedLibraryRepository.getAll = async () =>
-    Array.from({ length: 1000 }, (_, index) => ({ contentId: `item-${index}` }));
-  let writes = 0;
-  f.dependencies.SupabaseApi.rpc = async () => { writes += 1; return null; };
-  assert.equal(await f.service.push(2), true);
-  assert.equal(writes, 1);
-  assert.deepEqual(f.state(), { revision: 1, pending: false });
+  f.dependencies.SupabaseApi.rpc = (...args) => { f.calls.push(args); throw new Error("not found"); };
+  assert.equal(await f.service.push(2, saveChange(), { revision: 1, acknowledge: true }), false);
+  assert.equal(f.state().pending, true);
+  assert.deepEqual(f.calls.map(call => call[0]), ["sync_push_library_items"]);
 });
