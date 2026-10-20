@@ -271,7 +271,7 @@
       ],
       "status": "blocked",
       "gate_owner": "CH3 executor design/characterization; owner if a backend contract is needed",
-      "result": "The 1001-item truncation is now a safe refusal, legacy caches are conservatively pending and stale acknowledgements are refused. Two independent full-snapshot writers still lose the earlier edit; repair needs a server conflict/version contract or an owner decision.",
+      "result": "The 1001-item truncation is now a safe refusal backed by a non-truncating store: a 1001st item is retained and the >1000 full push is refused. Two independent full-snapshot writers still lose the earlier edit; repair needs a server conflict/version contract or an owner decision.",
       "linked_children": [
         "CH3"
       ],
@@ -281,10 +281,10 @@
           "status": "pass",
           "commit": "5468b16f1d6b9b32a2a087df7964f8f0e5fe4b51",
           "deployment": null,
-          "observed_at": "2026-10-20T02:40:00Z",
+          "observed_at": "2026-10-20T02:50:00Z",
           "command_or_observation": "node --test app/alpha/js/core/profile/savedLibrarySyncService.test.mjs app/alpha/js/data/repository/savedLibraryRepository.test.mjs app/alpha/js/data/local/savedLibrarySyncState.test.mjs",
           "assertion": "A failed edit survives reload and a competing pull; a legacy nonempty cache is pending; a stale acknowledgement cannot clear a newer edit; a local set over 1000 items is refused before sync_push_library.",
-          "result": "43 focused tests pass. The 1001-item push refusal sends no request and leaves pending intact.",
+          "result": "45 focused tests pass. The real store/repository retains a 1001st item via save and replaceAll/replaceForProfile; the >1000 push refuses without a request and pending stays.",
           "artifact": "docs/evidence/issue7-library-policy-2026-10-20.json",
           "limitations": "Synthetic characterization only; no live Library write or server conflict observation."
         },
@@ -293,7 +293,7 @@
           "status": "blocked",
           "commit": "5468b16f1d6b9b32a2a087df7964f8f0e5fe4b51",
           "deployment": null,
-          "observed_at": "2026-10-20T02:40:00Z",
+          "observed_at": "2026-10-20T02:50:00Z",
           "command_or_observation": "Two independent full-snapshot writers characterized against the existing sync_push_library contract.",
           "assertion": "Two clients saving from independent snapshots must not silently lose an earlier edit.",
           "result": "The second full snapshot replaces the first and the earlier edit is lost (last-writer-wins). No server version/ETag/conflict contract is exposed by the checked client.",

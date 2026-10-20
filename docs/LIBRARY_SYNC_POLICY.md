@@ -46,3 +46,4 @@ This is a **finite supported/unsupported policy**, not a claim of conflict-free 
   automatically.
 - It does not prove the hosted service's actual transaction/version semantics.
 - It does not replace the still-open live/device evidence in #7 or the owner-gated observations in #120.
+- The Library tab still requests 1000 rows, so a retained 1001st item is not displayed above 1000; the push refusal is currently console-only with no user-facing indicator.

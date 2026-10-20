@@ -18,11 +18,12 @@ Scope: child [#119](https://github.com/saurabhbansal/nuvioweb/issues/119), paren
 | The policy's storage-failure row said push is not attempted when metadata cannot be trusted. | P3 | Corrected: the in-memory state protects same-page edits; a push may still proceed against it. No durable guarantee across reload. |
 | The CH3 review record was a placeholder. | P3 | This record now lists the findings and dispositions. |
 | Pre-existing cap sliced the combined all-profile list, so >1000 combined items could evict another profile's cache. | P3 | The silent slices are removed; local caches are no longer evicted by a combined cap. The >1000 push remains refused per profile. |
+| Follow-up review: A5 evidence said 43 tests/timestamp while citing the 44-test commit; pull-path retention was not tested; UI still displays 1000; CURRENT was stale. | P3 | Fixed: A5 now says 45 tests at the final source, repository tests cover save and replaceAll/replaceForProfile 1001-item retention, the policy states the 1000-row display/console-only limitation, and CURRENT points at the merged CH2/current CH3 branch. |
 
 ## Verification after fixes
 
-- `node --test savedLibrarySyncService.test.mjs savedLibraryRepository.test.mjs savedLibrarySyncState.test.mjs` — 44/44.
-- `npm test --prefix app/alpha` — 1416/1416.
+- `node --test savedLibrarySyncService.test.mjs savedLibraryRepository.test.mjs savedLibrarySyncState.test.mjs` — 45/45.
+- `npm test --prefix app/alpha` — 1417/1417.
 - `npm run lint --prefix app/alpha`, inert build, `check-alpha-build` — pass.
 - Acceptance `--validate` — exit 0 with A2,A3,A5,A8 unmet; full closure exit 2.
 

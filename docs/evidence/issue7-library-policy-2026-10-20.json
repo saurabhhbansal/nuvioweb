@@ -21,7 +21,7 @@
         "--test",
         "app/alpha/js/data/repository/savedLibraryRepository.test.mjs"
       ],
-      "result": "14 passed, 0 failed, 0 skipped"
+      "result": "15 passed, 0 failed, 0 skipped"
     },
     {
       "command": [
@@ -36,7 +36,7 @@
     "failed_mutation_reload_pull": "Existing tests preserve the pending local edit across reload and a competing cloud pull; a failed write cannot acknowledge a newer edit.",
     "legacy_cache": "An authenticated nonempty cache with no sync metadata is treated as pending (revision increments) rather than assumed clean.",
     "stale_acknowledgement": "An acknowledgement for an older revision is refused; a newer edit remains pending.",
-    "snapshot_limit": "The local store no longer silently evicts at 1000: a 1001st save/pull is retained (repository test). The full-replacement push reads up to 1001 and refuses when the set exceeds 1000, sending no request and leaving pending intact (service test). Exactly 1000 still pushes.",
+    "snapshot_limit": "The local store no longer silently evicts at 1000: a 1001st save and a 1001-item replaceAll/replaceForProfile are retained (repository tests). The full-replacement push reads up to 1001 and refuses when the set exceeds 1000, sending no request and leaving pending intact (service test). Exactly 1000 still pushes.",
     "two_writers": "Two independent full-snapshot writers are characterized as last-writer-wins: the second snapshot replaces the first and the earlier edit is lost. This is recorded as unsupported, not accepted."
   },
   "safe_refusal": {
@@ -63,7 +63,8 @@
   "limitations": [
     "Synthetic characterization only; no live Library read, write, delete or conflict observation.",
     "The checked client contract exposes no server version/ETag/conflict token; a client-only merge cannot be called safe.",
-    "This child adds a safe refusal and policy, not broad offline/concurrent durability."
+    "This child adds a safe refusal and policy, not broad offline/concurrent durability.",
+    "The Library tab still requests 1000 rows, so the oldest retained item is not displayed above 1000; the refusal is console-only. Data is retained and remote data is unchanged, but the >1000 UI/status is a known limitation."
   ],
   "evidence_integrity": "The 1001-item claim is demonstrated at both layers: the real repository/store retains 1001 items, and the service refuses the >1000 push. The previous 1000-item read was not used as a separate historical test."
 }
