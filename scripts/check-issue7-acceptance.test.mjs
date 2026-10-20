@@ -422,7 +422,7 @@ test("an artifact path escaping the repository is rejected", () => {
 
 test("an unsupported commit value is rejected even on an unverified observation", () => {
   const result = mutated((receipt) => {
-    criterion(receipt, "A5").observations[0].commit = "main";
+    criterion(receipt, "A5").observations[1].commit = "main";
   });
   assert.ok(hasError(result.errors, "commit must be null or 40 lowercase hex characters"));
 });
