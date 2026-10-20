@@ -4,7 +4,7 @@
   "child": 117,
   "date": "2026-10-20",
   "kind": "synthetic",
-  "source_commit": "f30c79f6045786c821047532104c90aa65b861cc",
+  "source_commit": "e92f4d137799a7cef66b5d1ff0ceca349333e2e9",
   "environment": "pinned Node 22.23.1; inert loopback build served at http://127.0.0.1:4371; Playwright Chromium; all identity and add-on origins intercepted by the synthetic fixture",
   "build": {
     "command": "NUVIO_LOCAL_PROPERTIES=\"$PWD/tests/fixtures/build.properties\" npm run build --prefix app/alpha",
@@ -14,15 +14,33 @@
   },
   "commands": [
     {
-      "argv": ["node", "--test", "scripts/check-issue7-acceptance.test.mjs"],
+      "argv": [
+        "node",
+        "--test",
+        "scripts/check-issue7-acceptance.test.mjs"
+      ],
       "result": "20 tests; see the validator test receipt in this same commit for the final pass/fail count."
     },
     {
-      "argv": ["npx", "playwright", "test", "tests/browser/identity-sync.spec.mjs", "--project=chromium"],
+      "argv": [
+        "npx",
+        "playwright",
+        "test",
+        "tests/browser/identity-sync.spec.mjs",
+        "--project=chromium"
+      ],
       "result": "13 passed, 0 failed, 0 skipped (40.3s)"
     },
     {
-      "argv": ["node", "--test", "app/alpha/js/core/auth/authManager.lifecycle.test.mjs", "app/alpha/js/core/auth/authManager.test.mjs", "app/alpha/js/core/auth/accountLocalDataReset.test.mjs", "app/alpha/js/core/profile/startupSyncService.test.mjs", "app/alpha/js/core/profile/savedLibrarySyncService.test.mjs"],
+      "argv": [
+        "node",
+        "--test",
+        "app/alpha/js/core/auth/authManager.lifecycle.test.mjs",
+        "app/alpha/js/core/auth/authManager.test.mjs",
+        "app/alpha/js/core/auth/accountLocalDataReset.test.mjs",
+        "app/alpha/js/core/profile/startupSyncService.test.mjs",
+        "app/alpha/js/core/profile/savedLibrarySyncService.test.mjs"
+      ],
       "result": "55 passed, 0 failed, 0 skipped (567ms)"
     }
   ],
