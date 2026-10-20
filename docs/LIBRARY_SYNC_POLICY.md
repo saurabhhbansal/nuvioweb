@@ -11,9 +11,9 @@ This is a **finite supported/unsupported policy**, not a claim of conflict-free 
 - A pull with a pending local edit keeps the local items and does not publish the older cloud snapshot.
 - A remote-empty pull removes clean cached items; an explicit local final-item removal sends an empty
   full snapshot.
-- The local snapshot limit is 1000 items. If the local set exceeds 1000, the full-replacement push is
-  **refused** rather than sending a truncated snapshot. The pending revision stays intact and the
-  remote data is not changed.
+- The local cache is **not** silently truncated at 1000 items. A 1001st save/pull is retained locally.
+  The full-replacement push is **refused** when the local set exceeds 1000, because the API can only
+  carry a full snapshot; the pending revision stays intact and remote data is not changed.
 - A legacy authenticated cache with no sync metadata is treated as pending (unknown local edits are
   preserved).
 - Stale revision acknowledgements are refused, so an older successful push cannot clear a newer edit.
@@ -23,10 +23,10 @@ This is a **finite supported/unsupported policy**, not a claim of conflict-free 
 | Case | Current behavior | Disposition |
 | --- | --- | --- |
 | Two independent same-account writers | Both send full snapshots; the later one wins and the earlier edit is lost. | **Unsupported.** Needs a server version/ETag/conflict contract or an owner decision. No client-only safe merge. |
-| Local set >1000 items | Push is refused; no request is issued; pending remains. | Safe refusal only. A larger library requires pagination/delta API work, not a truncated full snapshot. |
+| Local set >1000 items | The local cache retains all items; the full-snapshot push is refused without a request and pending remains. | Safe refusal only. A larger library requires pagination/delta API work, not a truncated full snapshot. |
 | Automatic retry / outbox / per-item durability | Not implemented. Pending edits wait for a later explicit mutation. | **Unsupported.** No new backend/outbox/CRDT in this scope. |
 | Multi-tab atomicity | No cross-tab lock. | **Unsupported.** |
-| Storage quota/write failure | Runtime metadata may fall back in memory; remote push is not attempted if metadata cannot be trusted. | Known limitation; no durable guarantee. |
+| Storage quota/write failure | `SavedLibrarySyncState` keeps the current-page guard in memory even when `LocalStore.set` fails, so same-page edits stay protected; the push may still proceed against the in-memory state. | Known limitation; no durable guarantee across reload. |
 | Server-side conflict detection | None exposed by the checked client contract. | Requires protocol evidence. |
 | Already-issued push | Cannot be undone or cancelled once sent. | Documented; local pending handling only. |
 

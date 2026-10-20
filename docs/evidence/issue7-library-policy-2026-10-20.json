@@ -13,7 +13,7 @@
         "--test",
         "app/alpha/js/core/profile/savedLibrarySyncService.test.mjs"
       ],
-      "result": "25 passed, 0 failed, 0 skipped"
+      "result": "26 passed, 0 failed, 0 skipped"
     },
     {
       "command": [
@@ -36,12 +36,12 @@
     "failed_mutation_reload_pull": "Existing tests preserve the pending local edit across reload and a competing cloud pull; a failed write cannot acknowledge a newer edit.",
     "legacy_cache": "An authenticated nonempty cache with no sync metadata is treated as pending (revision increments) rather than assumed clean.",
     "stale_acknowledgement": "An acknowledgement for an older revision is refused; a newer edit remains pending.",
-    "snapshot_limit": "The full-replacement push now reads up to 1001 local items and refuses when the set exceeds 1000, sending no request and leaving pending intact. A test records that the previous 1000-item read would have truncated item 1001.",
+    "snapshot_limit": "The local store no longer silently evicts at 1000: a 1001st save/pull is retained (repository test). The full-replacement push reads up to 1001 and refuses when the set exceeds 1000, sending no request and leaving pending intact (service test). Exactly 1000 still pushes.",
     "two_writers": "Two independent full-snapshot writers are characterized as last-writer-wins: the second snapshot replaces the first and the earlier edit is lost. This is recorded as unsupported, not accepted."
   },
   "safe_refusal": {
     "target": "app/alpha/js/core/profile/savedLibrarySyncService.js",
-    "behavior": "If the local snapshot has more than 1000 items, push returns false before calling sync_push_library. The pending revision is not cleared.",
+    "behavior": "If the local snapshot has more than 1000 items, push returns false before calling sync_push_library. The local set is retained, the pending revision is not cleared, and no request is sent.",
     "test": "a local snapshot over 1000 items is refused without issuing a write"
   },
   "policy": "docs/LIBRARY_SYNC_POLICY.md",
@@ -50,7 +50,7 @@
     "Pending local edit preserved against a competing pull and retained across reload",
     "Legacy cache treated as pending",
     "Stale revision acknowledgement refused",
-    "1001+ items refused safely before a full snapshot"
+    "A local cache over 1000 items is retained and its full-snapshot push is refused safely"
   ],
   "unsupported": [
     "Two independent same-account writers / lost update",
@@ -64,5 +64,6 @@
     "Synthetic characterization only; no live Library read, write, delete or conflict observation.",
     "The checked client contract exposes no server version/ETag/conflict token; a client-only merge cannot be called safe.",
     "This child adds a safe refusal and policy, not broad offline/concurrent durability."
-  ]
+  ],
+  "evidence_integrity": "The 1001-item claim is demonstrated at both layers: the real repository/store retains 1001 items, and the service refuses the >1000 push. The previous 1000-item read was not used as a separate historical test."
 }

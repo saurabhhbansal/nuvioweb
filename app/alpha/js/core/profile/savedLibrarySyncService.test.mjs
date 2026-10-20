@@ -362,6 +362,21 @@ test("two independent full-snapshot writers lose the earlier edit (unsupported c
     return null;
   };
   assert.equal(await first.service.push(2), true);
+  assert.equal(first.state().pending, false);
   assert.equal(await second.service.push(2), true);
+  assert.equal(second.state().pending, false);
   assert.deepEqual(remote.map((item) => item.content_id), ["writer-b"]);
+  assert.equal(remote.some((item) => item.content_id === "writer-a"), false);
+});
+
+test("exactly 1000 items still sends the full snapshot", async (t) => {
+  const f = await fixture(t);
+  f.markPending();
+  f.dependencies.savedLibraryRepository.getAll = async () =>
+    Array.from({ length: 1000 }, (_, index) => ({ contentId: `item-${index}` }));
+  let writes = 0;
+  f.dependencies.SupabaseApi.rpc = async () => { writes += 1; return null; };
+  assert.equal(await f.service.push(2), true);
+  assert.equal(writes, 1);
+  assert.deepEqual(f.state(), { revision: 1, pending: false });
 });

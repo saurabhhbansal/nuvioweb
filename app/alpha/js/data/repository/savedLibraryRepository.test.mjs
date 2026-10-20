@@ -236,10 +236,14 @@ test("fresh remote hydration establishes clean metadata before cache publication
   assert.equal(f.timers.size, 0);
 });
 
-test("authenticated nonempty cache without sync metadata is conservatively pending", async (t) => {
+test("the local store retains a 1001st item instead of evicting the oldest", async (t) => {
   const f = await fixture(t);
-  f.seedLegacy([{ contentId: "legacy-item" }]);
-  const state = f.repository.getSyncState("1");
-  assert.equal(state.pending, true);
-  assert.ok(state.revision > 0);
+  for (let index = 0; index < 1001; index += 1) {
+    await f.repository.save({ contentId: `item-${index}` });
+  }
+  const retained = await f.repository.getAll(1001);
+  assert.equal(retained.length, 1001);
+  assert.equal((await f.repository.getAll(1000)).length, 1000);
+  assert.equal(retained.some((item) => item.contentId === "item-0"), true);
+  assert.equal(retained.some((item) => item.contentId === "item-1000"), true);
 });

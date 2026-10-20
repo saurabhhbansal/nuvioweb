@@ -44,7 +44,8 @@ supported/unsupported policy. This is not an outbox, CRDT or backend redesign.
 
 ## Targets
 
-- `app/alpha/js/core/profile/savedLibrarySyncService.js` (bounded refusal only)
+- `app/alpha/js/core/profile/savedLibrarySyncService.js` (bounded refusal)
+- `app/alpha/js/data/local/savedLibraryStore.js` (remove silent 1000-item eviction)
 - `app/alpha/js/core/profile/savedLibrarySyncService.test.mjs`
 - `app/alpha/js/data/repository/savedLibraryRepository.test.mjs`
 - `app/alpha/js/data/local/savedLibrarySyncState.test.mjs`
@@ -76,8 +77,8 @@ Characterization (current behavior, no product change):
 - stale revision acknowledgement is refused; newer edit survives an older ack.
 - two independent client snapshots show the last full snapshot wins (lost update), recorded as
   unsupported rather than passing.
-- 1001 local items currently would be truncated by `getAll(1000)`; the new refusal test first records
-  that and then asserts the bounded refusal sends no request.
+- The real repository/store retains a 1001st item; the service refuses the >1000 push without a
+  request, while exactly 1000 still pushes.
 
 Commands:
 
