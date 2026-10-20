@@ -72,8 +72,9 @@ export function isCountOnlyResult(value) {
   const text = String(value || "").trim().toLowerCase();
   if (!text || !/\d/.test(text)) return false;
   const stripped = text
+    .replace(/\b\d+(?:\.\d+)?(?:ms|s|secs?|seconds?|mins?|minutes?|h|hours?)\b/g, "")
     .replace(/\b\d+\b/g, "")
-    .replace(/\b(tests?|cases?|pass|passed|all|of|and|with|zero|skips?)\b/g, "")
+    .replace(/\b(tests?|cases?|pass|passed|all|of|and|with|zero|skips?|s|ms|sec|secs|seconds?|mins?|minutes?|hours?)\b/g, "")
     .replace(/[^a-z]/g, "");
   return stripped.length === 0;
 }

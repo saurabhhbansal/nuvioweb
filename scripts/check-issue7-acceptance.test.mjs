@@ -158,6 +158,8 @@ test("a verified ledger while parent acceptance is unmet is rejected", () => {
 test("a test count cannot be used as a passing result", () => {
   assert.equal(isCountOnlyResult("1396/1396 pass"), true);
   assert.equal(isCountOnlyResult("57/57 tests passed"), true);
+  assert.equal(isCountOnlyResult("13 passed, 40.3s"), true);
+  assert.equal(isCountOnlyResult("13 passed in 40.3s; receiver restored the exact nonempty A key set"), false);
   assert.equal(isCountOnlyResult("The receiver restores the exact nonempty A key set"), false);
   const result = mutated((receipt) => {
     criterion(receipt, "A2").observations[0].result = "1396/1396 pass";
