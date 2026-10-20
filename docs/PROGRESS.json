@@ -274,7 +274,12 @@
           "docs/agent-runs/2026-10-19-startup-classification-review.md",
           "docs/agent-runs/2026-10-19-webkit-coverage-review.md",
           "tests/browser/engine-capabilities.spec.mjs",
-          "app/alpha/js/core/player/startupFailure.js"
+          "app/alpha/js/core/player/startupFailure.js",
+          "docs/ENGINE_CAPABILITY_MATRIX.md",
+          "docs/evidence/issue10-engine-2026-10-20.json",
+          "docs/evidence/issue10-generated-media-2026-10-20.json",
+          "docs/evidence/issue10-tool-inventory-2026-10-20.json",
+          "docs/agent-runs/2026-10-20-issue10-engine-matrix.md"
         ],
         "verifiedLocally": [
           "Original1080p/4K MP4 and4K HLS/DASH bundled playback and seek;403/410/CORS failure and return",
@@ -284,10 +289,35 @@
           "WebKit coverage (PR79, 91d0b81): Playwright WebKit 27.2 runs engine-agreement invariants inside the required browser job; observed WebKit predictions matroska/hevc/h264=probably, hls=not-reported vs Chromium not-reported/probably/maybe, so no unsupported claim is made on WebKit; engine-family evidence only"
         ],
         "integrationGate": "PR39, PR77 and PR79 merged through the protected workflow with all four contexts green; no deployment and no issue closure",
+        "engineMatrixUnit": {
+          "pr": 134,
+          "scope": "Authoritative owner2026-10-20 engine scope: Chromium maps Chrome/Edge/Brave/Opera, WebKit maps Safari, Gecko maps Firefox; do not duplicate engine runs under brands",
+          "nativeMeasurementRevision": "f5f15892d9078cb6e445cd01e529fade2b908c18",
+          "nativeMatrixCommandExit": 3,
+          "verified": [
+            "All three native engines launched on privately provisioned Ubuntu24.04 ARM64 without added sandbox-disabling flags; exact tool versions and archive hashes recorded",
+            "Generated original3840x2160 H264/HEVC/VP9/AV1 plus PQ/HLG10bit controls; distinct12s720frame60fps source measured25.84Mbit/s",
+            "Gecko all9 native decode/seek rows; Chromium6/9 with HEVC SDR/PQ/HLG negative prediction and media4 rejection; WebKit9/9 complete decode/seek rows after measured sparse-callback correction, with actual first-near-target and later advancing presentation",
+            "All engines real fetch allow200, deniedCORS rejection,403/410; metadata/decode/seek/presented frames remain separate from predictions and physical output",
+            "Lossless canonical native/adaptive test containers preserve packet hashes and whole AVC payload; legacy duration/buffer-gap failures and originals unchanged",
+            "Codec conflicts remain unknown before MIME caches and unsupported attribution; actual bundled original VP8 source remains selectable and advances",
+            "Final bundled classifier/quality27/27 across9perengine, actual post-seek presentation; full Chromium77/77,0skip/flaky; application1452/1452,0skip; inert build/lint12assets pass",
+            "Final separate automated Standards/Spec source and evidence reviews report0unresolved after restoring broader outstanding product limits; no independent human approval claimed"
+          ],
+          "remainingHostGaps": [
+            "Strict sustained4K60 not observed in any engine; near60 presented counters do not waive lower callback delivery or frame pacing criterion",
+            "Physical HDR10/HLG output uncertified: no evidenced HDR display/compositor or accessible GPU device",
+            "Chromium tested-build HEVC decoder integration unresolved on this host; no inherent cross-platform engine limitation established"
+          ],
+          "integration": "PR134 proposed until separate automated technical review, all4 exact-head protected contexts and actual merge checks pass; no preview deployment or issue closure",
+          "otherScope": "Issue7/120/128-130, elapsed observers, pinned preview/runtime and existing browser sessions unchanged; broader audio/real-provider/DRM evidence not inferred"
+        },
         "remaining": [
-          "Multitrack audio selection and audible-output observation",
-          "Supported HDR source plus a named device or engine observation",
-          "Hosted external-provider CORS with a legal external origin"
+          "Authoritative engine-scope host gaps: strict sustained4K60 on hardware decode/display/compositor, identical sources and measured full-wall windows",
+          "Physical HDR10/HLG output on a verified10bit HDR pipeline/display; encoded source decode alone is not output",
+          "Chromium tested-build HEVC integration: codec-enabled OS/backend and actual decode/seek; no inherent engine rejection inferred",
+          "Retained broader product limit: multitrack audio selection and audible-output observation not established by this video-only engine unit",
+          "Retained broader product limit: hosted external-provider CORS with a legal external origin not established by loopback tests"
         ],
         "currentUnit": {
           "branch": "m1/issue-7-reconciliation-live",

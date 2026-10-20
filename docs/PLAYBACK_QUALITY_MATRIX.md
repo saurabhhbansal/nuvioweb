@@ -2,6 +2,12 @@
 
 Second unit on `m2/issue-10-media-fixtures`, continuing the reporting seam merged through PR38 atd9b32a8. [Plan](plans/issues/issue-10.md), [source declaration/prediction contract](SOURCE_CAPABILITIES.md), [fixture rights/hash manifest](../tests/fixtures/media/quality/provenance.json). Issue10 remains in progress. This unit contains a remote-fetch recovery correction requiring owner review before merge; automated review and passing CI are not that approval.
 
+## Current engine-level evidence — 2026-10-20
+
+The [three-engine capability matrix](ENGINE_CAPABILITY_MATRIX.md) is the current scope/result authority. Chromium maps Chrome/Edge/Brave/Opera, WebKit maps Safari and Gecko maps Firefox; no duplicate branded-engine runs are required. Physical HDR and strict sustained4K60 remain uncertified. Historical evidence below remains dated rather than rewritten.
+
+Native and adaptive current fixture containers are separately inventoried lossless normalizations, with exact ordered packet hashes and complete AVC payload equality. The legacy MediaRecorder native duration and adaptive buffered-gap failures are preserved, not claimed fixed in old files. [Native inventory](../tests/fixtures/media/quality/native-provenance.json) · [adaptive inventory](../tests/fixtures/media/quality/adaptive-provenance.json). No production remux, retry/engine change, downscale or new media recipient was introduced.
+
 ## Media and exact scope
 
 The generator draws original geometry/text directly onto1920x1080 and3840x2160 canvases. No640x360 input was upscaled. Existing Chromium records video-only H.264 MP4; original files and packaged manifests/segments are CC0. No new dependency, downloaded sample, user media, backend, paid service or token is used. Generated on Linux ARM64 Chromium156.0.8078.4, requested5fps. Browser encoding changed requested profile levels; provenance distinguishes requested MIME, recorder-reported MIME and actual AVC initialization (`avc1.42c02a` / `avc1.640c34`). Decoded dimensions/time/error were independently observed, not copied from titles.
