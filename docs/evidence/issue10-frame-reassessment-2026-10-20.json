@@ -1,0 +1,107 @@
+{
+  "schemaVersion": 1,
+  "layer": "OFFLINE_RECALCULATION_OF_HISTORICAL_RECEIPT_NOT_NEW_PLAYBACK_OR_PHYSICAL_OUTPUT",
+  "recordedAt": "2026-10-20T18:50:33.239482+00:00",
+  "researchBase": "c3620e1e053f5a3a2a46a5e94e9de0c5caf481a3",
+  "sourceReceipt": "docs/evidence/issue10-engine-2026-10-20.json",
+  "sourceReceiptSha256": "766258e99638438851640f408399adcf296f41714fe7d36710f96a0b804ccd7d",
+  "sourceMeasurementRevision": "f5f15892d9078cb6e445cd01e529fade2b908c18",
+  "deliveryHelper": "scripts/engine-delivery.mjs",
+  "deliveryHelperSha256": "fec7c9a790671ab2a285b8f42be1db1fc403a1540269cba15c8bcd16f9bd31c3",
+  "historicalCommandExitCodeUnchanged": 3,
+  "sourceReceiptUnmodified": true,
+  "testCriterionUnmodified": true,
+  "stressScope": "3840x2160 H264 SDR 60fps; HDR controls are24fps, not a combined4K60HDR test",
+  "rows": [
+    {
+      "engine": "chromium",
+      "caseId": "h264-2160-60",
+      "elapsedSeconds": 8.508800000190735,
+      "callbackFps": 56.177134259741095,
+      "compositionCounterFps": 59.350319667718104,
+      "totalFrames": 512,
+      "droppedFrames": 3,
+      "droppedFraction": 0.005859375,
+      "maximumCallbackGapMs": 51.3639998092649,
+      "mediaWallRatio": 0.9911738435279884,
+      "criteria": {
+        "windowAtLeast8Seconds": true,
+        "callbackRateAtLeast58_5": false,
+        "compositionCounterRateAtLeast58_5": true,
+        "maximumCallbackGapAtMost100ms": true,
+        "mediaTimestampsAdvance": true,
+        "mediaWallRatioAtLeast0_98": true,
+        "positiveTotalFrames": true,
+        "nonnegativeDropsAndAtMost1Percent": true
+      },
+      "failedCriteria": [
+        "callbackRateAtLeast58_5"
+      ],
+      "historicalSustained60Observed": false
+    },
+    {
+      "engine": "webkit",
+      "caseId": "h264-2160-60",
+      "elapsedSeconds": 8.539,
+      "callbackFps": 55.97845180934536,
+      "compositionCounterFps": 59.960182691181636,
+      "totalFrames": 513,
+      "droppedFrames": 0,
+      "droppedFraction": 0.0,
+      "maximumCallbackGapMs": 51,
+      "mediaWallRatio": 1.0000003849396886,
+      "criteria": {
+        "windowAtLeast8Seconds": true,
+        "callbackRateAtLeast58_5": false,
+        "compositionCounterRateAtLeast58_5": true,
+        "maximumCallbackGapAtMost100ms": true,
+        "mediaTimestampsAdvance": true,
+        "mediaWallRatioAtLeast0_98": true,
+        "positiveTotalFrames": true,
+        "nonnegativeDropsAndAtMost1Percent": true
+      },
+      "failedCriteria": [
+        "callbackRateAtLeast58_5"
+      ],
+      "historicalSustained60Observed": false
+    },
+    {
+      "engine": "firefox",
+      "caseId": "h264-2160-60",
+      "elapsedSeconds": 8.551,
+      "callbackFps": 24.675476552450004,
+      "compositionCounterFps": 59.99298327680973,
+      "totalFrames": 513,
+      "droppedFrames": 4,
+      "droppedFraction": 0.007797270955165692,
+      "maximumCallbackGapMs": 57.159999999999854,
+      "mediaWallRatio": 0.9989741550695824,
+      "criteria": {
+        "windowAtLeast8Seconds": true,
+        "callbackRateAtLeast58_5": false,
+        "compositionCounterRateAtLeast58_5": true,
+        "maximumCallbackGapAtMost100ms": true,
+        "mediaTimestampsAdvance": true,
+        "mediaWallRatioAtLeast0_98": true,
+        "positiveTotalFrames": true,
+        "nonnegativeDropsAndAtMost1Percent": true
+      },
+      "failedCriteria": [
+        "callbackRateAtLeast58_5"
+      ],
+      "historicalSustained60Observed": false
+    }
+  ],
+  "interpretation": "Only the JavaScript callback-frequency clause failed. Best-effort callback counts are not a direct physical frame-rate measurement. Neither engine incapability nor inadequate host decode throughput is established; physical sustained4K60 remains unverified. No historical result is relabelled passing.",
+  "primarySources": [
+    "https://wicg.github.io/video-rvfc/",
+    "https://web.dev/articles/requestvideoframecallback-rvfc",
+    "https://w3c.github.io/media-playback-quality/"
+  ],
+  "remaining": [
+    "Validate the performance measurement method and obtain compositor/display pacing evidence per engine",
+    "Physically validate HDR10/PQ and HLG output and color preservation separately, including combined4K60HDR if claimed",
+    "Identify actual Chromium executable/build/backend and isolate HEVC rejection; source-code support is not a runtime pass",
+    "Retain unverified multitrack/audible and hosted external-provider CORS product evidence"
+  ]
+}
