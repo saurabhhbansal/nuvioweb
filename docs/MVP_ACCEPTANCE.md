@@ -13,6 +13,12 @@ Status at 2026-10-19: **PARTIAL — the hosted guest journey is demonstrated; th
 - **C1 candidate, superseded by deployment:** the earlier `80f739c` candidate was revalidated but blocked on expired Cloudflare authorization ([receipt](evidence/preview-candidate-2026-10-19.json)). It is superseded by the hosted `1f67867` refresh above; the rollback deployment `96f977f4`/`8edec42` is retained.
 - PASS applies only to the stated seam. FAIL is an observed failed assertion or absent required behavior. NOT TESTED means no matching execution evidence; a different column's pass never fills that gap.
 
+## Current issue #10 correction — 2026-10-20
+
+Issue #10 remains **OPEN / `in_progress`, DEFERRED (not verified)**, labelled `deferred`. The owner's actual installed-provider acceptance instruction supersedes fixture-based acceptance; older blanket statements below that generic `startup-stall` reasons are fixed describe historical classification regressions, not proof that real-provider stalls are resolved. [Actual-provider report](evidence/issue10-real-provider-2026-10-20.md) · [full receipt](evidence/issue10-real-streams-2026-10-20.json).
+
+Actual Chromium156 AVC/AAC1920×1080 playback for30s, pause/seek/new post-seek frame/resume/Back passed its observed seam, **not4K**. WPE real MKV/control paths stalled; Gecko3840×2076 metadata/resume clock had zero total frames/media advancement and observer exit2; actual4K MP4 failed in both WPE/Gecko. No actual4K frame case passed. Unknown metadata is verified in actual cards; original4K/error boxes remain unchecked. Exact real-source delivery/startup-stall diagnostics are deferred to [#137](https://github.com/saurabhhbansal/nuvioweb/issues/137), physical HDR output to [#138](https://github.com/saurabhhbansal/nuvioweb/issues/138). No engine-wide/hardware diagnosis. Served runtime stays pinned at `b5a8679`, distinct from repository base `45d59a16`; no deploy or actual-current-main UI claim. All older fixtures/strict60 exit3 remain historical regression evidence. This correction does not change any #7 state or acceptance.
+
 ## Required journeys
 
 | Journey | S1 synthetic service | L2 local HTTP/browser | H1 hosted preview | L1 real Nuvio service |
