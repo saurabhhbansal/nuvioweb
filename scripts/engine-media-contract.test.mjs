@@ -4,7 +4,7 @@ import { mkdtemp, mkdir, writeFile, symlink, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { createHash } from "node:crypto";
-import { CASES, encodingArgs, parseRange, loadFixtureInventory } from "./engine-media-contract.mjs";
+import { CASES, encodingArgs, parseRange, loadFixtureInventory, validateFrameMeasurement } from "./engine-media-contract.mjs";
 
 test("fixed original 4K encoder cases are bounded and 60fps is distinct from short controls", () => {
   assert.equal(CASES.length, 9);
@@ -24,6 +24,13 @@ test("fixed original 4K encoder cases are bounded and 60fps is distinct from sho
     assert.equal(args[args.indexOf("-color_primaries") + 1], "bt2020");
   }
   assert.throws(() => encodingArgs({ id: "arbitrary", encoder: "sh" }, "out"));
+});
+
+test("missing, NaN and fractional frame evidence fail closed", () => {
+  const stream = { width: 3840, height: 2160, duration: "2", avg_frame_rate: "24/1", nb_read_frames: "48" };
+  const target = { seconds: 2, fps: 24 };
+  assert.deepEqual(validateFrameMeasurement(stream, {}, target), { duration: 2, fps: 24, frames: 48 });
+  for (const patch of [{ avg_frame_rate: "0/0" }, { nb_read_frames: "N/A" }, { nb_read_frames: "48.5" }, { duration: "N/A" }, { avg_frame_rate: "0/1" }]) assert.throws(() => validateFrameMeasurement({ ...stream, ...patch }, {}, target), /Measured fixture/);
 });
 
 test("Range parser handles bounded normal/open/suffix ranges and rejects invalid multipart", () => {
@@ -46,6 +53,7 @@ test("fixture inventory enforces rights, allowlisted relative paths, hashes, siz
   await writeFile(join(root, entry.file), bytes);
   const save = (file = entry, license = "CC0-1.0") => writeFile(join(root, "provenance.json"), JSON.stringify({ license, files: [file] }));
   await save(); assert.equal((await loadFixtureInventory(root)).files.size, 1);
+  await save({ ...entry, bytes: 1 }); await assert.rejects(loadFixtureInventory(root), /Actual file size cap/);
   await save(entry, "unknown"); await assert.rejects(loadFixtureInventory(root), /Invalid fixture/);
   await save({ ...entry, file: "../secret" }); await assert.rejects(loadFixtureInventory(root), /Unsafe/);
   await save({ ...entry, bytes: 65 * 1024 * 1024 }); await assert.rejects(loadFixtureInventory(root), /size cap/);

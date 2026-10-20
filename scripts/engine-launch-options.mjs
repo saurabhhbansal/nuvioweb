@@ -12,13 +12,15 @@ export function engineLaunchOptions(engine, env = process.env) {
     ...env,
     HOME: `${root}/home`, TMPDIR: `${root}/tmp`, XDG_CACHE_HOME: `${root}/home/.cache`, XDG_CONFIG_HOME: `${root}/home/.config`,
     LD_LIBRARY_PATH: [lib, `${lib}/blas`, `${lib}/lapack`, `${lib}/pulseaudio`].join(":"),
-    GST_PLUGIN_PATH: `${lib}/gstreamer-1.0`, GST_PLUGIN_SYSTEM_PATH: `${lib}/gstreamer-1.0`,
+    GST_PLUGIN_PATH: `${lib}/gstreamer-1.0`, GST_PLUGIN_SYSTEM_PATH: `${lib}/gstreamer-1.0:/usr/lib/aarch64-linux-gnu/gstreamer-1.0`,
+    GST_REGISTRY: `${root}/home/.cache/gstreamer-${engine}-merged.bin`,
     GST_PLUGIN_SCANNER: "/usr/lib/aarch64-linux-gnu/gstreamer1.0/gstreamer-1.0/gst-plugin-scanner"
   };
   if (engine === "webkit" && env.NUVIO_WEBKIT_ROOT) {
     const webkitRoot = resolve(env.NUVIO_WEBKIT_ROOT);
     Object.assign(childEnv, {
       WEBKIT_EXEC_PATH: `${webkitRoot}/bin`, WEBKIT_INJECTED_BUNDLE_PATH: `${webkitRoot}/lib`, WEBKIT_INSPECTOR_RESOURCES_PATH: `${webkitRoot}/share`,
+      WPE_SHELL_MEDIA_DISK_CACHE_PATH: `${root}/tmp`,
       LD_LIBRARY_PATH: `${webkitRoot}/lib:${webkitRoot}/sys/lib:${childEnv.LD_LIBRARY_PATH}`
     });
   }

@@ -5,6 +5,8 @@ import { createHash } from "node:crypto";
 import { chromium, firefox, webkit } from "@playwright/test";
 import { loadFixtureInventory, parseRange, contentTypeFor } from "./engine-media-contract.mjs";
 import { engineLaunchOptions } from "./engine-launch-options.mjs";
+import { decodedAndSeeked, matrixExitCode, withDeadline } from "./engine-delivery.mjs";
+import { measuredCodecString } from "./engine-codec-string.mjs";
 
 const args = process.argv.slice(2);
 const option = (name, fallback) => { const i = args.indexOf(name); return i < 0 ? fallback : args[i + 1]; };
@@ -15,11 +17,13 @@ if (engines.some(x => !["chromium", "webkit", "firefox"].includes(x))) throw new
 const { manifest, files } = await loadFixtureInventory(directory);
 const requests = [];
 const source = await readFile(new URL("../app/alpha/js/core/streams/sourceCapabilities.js", import.meta.url));
+const deliverySource = await readFile(new URL("./engine-delivery.mjs", import.meta.url));
 const pageBody = '<!doctype html><title>Original engine media fixture</title><video muted playsinline></video>';
 function serve(request, response) {
   const path = new URL(request.url, "http://127.0.0.1").pathname;
   if (!["GET", "HEAD"].includes(request.method)) { response.writeHead(405).end(); return; }
   if (path === "/") { response.writeHead(200, { "Content-Type": "text/html", "Cache-Control": "no-store" }).end(pageBody); return; }
+  if (path === "/delivery.js") { response.writeHead(200, { "Content-Type": "application/javascript" }).end(deliverySource); return; }
   if (path === "/sourceCapabilities.js") { response.writeHead(200, { "Content-Type": "application/javascript" }).end(source); return; }
   if (["/forbidden", "/expired"].includes(path)) { const status = path === "/forbidden" ? 403 : 410; response.writeHead(status, { "Access-Control-Allow-Origin": "*" }).end(); requests.push({ path, status }); return; }
   const prefix = path.startsWith("/denied/") ? "/denied/" : "/media/";
@@ -38,7 +42,7 @@ await new Promise(r => app.listen(0, "127.0.0.1", r));
 await new Promise(r => provider.listen(0, "127.0.0.1", r));
 const appOrigin = `http://127.0.0.1:${app.address().port}`;
 const providerOrigin = `http://127.0.0.1:${provider.address().port}`;
-const receipt = { schemaVersion: 1, observedAt: new Date().toISOString(), sourceRevision: process.env.NUVIO_SOURCE_REVISION || null, verifierSha256: createHash("sha256").update(await readFile(new URL(import.meta.url))).digest("hex"), fixtureInventorySha256: createHash("sha256").update(await readFile(resolve(directory, "provenance.json"))).digest("hex"), sourceCapabilitiesSha256: createHash("sha256").update(source).digest("hex"), launchHelperSha256: createHash("sha256").update(await readFile(new URL("./engine-launch-options.mjs", import.meta.url))).digest("hex"), layer: "actual headless engine native playback + real API predictions; not bundled player journey or HDR display certification", environment: { node: process.version, platform: process.platform, architecture: process.arch }, mappings: { chromium: ["Chrome", "Edge", "Brave", "Opera"], webkit: ["Safari"], firefox: ["Firefox"] }, engines: [], limits: ["Mappings are owner-requested engine-family mappings, not duplicate branded/device runs", "Software/headless Linux pipeline: successful HDR-encoded decode does not prove HDR luminance, gamut, tone mapping or display output", "An unsuccessful codec decode is a limitation of this tested engine build/host combination unless isolated otherwise; never proof of all versions/platforms", "No audio, DRM, billing, account, production, preview or real-provider operation"] };
+const receipt = { schemaVersion: 1, observedAt: new Date().toISOString(), sourceRevision: process.env.NUVIO_SOURCE_REVISION || null, verifierSha256: createHash("sha256").update(await readFile(new URL(import.meta.url))).digest("hex"), fixtureInventorySha256: createHash("sha256").update(await readFile(resolve(directory, "provenance.json"))).digest("hex"), sourceCapabilitiesSha256: createHash("sha256").update(source).digest("hex"), launchHelperSha256: createHash("sha256").update(await readFile(new URL("./engine-launch-options.mjs", import.meta.url))).digest("hex"), deliveryHelperSha256: createHash("sha256").update(deliverySource).digest("hex"), codecParserSha256: createHash("sha256").update(await readFile(new URL("./engine-codec-string.mjs", import.meta.url))).digest("hex"), layer: "actual headless engine native playback + real API predictions; not bundled player journey or HDR display certification", environment: { node: process.version, platform: process.platform, architecture: process.arch }, mappings: { chromium: ["Chrome", "Edge", "Brave", "Opera"], webkit: ["Safari"], firefox: ["Firefox"] }, engines: [], limits: ["Mappings are owner-requested engine-family mappings, not duplicate branded/device runs", "Software/headless Linux pipeline: successful HDR-encoded decode does not prove HDR luminance, gamut, tone mapping or display output", "An unsuccessful codec decode is a limitation of this tested engine build/host combination unless isolated otherwise; never proof of all versions/platforms", "No audio, DRM, billing, account, production, preview or real-provider operation"] };
 try {
   for (const name of engines) {
     const result = { engine: name, status: "STARTING", cases: [] };
@@ -55,12 +59,15 @@ try {
       result.environment = await page.evaluate(() => ({ userAgent: navigator.userAgent, hardwareConcurrency: navigator.hardwareConcurrency, deviceMemoryGiB: navigator.deviceMemory || null, hdrScreenReported: matchMedia("(dynamic-range: high)").matches, colorGamutP3: matchMedia("(color-gamut: p3)").matches, colorGamut2020: matchMedia("(color-gamut: rec2020)").matches, requestVideoFrameCallback: typeof HTMLVideoElement.prototype.requestVideoFrameCallback === "function", mediaCapabilities: typeof navigator.mediaCapabilities?.decodingInfo === "function" }));
       for (const entry of manifest.cases.filter(x => x.status === "GENERATED_VERIFIED")) {
         const start = requests.length;
-        const observed = await page.evaluate(async ({ entry, providerOrigin }) => {
+        const codec = measuredCodecString(entry, files.get(entry.file).bytes);
+        const predictionType = `video/${entry.file.endsWith(".webm") ? "webm" : "mp4"}; codecs="${codec}"`;
+        const observed = await withDeadline(page.evaluate(async ({ entry, providerOrigin, predictionType, codec }) => {
           const { describeSource, probeSourceCapabilities } = await import("/sourceCapabilities.js");
+          const { summarizeDelivery } = await import("/delivery.js");
           const video = document.querySelector("video");
           video.pause(); video.removeAttribute("src"); video.load();
           video.crossOrigin = "anonymous"; video.muted = true;
-          const descriptor = describeSource({ url: `${providerOrigin}/media/${entry.file}`, mimeType: entry.predictionType, video: { codec: entry.predictionType.match(/codecs="([^"]+)"/)[1], width: entry.observed.width, height: entry.observed.height, bitrate: entry.observed.bitrate, framerate: entry.observed.fps } });
+          const descriptor = describeSource({ url: `${providerOrigin}/media/${entry.file}`, mimeType: predictionType, video: { codec, width: entry.observed.width, height: entry.observed.height, bitrate: entry.observed.bitrate, framerate: entry.observed.fps } });
           const prediction = await probeSourceCapabilities(descriptor, { videoElement: video, mediaCapabilities: navigator.mediaCapabilities });
           const out = { prediction, metadata: null, playback: null, seek: null, delivery: null, mediaErrorCode: null };
           const boundedEvent = (element, name, ms) => new Promise((resolve, reject) => {
@@ -92,37 +99,44 @@ try {
             const after = { wall: performance.now(), time: video.currentTime, quality: quality() };
             const elapsedSeconds = (after.wall - before.wall) / 1000;
             out.playback = { advancedSeconds: after.time - before.time, elapsedSeconds, ended: video.ended, error: video.error?.code || null };
-            const first = callbacks[0], last = callbacks.at(-1);
-            const deliveredFps = first && last && last.wall > first.wall ? (callbacks.length - 1) / ((last.wall - first.wall) / 1000) : null;
-            const presentedFps = first && last && last.wall > first.wall ? (last.presentedFrames - first.presentedFrames) / ((last.wall - first.wall) / 1000) : null;
-            const dropped = before.quality && after.quality ? after.quality.dropped - before.quality.dropped : null;
-            const total = before.quality && after.quality ? after.quality.total - before.quality.total : null;
-            out.delivery = { elapsedSeconds, callbacks: callbacks.length, callbackFps: deliveredFps, presentedFps, totalFrames: total, droppedFrames: dropped, firstFrame: first || null, lastFrame: last || null, windows, sustained60Observed: entry.target.fps === 60 && elapsedSeconds >= 8 && deliveredFps >= 58.5 && presentedFps >= 58.5 && out.playback.advancedSeconds / elapsedSeconds >= 0.98 && total > 0 && dropped / total <= 0.01 };
+            out.delivery = summarizeDelivery(before, after, callbacks, entry.target.fps, windows);
             video.pause();
             const seeked = boundedEvent(video, "seeked", 10000);
             const target = Math.min(0.75, video.duration / 2);
+            const frameAfterSeek = video.requestVideoFrameCallback ? new Promise(resolve => {
+              let id;
+              const timer = setTimeout(() => { video.cancelVideoFrameCallback(id); resolve(null); }, 10000);
+              id = video.requestVideoFrameCallback((_, metadata) => {
+                clearTimeout(timer);
+                resolve({ mediaTime: metadata.mediaTime, width: metadata.width, height: metadata.height });
+              });
+            }) : Promise.resolve(null);
             video.currentTime = target;
             await seeked;
             const at = video.currentTime;
-            await video.play();
-            await new Promise(r => setTimeout(r, 350));
-            out.seek = { target, observed: at, progressedTo: video.currentTime, error: video.error?.code || null };
+            await Promise.race([video.play(), new Promise((_, reject) => setTimeout(() => reject(new Error("resume-deadline")), 10000))]);
+            const resumeStarted = performance.now();
+            while (video.currentTime <= target + 0.1 && !video.error && performance.now() - resumeStarted < 5000) {
+              await new Promise(r => setTimeout(r, 50));
+            }
+            const postSeekFrame = await frameAfterSeek;
+            out.seek = { target, observed: at, progressedTo: video.currentTime, resumeElapsedMs: performance.now() - resumeStarted, frameCallbackAvailable: typeof video.requestVideoFrameCallback === "function", postSeekFrame, error: video.error?.code || null };
           } catch (error) { out.failure = error.message; out.mediaErrorCode = video.error?.code || null; }
           finally { video.pause(); video.removeAttribute("src"); video.load(); }
           return out;
-        }, { entry, providerOrigin });
-        const decoded = observed.metadata?.width === 3840 && observed.metadata?.height === 2160 && observed.playback?.advancedSeconds > 0.1 && !observed.playback?.error && observed.seek?.progressedTo > observed.seek?.target + 0.1 && !observed.failure;
-        result.cases.push({ id: entry.id, fixtureSha256: manifest.files.find(x => x.file === entry.file).sha256, input: entry.observed, hdr: entry.hdr, ...observed, result: decoded ? "DECODE_AND_SEEK_OBSERVED" : "DECODE_NOT_ESTABLISHED", limitation: decoded ? null : "HOST_ENVIRONMENT", limitationDetail: decoded ? null : "Tested engine-build/host media stack; inherent cross-platform engine limitation not established", requests: requests.slice(start) });
+        }, { entry, providerOrigin, predictionType, codec }), 70000, () => page.close());
+        const decoded = decodedAndSeeked(observed);
+        result.cases.push({ id: entry.id, fixtureSha256: manifest.files.find(x => x.file === entry.file).sha256, input: entry.observed, predictionType, predictionScope: entry.observed.codec === "vp9" ? "WebM VP9 family alias; profile recorded separately, no invented level" : "Measured RFC6381 initialization bytes", hdr: entry.hdr, ...observed, result: decoded ? "DECODE_AND_SEEK_OBSERVED" : "DECODE_NOT_ESTABLISHED", limitation: decoded ? null : "HOST_ENVIRONMENT", limitationDetail: decoded ? null : "Tested engine-build/host media stack; inherent cross-platform engine limitation not established", requests: requests.slice(start) });
         console.log(JSON.stringify({ engine: name, case: entry.id, result: result.cases.at(-1).result, prediction: observed.prediction, delivery: observed.delivery && { callbackFps: observed.delivery.callbackFps, presentedFps: observed.delivery.presentedFps, sustained60Observed: observed.delivery.sustained60Observed }, failure: observed.failure }));
       }
-      result.transport = await page.evaluate(async ({ providerOrigin, file }) => {
+      result.transport = await withDeadline(page.evaluate(async ({ providerOrigin, file }) => {
         const out = {};
         for (const [id, path] of [["corsAllowed", `/media/${file}`], ["corsDenied", `/denied/${file}`], ["forbidden403", "/forbidden"], ["expired410", "/expired"]]) {
-          try { const response = await fetch(providerOrigin + path); out[id] = { status: response.status, ok: response.ok }; await response.body?.cancel(); }
+          try { const response = await fetch(providerOrigin + path, { signal: AbortSignal.timeout(5000) }); out[id] = { status: response.status, ok: response.ok }; await response.body?.cancel(); }
           catch { out[id] = { rejected: true }; }
         }
         return out;
-      }, { providerOrigin, file: manifest.files[0]?.file });
+      }, { providerOrigin, file: manifest.files[0]?.file }), 25000, () => page.close());
       await context.close();
     } catch (error) {
       result.status = "UNAVAILABLE_OR_DRIVER_FAILURE";
@@ -135,6 +149,8 @@ try {
   await Promise.all([new Promise(r => app.close(r)), new Promise(r => provider.close(r))]);
   receipt.credentialLeakObserved = requests.some(r => r.authorizationPresent || r.cookiePresent);
   await mkdir(resolve(receiptPath, ".."), { recursive: true });
+  receipt.exitSemantics = { 0: "Completed; all positively predicted decode/seek and sustained60 criteria passed; negative predictions remain explicit unsupported rows", 2: "Engine/driver or positively predicted decode/seek failure, or credential leak", 3: "Measurement completed but sustained60 criterion not observed" };
+  receipt.commandExitCode = matrixExitCode(receipt);
   await writeFile(receiptPath, JSON.stringify(receipt, null, 2) + "\n");
 }
-if (receipt.engines.some(x => x.status !== "LAUNCHED") || receipt.credentialLeakObserved) process.exitCode = 2;
+process.exitCode = receipt.commandExitCode;

@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "test:quality-fixtures": "node --test scripts/quality-fixture-packaging.test.mjs",
-    "test:engine-media": "node --test scripts/engine-media-contract.test.mjs scripts/engine-launch-options.test.mjs",
+    "test:engine-media": "node --test scripts/engine-media-contract.test.mjs scripts/engine-launch-options.test.mjs scripts/engine-delivery.test.mjs scripts/engine-codec-string.test.mjs",
     "test:audio-recovery-gate": "node --test scripts/generate-audio-recovery-media.test.mjs",
     "probe:audio-fixtures": "node scripts/generate-audio-recovery-media.mjs --probe",
     "test:addon-fixtures": "node --test tests/fixtures/addons/server.test.mjs",

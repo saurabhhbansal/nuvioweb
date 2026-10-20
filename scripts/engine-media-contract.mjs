@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
-import { readFile, realpath } from "node:fs/promises";
+import { open, realpath } from "node:fs/promises";
+import { constants } from "node:fs";
 import { resolve, sep } from "node:path";
 
 export const CASES = Object.freeze([
@@ -42,9 +43,35 @@ export function parseRange(value, length) {
   return { start, end: Math.min(end, length - 1), status: 206 };
 }
 
+export async function readBoundedFile(path, limit) {
+  const handle = await open(path, constants.O_RDONLY | constants.O_NOFOLLOW);
+  try {
+    const metadata = await handle.stat();
+    if (!metadata.isFile() || metadata.size > limit) throw new Error("Actual file size cap");
+    const bytes = Buffer.alloc(metadata.size + 1);
+    let offset = 0;
+    while (offset < bytes.length) {
+      const { bytesRead } = await handle.read(bytes, offset, bytes.length - offset, offset);
+      if (!bytesRead) break;
+      offset += bytesRead;
+    }
+    if (offset !== metadata.size) throw new Error("File changed during bounded read");
+    return bytes.subarray(0, offset);
+  } finally { await handle.close(); }
+}
+
+export function validateFrameMeasurement(stream, format, target) {
+  const duration = Number(stream?.duration || format?.duration);
+  const [num, den] = String(stream?.avg_frame_rate).split("/").map(Number);
+  const fps = num / den;
+  const frames = Number(stream?.nb_read_frames);
+  if (stream?.width !== 3840 || stream?.height !== 2160 || !Number.isFinite(duration) || duration < target.seconds - 0.1 || !Number.isFinite(fps) || fps <= 0 || Math.abs(fps - target.fps) > 0.01 || !Number.isSafeInteger(frames) || frames < target.fps * target.seconds - 1) throw new Error("Measured fixture does not meet target dimensions/frame rate/count/duration");
+  return { duration, fps, frames };
+}
+
 export async function loadFixtureInventory(directory) {
   const root = await realpath(directory);
-  const manifest = JSON.parse(await readFile(resolve(root, "provenance.json"), "utf8"));
+  const manifest = JSON.parse((await readBoundedFile(resolve(root, "provenance.json"), 1024 * 1024)).toString("utf8"));
   if (manifest.license !== "CC0-1.0" || !Array.isArray(manifest.files) || manifest.files.length > 64) throw new Error("Invalid fixture inventory");
   const files = new Map();
   let total = 0;
@@ -55,7 +82,7 @@ export async function loadFixtureInventory(directory) {
     if (total > 256 * 1024 * 1024) throw new Error("Inventory size cap");
     const path = await realpath(resolve(root, entry.file));
     if (!path.startsWith(root + sep)) throw new Error("Escaping fixture path");
-    const bytes = await readFile(path);
+    const bytes = await readBoundedFile(path, entry.bytes);
     if (bytes.length !== entry.bytes || createHash("sha256").update(bytes).digest("hex") !== entry.sha256) throw new Error("Fixture integrity mismatch");
     files.set(entry.file, { ...entry, bytes });
   }

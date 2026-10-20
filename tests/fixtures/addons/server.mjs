@@ -5,7 +5,7 @@ import { resolve } from "node:path";
 
 const scenarios = new Set(["source-order","basic","objects","configured","cors-denied","malformed","shape","slow","failure","empty","timeout","partial","declared","conflicting-codecs","unknown-quality","unsupported-mime","quality-1080","quality-2160","quality-hls","quality-dash","quality-expired","quality-restricted","quality-hls-cors","startup-header-required"]);
 const mediaRoot = new URL("../media/",import.meta.url);
-const qualityFiles = new Set(["original-1080p.mp4","original-2160p.mp4",...["1080p","2160p"].flatMap(size => ["init.mp4","segment.m4s","stream.m3u8","manifest.mpd"].map(file => `${size}/${file}`))]);
+const qualityFiles = new Set(["original-1080p.mp4","original-2160p.mp4","native-1080p.mp4","native-2160p.mp4",...["1080p","2160p"].flatMap(size => ["init.mp4","segment.m4s","stream.m3u8","manifest.mpd"].map(file => `${size}/${file}`))]);
 
 export function createAddonFixtureServer() {
   const requests = [];
@@ -112,7 +112,7 @@ export function createAddonFixtureServer() {
           const provenance = JSON.parse(await readFile(new URL("quality/provenance.json",mediaRoot),"utf8"));
           const size = scenario === "quality-1080" ? "1080" : "2160";
           const original = provenance.files.find(file => file.file === `original-${size}p.mp4`);
-          const relative = scenario === "quality-hls-cors" ? "cors-denied/stream.m3u8" : scenario === "quality-hls" ? "2160p/stream.m3u8" : scenario === "quality-dash" ? "2160p/manifest.mpd" : scenario === "quality-expired" ? "expired.mp4" : scenario === "quality-restricted" ? "restricted.mp4" : original.file;
+          const relative = scenario === "quality-hls-cors" ? "cors-denied/stream.m3u8" : scenario === "quality-hls" ? "2160p/stream.m3u8" : scenario === "quality-dash" ? "2160p/manifest.mpd" : scenario === "quality-expired" ? "expired.mp4" : scenario === "quality-restricted" ? "restricted.mp4" : `native-${size}p.mp4`;
           const mimeType = scenario === "quality-hls" || scenario === "quality-hls-cors" ? "application/vnd.apple.mpegurl" : scenario === "quality-dash" ? "application/dash+xml" : `video/mp4; codecs="${original.codec}"`;
           json({streams:[{name:`Original ${size}p ${scenario === "quality-hls" ? "HLS" : scenario === "quality-dash" ? "DASH" : "MP4"} fixture`,url:`${origin}/media/quality/${relative}${["quality-expired","quality-hls-cors"].includes(scenario) ? "?token=synthetic-private-media" : ""}`,mimeType,video:{codec:original.codec,width:original.observed.width,height:original.observed.height},...(scenario === "quality-expired" ? {expiresAt:"2026-01-01T00:00:00Z"} : {}),behaviorHints:{notWebReady:false}}]}); return;
         }

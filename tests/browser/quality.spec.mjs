@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { readFile } from "node:fs/promises";
 const provenance = JSON.parse(await readFile(new URL("../fixtures/media/quality/provenance.json", import.meta.url), "utf8"));
+const nativeProvenance = JSON.parse(await readFile(new URL("../fixtures/media/quality/native-provenance.json", import.meta.url), "utf8"));
 const provider = "http://127.0.0.1:4373";
 test.beforeEach(async ({ context, request }) => {
   await request.delete(`${provider}/__fixture/requests`);
@@ -26,6 +27,12 @@ async function openSource(page, context, scenario) {
         }),
       );
       globalThis.__qualityEngineEvents = [];
+      globalThis.__qualitySourceErrors = [];
+      document.addEventListener("error", event => {
+        if (event.target?.tagName === "SOURCE" && event.target.parentElement?.tagName === "VIDEO") {
+          globalThis.__qualitySourceErrors.push({ target: "SOURCE", videoError: event.target.parentElement.error?.code || null });
+        }
+      }, true);
       for (const name of ["hlstrackschanged", "dashtrackschanged"])
         document.addEventListener(
           name,
@@ -53,8 +60,8 @@ async function openSource(page, context, scenario) {
   await expect(page.locator('[data-action="playStream"]')).toHaveCount(1);
 }
 for (const [scenario, width, height, file] of [
-  ["quality-1080", 1920, 1080, "original-1080p.mp4"],
-  ["quality-2160", 3840, 2160, "original-2160p.mp4"],
+  ["quality-1080", 1920, 1080, "native-1080p.mp4"],
+  ["quality-2160", 3840, 2160, "native-2160p.mp4"],
   ["quality-hls", 3840, 2160, "2160p/stream.m3u8"],
   ["quality-dash", 3840, 2160, "2160p/manifest.mpd"],
 ]) {
@@ -79,6 +86,9 @@ for (const [scenario, width, height, file] of [
     // that reports no H.264 support must still surface an explicit, actionable
     // failure instead of hanging. Do not assume Chromium's codec set.
     const original = provenance.files.find(entry => entry.file === (scenario === "quality-1080" ? "original-1080p.mp4" : "original-2160p.mp4"));
+    const servedSourceSha256 = file.startsWith("native-")
+      ? nativeProvenance.files.find(entry => entry.file === file).sha256
+      : original.packaged.find(entry => entry.file === file).sha256;
     const predictionType = `video/mp4; codecs="${original.codec}"`;
     const nativePrediction = await page.evaluate(
       type => document.createElement("video").canPlayType(type), predictionType,
@@ -96,7 +106,7 @@ for (const [scenario, width, height, file] of [
         overlay.locator(".player-startup-error-message"),
       ).not.toBeEmpty();
       await testInfo.attach("unsupported-codec", {
-        body: JSON.stringify({ scenario, outcome: "UNSUPPORTED_DIAGNOSTIC_NO_DECODE", engine: testInfo.project.name, predictionType, nativePrediction, fixtureSha256: original.sha256, message: await overlay.innerText() }),
+        body: JSON.stringify({ scenario, outcome: "UNSUPPORTED_DIAGNOSTIC_NO_DECODE", engine: testInfo.project.name, predictionType, nativePrediction, originalEncodedSourceSha256: original.sha256, servedSourceSha256, message: await overlay.innerText() }),
         contentType: "application/json",
       });
       await overlay.getByRole("button", { name: "Go Back", exact: true }).click();
@@ -118,6 +128,10 @@ for (const [scenario, width, height, file] of [
     await expect
       .poll(() => video.evaluate((video) => video.currentTime))
       .toBeGreaterThan(0.1);
+    // Native cases use lossless canonical MP4 headers; adaptive cases retain
+    // the original fragments. Both must report the measured full duration.
+    await expect.poll(() => video.evaluate(video => video.duration))
+      .toBeGreaterThan(original.observed.duration - 0.05);
     const initial = await video.evaluate((video) => ({
       width: video.videoWidth,
       height: video.videoHeight,
@@ -181,7 +195,7 @@ for (const [scenario, width, height, file] of [
       () => globalThis.__qualityEngineEvents,
     );
     await testInfo.attach("actual-quality-observation", {
-      body: JSON.stringify({ scenario, outcome: "ORIGINAL_DECODE_AND_SEEK", engine: testInfo.project.name, predictionType, nativePrediction, fixtureSha256: original.sha256, initial, media, engineEvents }),
+      body: JSON.stringify({ scenario, outcome: "ORIGINAL_DECODE_AND_SEEK", engine: testInfo.project.name, predictionType, nativePrediction, originalEncodedSourceSha256: original.sha256, servedSourceSha256, initial, media, engineEvents }),
       contentType: "application/json",
     });
     const observed = await (
@@ -269,9 +283,17 @@ for (const [scenario, status] of [
         // and logs the switching warning, Firefox's HLS.js reports a fatal
         // network error directly. Either way the failure must be classified,
         // not swallowed, and must never include the signed query.
-        expect(JSON.stringify(await Promise.all(applicationLogs))).toMatch(
-          /switching player engine|"mediaErrorCode":2/,
-        );
+        const logs = JSON.stringify(await Promise.all(applicationLogs));
+        if (!/switching player engine|"mediaErrorCode":2/.test(logs)) {
+          // WebKit may dispatch a real, code-less child SOURCE failure even
+          // while hls.js owns the route. The browser's rejected manifest plus
+          // captured SOURCE target and matching generic reason are evidence;
+          // fabricating media code2 or an HTTP cause would be incorrect.
+          expect(logs).toMatch(/"mediaErrorCode":0/);
+          expect(await page.evaluate(() => globalThis.__qualitySourceErrors))
+            .toContainEqual({ target: "SOURCE", videoError: null });
+          await expect(overlay).toContainText("Reason: startup-source-error");
+        }
       }
       expect(JSON.stringify(await Promise.all(applicationLogs))).not.toContain(
         "synthetic-private-media",

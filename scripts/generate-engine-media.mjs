@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import { mkdir, readFile, readdir, writeFile, stat } from "node:fs/promises";
 import { resolve, relative } from "node:path";
 import { fileURLToPath } from "node:url";
-import { CASES, encodingArgs } from "./engine-media-contract.mjs";
+import { CASES, encodingArgs, validateFrameMeasurement } from "./engine-media-contract.mjs";
 
 const args = process.argv.slice(2);
 function option(name, fallback) { const i = args.indexOf(name); return i < 0 ? fallback : args[i + 1]; }
@@ -53,10 +53,7 @@ for (const entry of CASES.filter(x => selected.includes(x.id))) {
     await run(ffmpeg, argv);
     const probe = JSON.parse(await run(ffprobe, ["-v", "error", "-select_streams", "v:0", "-count_frames", "-show_streams", "-show_format", "-of", "json", resolve(output, file)]));
     const s = probe.streams?.[0];
-    const duration = Number(s?.duration || probe.format?.duration);
-    const [num, den] = String(s?.avg_frame_rate).split("/").map(Number);
-    const fps = num / den;
-    if (s?.width !== 3840 || s?.height !== 2160 || !Number.isFinite(duration) || duration < entry.seconds - 0.1 || Math.abs(fps - entry.fps) > 0.01 || Number(s.nb_read_frames) < entry.fps * entry.seconds - 1) throw new Error("Measured fixture does not meet target dimensions/frame rate/count/duration");
+    const { duration, fps } = validateFrameMeasurement(s, probe.format, entry);
     if (entry.transfer && (s.color_transfer !== entry.transfer || s.color_primaries !== "bt2020" || !s.pix_fmt?.includes("10"))) throw new Error("HDR encoding/color-tag verification failed");
     const observed = { codec: s.codec_name, codecTag: s.codec_tag_string, profile: s.profile, level: s.level, width: s.width, height: s.height, pixelFormat: s.pix_fmt, fps, frames: Number(s.nb_read_frames), duration, bitrate: Number(s.bit_rate || probe.format?.bit_rate), bitrateBasis: s.bit_rate ? "ffprobe-stream" : "ffprobe-container", colorPrimaries: s.color_primaries, colorTransfer: s.color_transfer, colorSpace: s.color_space, sideData: s.side_data_list || [] };
     const predictionType = `video/${entry.format}; codecs="${entry.codec}"`;
