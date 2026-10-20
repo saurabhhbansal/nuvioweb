@@ -1,3 +1,19 @@
+# Active Sol issue #7 closure continuation — 2026-10-20
+
+Canonical baseline0d771735; selected implementation issue119 on `fix/issue-119-storage-failures`. Durable run `/home/saurabh/workspace/personal/agent-runs/nuvioweb/sol-issue7-closure-20261020`; [plan](../plans/issues/issue-119-storage-failures.md). Prior PR125/126 repairs are preserved.
+
+Owner explicitly accepted bounded pending/error/manual recovery and deferred provider QR/physical-device verification with honest unsupported labels and follow-up tracking. [Exact answers](../evidence/issue7-owner-scope-2026-10-20.json). These choices preserve O1–O3, actual app propagation, nonempty isolation, natural expiry, offline/rejected refresh. No routine permission is pending.
+
+Storage regressions reproduced red;70 focused tests and4 targeted browser cases pass. Separate actual-diff review approved134cac2; f8ee31f removes CI-reported unused catch binding. PR127 carries bounded completion evidence; final exact-head metadata review, all four CI checks and protected integration still required. Pending/readback failures must never be cleared by a later debounce/inflight operation. No full snapshots, durable outbox or atomic same-key guarantee added. Final exact-head CI/protected merge/deployment are still required.
+
+Natural expiry: provider TTL604800s. Finite reviewed observer PID/deadline/receipt status is in RUN/natural-expiry-observer.json, expected boundary2026-10-27T08:41:40.775Z. Session only in process memory; do not kill or restart it casually, expose process memory, or call waiting a pass. No token/clock modification. Earlier failed metadata probes and successful local-only cleanup receipts remain. Recheck observer liveness plus finished receipt on resume.
+
+Current preview remains0d771735/deployment8bb21fb1 until an exact protected candidate is deployed and read back. Preserve Chrome9222 and unrelated services/data. Remaining app propagation/Library journey and historical failure telemetry work are in RUN/live-plan.md; no direct API insertion may substitute for app Save or receiving-app UI. Full closure still requires default checker0; current A2/A3/A8 unmet; A5 bounded policy has passing local evidence.
+
+---
+
+The following historical run narrative is retained as context, superseded by the active state above:
+
 # Current issue #7 remediation — 2026-10-20
 
 Implementation owner: Sol 6.1/high. Selected implementation unit: **#119**, within parent #7 remediation. #117/#118 closed after protected PR125 and guard readback; #119/#120/#7 remain open. Baseline `0212e733275bcb3b95661b288139b69d8b01c064`; current follow-up branch `fix/issue-119-explicit-library-writes`. [Plan](../plans/issues/issue-7-sol-remediation.md).

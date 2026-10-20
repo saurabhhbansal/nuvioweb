@@ -68,3 +68,12 @@ test("account reset clears in-memory state after account storage removal", async
   for (const reset of f.handlers) reset();
   assert.deepEqual(f.state.get(1), { revision: 0, pending: false });
 });
+
+test("failed clean metadata cannot falsely acknowledge a pending revision", async (t) => {
+  const f = await fixture(t);
+  const pending = f.state.markPending(1);
+  f.failWrites();
+  assert.equal(f.state.acknowledge(1, pending.revision), false);
+  assert.deepEqual(f.state.get(1), pending);
+  assert.deepEqual((await f.load()).get(1), pending);
+});

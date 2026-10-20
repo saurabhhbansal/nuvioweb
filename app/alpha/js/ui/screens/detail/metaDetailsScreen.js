@@ -1,3 +1,4 @@
+import { showLibraryStorageError } from "../../components/libraryStorageError.js";
 import { Router } from "../../navigation/router.js";
 import { ScreenUtils } from "../../navigation/screen.js";
 import { isBrowserOfflineNow } from "../../../core/offline/browserOnlineState.js";
@@ -6968,6 +6969,11 @@ export const MetaDetailsScreen = {
       });
       return true;
     } catch (error) {
+      if (showLibraryStorageError(error)) {
+        this.desktopLibraryDestinationMenu = null;
+        this.destroyDetailHoldDialog();
+        return false;
+      }
       console.warn("Failed to update selected library destination", error);
       menu.destructiveRemovalDestination =
         error?.code === "SIMKL_DESTRUCTIVE_REMOVAL_REQUIRED" ? { sourceMode, key } : null;
@@ -7270,13 +7276,16 @@ export const MetaDetailsScreen = {
         return;
       }
     }
-    await savedLibraryRepository.toggle({
+    try { await savedLibraryRepository.toggle({
       contentId: this.params?.itemId,
       contentType: this.params?.itemType || "movie",
       title: this.meta?.name || this.params?.fallbackTitle || this.params?.itemId || "Untitled",
       poster: this.meta?.poster || null,
       background: this.meta?.background || null
-    });
+    }); } catch (error) {
+      if (showLibraryStorageError(error)) return;
+      throw error;
+    }
     if (Platform.isBrowser()) {
       bindDesktopNavigationEvents(this.container);
       await this.refreshCurrentLibraryMembership();

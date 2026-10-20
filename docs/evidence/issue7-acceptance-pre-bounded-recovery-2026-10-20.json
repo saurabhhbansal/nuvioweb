@@ -1,0 +1,521 @@
+{
+  "schema_version": 1,
+  "issue": 7,
+  "repository": "saurabhhbansal/nuvioweb",
+  "as_of": "2026-10-20",
+  "source_commit": "083eb89f78a2a0f3dd5810eac951a14404d1a7fc",
+  "original_criteria": [
+    {
+      "id": "O1",
+      "original_text": "Existing Nuvio account is the only user login",
+      "criteria": [
+        "A1",
+        "A4",
+        "A6",
+        "A7",
+        "A8"
+      ]
+    },
+    {
+      "id": "O2",
+      "original_text": "Profiles/addons/watch history synchronize as tested",
+      "criteria": [
+        "A2",
+        "A3",
+        "A5"
+      ]
+    },
+    {
+      "id": "O3",
+      "original_text": "No cross-account library or session leakage",
+      "criteria": [
+        "A3",
+        "A4",
+        "A6",
+        "A7",
+        "A8"
+      ]
+    }
+  ],
+  "ledger": {
+    "issue7": {
+      "status": "in_progress",
+      "verified": false,
+      "parent_open": true
+    },
+    "children": [
+      {
+        "key": "CH1",
+        "issue": 117,
+        "state": "closed",
+        "scope": "A1-A4 synthetic acceptance gate and nonempty browser fixtures"
+      },
+      {
+        "key": "CH2",
+        "issue": 118,
+        "state": "closed",
+        "scope": "A6/A7 QR session publication and credential-bearing rendering safety"
+      },
+      {
+        "key": "CH3",
+        "issue": 119,
+        "state": "open",
+        "scope": "A5 Library pending-edit, snapshot-limit and concurrent-writer policy"
+      },
+      {
+        "key": "CH4",
+        "issue": 120,
+        "state": "blocked",
+        "scope": "Authorized live scope partially executed; provider QR redirect/semantics, physical-device and remaining lifecycle/new-change evidence unresolved"
+      }
+    ]
+  },
+  "criteria": [
+    {
+      "id": "A1",
+      "original_ids": [
+        "O1"
+      ],
+      "required_kinds": [
+        "synthetic",
+        "live"
+      ],
+      "status": "pass",
+      "gate_owner": "executor; authorized executor",
+      "result": "Existing Nuvio email sign-in and the exposed QR entry path are synthetically dispositioned; live QR/device semantics remain under #120.",
+      "linked_children": [
+        "CH1",
+        "CH2",
+        "CH4"
+      ],
+      "observations": [
+        {
+          "kind": "synthetic",
+          "status": "pass",
+          "commit": "ecef56026d5c55ae205917405ac51fe41ac0bd38",
+          "deployment": null,
+          "command_or_observation": "node --test app/alpha/js/core/auth/authManager.lifecycle.test.mjs app/alpha/js/core/auth/authManager.test.mjs app/alpha/js/core/auth/accountLocalDataReset.test.mjs",
+          "assertion": "The configured upstream password exchange is used, no second identity endpoint or persisted password is introduced, and account-local data is reset on identity change.",
+          "result": "Focused lifecycle tests pass at the tested source; this is a synthetic contract check, not a live provider claim.",
+          "artifact": "docs/evidence/issue7-fixture-closure-2026-10-20.json",
+          "limitations": "Synthetic only; does not prove deployed provider behavior or QR entry-path safety.",
+          "observed_at": "2026-10-20T00:55:00Z"
+        },
+        {
+          "kind": "live",
+          "status": "pass",
+          "commit": "8edec4248405d59f5b8639085a1e779e6878911b",
+          "deployment": "nuvioweb-preview.pages.dev deployment 96f977f4 / revision 8edec42",
+          "command_or_observation": "Owner-authorized read-only live browser run on the deployed preview; sign-in, reload persistence, independent-context profile equality and A-to-B separation were observed.",
+          "assertion": "An existing Nuvio account signs in through the configured upstream and the application does not create a second account identity.",
+          "result": "Scoped live sign-in and persistence checks passed; no library/add-on/history write or refresh evidence.",
+          "artifact": "docs/evidence/identity-live-2026-10-19.json",
+          "limitations": "Single Linux Chromium environment; third parties blocked; no measured token expiry, revocation, QR or new-data propagation.",
+          "observed_at": "2026-10-19T06:52:13Z"
+        },
+        {
+          "kind": "review",
+          "status": "pass",
+          "commit": "6dd2c33581fb75540a9a955b3009ca1e9d54d1ab",
+          "deployment": null,
+          "command_or_observation": "node --test app/alpha/js/core/auth/qrLoginService.lifecycle.test.mjs and npx playwright test tests/browser/identity-qr.spec.mjs --project=chromium",
+          "assertion": "The QR entry path uses attempt ownership and common establishment; a cancelled/superseded exchange cannot set authenticated state, write an owner marker or navigate.",
+          "result": "16 lifecycle tests and 5 actual-screen QR tests pass, including cancel/supersede during owner resolution and local QR rendering.",
+          "artifact": "docs/evidence/issue7-qr-ownership-2026-10-20.json",
+          "limitations": "Synthetic only; live QR consent/expiry/device remains #120. A cancelled attempt may leave an already-issued owner request in flight, but it cannot publish.",
+          "observed_at": "2026-10-20T02:00:00Z"
+        }
+      ]
+    },
+    {
+      "id": "A2",
+      "original_ids": [
+        "O2"
+      ],
+      "required_kinds": [
+        "synthetic",
+        "live"
+      ],
+      "status": "partial",
+      "gate_owner": "CH1 executor; CH4 authorized executor",
+      "result": "Both synthetic multi-domain round trips pass. Direct documented additive Library/history/progress writes were received by an independent live session and exactly cleaned, with original rows unchanged. Hosted account Library round trips pass with app mutations denied. Actual app profile/add-on/progress new-change propagation remains incomplete.",
+      "linked_children": [
+        "CH1",
+        "CH4"
+      ],
+      "observations": [
+        {
+          "kind": "synthetic",
+          "status": "pass",
+          "commit": "ecef56026d5c55ae205917405ac51fe41ac0bd38",
+          "deployment": null,
+          "command_or_observation": "npx playwright test tests/browser/identity-sync.spec.mjs --project=chromium",
+          "assertion": "The bundled application pulls distinct nonempty add-on, watched-item, progress and Library keys for the exact signed-in account and selected profile, and a later synthetic backend mutation appears only in that account/profile.",
+          "result": "Nonempty profile-scoped fixture assertions pass with foreign keys absent; see the fixture-closure receipt for exact titles.",
+          "artifact": "docs/evidence/issue7-fixture-closure-2026-10-20.json",
+          "limitations": "Synthetic loopback fixture; not deployed sync, provider authorization, or real new-device propagation.",
+          "observed_at": "2026-10-20T00:55:00Z"
+        },
+        {
+          "kind": "live",
+          "status": "unverified",
+          "commit": "8650d85afd665c589872ddf8474a3695900c6fb7",
+          "deployment": "loopback static candidate with live primary Nuvio API",
+          "command_or_observation": "Previously executed read-only local-candidate A/B hydration control.",
+          "assertion": "Distinct owners and existing nonempty add-on/watched/progress controls must be observed before any new-write claim.",
+          "result": "Existing controls matched; no new profile/add-on/history/progress mutation propagation was exercised, so the requirement remains unverified live.",
+          "artifact": "docs/evidence/identity-local-candidate-2026-10-19.json",
+          "limitations": "Existing-data controls only; single Linux Chromium environment; no mutation, measured refresh or device evidence.",
+          "observed_at": "2026-10-19T07:22:18Z"
+        },
+        {
+          "kind": "live",
+          "status": "unverified",
+          "commit": "8eec52a7de888d156fac03edd9c523fc16964f7b",
+          "deployment": "nuvioweb-preview source8eec52a / deployment46d066cf",
+          "command_or_observation": "Guarded live-driver markers; independently issued disposable sessions",
+          "assertion": "New unique Library/history/progress records must arrive in an independent session and exact cleanup must preserve all original rows.",
+          "result": "Additive writes204, independent reads200 and exact cleanup204; marker absence and original-row equality true in all three domains.",
+          "artifact": "docs/evidence/issue7-sol-live-markers.json",
+          "limitations": "Direct API setup only; not hosted application profile/add-on/history/progress mutation-path evidence.",
+          "observed_at": "2026-10-20T05:26:35.840084+00:00"
+        }
+      ]
+    },
+    {
+      "id": "A3",
+      "original_ids": [
+        "O3",
+        "O2"
+      ],
+      "required_kinds": [
+        "synthetic",
+        "live"
+      ],
+      "status": "fail",
+      "gate_owner": "CH1 executor / CH4 authorized executor",
+      "result": "New hosted A-B-A-B current-server Library comparisons and restored sets pass; direct additive marker cleanup preserves all original rows. The historical post-removal pre-header failure remains unexplained; later passes do not resolve it. New exact-key app deletion preserves unseen unrelated concurrent additions synthetically; hosted app mutation path remains to verify.",
+      "linked_children": [
+        "CH1",
+        "CH4"
+      ],
+      "resolution": {
+        "state": "open",
+        "resolved_by": null,
+        "reference": null
+      },
+      "observations": [
+        {
+          "kind": "synthetic",
+          "status": "pass",
+          "commit": "ecef56026d5c55ae205917405ac51fe41ac0bd38",
+          "deployment": null,
+          "command_or_observation": "npx playwright test tests/browser/identity-sync.spec.mjs --project=chromium",
+          "assertion": "Bundled B-to-A-to-B navigation retains only the current account's nonempty Library, a clean independent receiver reflects final-item removal on reload, and a held old response cannot publish after a switch.",
+          "result": "The existing nine synthetic browser cases plus the new nonempty profile-scoped controls pass at the tested source.",
+          "artifact": "docs/evidence/issue7-fixture-closure-2026-10-20.json",
+          "limitations": "Synthetic responses; cannot diagnose a live request failure or prove hosted server behavior.",
+          "observed_at": "2026-10-20T00:55:00Z"
+        },
+        {
+          "kind": "live",
+          "status": "pass",
+          "commit": "1f67867ebab7f426672886121d852a643a436414",
+          "deployment": "nuvioweb-preview.pages.dev deployment b48de821 / revision 1f67867",
+          "command_or_observation": "Bounded read-mostly hosted B-to-A Library switch with owner-created nonempty items; no intended test-record mutation.",
+          "assertion": "After an ordinary sign-out and A sign-in, a new A-epoch Library pull returns A's exact nonempty set and no B-only set.",
+          "result": "A single nonempty B-to-A switch completed with distinct owners and matching A content.",
+          "artifact": "docs/evidence/identity-library-nonempty-switch-2026-10-19.json",
+          "limitations": "One switch only; both Libraries were nonempty but B-to-A-to-B reliability and app Save/removal were not established.",
+          "observed_at": "2026-10-19T17:28:06Z"
+        },
+        {
+          "kind": "live",
+          "status": "fail",
+          "commit": "1f67867ebab7f426672886121d852a643a436414",
+          "deployment": "nuvioweb-preview.pages.dev deployment b48de821 / revision 1f67867",
+          "command_or_observation": "Hosted post-removal B-to-A switch attempt; Library and critical reads failed before response headers.",
+          "assertion": "The current session and nonempty Library must restore without foreign data after an owner removal.",
+          "result": "No successful new Library response completed before the deadline. No leak was observed, but the failure remains unexplained.",
+          "artifact": "docs/evidence/identity-library-removal-switch-2026-10-19.json",
+          "limitations": "Failure category was not established; a later read-only round trip passed but does not explain this failed run.",
+          "observed_at": "2026-10-19T17:47:28Z"
+        },
+        {
+          "kind": "live",
+          "status": "unverified",
+          "commit": "8eec52a7de888d156fac03edd9c523fc16964f7b",
+          "deployment": "nuvioweb-preview source8eec52a / deployment46d066cf",
+          "command_or_observation": "Guarded live-driver hosted with verified served revision",
+          "assertion": "A-B-A-B must match exact current-server nonempty Library controls, restore each returning set and retain distinct owners.",
+          "result": "Both account returns matched; all current server controls nonempty; tokens cleared on signout.",
+          "artifact": "docs/evidence/issue7-sol-hosted-accounts.json",
+          "limitations": "Read-only hosted contexts with automatic mutations denied; historical pre-header failure still unexplained.",
+          "observed_at": "2026-10-20T05:26:35.840084+00:00"
+        }
+      ]
+    },
+    {
+      "id": "A4",
+      "original_ids": [
+        "O1",
+        "O3"
+      ],
+      "required_kinds": [
+        "synthetic"
+      ],
+      "status": "pass",
+      "gate_owner": "CH1 executor",
+      "result": "Existing refresh/rejection/expiry/coalescing/late-response controls remain green at the tested source; live measured refresh and revocation stay under A8.",
+      "linked_children": [
+        "CH1"
+      ],
+      "observations": [
+        {
+          "kind": "synthetic",
+          "status": "pass",
+          "commit": "ecef56026d5c55ae205917405ac51fe41ac0bd38",
+          "deployment": null,
+          "command_or_observation": "node --test app/alpha/js/core/auth/authManager.lifecycle.test.mjs app/alpha/js/core/profile/startupSyncService.test.mjs app/alpha/js/core/profile/savedLibrarySyncService.test.mjs",
+          "assertion": "A rejected refresh cannot remain authenticated, a delayed old-session response cannot publish into a later session, and offline cached display is not presented as server-valid proof.",
+          "result": "Focused lifecycle and sync isolation tests pass at the tested source.",
+          "artifact": "docs/evidence/issue7-fixture-closure-2026-10-20.json",
+          "limitations": "Synthetic contract matrix only; no measured provider expiry or revocation.",
+          "observed_at": "2026-10-20T00:55:00Z"
+        }
+      ]
+    },
+    {
+      "id": "A5",
+      "original_ids": [
+        "O2"
+      ],
+      "required_kinds": [
+        "synthetic"
+      ],
+      "status": "blocked",
+      "gate_owner": "CH3 executor design/characterization; provider for an atomic backend contract",
+      "result": "Explicit per-item operations now replace the unsafe full snapshot path; distinct clients keep unrelated keys, exact deletion preserves concurrent additions, and failed/legacy predecessors cannot be acknowledged. Same-key concurrent ordering, per-key durable retry and storage-failure guarantees remain unsupported; parent A5 stays blocked.",
+      "linked_children": [
+        "CH3"
+      ],
+      "observations": [
+        {
+          "kind": "synthetic",
+          "status": "pass",
+          "commit": "aaffee1786e7adbdc888efbe9bd9922780d6e892",
+          "deployment": null,
+          "observed_at": "2026-10-20T02:50:00Z",
+          "command_or_observation": "node --test app/alpha/js/core/profile/savedLibrarySyncService.test.mjs app/alpha/js/data/repository/savedLibraryRepository.test.mjs app/alpha/js/data/local/savedLibrarySyncState.test.mjs",
+          "assertion": "A failed edit survives reload and a competing pull; a legacy nonempty cache is pending; a stale acknowledgement cannot clear a newer edit; a local set over 1000 items is refused before sync_push_library.",
+          "result": "45 focused tests pass. The real store/repository retains a 1001st item via save and replaceAll/replaceForProfile; the >1000 push refuses without a request and pending stays.",
+          "artifact": "docs/evidence/issue7-library-policy-2026-10-20.json",
+          "limitations": "Synthetic characterization only; no live Library write or server conflict observation."
+        },
+        {
+          "kind": "synthetic",
+          "status": "blocked",
+          "commit": "aaffee1786e7adbdc888efbe9bd9922780d6e892",
+          "deployment": null,
+          "observed_at": "2026-10-20T02:50:00Z",
+          "command_or_observation": "Two independent full-snapshot writers characterized against the existing sync_push_library contract.",
+          "assertion": "Two clients saving from independent snapshots must not silently lose an earlier edit.",
+          "result": "Same-key atomic conflict ordering and durable retry/storage guarantees are not provided; the documented additive alternative safely addresses distinct keys and is implemented separately.",
+          "artifact": "docs/LIBRARY_SYNC_POLICY.md",
+          "limitations": "No same-key conflict-free, durable outbox or storage-quota recovery claim. Provider precondition/contract is required for stronger cross-device ordering; owner permission granted."
+        },
+        {
+          "kind": "synthetic",
+          "status": "pass",
+          "commit": "083eb89f78a2a0f3dd5810eac951a14404d1a7fc",
+          "deployment": null,
+          "command_or_observation": "Focused actual-module explicit Library queue/service regressions",
+          "assertion": "Distinct clients preserve unrelated keys; delayed failed/legacy predecessors cannot be acknowledged; typed identities remain distinct.",
+          "result": "Baseline distinct-writer loss reproduced before repair; additive/exact-delete requests now preserve baseline and both new keys, with pending guards retained.",
+          "artifact": "docs/LIBRARY_SYNC_POLICY.md",
+          "limitations": "Bounded explicit operations only; blocked broader same-key ordering/durable-retry/storage guarantees remain in another observation.",
+          "observed_at": "2026-10-20T05:26:35.840084+00:00"
+        }
+      ]
+    },
+    {
+      "id": "A6",
+      "original_ids": [
+        "O1",
+        "O3"
+      ],
+      "required_kinds": [
+        "synthetic"
+      ],
+      "status": "pass",
+      "gate_owner": "CH2 executor; security owner for unresolved sensitive risk",
+      "result": "Independent review reproduced two additional defects at 0212e73; new actual-module regressions now pass after guarded owner lookup/deferred caching and coalesced QR exchange. Live semantics remain A8.",
+      "linked_children": [
+        "CH2"
+      ],
+      "resolution": {
+        "state": "resolved",
+        "resolved_by": "A6",
+        "reference": "docs/evidence/issue7-sol-remediation-2026-10-20.json"
+      },
+      "observations": [
+        {
+          "kind": "synthetic",
+          "status": "fail",
+          "commit": "f30c79f6045786c821047532104c90aa65b861cc",
+          "deployment": null,
+          "command_or_observation": "node qr-ownership-probe.mjs <audit-worktree> --assert-safe",
+          "assertion": "A QR exchange that completes after signed-out cleanup and a later login must not overwrite the later session.",
+          "result": "The probe exited 1: staleExchangeAccepted and laterSessionOverwritten were true.",
+          "artifact": "docs/evidence/issue7-qr-red-2026-10-20.json",
+          "limitations": "Actual service module with mocked Fetch and synthetic storage; not a browser journey or live exploit.",
+          "observed_at": "2026-10-20T00:45:00Z"
+        },
+        {
+          "kind": "synthetic",
+          "status": "pass",
+          "commit": "6dd2c33581fb75540a9a955b3009ca1e9d54d1ab",
+          "deployment": null,
+          "observed_at": "2026-10-20T02:00:00Z",
+          "command_or_observation": "node --test app/alpha/js/core/auth/qrLoginService.lifecycle.test.mjs; node scripts/qr-ownership-probe.mjs app/alpha/js --assert-safe; npx playwright test tests/browser/identity-qr.spec.mjs --project=chromium",
+          "assertion": "A delayed/cancelled QR exchange cannot publish tokens, owner state or navigation after a later session or a cancel; cancellation during owner resolution is checked before state publication.",
+          "result": "16 lifecycle tests and 5 actual-screen tests pass; probe staleExchangeAccepted false; a later session is preserved across a stale establishment.",
+          "artifact": "docs/evidence/issue7-qr-ownership-2026-10-20.json",
+          "limitations": "Synthetic service/browser evidence only; already-issued remote/owner requests cannot be undone."
+        },
+        {
+          "kind": "synthetic",
+          "status": "fail",
+          "commit": "0212e733275bcb3b95661b288139b69d8b01c064",
+          "deployment": null,
+          "command_or_observation": "Actual-module deferred QR regression at baseline plus newly added tests",
+          "assertion": "Cancellation must not cache an owner without a session; overlapping approved exchanges must retain the valid login.",
+          "result": "Two reproduced failures: cancelled owner cached; both overlapping exchanges rejected and cleared their tokens.",
+          "artifact": "docs/evidence/issue7-sol-red-2026-10-20.json",
+          "limitations": "Synthetic networking; no live exploit established.",
+          "observed_at": "2026-10-20T04:30:00Z"
+        },
+        {
+          "kind": "synthetic",
+          "status": "pass",
+          "commit": "6a39be76a3408905942eabedef233ceb197c666f",
+          "deployment": null,
+          "command_or_observation": "node --test app/alpha/js/core/auth/qrLoginService.lifecycle.test.mjs scripts/check-issue7-acceptance.test.mjs",
+          "assertion": "Deferred cancelled owner cannot publish cache, retry, refresh or signout; concurrent exchanges establish exactly one retained session.",
+          "result": "Actual-module regressions now retain the correct tokens, owner cache, auth state and marker; expired/cancelled work cannot publish.",
+          "artifact": "docs/evidence/issue7-sol-remediation-2026-10-20.json",
+          "limitations": "Synthetic only; not live provider QR or physical-device acceptance.",
+          "observed_at": "2026-10-20T04:55:00Z"
+        }
+      ]
+    },
+    {
+      "id": "A7",
+      "original_ids": [
+        "O1",
+        "O3"
+      ],
+      "required_kinds": [
+        "synthetic",
+        "review"
+      ],
+      "status": "pass",
+      "gate_owner": "CH2 executor; owner for material security disposition",
+      "result": "The third-party QR renderer and innerHTML image sink are removed; a finite destination policy and an explicit unavailable state are tested.",
+      "linked_children": [
+        "CH2"
+      ],
+      "observations": [
+        {
+          "kind": "review",
+          "status": "pass",
+          "commit": "6dd2c33581fb75540a9a955b3009ca1e9d54d1ab",
+          "deployment": null,
+          "command_or_observation": "Threat-model review of reachable QR sources/sinks and the destination policy, recorded in docs/NUVIO_IDENTITY_CONTRACT.md.",
+          "assertion": "No credential-bearing QR content is sent to a third-party renderer, unsafe image markup is not constructed, and residual same-origin token risk is stated.",
+          "result": "The external renderer is removed, the finite destination policy is documented, and residual localStorage XSS risk is explicit.",
+          "artifact": "docs/NUVIO_IDENTITY_CONTRACT.md",
+          "limitations": "Not an XSS-proof application and not independent human review.",
+          "observed_at": "2026-10-20T02:00:00Z"
+        },
+        {
+          "kind": "synthetic",
+          "status": "pass",
+          "commit": "6dd2c33581fb75540a9a955b3009ca1e9d54d1ab",
+          "deployment": null,
+          "observed_at": "2026-10-20T02:00:00Z",
+          "command_or_observation": "npx playwright test tests/browser/identity-qr.spec.mjs --project=chromium",
+          "assertion": "A hostile quote/event-handler image URL is inert; the login URL is rendered locally; no external QR renderer is requested; a safe same-origin image also renders.",
+          "result": "5 actual-screen browser tests pass with zero external renderer requests, including the local QR fallback.",
+          "artifact": "docs/evidence/issue7-qr-ownership-2026-10-20.json",
+          "limitations": "Synthetic same-origin image stand-in; no live QR display or device claim."
+        }
+      ]
+    },
+    {
+      "id": "A8",
+      "original_ids": [
+        "O1",
+        "O3"
+      ],
+      "required_kinds": [
+        "live",
+        "review"
+      ],
+      "status": "blocked",
+      "gate_owner": "Authorized executor; provider/device capabilities for unavailable observations",
+      "result": "Actual explicit refresh200, local-session logout204, revoked refresh400 invalid/revoked category, independent A-control refresh200 observed. Hosted QR signup200 then start400 rejects preview redirect; QR ready false and local anonymous cleanup true. Named physical/device and natural-expiry/complete app lifecycle evidence remain unmet; no owner-permission blocker.",
+      "linked_children": [
+        "CH4"
+      ],
+      "observations": [
+        {
+          "kind": "live",
+          "status": "unverified",
+          "commit": "8edec4248405d59f5b8639085a1e779e6878911b",
+          "deployment": "nuvioweb-preview.pages.dev deployment 96f977f4 / revision 8edec42",
+          "command_or_observation": "Existing read-only live sign-in/persistence evidence reviewed; no measured expiry, rejection, revocation or QR device observation exists.",
+          "assertion": "A live receipt must record the elapsed expiry boundary, refresh outcome and rejection behavior without decoding or exporting token payloads.",
+          "result": "Not yet established by actual live lifecycle/provider QR/device observations; permission is granted for bounded checks.",
+          "artifact": "docs/evidence/identity-live-2026-10-19.json",
+          "limitations": "Historical unrun scope; authorization is now granted. This does not supply natural-expiry, revocation or provider QR/device evidence.",
+          "observed_at": "2026-10-19T06:52:13Z"
+        },
+        {
+          "kind": "review",
+          "status": "blocked",
+          "commit": "ecef56026d5c55ae205917405ac51fe41ac0bd38",
+          "deployment": null,
+          "command_or_observation": "Owner-pause review recorded in the continuity handoff and owner checklist.",
+          "assertion": "No live account probe, marker write, device test, credential read or revocation action may run under the present pause.",
+          "result": "Not yet established by actual live lifecycle/provider QR/device observations; permission is granted for bounded checks.",
+          "artifact": "docs/agent-runs/CURRENT.md",
+          "limitations": "Historical unrun scope; authorization is now granted. This does not supply natural-expiry, revocation or provider QR/device evidence.",
+          "observed_at": "2026-10-20T00:50:00Z"
+        },
+        {
+          "kind": "live",
+          "status": "blocked",
+          "commit": "8eec52a7de888d156fac03edd9c523fc16964f7b",
+          "deployment": "nuvioweb-preview source8eec52a / deployment46d066cf",
+          "command_or_observation": "Actual fixed hosted QR screen, one fresh anonymous start attempt",
+          "assertion": "Hosted QR must create a supported scannable current session before approval/nonce/device behavior can be tested.",
+          "result": "Anonymous signup200; start_tv_login_session400 rejects current preview redirect, no QR image ready; local anonymous tokens cleared on leave.",
+          "artifact": "docs/evidence/issue7-sol-qr-live-observation.json",
+          "limitations": "Provider must support/allow the dedicated development redirect and document approval/nonce semantics; no endpoint fabricated. Natural expiry and physical devices remain unverified.",
+          "observed_at": "2026-10-20T05:26:35.840084+00:00"
+        }
+      ]
+    }
+  ],
+  "closure": {
+    "state": "open",
+    "unmet_ids": [
+      "A2",
+      "A3",
+      "A5",
+      "A8"
+    ],
+    "reason": "A1/A4/A6/A7 have bounded evidence; original O1-O3 remain unmet: A2 live new-change propagation, A3 historical unexplained pre-header switch failure, A5 atomic provider conflict/durable retry contract, A8 actual lifecycle/QR/device observations. Owner authorization is granted."
+  }
+}

@@ -1,3 +1,4 @@
+import { showLibraryStorageError } from "./libraryStorageError.js";
 import { I18n } from "../../i18n/index.js";
 import { savedLibraryRepository } from "../../data/repository/savedLibraryRepository.js";
 import { libraryRepository, LibrarySourceMode } from "../../data/repository/libraryRepository.js";
@@ -349,7 +350,13 @@ export class PosterOptionsDialogController {
   }
 
   async activateOption(action) {
-    const result = await activatePosterOption(this.state, action);
+    let result;
+    try { result = await activatePosterOption(this.state, action); }
+    catch (error) {
+      this.destroy();
+      if (showLibraryStorageError(error)) return false;
+      throw error;
+    }
     if (result?.type === "details") {
       const item = result.item;
       this.destroy({

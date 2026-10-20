@@ -1,3 +1,4 @@
+import { savedLibraryRepository } from "../../../data/repository/savedLibraryRepository.js";
 import { Router } from "../../navigation/router.js";
 import { ensureSpatialFocusVisible, ScreenUtils } from "../../navigation/screen.js";
 import {
@@ -1834,6 +1835,13 @@ export const LibraryScreen = {
     `;
   },
 
+  renderSyncNotice() {
+    try {
+      if (!savedLibraryRepository.getSyncState().pending) return "";
+    } catch { return '<p role="status">Library device storage is unavailable. Check browser storage before editing.</p>'; }
+    return '<p role="status" class="library-sync-notice">Library changes are pending on this device. Automatic retry is unavailable. Compare with another signed-in device and repeat only the intended save or removal. Earlier unconfirmed changes remain pending. Signing out discards this device’s pending changes; first record anything you need to keep.</p>';
+  },
+
   render() {
     this.cancelScheduledRender();
     this.layoutPrefs = LayoutPreferences.get();
@@ -1883,6 +1891,7 @@ export const LibraryScreen = {
             ${this.renderPickerGroups(state)}
             ${this.renderLibrarySearchField(state)}
 
+            ${this.renderSyncNotice()}
             ${this.renderLibraryContentArea(state)}
           </section>
         </main>

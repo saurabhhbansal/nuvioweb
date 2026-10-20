@@ -113,8 +113,8 @@ export const SavedLibrarySyncService = {
       // between them, so a newer local edit cannot slip into this publication.
       await savedLibraryRepository.replaceAll(remoteItems, resolvedProfileId);
       return remoteItems;
-    } catch (error) {
-      console.warn("Saved library sync pull failed", error);
+    } catch {
+      console.warn("Saved library sync pull failed");
       return [];
     }
   },

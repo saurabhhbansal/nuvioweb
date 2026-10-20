@@ -1,4 +1,4 @@
-import { LocalStore } from "../../core/storage/localStore.js";
+import { readLibraryStorage, writeLibraryStorage } from "./savedLibraryStorage.js";
 
 const SAVED_LIBRARY_KEY = "savedLibraryItems";
 const changeListeners = new Set();
@@ -70,8 +70,10 @@ export const SavedLibraryStore = {
     return () => changeListeners.delete(listener);
   },
 
-  listAll() {
-    const raw = LocalStore.get(SAVED_LIBRARY_KEY, []);
+  listAll(strict = false) {
+    let raw;
+    try { raw = readLibraryStorage(SAVED_LIBRARY_KEY, []); }
+    catch (error) { if (strict) throw error; return []; }
     return dedupeAndSort(Array.isArray(raw) ? raw : []);
   },
 
@@ -79,9 +81,9 @@ export const SavedLibraryStore = {
     return this.listAll();
   },
 
-  listForProfile(profileId) {
+  listForProfile(profileId, strict = false) {
     const pid = String(profileId || "1");
-    return this.listAll().filter((item) => String(item.profileId || "1") === pid);
+    return this.listAll(strict).filter((item) => String(item.profileId || "1") === pid);
   },
 
   upsert(item, profileId) {
@@ -97,46 +99,45 @@ export const SavedLibraryStore = {
       return;
     }
     const key = savedLibraryItemKey(normalized);
-    const items = this.listAll();
+    const items = this.listAll(true);
     // Never silently evict the oldest item at a 1000-item boundary. A local
-    // set larger than the full-snapshot API can carry is retained here and the
-    // push refuses it instead of deleting remote rows through a truncated
-    // replacement.
+    // set is retained here; explicit cloud operations affect only their keys.
     const next = [normalized, ...items.filter((entry) => savedLibraryItemKey(entry) !== key)];
     const nextItems = dedupeAndSort(next);
     if (itemsSignature(items) === itemsSignature(nextItems)) {
-      return;
+      return normalized;
     }
-    LocalStore.set(SAVED_LIBRARY_KEY, nextItems);
+    writeLibraryStorage(SAVED_LIBRARY_KEY, nextItems);
     notifyChange(pid, "upsert");
+    return normalized;
   },
 
-  findByContentId(contentId, profileId) {
+  findByContentId(contentId, profileId, strict = false) {
     const wanted = String(contentId || "").trim();
-    return this.listForProfile(profileId).find((item) => item.contentId === wanted) || null;
+    return this.listForProfile(profileId, strict).find((item) => item.contentId === wanted) || null;
   },
 
   remove(contentId, profileId) {
     const pid = String(profileId || "1");
     const wanted = String(contentId || "").trim();
-    const items = this.listAll();
+    const items = this.listAll(true);
     const next = items.filter((item) => {
       return String(item.profileId || "1") !== pid || item.contentId !== wanted;
     });
     if (items.length === next.length) {
       return;
     }
-    LocalStore.set(SAVED_LIBRARY_KEY, next);
+    writeLibraryStorage(SAVED_LIBRARY_KEY, next);
     notifyChange(pid, "remove");
   },
 
   replaceAll(items = []) {
-    const previousItems = this.listAll();
+    const previousItems = this.listAll(true);
     const nextItems = dedupeAndSort(Array.isArray(items) ? items : []);
     if (itemsSignature(previousItems) === itemsSignature(nextItems)) {
       return;
     }
-    LocalStore.set(SAVED_LIBRARY_KEY, nextItems);
+    writeLibraryStorage(SAVED_LIBRARY_KEY, nextItems);
     const profileIds = new Set(
       [...previousItems, ...nextItems].map((item) => String(item.profileId || "1"))
     );
@@ -152,7 +153,7 @@ export const SavedLibraryStore = {
 
   replaceForProfile(profileId, items = []) {
     const pid = String(profileId || "1");
-    const currentItems = this.listAll();
+    const currentItems = this.listAll(true);
     const previousProfileItems = currentItems.filter(
       (item) => String(item.profileId || "1") === pid
     );
@@ -168,7 +169,7 @@ export const SavedLibraryStore = {
     if (itemsSignature(previousProfileItems) === itemsSignature(normalized)) {
       return;
     }
-    LocalStore.set(SAVED_LIBRARY_KEY, nextItems);
+    writeLibraryStorage(SAVED_LIBRARY_KEY, nextItems);
     notifyChange(pid, "replaceForProfile");
   }
 };

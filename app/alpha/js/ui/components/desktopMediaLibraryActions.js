@@ -1,3 +1,4 @@
+import { showLibraryStorageError } from "./libraryStorageError.js";
 import {
   libraryRepository,
   LibrarySourceMode
@@ -39,11 +40,13 @@ export async function getDesktopMediaLibraryMembership(item) {
 export async function toggleDesktopMediaLibraryMembership(item) {
   const libraryItem = toLibraryItem(item);
   const { sourceMode, isSaved } = await getDesktopMediaLibraryMembership(item);
-  await libraryRepository.applyMembershipChanges(
+  try { await libraryRepository.applyMembershipChanges(
     libraryItem,
     { desiredMembership: { [membershipKeyForSource(sourceMode)]: !isSaved } },
     { sourceMode }
-  );
+  ); } catch (error) {
+    if (!showLibraryStorageError(error)) throw error;
+  }
 }
 
 export async function openDesktopMediaLibraryDestinationMenu(item, refresh) {
@@ -79,7 +82,12 @@ export async function openDesktopMediaLibraryDestinationMenu(item, refresh) {
         const desiredMembership = entry.sourceMode === LibrarySourceMode.SIMKL
           ? Object.fromEntries(entry.tabs.map((candidate) => [candidate.key, candidate.key === tab.key ? !entry.membership[tab.key] : false]))
           : { ...entry.membership, [tab.key]: !entry.membership[tab.key] };
-        await libraryRepository.applyMembershipChanges(libraryItem, { desiredMembership }, { sourceMode: entry.sourceMode });
+        try { await libraryRepository.applyMembershipChanges(libraryItem, { desiredMembership }, { sourceMode: entry.sourceMode }); }
+        catch (error) {
+          dialog.destroy();
+          if (showLibraryStorageError(error)) return;
+          throw error;
+        }
         dialog.destroy();
         await refresh?.();
       }

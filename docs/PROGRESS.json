@@ -609,28 +609,28 @@
     {
       "number": 119,
       "title": "[#7] Library pending/snapshot/conflict policy",
-      "status": "blocked_external",
+      "status": "verified",
       "dependencies": [
         3,
         6
       ],
-      "blocker": "Distinct-key unsafe snapshot loss repaired with documented additive/exact-delete operations in PR126. Remaining original scope: atomic same-key cross-client order/version conflict contract and durable per-key retry/storage-failure guarantees. No owner permission is pending.",
-      "progress": {
-        "branch": "fix/issue-119-explicit-library-writes",
-        "pr": 126,
+      "completion": {
+        "pr": 127,
         "documents": [
+          "docs/plans/issues/issue-119-storage-failures.md",
           "docs/LIBRARY_SYNC_POLICY.md",
-          "docs/plans/issues/issue-7-sol-remediation.md"
+          "docs/evidence/issue7-storage-recovery-2026-10-20.json",
+          "docs/evidence/issue7-owner-scope-2026-10-20.json"
         ],
         "verification": [
-          "Actual stale snapshots reproduced loss, explicit-key regression preserves both writers/baseline; 57 focused tests and 1432 application tests passed at runtime083eb89. Separate review findings repaired; final exact-head CI/review required. No broad A5 completion."
+          "70 focused actual-module tests pass atf8ee31f;4 browser failure/reload/reconnect/storage cases pass. Separate automated runtime review approved134cac2; final exact-head CI/review/protected merge are required before this proposed completion becomes canonical. Stronger guarantees explicitly tracked in #128."
         ]
       }
     },
     {
       "number": 120,
       "title": "[#7] Authorized hosted live lifecycle and device evidence",
-      "status": "blocked_external",
+      "status": "in_progress",
       "dependencies": [
         3,
         6
@@ -646,10 +646,11 @@
           "docs/evidence/issue7-sol-capabilities.json"
         ],
         "verification": [
-          "Authorized guarded direct and actual hosted tests executed. Hosted A-B-A-B Library controls exact/restored, additive marker receiver/cleanup/original rows unchanged, explicit refresh and local-session revocation observed; credential integrity unchanged. No natural expiry/new profile/add-on mutation/physical QR claim."
+          "Authorized guarded direct and actual hosted tests executed. Hosted A-B-A-B Library controls exact/restored, additive marker receiver/cleanup/original rows unchanged, explicit refresh and local-session revocation observed; credential integrity unchanged. No natural expiry/new profile/add-on mutation/physical QR claim.",
+          "Owner explicitly deferred QR/device verification with unsupported labels and follow-up tracking. Actual app propagation, historical failure disposition, offline/rejected refresh and natural expiry remain required. Provider issues604800-second sessions; finite memory-only observer targets2026-10-27T08:41:40.775Z; elapsed expiry observation is not complete.",
+          "Deferred provider QR and physical-device work tracked separately as #129/#130; these are unsupported capability labels, not pass receipts."
         ]
-      },
-      "blocker": "Actual hosted QR signup200 then start400 rejects the dedicated preview redirect; provider needs an allowed redirect plus documented approval/nonce semantics. No physical Edge/Safari/mobile device connector or local branded browsers available. Other live rows remain explicitly incomplete, not attributed to owner permission."
+      }
     }
   ],
   "integrationPolicy": "Only default-branch records are authoritative; entries in an unmerged PR are proposed until their evidence PR merges."

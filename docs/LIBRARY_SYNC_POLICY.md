@@ -19,7 +19,7 @@ Successful operations acknowledge only their captured revision when the full kno
 | Failed edit → reload/reconnect | Local cache/pending marker survives successful browser storage writes. Per-key queue is memory-only; no automatic retry or durable per-key outbox. Earlier failed edits require explicit user reconciliation and remain pending. |
 | Same key edited by independent clients | Provider applies arriving operations; no version/ETag precondition, timestamp conflict UI or atomic merge is established. Unsupported ordering guarantee. Distinct-key edits are supported by additive/exact-delete semantics. |
 | Multi-tab coordination | No cross-tab lock; same-key ordering unsupported. |
-| Browser storage quota/write failure | Same-page pending guard retained in memory; no durable guarantee across reload. A local item write can fail independently; do not infer cloud or local persistence from UI alone. |
+| Browser storage quota/write failure | Pending metadata is written and read back before an authenticated item mutation. Failure refuses the edit and cloud dispatch. Item writes are checked before notification/dispatch; unconfirmed readback retains pending protection and disables acknowledgement by later queued edits. Guest failures also surface. Failed clean metadata never falsely acknowledges. No durability claim when storage itself is unreadable/unwritable. |
 | Already-issued writes | Cannot be undone or cancelled on the server. Session guards control subsequent requests/publication only. No destructive snapshot rollback. |
 
 ## Operation table
@@ -31,4 +31,10 @@ Successful operations acknowledge only their captured revision when the full kno
 | Explicit remove | One known `(content_id, content_type)` to `sync_delete_library_items` | Same guard; absent local item does not guess its remote type | Exact delete preserves unrelated keys |
 | Unknown full snapshot | No request | Refused | Pending retained; no silent upload |
 
-#119 stays open for durable retry/storage failure and same-key concurrent conflict guarantees. Owner permission is granted; the remaining dependencies are capabilities, not routine approval. #120 retains actual hosted/new-change/QR/device/lifecycle observations; direct API setup is separate from application write-path evidence.
+The owner explicitly accepted bounded recovery on 2026-10-20; [exact decisions](evidence/issue7-owner-scope-2026-10-20.json). Durable replay/outbox and atomic same-key ordering are separate follow-up scope. #119 may close only after this bounded policy, failure/reload/reconnect/storage/legacy regressions and review are integrated. Local implementation and verification are engineering work, not external blockers. #120 retains actual hosted/new-change/QR/device/lifecycle observations; direct API setup is separate from application write-path evidence.
+
+## Manual reconciliation
+
+The Library screen shows a pending notice instead of implying synchronization. Compare the intended item against another signed-in client and repeat only the intended save/removal. Earlier failed or unknown operations remain pending even if a later explicit operation succeeds. There is no blind “retry snapshot” button. Signing out discards this device's pending state; record intended changes first, then use a new clean sign-in to hydrate the authoritative cloud state. This is explicit user reconciliation, not automatic durable recovery.
+
+Checked storage reads are strict at mutation/persistence boundaries. Ordinary UI list reads retain their bounded empty fallback rather than throwing a new unhandled screen-loading exception. An unreadable sync-state envelope is conservatively pending, never treated as a clean baseline. The error dialog contains fixed guidance and no account/item data. Already issued server writes cannot be cancelled or undone by a later local failure.

@@ -44,7 +44,7 @@ test("the committed blocked receipt is structurally valid and reports the real u
   const receipt = committed();
   const result = validateReceipt(receipt, { root });
   assert.deepEqual(result.errors, []);
-  assert.deepEqual(result.unmet_ids, ["A2", "A3", "A5", "A8"]);
+  assert.deepEqual(result.unmet_ids, ["A2", "A3", "A8"]);
   assert.equal(evaluateClosure(receipt, { root }).met, false);
 });
 
@@ -178,7 +178,7 @@ test("a later same-kind pass resolves a failure without erasing another incomple
     receipt.closure.unmet_ids = deriveUnmetIds(receipt);
   });
   assert.deepEqual(result.errors, []);
-  assert.deepEqual(result.unmet_ids, ["A2", "A3", "A5", "A8"]);
+  assert.deepEqual(result.unmet_ids, ["A2", "A3", "A8"]);
 });
 
 test("an untracked or aliased artifact cannot resolve a failure", () => {
@@ -422,7 +422,10 @@ test("an artifact path escaping the repository is rejected", () => {
 
 test("an unsupported commit value is rejected even on an unverified observation", () => {
   const result = mutated((receipt) => {
-    criterion(receipt, "A5").observations[1].commit = "main";
+    const row = criterion(receipt, "A5");
+    row.observations.push({ ...row.observations[0], status: "unverified", commit: "main" });
+    row.status = "partial";
+    receipt.closure.unmet_ids = deriveUnmetIds(receipt);
   });
   assert.ok(hasError(result.errors, "commit must be null or 40 lowercase hex characters"));
 });
@@ -464,7 +467,7 @@ test("the progress ledger must stay in_progress while unmet and verified only wh
 
 test("the derived unmet set is evidence-derived, not copied from closure fields", () => {
   const receipt = committed();
-  assert.deepEqual(deriveUnmetIds(receipt), ["A2", "A3", "A5", "A8"]);
+  assert.deepEqual(deriveUnmetIds(receipt), ["A2", "A3", "A8"]);
   const artificial = structuredClone(receipt);
   artificial.criteria.find((entry) => entry.id === "A8").observations = [{
     kind: "live",

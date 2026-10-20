@@ -53,3 +53,13 @@ Fixture generation is a gate, not an assumption: if the eligible browser exposes
 ## 2026-10-20 — Issue #7 live testing resumed under explicit delegation
 
 The owner's exact expanded instruction is recorded in [AGENTS.md](../AGENTS.md) and the [remediation plan](plans/issues/issue-7-sol-remediation.md). It supersedes the previous live-account pause for bounded disposable-account checks, protected integration and existing development-preview refresh. Earlier dated pause statements are historical. No permission blocker remains for these routine scoped actions; unavailable server contracts or physical devices require concrete evidence.
+
+## 2026-10-20 — Continue from Sol result with autonomous scoped decisions
+
+The owner's continuation instruction is recorded verbatim in [the next #119 plan](plans/issues/issue-119-storage-failures.md). The remediation report is the reference. Select device-storage failure handling next; preserve explicit per-key writes and fail closed before cloud dispatch when device persistence fails. This bounded repair does not introduce durable replay/outbox or claim server conflict guarantees. Missing QR-provider access and physical devices are asked as capability questions while independent work continues.
+
+## 2026-10-20 — Explicit #7 recovery and device scope decisions
+
+Owner responses relayed in the current run: “Accept bounded recovery; track stronger guarantees separately” and “Defer QR/device verification; label limits and track follow-ups”. [Exact decisions](evidence/issue7-owner-scope-2026-10-20.json). #119 acceptance is the tested pending/error/manual-reconciliation policy; durable operation replay and atomic same-key ordering move to separately tracked follow-up work. Provider QR and physical named-device observations are explicitly deferred, with unsupported capability labels and follow-up tracking. These decisions do not waive original O1–O3, actual application propagation, account isolation, natural expiry, offline recovery or rejected refresh. The default closure checker remains unchanged and must pass before #7 closes.
+
+Follow-up tracking, read back after creation: [durable intent and same-key ordering #128](https://github.com/saurabhhbansal/nuvioweb/issues/128), [provider QR #129](https://github.com/saurabhhbansal/nuvioweb/issues/129), [physical identity devices #130](https://github.com/saurabhhbansal/nuvioweb/issues/130). These remain open; deferral is not a support claim.

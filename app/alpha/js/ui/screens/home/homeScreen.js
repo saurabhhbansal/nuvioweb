@@ -1,3 +1,4 @@
+import { showLibraryStorageError } from "../../components/libraryStorageError.js";
 import { Router } from "../../navigation/router.js";
 import { ensureSpatialFocusVisible, ScreenUtils } from "../../navigation/screen.js";
 import { addonRepository } from "../../../data/repository/addonRepository.js";
@@ -5730,13 +5731,17 @@ export const HomeScreen = {
     if (!item?.id) {
       return false;
     }
-    const saved = await savedLibraryRepository.toggle({
+    let saved;
+    try { saved = await savedLibraryRepository.toggle({
       contentId: item.id,
       contentType: item.type || "movie",
       title: item.name || item.id || "Untitled",
       poster: item.poster || null,
       background: item.background || item.backdrop || null
-    });
+    }); } catch (error) {
+      if (showLibraryStorageError(error)) return;
+      throw error;
+    }
     if (this.posterHoldMenu) {
       this.posterHoldMenu = { ...this.posterHoldMenu, isSaved: Boolean(saved) };
     }
