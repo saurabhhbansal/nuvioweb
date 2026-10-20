@@ -48,7 +48,7 @@
     "Early automated review observed wall-clock token-fixture flake; helper now pins its epoch.",
     "Early cancellation observer awaited JSON despite intentional pre-body cancellation; changed to observe response task completion. Known guest add-on paths now explicitly denied; unknown destinations still fail."
   ],
-  "review": "Separate Astra/medium automated early actual-diff review; actionable token fixture, short expiry and private-driver findings fixed. Final exact-head review required before protected integration; automated review is not human approval.",
+  "review": "Separate automated read-only technical review approved the actual diff 0212e73 through a527d518d901d8cedaa0d75df536961f9fd97cdd with no material runtime findings, independently rerunning 54 focused tests. Early fixture/expiry/driver findings were repaired. Subsequent current-evidence wording corrections are recorded separately; automated review is not human approval.",
   "live_preflight": {
     "kind": "live",
     "scope": "designated disposable account login, read-only profiles/Library, explicit pre-expiry refresh",

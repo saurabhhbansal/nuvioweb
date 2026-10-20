@@ -174,13 +174,30 @@
           "Two-writer characterization is last-writer-wins: the later full snapshot loses the earlier edit. No server version/ETag/conflict contract is exposed by the checked client, so concurrent-writer repair remains BLOCKED and #119 stays open pending protocol evidence/owner decision.",
           "2026-10-20 Sol remediation supersedes prior completion/pause claims: two additional QR defects reproduced and repaired, canonical repository corrected, children integrated into completion ledger. Bounded live testing resumed under explicit owner delegation; parent O1-O3 remain unmet pending actual evidence."
         ],
-        "remaining": "Issue7 OPEN as acceptance parent. A1/A4/A6/A7 synthetically dispositioned; A2 partial (live new-data propagation), A3 retains the unexplained live post-removal switch, A5 blocked on same-account concurrent-writer protocol (real-store 1001-item retention and >1000 push refusal; policy published), A8 blocked under #120 (live A1/A2/A3 plus QR consent/expiry/device). Synthetic fixtures do not prove deployed sync, provider authorization, measured expiry/revocation, QR consent/device or cross-device deletion. Historical failing receipts retained. No repeated unchanged-source live probe.",
+        "remaining": "A2: actual new-change propagation in independent hosted contexts; authorized testing in progress. A3: preserve historical unexplained pre-header failure; new read-only checks alone cannot resolve it. A5: atomic provider expected-revision contract and safe reconciliation; durable retry/storage guarantees unsupported. A8: measured natural expiry/revocation, official QR semantics and physical/device evidence where unavailable. No routine owner permission pending.",
         "children": [
-          117,
-          118,
-          119,
-          120
-        ]
+          {
+            "number": 117,
+            "status": "verified-after-protected-PR125",
+            "scope": "Synthetic fixtures/validator only; parent remains open"
+          },
+          {
+            "number": 118,
+            "status": "verified-after-protected-PR125",
+            "scope": "Bounded QR safety regressions/review; no live QR claim"
+          },
+          {
+            "number": 119,
+            "status": "blocked_external",
+            "scope": "Atomic provider precondition/conflict contract; owner permission granted"
+          },
+          {
+            "number": 120,
+            "status": "in_progress",
+            "scope": "Authorized live observations; actual provider/device dependencies distinguished"
+          }
+        ],
+        "historical_verification_note": "Entries before the 2026-10-20 Sol remediation append are dated historical observations. Any earlier pause/owner-decision wording is superseded by AGENTS.md and the current acceptance receipt."
       }
     },
     {

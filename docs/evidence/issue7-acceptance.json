@@ -271,7 +271,7 @@
       ],
       "status": "blocked",
       "gate_owner": "CH3 executor design/characterization; provider for an atomic backend contract",
-      "result": "The 1001-item truncation is now a safe refusal backed by a non-truncating store: a 1001st item is retained and the >1000 full push is refused. Two independent full-snapshot writers still lose the earlier edit; repair needs a server conflict/version contract or an owner decision.",
+      "result": "The 1001-item retention and >1000 full-snapshot refusal are implemented. Cross-device two-writer safety requires an atomic provider version/precondition contract; current full snapshots lose a competing write. Durable retry/storage guarantees remain unsupported. Owner permission is granted.",
       "linked_children": [
         "CH3"
       ],
@@ -298,7 +298,7 @@
           "assertion": "Two clients saving from independent snapshots must not silently lose an earlier edit.",
           "result": "The second full snapshot replaces the first and the earlier edit is lost (last-writer-wins). No server version/ETag/conflict contract is exposed by the checked client.",
           "artifact": "docs/LIBRARY_SYNC_POLICY.md",
-          "limitations": "Requires server protocol evidence or an owner decision; no client-only merge is claimed safe."
+          "limitations": "Requires an atomic server protocol/precondition contract; owner permission is granted. No client-only merge is claimed safe."
         }
       ]
     },
@@ -427,7 +427,7 @@
         "review"
       ],
       "status": "blocked",
-      "gate_owner": "CH4 authorized executor; executor only after explicit bounded authorization",
+      "gate_owner": "Authorized executor; provider/device capabilities for unavailable observations",
       "result": "Expanded owner authorization supersedes the live-account pause. Guarded preflight ran login/read/explicit refresh; measured expiry/revocation, hosted new-change propagation and QR/device observations remain incomplete. No routine owner approval is pending.",
       "linked_children": [
         "CH4"
@@ -468,6 +468,6 @@
       "A5",
       "A8"
     ],
-    "reason": "A6/A7 are resolved synthetically and A1/A4 pass. Parent O1-O3 are still unmet: live new-data sync (A2), the unexplained live post-removal switch (A3), the Library pending/snapshot/concurrency policy (A5) and owner-gated live expiry/revocation/QR/device observations (A8)."
+    "reason": "A1/A4/A6/A7 have bounded evidence; original O1-O3 remain unmet: A2 live new-change propagation, A3 historical unexplained pre-header switch failure, A5 atomic provider conflict/durable retry contract, A8 actual lifecycle/QR/device observations. Owner authorization is granted."
   }
 }
