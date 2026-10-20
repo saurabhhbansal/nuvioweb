@@ -349,11 +349,7 @@ async function selectProfile(page, profileId) {
   await expect(page.locator("#profileSelection")).toBeVisible();
   await page.locator(`#profileSelection .profile-card[data-profile-id="${profileId}"]`).click();
   await openLibrary(page);
-  const cards = await page.locator("#library .library-grid-card").evaluateAll((nodes) =>
-    nodes.map((node) => node.getAttribute("data-item-id"))
-  );
-  expect(cards).toHaveLength(1);
-  expect(cards[0]).toMatch(new RegExp(`^fixture-library-[ab]-${profileId}$`));
+  await expectNonemptyLibrary(page, profileId);
 }
 
 async function openLibrary(page) {
@@ -371,13 +367,14 @@ async function expectLibrary(page, alias) {
 }
 
 async function expectNonemptyLibrary(page, profileId) {
+  await expect.poll(() => page.locator("#library .library-grid-card").count()).toBe(1);
   const cards = await page.locator("#library .library-grid-card").evaluateAll((nodes) =>
     nodes.map((node) => node.getAttribute("data-item-id"))
   );
   expect(cards).toHaveLength(1);
   expect(cards[0]).toMatch(new RegExp(`^fixture-library-[ab]-${profileId}$`));
-  const keys = await page.evaluate(() => JSON.parse(localStorage.getItem("savedLibraryItems") || "[]").map((item) => item.contentId));
-  expect(keys).toEqual(cards);
+  const keys = await page.evaluate(() => JSON.parse(localStorage.getItem("savedLibraryItems") || "[]").map((item) => ({ contentId: item.contentId, profileId: String(item.profileId || "1") })));
+  expect(keys.filter((item) => item.profileId === String(profileId)).map((item) => item.contentId)).toEqual(cards);
 }
 
 async function localSnapshot(page) {
