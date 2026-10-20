@@ -39,12 +39,17 @@ The validator derives the criterion status from observations instead of trusting
 - a live pass additionally needs a named deployment/service;
 - an unresolved `fail` observation forces the criterion to `fail`;
 - a `blocked` observation forces `blocked`;
-- a resolved failure needs a `resolved_by` that names an actual criterion or child and a reference
-  that exists as an artifact or HTTPS URL.
+- a resolved failure needs a **later, same-kind pass observation on the same criterion** whose
+  committed artifact is the reference. Cross-criterion or child-based resolution is rejected because
+  synthetic work or a differently scoped child must not erase a live failure.
+- pass/fail observations need a real committed 40-hex commit that exists and is an ancestor of the
+  tested HEAD; an `observed_at` timestamp orders same-criterion evidence.
 
 `scripts/check-issue7-acceptance.mjs --validate` checks structure and honesty only and exits 0 for an
-honest blocked receipt. The default full-closure mode exits 2 while anything is unmet and 0 only when
-all A1–A8 pass, the parent ledger is genuinely verified, and the closure state is `met`.
+honest blocked receipt. The default full-closure mode exits 2 when the receipt is structurally valid
+but unmet, 1 when it is structurally invalid, and 0 only when all A1–A8 pass, the parent ledger is
+genuinely verified, and the closure state is `met`. The immutable O1–O3/A1–A8 mapping is committed in
+`docs/evidence/issue7-acceptance-contract.json`, not only in the checker script.
 
 `docs/PROGRESS.json` #7 must remain `in_progress` while the receipt is unmet. A mismatch is a
 structural error, not a warning.
@@ -55,7 +60,10 @@ structural error, not a warning.
 - `scripts/check-issue7-acceptance.mjs`
 - `scripts/check-issue7-acceptance.test.mjs`
 - `tests/browser/identity-sync.spec.mjs`
+- `docs/evidence/issue7-acceptance-contract.json`
 - `docs/evidence/issue7-fixture-closure-2026-10-20.json`
+- `docs/evidence/issue7-qr-red-2026-10-20.json`
+- `scripts/qr-ownership-probe.mjs`
 - `docs/IDENTITY_VERIFICATION.md`, `docs/plans/issues/issue-7.md`, `docs/PROGRESS.json`,
   `TRACKER.md`, `docs/FEATURE_SUPPORT.md`, `docs/agent-runs/CURRENT.md`,
   `docs/ISSUE_7_OWNER_CHECKS.md`
@@ -87,9 +95,10 @@ structural error, not a warning.
 ## Test commands
 
 ```bash
-node --test scripts/check-issue7-acceptance.test.mjs
+node --test scripts/check-issue7-acceptance.test.mjs                                       # 29/29
 node scripts/check-issue7-acceptance.mjs docs/evidence/issue7-acceptance.json --validate   # 0
 node scripts/check-issue7-acceptance.mjs docs/evidence/issue7-acceptance.json              # 2 while blocked
+node scripts/qr-ownership-probe.mjs app/alpha/js --assert-safe                             # red until CH2
 NUVIO_LOCAL_PROPERTIES="$PWD/tests/fixtures/build.properties" npm run build --prefix app/alpha
 node scripts/check-alpha-build.mjs
 npx playwright test tests/browser/identity-sync.spec.mjs --project=chromium
@@ -99,6 +108,12 @@ node --test scripts/check-docs.test.mjs scripts/governance.test.mjs scripts/prep
 node scripts/check-commit-references.mjs f30c79f6045786c821047532104c90aa65b861cc HEAD
 git diff --check
 ```
+
+## Cost and privileges
+
+No hosted compute, paid service, credential recipient or new dependency. All verification is local
+synthetic Node/Chromium work; CI cost is the existing four protected workflows plus the acceptance
+gate and its 29 tests inside the existing Roadmap workflow. The gate adds no workflow permission.
 
 ## Rollback
 

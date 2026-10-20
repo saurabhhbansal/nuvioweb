@@ -7,8 +7,8 @@
   "module_under_test": "app/alpha/js/core/auth/qrLoginService.js",
   "command": [
     "node",
-    "/home/saurabh/workspace/personal/agent-runs/nuvioweb/issue7-closure-20261020/qr-ownership-probe.mjs",
-    "<audit-worktree>",
+    "scripts/qr-ownership-probe.mjs",
+    "app/alpha/js",
     "--assert-safe"
   ],
   "environment": "Node.js with the actual QR service module, fake localStorage and a mocked Fetch implementation; no network, browser, account or credential.",
@@ -23,8 +23,9 @@
   "result": "FAIL (expected red): the delayed service response wrote the old access/refresh tokens and authenticated state over the later synthetic session.",
   "limitations": [
     "Service seam with a simulated later session; not a browser journey and not a live exploit.",
-    "The screen's post-await stale-session check runs after the service has already published tokens, so the screen check cannot undo this write.",
-    "No production source change is recorded in this artifact."
+    "The screen post-await stale-session check runs after the service has already published tokens, so it cannot undo this write.",
+    "No production source change is recorded in this artifact; the maintained lifecycle regression is added by CH2 (#118)."
   ],
-  "follow_up": "CH2 (#118) must port this invariant to a committed lifecycle regression, prove the failure first, and then add attempt/session ownership at the service publication boundary."
+  "follow_up": "CH2 (#118) must port this invariant to a committed lifecycle regression, prove the failure first, and then add attempt/session ownership at the service publication boundary.",
+  "probe_commit": "2c1d2379cde0f9bc868b774c4f98fd4507e5ee80"
 }
