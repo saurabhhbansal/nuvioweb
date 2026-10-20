@@ -4,7 +4,7 @@
   "child": 118,
   "date": "2026-10-20",
   "kind": "synthetic",
-  "source_commit": "PENDING",
+  "source_commit": "77368cfb934553310e1cf239c219347bbbd4e622",
   "environment": "pinned Node 22.23.1 and Chromium via Playwright; actual modules, fake localStorage, mocked Fetch, inert loopback build; no network, account, credential, QR device or live service",
   "red_before_fix": {
     "source_commit": "f30c79f6045786c821047532104c90aa65b861cc",
@@ -25,7 +25,11 @@
   },
   "green_after_fix": [
     {
-      "command": ["node", "--test", "app/alpha/js/core/auth/qrLoginService.lifecycle.test.mjs"],
+      "command": [
+        "node",
+        "--test",
+        "app/alpha/js/core/auth/qrLoginService.lifecycle.test.mjs"
+      ],
       "result": "9 passed, 0 failed, 0 skipped",
       "tests": [
         "a delayed QR exchange cannot overwrite a later session",
@@ -40,12 +44,23 @@
       ]
     },
     {
-      "command": ["node", "scripts/qr-ownership-probe.mjs", "app/alpha/js", "--assert-safe"],
+      "command": [
+        "node",
+        "scripts/qr-ownership-probe.mjs",
+        "app/alpha/js",
+        "--assert-safe"
+      ],
       "result": "exit 0; staleExchangeAccepted false, laterSessionOverwritten false, requests 1",
       "assertion": "stale QR exchange must not overwrite a later session"
     },
     {
-      "command": ["npx", "playwright", "test", "tests/browser/identity-qr.spec.mjs", "--project=chromium"],
+      "command": [
+        "npx",
+        "playwright",
+        "test",
+        "tests/browser/identity-qr.spec.mjs",
+        "--project=chromium"
+      ],
       "result": "3 passed, 0 failed, 0 skipped",
       "tests": [
         "the actual QR screen completes a synthetic current flow with a safe local image",
@@ -54,11 +69,23 @@
       ]
     },
     {
-      "command": ["node", "--test", "app/alpha/js/core/auth/qrLoginService.lifecycle.test.mjs", "app/alpha/js/core/auth/authManager.lifecycle.test.mjs", "app/alpha/js/core/auth/authManager.test.mjs", "app/alpha/js/core/auth/accountLocalDataReset.test.mjs"],
+      "command": [
+        "node",
+        "--test",
+        "app/alpha/js/core/auth/qrLoginService.lifecycle.test.mjs",
+        "app/alpha/js/core/auth/authManager.lifecycle.test.mjs",
+        "app/alpha/js/core/auth/authManager.test.mjs",
+        "app/alpha/js/core/auth/accountLocalDataReset.test.mjs"
+      ],
       "result": "25 passed, 0 failed, 0 skipped"
     },
     {
-      "command": ["npm", "test", "--prefix", "app/alpha"],
+      "command": [
+        "npm",
+        "test",
+        "--prefix",
+        "app/alpha"
+      ],
       "result": "1405 passed, 0 failed, 0 skipped"
     }
   ],

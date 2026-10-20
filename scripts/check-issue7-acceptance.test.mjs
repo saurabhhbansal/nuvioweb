@@ -44,7 +44,7 @@ test("the committed blocked receipt is structurally valid and reports the real u
   const receipt = committed();
   const result = validateReceipt(receipt, { root });
   assert.deepEqual(result.errors, []);
-  assert.deepEqual(result.unmet_ids, ["A1", "A2", "A3", "A5", "A6", "A7", "A8"]);
+  assert.deepEqual(result.unmet_ids, ["A2", "A3", "A5", "A8"]);
   assert.equal(evaluateClosure(receipt, { root }).met, false);
 });
 
@@ -141,7 +141,7 @@ test("a synthetic criterion cannot resolve a live failure", () => {
       reference: "docs/evidence/issue7-fixture-closure-2026-10-20.json"
     };
     criterion(receipt, "A3").status = "pass";
-    receipt.closure.unmet_ids = ["A1", "A2", "A5", "A6", "A7", "A8"];
+    receipt.closure.unmet_ids = deriveUnmetIds(receipt);
   });
   assert.ok(hasError(result.errors, "A3: only later evidence on the same criterion can resolve a failure"));
   assert.equal(deriveCriterionStatus(criterion(committed(), "A3")), "fail");
@@ -175,10 +175,10 @@ test("a failure resolved by a later same-kind pass on the same criterion is acce
       reference: "docs/evidence/identity-roundtrip-after-removal-2026-10-19.json"
     };
     row.status = "pass";
-    receipt.closure.unmet_ids = ["A1", "A2", "A5", "A6", "A7", "A8"];
+    receipt.closure.unmet_ids = deriveUnmetIds(receipt);
   });
   assert.deepEqual(result.errors, []);
-  assert.deepEqual(result.unmet_ids, ["A1", "A2", "A5", "A6", "A7", "A8"]);
+  assert.deepEqual(result.unmet_ids, ["A2", "A5", "A8"]);
 });
 
 test("an untracked or aliased artifact cannot resolve a failure", () => {
@@ -198,7 +198,7 @@ test("an untracked or aliased artifact cannot resolve a failure", () => {
     });
     row.resolution = { state: "resolved", resolved_by: "A3", reference: ".git/config" };
     row.status = "pass";
-    receipt.closure.unmet_ids = ["A1", "A2", "A5", "A6", "A7", "A8"];
+    receipt.closure.unmet_ids = deriveUnmetIds(receipt);
   });
   assert.ok(hasError(untracked.errors, "artifact is not committed at HEAD"));
   const alias = mutated((receipt) => {
@@ -221,7 +221,7 @@ test("an untracked or aliased artifact cannot resolve a failure", () => {
       reference: "docs/evidence/./identity-library-removal-switch-2026-10-19.json"
     };
     row.status = "pass";
-    receipt.closure.unmet_ids = ["A1", "A2", "A5", "A6", "A7", "A8"];
+    receipt.closure.unmet_ids = deriveUnmetIds(receipt);
   });
   assert.ok(hasError(alias.errors, "resolving artifact is the failing observation's own artifact"));
 });
@@ -247,7 +247,7 @@ test("a resolving commit must be a later descendant of the failing commit", () =
       reference: "docs/evidence/identity-roundtrip-after-removal-2026-10-19.json"
     };
     row.status = "pass";
-    receipt.closure.unmet_ids = ["A1", "A2", "A5", "A6", "A7", "A8"];
+    receipt.closure.unmet_ids = deriveUnmetIds(receipt);
   });
   assert.ok(hasError(result.errors, "resolving observation commit must be a later descendant"));
 });
@@ -310,7 +310,7 @@ test("a later pass of a different kind cannot resolve a live failure", () => {
       reference: "docs/evidence/issue7-fixture-closure-2026-10-20.json"
     };
     row.status = "pass";
-    receipt.closure.unmet_ids = ["A1", "A2", "A5", "A6", "A7", "A8"];
+    receipt.closure.unmet_ids = deriveUnmetIds(receipt);
   });
   assert.ok(hasError(result.errors, "resolved failure needs a later same-kind pass observation (live)"));
 });
@@ -323,7 +323,7 @@ test("a resolved failure must reference a later same-kind pass artifact, not an 
       reference: "docs/evidence/identity-library-nonempty-switch-2026-10-19.json"
     };
     criterion(receipt, "A3").status = "pass";
-    receipt.closure.unmet_ids = ["A1", "A2", "A5", "A6", "A7", "A8"];
+    receipt.closure.unmet_ids = deriveUnmetIds(receipt);
   });
   assert.ok(hasError(result.errors, "resolved failure needs a later same-kind pass observation (live)"));
 });
@@ -422,7 +422,7 @@ test("an artifact path escaping the repository is rejected", () => {
 
 test("an unsupported commit value is rejected even on an unverified observation", () => {
   const result = mutated((receipt) => {
-    criterion(receipt, "A1").observations[2].commit = "main";
+    criterion(receipt, "A5").observations[0].commit = "main";
   });
   assert.ok(hasError(result.errors, "commit must be null or 40 lowercase hex characters"));
 });
@@ -464,7 +464,7 @@ test("the progress ledger must stay in_progress while unmet and verified only wh
 
 test("the derived unmet set is evidence-derived, not copied from closure fields", () => {
   const receipt = committed();
-  assert.deepEqual(deriveUnmetIds(receipt), ["A1", "A2", "A3", "A5", "A6", "A7", "A8"]);
+  assert.deepEqual(deriveUnmetIds(receipt), ["A2", "A3", "A5", "A8"]);
   const artificial = structuredClone(receipt);
   artificial.criteria.find((entry) => entry.id === "A8").observations = [{
     kind: "live",
