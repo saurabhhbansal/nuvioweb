@@ -3,7 +3,7 @@ import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { resolve } from "node:path";
 import { createHash } from "node:crypto";
 import { chromium, firefox, webkit } from "@playwright/test";
-import { loadFixtureInventory, parseRange, contentTypeFor } from "./engine-media-contract.mjs";
+import { CASES, loadFixtureInventory, parseRange, contentTypeFor } from "./engine-media-contract.mjs";
 import { engineLaunchOptions } from "./engine-launch-options.mjs";
 import { decodedAndSeeked, matrixExitCode, withDeadline } from "./engine-delivery.mjs";
 import { measuredCodecString } from "./engine-codec-string.mjs";
@@ -42,7 +42,7 @@ await new Promise(r => app.listen(0, "127.0.0.1", r));
 await new Promise(r => provider.listen(0, "127.0.0.1", r));
 const appOrigin = `http://127.0.0.1:${app.address().port}`;
 const providerOrigin = `http://127.0.0.1:${provider.address().port}`;
-const receipt = { schemaVersion: 1, observedAt: new Date().toISOString(), sourceRevision: process.env.NUVIO_SOURCE_REVISION || null, verifierSha256: createHash("sha256").update(await readFile(new URL(import.meta.url))).digest("hex"), fixtureInventorySha256: createHash("sha256").update(await readFile(resolve(directory, "provenance.json"))).digest("hex"), sourceCapabilitiesSha256: createHash("sha256").update(source).digest("hex"), launchHelperSha256: createHash("sha256").update(await readFile(new URL("./engine-launch-options.mjs", import.meta.url))).digest("hex"), deliveryHelperSha256: createHash("sha256").update(deliverySource).digest("hex"), codecParserSha256: createHash("sha256").update(await readFile(new URL("./engine-codec-string.mjs", import.meta.url))).digest("hex"), layer: "actual headless engine native playback + real API predictions; not bundled player journey or HDR display certification", environment: { node: process.version, platform: process.platform, architecture: process.arch }, mappings: { chromium: ["Chrome", "Edge", "Brave", "Opera"], webkit: ["Safari"], firefox: ["Firefox"] }, engines: [], limits: ["Mappings are owner-requested engine-family mappings, not duplicate branded/device runs", "Software/headless Linux pipeline: successful HDR-encoded decode does not prove HDR luminance, gamut, tone mapping or display output", "An unsuccessful codec decode is a limitation of this tested engine build/host combination unless isolated otherwise; never proof of all versions/platforms", "No audio, DRM, billing, account, production, preview or real-provider operation"] };
+const receipt = { schemaVersion: 1, requiredCaseIds: CASES.map(entry => entry.id), matrixScope: "Full fixed nine-case matrix; missing/unavailable generation remains an explicit unmeasured host gap", observedAt: new Date().toISOString(), sourceRevision: process.env.NUVIO_SOURCE_REVISION || null, verifierSha256: createHash("sha256").update(await readFile(new URL(import.meta.url))).digest("hex"), fixtureInventorySha256: createHash("sha256").update(await readFile(resolve(directory, "provenance.json"))).digest("hex"), sourceCapabilitiesSha256: createHash("sha256").update(source).digest("hex"), launchHelperSha256: createHash("sha256").update(await readFile(new URL("./engine-launch-options.mjs", import.meta.url))).digest("hex"), deliveryHelperSha256: createHash("sha256").update(deliverySource).digest("hex"), codecParserSha256: createHash("sha256").update(await readFile(new URL("./engine-codec-string.mjs", import.meta.url))).digest("hex"), layer: "actual headless engine native playback + real API predictions; not bundled player journey or HDR display certification", environment: { node: process.version, platform: process.platform, architecture: process.arch }, mappings: { chromium: ["Chrome", "Edge", "Brave", "Opera"], webkit: ["Safari"], firefox: ["Firefox"] }, engines: [], limits: ["Mappings are owner-requested engine-family mappings, not duplicate branded/device runs", "Software/headless Linux pipeline: successful HDR-encoded decode does not prove HDR luminance, gamut, tone mapping or display output", "An unsuccessful codec decode is a limitation of this tested engine build/host combination unless isolated otherwise; never proof of all versions/platforms", "No audio, DRM, billing, account, production, preview or real-provider operation"] };
 try {
   for (const name of engines) {
     const result = { engine: name, status: "STARTING", cases: [] };
@@ -103,17 +103,27 @@ try {
             video.pause();
             const seeked = boundedEvent(video, "seeked", 10000);
             const target = Math.min(0.75, video.duration / 2);
-            const frameAfterSeek = video.requestVideoFrameCallback ? new Promise(resolve => {
-              let id;
-              const timer = setTimeout(() => { video.cancelVideoFrameCallback(id); resolve(null); }, 10000);
-              id = video.requestVideoFrameCallback((_, metadata) => {
-                clearTimeout(timer);
-                resolve({ mediaTime: metadata.mediaTime, width: metadata.width, height: metadata.height });
-              });
-            }) : Promise.resolve(null);
             video.currentTime = target;
             await seeked;
             const at = video.currentTime;
+            // Register only after seek completion; a queued pre-seek frame must
+            // not certify the new timeline. Accept only a near-target frame.
+            const frameAfterSeek = video.requestVideoFrameCallback ? new Promise(resolve => {
+              let id, firstMediaTime = null;
+              const timer = setTimeout(() => { video.cancelVideoFrameCallback(id); resolve(null); }, 10000);
+              const onFrame = (_, metadata) => {
+                if (metadata.mediaTime < target - 0.15 || metadata.mediaTime > target + 0.5) {
+                  id = video.requestVideoFrameCallback(onFrame); return;
+                }
+                if (firstMediaTime === null) firstMediaTime = metadata.mediaTime;
+                if (metadata.mediaTime <= firstMediaTime + 0.005) {
+                  id = video.requestVideoFrameCallback(onFrame); return;
+                }
+                clearTimeout(timer);
+                resolve({ firstMediaTime, frames: 2, mediaTime: metadata.mediaTime, width: metadata.width, height: metadata.height });
+              };
+              id = video.requestVideoFrameCallback(onFrame);
+            }) : Promise.resolve(null);
             await Promise.race([video.play(), new Promise((_, reject) => setTimeout(() => reject(new Error("resume-deadline")), 10000))]);
             const resumeStarted = performance.now();
             while (video.currentTime <= target + 0.1 && !video.error && performance.now() - resumeStarted < 5000) {
@@ -128,6 +138,12 @@ try {
         const decoded = decodedAndSeeked(observed);
         result.cases.push({ id: entry.id, fixtureSha256: manifest.files.find(x => x.file === entry.file).sha256, input: entry.observed, predictionType, predictionScope: entry.observed.codec === "vp9" ? "WebM VP9 family alias; profile recorded separately, no invented level" : "Measured RFC6381 initialization bytes", hdr: entry.hdr, ...observed, result: decoded ? "DECODE_AND_SEEK_OBSERVED" : "DECODE_NOT_ESTABLISHED", limitation: decoded ? null : "HOST_ENVIRONMENT", limitationDetail: decoded ? null : "Tested engine-build/host media stack; inherent cross-platform engine limitation not established", requests: requests.slice(start) });
         console.log(JSON.stringify({ engine: name, case: entry.id, result: result.cases.at(-1).result, prediction: observed.prediction, delivery: observed.delivery && { callbackFps: observed.delivery.callbackFps, presentedFps: observed.delivery.presentedFps, sustained60Observed: observed.delivery.sustained60Observed }, failure: observed.failure }));
+      }
+      for (const required of CASES) {
+        if (!result.cases.some(entry => entry.id === required.id)) {
+          const input = manifest.cases.find(entry => entry.id === required.id);
+          result.cases.push({ id: required.id, result: "NOT_MEASURED", limitation: "HOST_ENVIRONMENT", limitationDetail: input?.status || "Fixture absent from inventory", inputFailure: input?.message || null });
+        }
       }
       result.transport = await withDeadline(page.evaluate(async ({ providerOrigin, file }) => {
         const out = {};
@@ -149,7 +165,7 @@ try {
   await Promise.all([new Promise(r => app.close(r)), new Promise(r => provider.close(r))]);
   receipt.credentialLeakObserved = requests.some(r => r.authorizationPresent || r.cookiePresent);
   await mkdir(resolve(receiptPath, ".."), { recursive: true });
-  receipt.exitSemantics = { 0: "Completed; all positively predicted decode/seek and sustained60 criteria passed; negative predictions remain explicit unsupported rows", 2: "Engine/driver or positively predicted decode/seek failure, or credential leak", 3: "Measurement completed but sustained60 criterion not observed" };
+  receipt.exitSemantics = { 0: "Completed; all positively predicted decode/seek and sustained60 criteria passed; negative predictions remain explicit unsupported rows", 2: "Engine/driver or positively predicted decode/seek failure, or credential leak", 3: "Measurement completed but sustained60 criterion not observed", 4: "Required fixture rows are missing/unmeasured; matrix incomplete" };
   receipt.commandExitCode = matrixExitCode(receipt);
   await writeFile(receiptPath, JSON.stringify(receipt, null, 2) + "\n");
 }

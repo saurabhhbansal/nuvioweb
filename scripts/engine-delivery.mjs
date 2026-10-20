@@ -28,10 +28,11 @@ export async function withDeadline(operation, milliseconds, onTimeout = () => {}
 }
 
 export function decodedAndSeeked(observed) {
-  return observed.metadata?.width === 3840 && observed.metadata?.height === 2160 && Number.isFinite(observed.metadata?.duration) && observed.metadata.duration > 1 && observed.playback?.advancedSeconds > 0.1 && !observed.playback?.error && Math.abs(observed.seek?.observed - observed.seek?.target) < 0.15 && observed.seek?.progressedTo > observed.seek?.target + 0.1 && !observed.seek?.error && (!observed.seek?.frameCallbackAvailable || (observed.seek.postSeekFrame?.width === 3840 && observed.seek.postSeekFrame?.height === 2160 && observed.seek.postSeekFrame?.mediaTime >= observed.seek.target - 0.15)) && !observed.failure;
+  return observed.metadata?.width === 3840 && observed.metadata?.height === 2160 && Number.isFinite(observed.metadata?.duration) && observed.metadata.duration > 1 && observed.playback?.advancedSeconds > 0.1 && !observed.playback?.error && Math.abs(observed.seek?.observed - observed.seek?.target) < 0.15 && observed.seek?.progressedTo > observed.seek?.target + 0.1 && !observed.seek?.error && (!observed.seek?.frameCallbackAvailable || (observed.seek.postSeekFrame?.width === 3840 && observed.seek.postSeekFrame?.height === 2160 && observed.seek.postSeekFrame?.mediaTime >= observed.seek.target - 0.15 && observed.seek.postSeekFrame?.mediaTime <= observed.seek.target + 0.5 && observed.seek.postSeekFrame?.frames >= 2 && observed.seek.postSeekFrame?.mediaTime > observed.seek.postSeekFrame?.firstMediaTime + 0.005)) && !observed.failure;
 }
 
 export function matrixExitCode(receipt) {
+  if (!receipt.requiredCaseIds?.length || receipt.engines.some(engine => receipt.requiredCaseIds.some(id => !engine.cases.some(entry => entry.id === id && entry.result !== "NOT_MEASURED")))) return 4;
   if (receipt.credentialLeakObserved || receipt.engines.some(engine => engine.status !== "LAUNCHED" || engine.cases.some(entry => entry.prediction?.native !== "not-reported" && entry.result !== "DECODE_AND_SEEK_OBSERVED"))) return 2;
   // 3 means completed measurement with a failed performance criterion, not pass.
   if (receipt.engines.some(engine => engine.cases.some(entry => entry.id.endsWith("-60") && !entry.delivery?.sustained60Observed))) return 3;
