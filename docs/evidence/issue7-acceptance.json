@@ -2,7 +2,7 @@
   "schema_version": 1,
   "issue": 7,
   "repository": "saurabhhbansal/nuvioweb",
-  "as_of": "2026-10-20T11:04:35.904Z",
+  "as_of": "2026-10-20T11:32:10.641Z",
   "source_commit": "b5a8679404b98649f9c742abc6aa5da00edc50a9",
   "original_criteria": [
     {
@@ -82,7 +82,7 @@
       ],
       "status": "pass",
       "gate_owner": "executor; authorized executor",
-      "result": "Existing Nuvio email sign-in and the exposed QR entry path are synthetically dispositioned; live QR/device semantics remain under #120.",
+      "result": "Existing Nuvio email sign-in and QR entry-path safety are dispositioned in their tested scopes; actual provider QR and physical-device verification are explicitly deferred, unsupported in #129/#130.",
       "linked_children": [
         "CH1",
         "CH2",
@@ -136,9 +136,9 @@
         "synthetic",
         "live"
       ],
-      "status": "partial",
+      "status": "pass",
       "gate_owner": "CH1 executor; CH4 authorized executor",
-      "result": "Both synthetic multi-domain round trips pass. Direct documented additive Library/history/progress writes were received by an independent live session and exactly cleaned, with original rows unchanged. Hosted account Library round trips pass with app mutations denied. Actual app profile/add-on/progress new-change propagation remains incomplete.",
+      "result": "Required actual application profile/addon/Save/history/progress and independent receiving UI phases complete, including initial-empty Save and final-item removal/receiver reload-empty. Exact cleanup and original measured-state controls pass. Raw overall driver remains incomplete due denied final foreign background writes; this bounded phase pass preserves that limitation and makes no unqualified whole-run claim.",
       "linked_children": [
         "CH1",
         "CH4"
@@ -158,29 +158,47 @@
         },
         {
           "kind": "live",
-          "status": "unverified",
-          "commit": "8650d85afd665c589872ddf8474a3695900c6fb7",
-          "deployment": "loopback static candidate with live primary Nuvio API",
-          "command_or_observation": "Previously executed read-only local-candidate A/B hydration control.",
-          "assertion": "Distinct owners and existing nonempty add-on/watched/progress controls must be observed before any new-write claim.",
-          "result": "Existing controls matched; no new profile/add-on/history/progress mutation propagation was exercised, so the requirement remains unverified live.",
-          "artifact": "docs/evidence/identity-local-candidate-2026-10-19.json",
-          "limitations": "Existing-data controls only; single Linux Chromium environment; no mutation, measured refresh or device evidence.",
-          "observed_at": "2026-10-19T07:22:18Z"
-        },
-        {
-          "kind": "live",
-          "status": "unverified",
-          "commit": "8eec52a7de888d156fac03edd9c523fc16964f7b",
-          "deployment": "nuvioweb-preview source8eec52a / deployment46d066cf",
-          "command_or_observation": "Guarded live-driver markers; independently issued disposable sessions",
-          "assertion": "New unique Library/history/progress records must arrive in an independent session and exact cleanup must preserve all original rows.",
-          "result": "Additive writes204, independent reads200 and exact cleanup204; marker absence and original-row equality true in all three domains.",
-          "artifact": "docs/evidence/issue7-sol-live-markers.json",
-          "limitations": "Direct API setup only; not hosted application profile/add-on/history/progress mutation-path evidence.",
-          "observed_at": "2026-10-20T05:26:35.840084+00:00"
+          "status": "pass",
+          "commit": "b5a8679404b98649f9c742abc6aa5da00edc50a9",
+          "deployment": "nuvioweb-preview.pages.dev deployment9d9d6d0d-8617-4ed5-bc91-770038162800",
+          "command_or_observation": "Guarded app-propagation-long-ui-v12-driver.mjs: actual app profile/addon/Save/history/playback-progress/final-delete controls and independent receiving application UI, with exact original-state and cleanup controls.",
+          "assertion": "Actual profile/addon/history/progress changes and Save must arrive in the independent app, and removing the final item must leave receiving Library empty after reload; no direct backend insertion or API-only receiver substitutes.",
+          "result": "Every required phase assertion completed: independent profile/catalog/Library/watched badge/progress store+ContinueWatching UI, initial empty Library, final-item removal/reload-empty and foreign profile/Library absence. Exact fixture deletion/readback and original measured rows unchanged; new local sessions cleaned and credential digest unchanged.",
+          "artifact": "docs/evidence/issue7-app-journey-phases-2026-10-20.json",
+          "limitations": "Bounded phase-level pass. Raw overall run remains incomplete because final foreign-account automatic settings/seed requests were locally denied and conservatively latched terminal after required mutation/receiver phases; never relabelled a whole-run pass. Those background mutations and broader foreign-domain behavior are unverified. Linux Chromium only. Progress uses actual rate1 playback beyond37s with unchanged cloud position32\u201345s/duration119\u2013121s; hosted fixture seeking is unclaimed. Profiles preserve original fields except server-managed updated_at.",
+          "observed_at": "2026-10-20T11:32:10.641Z"
         }
-      ]
+      ],
+      "superseded_observations": {
+        "archive": "docs/evidence/issue7-acceptance-pre-live-consolidation-2026-10-20.json",
+        "reason": "Earlier existing-data/API-only/unperformed app-propagation observations remain archived; completed actual application/independent-receiver phases below supersede those missing-verification dispositions only. No historical failed receipt is relabelled.",
+        "observations": [
+          {
+            "kind": "live",
+            "status": "unverified",
+            "commit": "8650d85afd665c589872ddf8474a3695900c6fb7",
+            "deployment": "loopback static candidate with live primary Nuvio API",
+            "command_or_observation": "Previously executed read-only local-candidate A/B hydration control.",
+            "assertion": "Distinct owners and existing nonempty add-on/watched/progress controls must be observed before any new-write claim.",
+            "result": "Existing controls matched; no new profile/add-on/history/progress mutation propagation was exercised, so the requirement remains unverified live.",
+            "artifact": "docs/evidence/identity-local-candidate-2026-10-19.json",
+            "limitations": "Existing-data controls only; single Linux Chromium environment; no mutation, measured refresh or device evidence.",
+            "observed_at": "2026-10-19T07:22:18Z"
+          },
+          {
+            "kind": "live",
+            "status": "unverified",
+            "commit": "8eec52a7de888d156fac03edd9c523fc16964f7b",
+            "deployment": "nuvioweb-preview source8eec52a / deployment46d066cf",
+            "command_or_observation": "Guarded live-driver markers; independently issued disposable sessions",
+            "assertion": "New unique Library/history/progress records must arrive in an independent session and exact cleanup must preserve all original rows.",
+            "result": "Additive writes204, independent reads200 and exact cleanup204; marker absence and original-row equality true in all three domains.",
+            "artifact": "docs/evidence/issue7-sol-live-markers.json",
+            "limitations": "Direct API setup only; not hosted application profile/add-on/history/progress mutation-path evidence.",
+            "observed_at": "2026-10-20T05:26:35.840084+00:00"
+          }
+        ]
+      }
     },
     {
       "id": "A3",
@@ -552,9 +570,8 @@
   "closure": {
     "state": "open",
     "unmet_ids": [
-      "A2",
       "A8"
     ],
-    "reason": "Parent remains open: complete actual app mutation/independent receiver journey and actual elapsed natural expiry/application revoked-refresh remain required. A3 classified current replay resolves verification disposition while preserving historical missing telemetry; A5 accepted bounded recovery complete. Explicit QR/device deferrals are unsupported, never pass claims."
+    "reason": "Parent remains open solely for required actual elapsed natural expiry/application revoked-refresh outcomes due27Oct. Required A2 application phases completed with raw-global-run-incomplete limitation preserved; A3 current classified replay and A5 accepted bounded recovery complete. QR/physical/stronger guarantees are explicit unsupported deferrals, not passes."
   }
 }

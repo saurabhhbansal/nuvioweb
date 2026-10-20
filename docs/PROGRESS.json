@@ -152,7 +152,10 @@
           "docs/evidence/issue7-sol-qr-live-observation.json",
           "docs/evidence/issue7-protected-checkpoint-2026-10-20.json",
           "docs/evidence/issue7-offline-reconnect-2026-10-20.json",
-          "docs/evidence/issue7-classified-switch-replay-2026-10-20.json"
+          "docs/evidence/issue7-classified-switch-replay-2026-10-20.json",
+          "docs/evidence/issue7-app-journey-phases-2026-10-20.json",
+          "docs/evidence/issue7-hosted-progress-fixture-limit-2026-10-20.json",
+          "docs/agent-runs/2026-10-20-issue120-journey-phase-review.md"
         ],
         "verification": [
           "Owner reported initial three Windows/Edge checks passed; browser version and independent-session setup unspecified.",
@@ -180,9 +183,10 @@
           "CH3 #119 bounded Library policy at source 5468b16: push reads up to 1001 items and refuses before sync_push_library when the local set exceeds 1000, sending no request and preserving pending. 45 focused tests pass: failed-mutation reload/pull, legacy pending cache, stale acknowledgement, real-store 1001-item retention, >1000 push refusal, exactly-1000 push and two independent full-snapshot writers.",
           "Two-writer characterization is last-writer-wins: the later full snapshot loses the earlier edit. No server version/ETag/conflict contract is exposed by the checked client, so concurrent-writer repair remains BLOCKED and #119 stays open pending protocol evidence/owner decision.",
           "2026-10-20 Sol remediation supersedes prior completion/pause claims: two additional QR defects reproduced and repaired, canonical repository corrected, children integrated into completion ledger. Bounded live testing resumed under explicit owner delegation; parent O1-O3 remain unmet pending actual evidence.",
-          "Protected PR127/131/132 are merged. All four workflows pass at canonical b5a8679; dedicated development preview9d9d6d0d has141 served hashes, shell/automatic worker and seven guest journeys pass. #119 closed with completion guard39406387999 success; owner bounded decision supersedes prior atomic-contract block. Actual offline reload/reconnect passes; complete app mutation journey, classified replay and real elapsed observations remain required."
+          "Protected PR127/131/132 are merged. All four workflows pass at canonical b5a8679; dedicated development preview9d9d6d0d has141 served hashes, shell/automatic worker and seven guest journeys pass. #119 closed with completion guard39406387999 success; owner bounded decision supersedes prior atomic-contract block. Actual offline reload/reconnect passes; complete app mutation journey, classified replay and real elapsed observations remain required.",
+          "V12 completed all25 app-journey/foreign-absence/cleanup assertions. Remote writer mutations204 with actual UI actions; independent app shows profile/catalog/Library/watched badge/progress+ContinueWatching, then final-item removal/reload-empty. Exact cleanup preserves original measured state. Raw global run remains incomplete because denied final foreign settings/seed requests conservatively set terminal; no unknown issued write/auth. Separate automated evidence review verifies hashes/order/forwarding and approves A2 completed phases only. No broader foreign background mutation claim. Default closure remains2 for required A8 elapsed observations."
         ],
-        "remaining": "Original O1–O3 unchanged. A5 passes owner-accepted bounded recovery; #119 closed, stronger guarantees deferred to #128. A2 actual profile/add-on UI propagation passed but complete app Save/history/progress/final-delete receiver journey remains. A3 current verification passes classified six-step replay; historical failure retained with missing causal telemetry explicitly unreconstructible. A8 actual offline reload/reconnect passed; natural expiry and post-expiry revoked refresh wait until 2026-10-27. QR/physical-device work explicitly deferred, unsupported in #129/#130. No routine owner permission pending.",
+        "remaining": "Original O1–O3 unchanged. A2 required actual app propagation/Save/history/progress/final-item deletion and independent receiver phases complete; raw V12 overall incomplete due locally denied final foreign background requests is preserved, not a whole-run pass. A3 classified six-step current verification and A5 owner-accepted bounded recovery complete;119 closed. Only A8 required actual elapsed natural expiry/application revoked-refresh remains, due27Oct. Stronger guarantees/QR/physical-device work explicitly deferred and unsupported in128–130. No routine owner permission pending.",
         "children": [
           {
             "number": 117,
@@ -655,7 +659,10 @@
           "docs/evidence/issue7-rejected-refresh-cleanup-2026-10-20.json",
           "docs/plans/issues/issue-120-live-checkpoint.md",
           "docs/evidence/issue7-protected-checkpoint-2026-10-20.json",
-          "docs/evidence/issue7-offline-reconnect-2026-10-20.json"
+          "docs/evidence/issue7-offline-reconnect-2026-10-20.json",
+          "docs/evidence/issue7-app-journey-phases-2026-10-20.json",
+          "docs/evidence/issue7-hosted-progress-fixture-limit-2026-10-20.json",
+          "docs/agent-runs/2026-10-20-issue120-journey-phase-review.md"
         ],
         "verification": [
           "Authorized guarded direct and actual hosted tests executed. Hosted A-B-A-B Library controls exact/restored, additive marker receiver/cleanup/original rows unchanged, explicit refresh and local-session revocation observed; credential integrity unchanged. No natural expiry/new profile/add-on mutation/physical QR claim.",
@@ -663,7 +670,8 @@
           "Deferred provider QR and physical-device work tracked separately as #129/#130; these are unsupported capability labels, not pass receipts.",
           "Original120.008-second/344925-byte CC0 progress fixture staged optionally;7 packaging/actual local media cases pass. Known offline fallback fixture503 correction plus wrong-owner negative case passes2 focused browser tests. This is fixture proof, not live progress propagation. Final protected checks/review remain required.",
           "Bootstrap displayed signed-out after a rejected refresh but retained credentials and private caches. Actual-module regression reproduced red (12 pass/1 fail). Existing local signOut reset only for still-owned authoritative400/401/403 rejection.429/5xx preserves caches; transient network behavior unchanged. No remote logout or new login system.18 focused/1447 application/2 targeted browser tests pass; final exact-head CI/protected integration required.",
-          "Protected PR131 lawful120s fixture and PR132 rejected-refresh cleanup are merged. All four actual-merge workflows pass atb5a8679. Actual hosted offline reload/reconnect passes with documented offline UI and exact private-state/server comparisons. Separate app revoked-refresh observer targets2026-10-27T10:21:40.792Z; no actual natural-expiry/rejected-refresh pass yet. Earlier proposed integration wording above is historical, superseded by protected checkpoint receipt."
+          "Protected PR131 lawful120s fixture and PR132 rejected-refresh cleanup are merged. All four actual-merge workflows pass atb5a8679. Actual hosted offline reload/reconnect passes with documented offline UI and exact private-state/server comparisons. Separate app revoked-refresh observer targets2026-10-27T10:21:40.792Z; no actual natural-expiry/rejected-refresh pass yet. Earlier proposed integration wording above is historical, superseded by protected checkpoint receipt.",
+          "Required actual app propagation/Save->independentreceiver->finaldelete->reloadempty phases completed in V12; all25 checks and exactcleanup true. Preserve raw overall incomplete status from final foreign background denials; automated evidence review approves only bounded required phases. Actual rate1 playback beyond37s, qualifying cloud position32–45s/duration119–121s and receiver store+Home UI pass; hosted fixture seeking remains unclaimed. Only actual elapsed natural expiry/application revoked-refresh remains required under agreed scope."
         ]
       }
     }

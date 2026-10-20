@@ -46,7 +46,7 @@ test("the committed blocked receipt is structurally valid and reports the real u
   const receipt = currentReceipt();
   const result = validateReceipt(receipt, { root });
   assert.deepEqual(result.errors, []);
-  assert.deepEqual(result.unmet_ids, ["A2", "A8"]);
+  assert.deepEqual(result.unmet_ids, ["A8"]);
   assert.equal(evaluateClosure(receipt, { root }).met, false);
 });
 
