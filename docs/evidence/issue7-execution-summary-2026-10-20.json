@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "issue": 7,
+  "date": "2026-10-20",
+  "status": "blocked",
+  "final_commit": "9dc6169c7e6339c64025bab7c7b2870c2520f69f",
+  "audited_baseline": "f30c79f6045786c821047532104c90aa65b861cc",
+  "child_scopes": [
+    {
+      "key": "CH1",
+      "issue": 117,
+      "state": "OPEN",
+      "reason": "Scope integrated; reopened by the completion guard because child tickets are not in the central roadmap ledger.",
+      "pr": 121,
+      "merge_commit": "a92a9ef0abea32d8d549fb00a5d734fde00358b2",
+      "evidence": "docs/evidence/issue7-fixture-closure-2026-10-20.json",
+      "limits": "Synthetic identity fixtures only; no deployed sync or device claim."
+    },
+    {
+      "key": "CH2",
+      "issue": 118,
+      "state": "OPEN",
+      "reason": "Scope integrated; reopened by the same completion guard.",
+      "pr": 122,
+      "merge_commit": "2116e5b8c70a248a0cd642a1c741eac2dbd06fed",
+      "evidence": "docs/evidence/issue7-qr-ownership-2026-10-20.json",
+      "limits": "Synthetic QR service/browser evidence only; live QR remains #120."
+    },
+    {
+      "key": "CH3",
+      "issue": 119,
+      "state": "OPEN",
+      "reason": "Bounded refusal/policy integrated; same-account concurrent-writer repair needs a server conflict/version contract or owner decision.",
+      "pr": 123,
+      "merge_commit": "9dc6169c7e6339c64025bab7c7b2870c2520f69f",
+      "evidence": "docs/evidence/issue7-library-policy-2026-10-20.json",
+      "limits": "Last-writer-wins remains unsupported; Library tab still requests 1000 rows; refusal is console-only."
+    },
+    {
+      "key": "CH4",
+      "issue": 120,
+      "state": "OPEN",
+      "reason": "Blocked on the owner's live-account/device pause.",
+      "pr": null,
+      "merge_commit": null,
+      "evidence": "docs/ISSUE_7_OWNER_CHECKS.md",
+      "limits": "No executable live probe is authorized today."
+    }
+  ],
+  "acceptance": {
+    "completed_synthetic_or_scoped": ["A1", "A4", "A6", "A7"],
+    "unmet": ["A2", "A3", "A5", "A8"],
+    "original_mapping": {
+      "A2": ["O2"],
+      "A3": ["O2", "O3"],
+      "A5": ["O2"],
+      "A8": ["O1", "O3"]
+    }
+  },
+  "gate": {
+    "receipt": "docs/evidence/issue7-acceptance.json",
+    "validate_exit": 0,
+    "closure_exit": 2,
+    "validator_tests": "34/34",
+    "message": "Valid but unmet: A2, A3, A5, A8."
+  },
+  "verification": {
+    "identity_sync_browser": "13/13 synthetic Chromium cases",
+    "qr_lifecycle": "16/16",
+    "qr_browser": "5/5",
+    "qr_probe": "exit 0; staleExchangeAccepted false",
+    "library_focused": "45/45 (26 service, 15 repository, 4 state)",
+    "application": "1417/1417 at the final CH3 source",
+    "browser": "66/66 at the CH2/CH3 heads; required Chromium workflow passed at each merge",
+    "build": "12 nonempty assets, inert config; lint pass",
+    "docs_governance": "docs/progress/gate checks pass; 19 docs/governance/preview tests pass"
+  },
+  "blockers": [
+    {
+      "id": "owner-gated-live-observation",
+      "smallest_unblock": "Resume the CH4 observation card with disposable A/B contexts and reversible cleanup, or provide the listed sanitized observations."
+    },
+    {
+      "id": "unresolved-live-post-removal-switch",
+      "smallest_unblock": "Bounded live B-to-A switch with failure-category capture on a named deployment; no unchanged retry."
+    },
+    {
+      "id": "same-account-conflict-protocol",
+      "smallest_unblock": "Document a server version/conflict contract or explicitly accept single-writer-only support."
+    }
+  ],
+  "notes": [
+    "Parent #7 is not closed by child scope completion or synthetic green.",
+    "No production/deployment, live credential read, live probe, session revocation or owner-record deletion occurred.",
+    "Child #117/#118 remaining open is a completion-guard state, not an acceptance claim."
+  ]
+}
