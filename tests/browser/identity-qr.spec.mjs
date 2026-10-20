@@ -24,11 +24,13 @@ function deferred() {
   return { promise, resolve };
 }
 
-async function installQrFixture(context, { qrImageUrl = null, holdExchange = false } = {}) {
+async function installQrFixture(context, { qrImageUrl = null, holdExchange = false, holdOwner = false } = {}) {
   const requests = [];
   const unexpected = [];
   const exchangeGate = holdExchange ? gate() : null;
   const exchangeStarted = deferred();
+  const ownerGate = holdOwner ? gate() : null;
+  const ownerStarted = deferred();
   let externalRendererRequests = 0;
   await context.route("**/*", async (route) => {
     const request = route.request();
@@ -73,6 +75,8 @@ async function installQrFixture(context, { qrImageUrl = null, holdExchange = fal
     }
     if (operation === "get_sync_owner") {
       requests.push({ operation });
+      ownerStarted.resolve();
+      if (ownerGate) await ownerGate.promise;
       return json(account.owner);
     }
     if (operation === "sync_pull_profiles") {
@@ -102,7 +106,9 @@ async function installQrFixture(context, { qrImageUrl = null, holdExchange = fal
     requests,
     unexpected,
     exchangeStarted: exchangeStarted.promise,
+    ownerStarted: ownerStarted.promise,
     releaseExchange: () => exchangeGate?.release(),
+    releaseOwner: () => ownerGate?.release(),
     externalRendererRequests: () => externalRendererRequests
   };
 }
@@ -137,17 +143,47 @@ test("the actual QR screen completes a synthetic current flow with a safe local 
   expect(fixture.unexpected).toEqual([]);
 });
 
-test("a hostile QR image URL renders as inert unavailable state and is never requested", async ({ context, page }) => {
+test("a missing upstream image is rendered locally from the login URL", async ({ context, page }) => {
+  const fixture = await installQrFixture(context, { qrImageUrl: null });
+  await openQrScreen(page);
+  await expect(page.locator("#qr-container canvas.qr-image-canvas")).toBeVisible();
+  await expect(page.locator('#profileSelection .profile-card[data-profile-id="1"]')).toBeVisible({ timeout: 15000 });
+  expect(fixture.externalRendererRequests()).toBe(0);
+  expect(fixture.unexpected).toEqual([]);
+});
+
+test("a hostile QR image URL is inert and the login URL is rendered locally", async ({ context, page }) => {
   const fixture = await installQrFixture(context, {
     qrImageUrl: 'https://evil.example.invalid/qr.png" onerror="globalThis.__qrXss=1'
   });
   await openQrScreen(page);
-  await expect(page.locator('#qr-container [data-state="unavailable"]')).toBeVisible();
+  await expect(page.locator("#qr-container canvas.qr-image-canvas")).toBeVisible();
   expect(await page.locator("#qr-container img").count()).toBe(0);
   expect(await page.evaluate(() => globalThis.__qrXss)).toBeUndefined();
   expect(fixture.externalRendererRequests()).toBe(0);
   expect(fixture.unexpected.some((entry) => entry.origin.includes("evil.example.invalid"))).toBe(false);
   await expect(page.locator('#profileSelection .profile-card[data-profile-id="1"]')).toBeVisible({ timeout: 15000 });
+  expect(fixture.unexpected).toEqual([]);
+});
+
+test("leaving during a held owner resolution has no later publication", async ({ context, page }) => {
+  const fixture = await installQrFixture(context, { holdOwner: true });
+  await openQrScreen(page);
+  await fixture.ownerStarted;
+  await page.locator("#qr-back-btn").click();
+  await expect.poll(() => page.evaluate(() => history.state?.route)).not.toBe("profileSelection");
+  fixture.releaseOwner();
+  await page.waitForTimeout(1200);
+  const stored = await page.evaluate(() => ({
+    access: localStorage.getItem("access_token"),
+    refresh: localStorage.getItem("refresh_token"),
+    owner: localStorage.getItem("nuvioAccountOwnerMarker"),
+    route: history.state?.route || null
+  }));
+  expect(stored.access).toBeNull();
+  expect(stored.refresh).toBeNull();
+  expect(stored.owner).toBeNull();
+  expect(stored.route).not.toBe("profileSelection");
   expect(fixture.unexpected).toEqual([]);
 });
 

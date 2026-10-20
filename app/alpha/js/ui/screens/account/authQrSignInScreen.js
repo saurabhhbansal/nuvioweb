@@ -1,5 +1,6 @@
 import { Router } from "../../navigation/router.js";
-import { QrLoginService, isSafeQrImageUrl } from "../../../core/auth/qrLoginService.js";
+import { QrLoginService, isSafeQrImageUrl, isSafeQrLoginUrl } from "../../../core/auth/qrLoginService.js";
+import { QrCodeGenerator } from "../../../core/qr/qrCodeGenerator.js";
 import { LocalStore } from "../../../core/storage/localStore.js";
 import { ScreenUtils } from "../../navigation/screen.js";
 import { AuthManager } from "../../../core/auth/authManager.js";
@@ -142,7 +143,7 @@ export const AuthQrSignInScreen = {
     }
   },
 
-  renderQr({ qrImageUrl, code }) {
+  renderQr({ qrImageUrl, code, loginUrl }) {
     const qrContainer = this.container?.querySelector("#qr-container");
     const codeText = this.container?.querySelector("#qr-code-text");
 
@@ -151,13 +152,26 @@ export const AuthQrSignInScreen = {
     }
 
     qrContainer.replaceChildren();
+    let rendered = false;
     if (isSafeQrImageUrl(qrImageUrl)) {
       const image = document.createElement("img");
       image.className = "qr-image";
       image.alt = I18n.t("auth.qr.qrImageAlt");
       image.src = qrImageUrl;
       qrContainer.appendChild(image);
-    } else {
+      rendered = true;
+    } else if (isSafeQrLoginUrl(loginUrl)) {
+      try {
+        const canvas = document.createElement("canvas");
+        canvas.className = "qr-image-canvas";
+        QrCodeGenerator.generate(canvas, loginUrl, 420);
+        qrContainer.appendChild(canvas);
+        rendered = true;
+      } catch (_) {
+        rendered = false;
+      }
+    }
+    if (!rendered) {
       const unavailable = document.createElement("p");
       unavailable.className = "qr-unavailable";
       unavailable.dataset.state = "unavailable";
@@ -202,7 +216,7 @@ export const AuthQrSignInScreen = {
   startPolling(code, deviceNonce, pollIntervalSeconds = 3, sessionId, attemptId = null) {
     pollInterval = setInterval(
       async () => {
-        const status = await QrLoginService.poll(code, deviceNonce);
+        const status = await QrLoginService.poll(code, deviceNonce, attemptId);
         if (!this.isMounted || sessionId !== activeQrSessionId) {
           return;
         }
@@ -426,7 +440,7 @@ export const AuthQrSignInScreen = {
   cleanup() {
     this.isMounted = false;
     activeQrSessionId += 1;
-    QrLoginService.cancelAttempt(this.activeAttemptId);
+    QrLoginService.cancelAttempt();
     this.activeAttemptId = null;
     this.stopIntervals();
     if (this.refreshButton) {

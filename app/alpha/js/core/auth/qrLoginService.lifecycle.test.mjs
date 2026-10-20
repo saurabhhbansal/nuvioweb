@@ -232,6 +232,160 @@ test("a delayed email sign-in cannot publish over a later session", async () => 
   });
 });
 
+test("a later authentication attempt is not signed out by a stale QR establishment", async () => {
+  const ownerResponse = deferred();
+  const ownerStarted = deferred();
+  await withSession(anonymousSession(), async (url) => {
+    if (url.endsWith("/functions/v1/tv-logins-exchange")) {
+      return json({ access_token: token("qr-account"), refresh_token: "qr-refresh" });
+    }
+    if (url.endsWith("/rest/v1/rpc/get_sync_owner")) {
+      ownerStarted.resolve();
+      return ownerResponse.promise;
+    }
+    throw new Error(`unexpected request ${url}`);
+  }, async () => {
+    const attemptId = QrLoginService.beginAttempt();
+    const pending = QrLoginService.exchange("synthetic-code", "synthetic-nonce", attemptId);
+    await ownerStarted.promise;
+    AuthManager.beginAuthenticationAttempt();
+    SessionStore.accessToken = token("later-account");
+    SessionStore.refreshToken = "later-refresh";
+    SessionStore.isAnonymousSession = false;
+    AuthManager.setState(AuthState.AUTHENTICATED);
+    ownerResponse.resolve(json("owner-qr"));
+    assert.equal(await pending, false);
+    assert.equal(SessionStore.accessToken, token("later-account"));
+    assert.equal(SessionStore.refreshToken, "later-refresh");
+    assert.equal(AuthManager.getAuthState(), AuthState.AUTHENTICATED);
+    assert.equal(globalThis.localStorage.getItem("nuvioAccountOwnerMarker"), null);
+  });
+});
+
+test("cancelling during owner resolution prevents publication", async () => {
+  const ownerResponse = deferred();
+  const ownerStarted = deferred();
+  await withSession(anonymousSession(), async (url) => {
+    if (url.endsWith("/functions/v1/tv-logins-exchange")) {
+      return json({ access_token: token("qr-account"), refresh_token: "qr-refresh" });
+    }
+    if (url.endsWith("/rest/v1/rpc/get_sync_owner")) {
+      ownerStarted.resolve();
+      return ownerResponse.promise;
+    }
+    throw new Error(`unexpected request ${url}`);
+  }, async () => {
+    const attemptId = QrLoginService.beginAttempt();
+    const pending = QrLoginService.exchange("synthetic-code", "synthetic-nonce", attemptId);
+    await ownerStarted.promise;
+    QrLoginService.cancelAttempt(attemptId);
+    ownerResponse.resolve(json("owner-qr"));
+    assert.equal(await pending, false);
+    assert.equal(SessionStore.accessToken, null);
+    assert.equal(SessionStore.refreshToken, null);
+    assert.notEqual(AuthManager.getAuthState(), AuthState.AUTHENTICATED);
+    assert.equal(globalThis.localStorage.getItem("nuvioAccountOwnerMarker"), null);
+    assert.equal(QrLoginService.isAttemptActive(attemptId), false);
+  });
+});
+
+test("a start error is redacted for the device nonce", async () => {
+  const descriptor = Object.getOwnPropertyDescriptor(globalThis, "crypto");
+  const originalWindow = globalThis.window;
+  globalThis.window = { location: { protocol: "https:", origin: "https://nuvioweb.example.invalid" } };
+  Object.defineProperty(globalThis, "crypto", {
+    value: { randomUUID: () => "fixture-nonce-1234" },
+    configurable: true
+  });
+  try {
+    await withSession(anonymousSession(), async (url) => {
+      if (url.endsWith("/rest/v1/rpc/start_tv_login_session")) {
+        return json({ message: "bad device nonce fixture-nonce-1234" }, 400);
+      }
+      throw new Error(`unexpected request ${url}`);
+    }, async () => {
+      assert.equal(await QrLoginService.start(), null);
+      const error = QrLoginService.getLastError();
+      assert.doesNotMatch(error, /fixture-nonce-1234/);
+      assert.match(error, /\[redacted\]/);
+    });
+  } finally {
+    if (descriptor) Object.defineProperty(globalThis, "crypto", descriptor);
+    else delete globalThis.crypto;
+    globalThis.window = originalWindow;
+  }
+});
+
+test("a stale poll from a superseded attempt is refused before any request", async () => {
+  const calls = [];
+  await withSession(anonymousSession(), async (url) => {
+    calls.push(url);
+    throw new Error(`unexpected request ${url}`);
+  }, async () => {
+    const first = QrLoginService.beginAttempt();
+    QrLoginService.beginAttempt();
+    assert.equal(await QrLoginService.poll("synthetic-code", "synthetic-nonce", first), null);
+    assert.match(QrLoginService.getLastError(), /not active/);
+    assert.equal(calls.length, 0);
+  });
+});
+
+test("a superseded email establishment leaves the later session intact", async () => {
+  const ownerResponse = deferred();
+  const ownerStarted = deferred();
+  await withSession({}, async (url) => {
+    if (url.endsWith("grant_type=password")) {
+      return json({ access_token: token("email-account"), refresh_token: "email-refresh" });
+    }
+    if (url.endsWith("/rest/v1/rpc/get_sync_owner")) {
+      ownerStarted.resolve();
+      return ownerResponse.promise;
+    }
+    throw new Error(`unexpected request ${url}`);
+  }, async () => {
+    const pending = AuthManager.signInWithEmail("synthetic@example.invalid", "fixture-password");
+    await ownerStarted.promise;
+    AuthManager.beginAuthenticationAttempt();
+    SessionStore.accessToken = token("later-account");
+    SessionStore.refreshToken = "later-refresh";
+    SessionStore.isAnonymousSession = false;
+    AuthManager.setState(AuthState.AUTHENTICATED);
+    ownerResponse.resolve(json("owner-email"));
+    await assert.rejects(pending, /Authentication attempt was superseded/);
+    assert.equal(SessionStore.accessToken, token("later-account"));
+    assert.equal(SessionStore.refreshToken, "later-refresh");
+    assert.equal(AuthManager.getAuthState(), AuthState.AUTHENTICATED);
+  });
+});
+
+test("a superseded TV exchange leaves the later session intact", async () => {
+  const ownerResponse = deferred();
+  const ownerStarted = deferred();
+  await withSession({ access_token: token("anonymous") }, async (url) => {
+    if (url.endsWith("/functions/v1/tv-logins-exchange")) {
+      return json({ accessToken: token("tv-account"), refreshToken: "tv-refresh" });
+    }
+    if (url.endsWith("/rest/v1/rpc/get_sync_owner")) {
+      ownerStarted.resolve();
+      return ownerResponse.promise;
+    }
+    throw new Error(`unexpected request ${url}`);
+  }, async () => {
+    const pending = AuthManager.exchangeTvLoginSession("synthetic-code", "synthetic-nonce");
+    await ownerStarted.promise;
+    AuthManager.beginAuthenticationAttempt();
+    SessionStore.accessToken = token("later-account");
+    SessionStore.refreshToken = "later-refresh";
+    SessionStore.isAnonymousSession = false;
+    AuthManager.setState(AuthState.AUTHENTICATED);
+    ownerResponse.resolve(json("owner-tv"));
+    await assert.rejects(pending, /Authentication attempt was superseded/);
+    assert.equal(SessionStore.accessToken, token("later-account"));
+    assert.equal(SessionStore.refreshToken, "later-refresh");
+    assert.equal(AuthManager.getAuthState(), AuthState.AUTHENTICATED);
+  });
+});
+
 test("the QR image URL policy accepts only local, same-origin or image-data destinations", () => {
   const originalLocation = globalThis.location;
   globalThis.location = { href: "https://nuvioweb.example.invalid/" };
@@ -248,4 +402,5 @@ test("the QR image URL policy accepts only local, same-origin or image-data dest
   } finally {
     globalThis.location = originalLocation;
   }
+  assert.equal(isSafeQrImageUrl("https://evil.example.invalid/qr.png"), false);
 });

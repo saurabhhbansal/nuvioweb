@@ -169,11 +169,22 @@ class AuthManagerClass {
       throw new Error("Session changed during sign-in");
     }
 
-    SessionStore.accessToken = data.access_token;
-    SessionStore.refreshToken = data.refresh_token;
+    const writtenAccess = data.access_token;
+    const writtenRefresh = data.refresh_token;
+    SessionStore.accessToken = writtenAccess;
+    SessionStore.refreshToken = writtenRefresh;
     SessionStore.isAnonymousSession = false;
 
-    await this.establishAuthenticatedSession(authAttempt);
+    try {
+      await this.establishAuthenticatedSession(authAttempt);
+    } catch (error) {
+      if (authAttempt === this.authAttemptSequence) {
+        await this.signOut().catch(() => {});
+      } else if (SessionStore.accessToken === writtenAccess && SessionStore.refreshToken === writtenRefresh) {
+        SessionStore.clear();
+      }
+      throw error;
+    }
   }
 
   async signOut() {
@@ -201,11 +212,17 @@ class AuthManagerClass {
     return this.state === AuthState.AUTHENTICATED && generation === this.sessionGeneration;
   }
 
-  async establishAuthenticatedSession(expectedAuthAttempt = null) {
+  async establishAuthenticatedSession(expectedAuthAttempt = null, { canPublish = null } = {}) {
     const authAttempt = expectedAuthAttempt ?? this.authAttemptSequence;
-    if (authAttempt !== this.authAttemptSequence) {
-      throw new Error("Authentication attempt was superseded");
-    }
+    const checkAuthAttempt = () => {
+      if (authAttempt !== this.authAttemptSequence) {
+        throw new Error("Authentication attempt was superseded");
+      }
+      if (typeof canPublish === "function" && !canPublish()) {
+        throw new Error("Authentication publication was cancelled");
+      }
+    };
+    checkAuthAttempt();
     // Always resolve the owner again before profile routing. A host may replace
     // a session without an explicit sign-out, and profile index alone is not an
     // account boundary.
@@ -228,9 +245,7 @@ class AuthManagerClass {
       }
       ownerId = cachedOwner;
     }
-    if (authAttempt !== this.authAttemptSequence) {
-      throw new Error("Authentication attempt was superseded");
-    }
+    checkAuthAttempt();
     if (!ownerId) {
       throw new Error("Missing valid sync owner");
     }
@@ -242,24 +257,24 @@ class AuthManagerClass {
     if (!previousOwner || previousOwner !== ownerId) {
       this.sessionGeneration += 1;
       sessionGeneration = this.sessionGeneration;
-      if (authAttempt !== this.authAttemptSequence) {
-        throw new Error("Authentication attempt was superseded");
-      }
+      checkAuthAttempt();
       this.setState(AuthState.LOADING);
       clearAccountLocalData();
       await resetAccountRuntimeState();
-      if (authAttempt !== this.authAttemptSequence || sessionGeneration !== this.sessionGeneration) {
+      if (sessionGeneration !== this.sessionGeneration) {
         throw new Error("Authentication attempt was superseded");
       }
+      checkAuthAttempt();
     }
 
     try {
       globalThis.localStorage?.setItem?.(ACCOUNT_OWNER_MARKER_KEY, ownerId);
     } catch (_) {}
     this.cachedEffectiveUserId = ownerId;
-    if (authAttempt !== this.authAttemptSequence || sessionGeneration !== this.sessionGeneration) {
+    if (sessionGeneration !== this.sessionGeneration) {
       throw new Error("Authentication attempt was superseded");
     }
+    checkAuthAttempt();
     this.setState(AuthState.AUTHENTICATED);
   }
 
@@ -400,10 +415,21 @@ class AuthManagerClass {
       throw new Error("Session changed during TV login exchange");
     }
 
-    SessionStore.accessToken = data.accessToken;
-    SessionStore.refreshToken = data.refreshToken;
+    const writtenAccess = data.accessToken;
+    const writtenRefresh = data.refreshToken;
+    SessionStore.accessToken = writtenAccess;
+    SessionStore.refreshToken = writtenRefresh;
 
-    await this.establishAuthenticatedSession(authAttempt);
+    try {
+      await this.establishAuthenticatedSession(authAttempt);
+    } catch (error) {
+      if (authAttempt === this.authAttemptSequence) {
+        await this.signOut().catch(() => {});
+      } else if (SessionStore.accessToken === writtenAccess && SessionStore.refreshToken === writtenRefresh) {
+        SessionStore.clear();
+      }
+      throw error;
+    }
   }
 
   // ------------------------------------
