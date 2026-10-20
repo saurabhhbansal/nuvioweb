@@ -135,6 +135,7 @@ export const AuthQrSignInScreen = {
         sessionId,
         this.activeAttemptId
       );
+      this.startCountdown(result.expiresAt);
     } finally {
       if (this.isMounted && sessionId === activeQrSessionId) {
         this.isStartingQr = false;
@@ -201,53 +202,69 @@ export const AuthQrSignInScreen = {
     const renderRemaining = () => {
       const remaining = expiresAt - Date.now();
       if (remaining <= 0) {
-        if (countdownInterval) {
-          clearInterval(countdownInterval);
-          countdownInterval = null;
-        }
+        this.expireQr();
         return;
       }
     };
 
-    renderRemaining();
     countdownInterval = setInterval(renderRemaining, 1000);
+    renderRemaining();
+  },
+
+  expireQr() {
+    this.isStartingQr = false;
+    this.updateActionButtons();
+    this.stopIntervals();
+    QrLoginService.cancelAttempt(this.activeAttemptId);
+    this.activeAttemptId = null;
+    // Invalidate a response already in flight before the expiry boundary.
+    activeQrSessionId += 1;
+    this.clearQr();
+    this.setStatus(I18n.t("auth.qr.expired"));
   },
 
   startPolling(code, deviceNonce, pollIntervalSeconds = 3, sessionId, attemptId = null) {
+    let pending = false;
     pollInterval = setInterval(
       async () => {
-        const status = await QrLoginService.poll(code, deviceNonce, attemptId);
-        if (!this.isMounted || sessionId !== activeQrSessionId) {
-          return;
-        }
-
-        if (status === "approved") {
-          this.setStatus(I18n.t("auth.qr.approved"));
-          clearInterval(pollInterval);
-          pollInterval = null;
-
-          const exchange = await QrLoginService.exchange(code, deviceNonce, attemptId);
-          if (sessionId !== activeQrSessionId) {
+        if (pending) return;
+        pending = true;
+        try {
+          const status = await QrLoginService.poll(code, deviceNonce, attemptId);
+          if (!this.isMounted || sessionId !== activeQrSessionId) {
             return;
           }
 
-          if (exchange) {
-            this.activeAttemptId = null;
-            LocalStore.remove(GUEST_QR_BYPASS_KEY);
-            LocalStore.set("hasSeenAuthQrOnFirstLaunch", true);
-            this.isSignedIn = true;
-            Router.navigate("profileSelection");
-          } else {
-            this.setStatus(this.toFriendlyQrError(QrLoginService.getLastError()));
+          if (status === "approved") {
+            this.setStatus(I18n.t("auth.qr.approved"));
+            clearInterval(pollInterval);
+            pollInterval = null;
+
+            const exchange = await QrLoginService.exchange(code, deviceNonce, attemptId);
+            if (sessionId !== activeQrSessionId) {
+              return;
+            }
+
+            if (exchange) {
+              this.activeAttemptId = null;
+              LocalStore.remove(GUEST_QR_BYPASS_KEY);
+              LocalStore.set("hasSeenAuthQrOnFirstLaunch", true);
+              this.isSignedIn = true;
+              Router.navigate("profileSelection");
+            } else {
+              this.setStatus(this.toFriendlyQrError(QrLoginService.getLastError()));
+            }
           }
-        }
 
-        if (status === "pending") {
-          this.setStatus(I18n.t("auth.qr.waitingApproval"));
-        }
+          if (status === "pending") {
+            this.setStatus(I18n.t("auth.qr.waitingApproval"));
+          }
 
-        if (status === "expired") {
-          this.setStatus(I18n.t("auth.qr.expired"));
+          if (status === "expired") {
+            this.expireQr();
+          }
+        } finally {
+          pending = false;
         }
       },
       Math.max(2, Number(pollIntervalSeconds || 3)) * 1000

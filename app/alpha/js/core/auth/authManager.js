@@ -231,7 +231,7 @@ class AuthManagerClass {
     this.cachedEffectiveUserId = null;
     let ownerId = "";
     try {
-      ownerId = String(await this.getEffectiveUserId()).trim();
+      ownerId = String(await this.getEffectiveUserId({ assertCurrent: checkAuthAttempt, cacheResult: false })).trim();
     } catch (error) {
       const cachedOwner = getStoredAccountOwnerMarker();
       // A cached owner is only trusted for a previously authenticated local
@@ -438,67 +438,56 @@ class AuthManagerClass {
   // EFFECTIVE USER ID (PORTING CACHE LOGIC)
   // ------------------------------------
 
-  async getEffectiveUserId() {
-    if (this.cachedEffectiveUserId) return this.cachedEffectiveUserId;
-
+  async getEffectiveUserId({ assertCurrent = () => {}, cacheResult = true } = {}) {
     const sessionGeneration = this.sessionGeneration;
+    const checkCurrent = () => {
+      assertCurrent();
+      if (sessionGeneration !== this.sessionGeneration) {
+        throw new Error("Session changed while resolving sync owner");
+      }
+    };
+    checkCurrent();
+    if (this.cachedEffectiveUserId) return this.cachedEffectiveUserId;
 
     if (!SessionStore.accessToken) {
       const refreshed = await this.refreshSessionIfNeeded();
+      checkCurrent();
       if (!refreshed || !SessionStore.accessToken) {
         await this.signOut();
         throw new Error("Missing valid session token");
       }
     }
-
     const authHeaders = {
       "Content-Type": "application/json",
       apikey: SUPABASE_ANON_KEY,
       Authorization: `Bearer ${SessionStore.accessToken}`
     };
-
     let res = await fetchSupabaseAuth("/rest/v1/rpc/get_sync_owner", {
-      method: "POST",
-      headers: authHeaders
+      method: "POST", headers: authHeaders
     });
-
-    if (sessionGeneration !== this.sessionGeneration) {
-      throw new Error("Session changed while resolving sync owner");
-    }
-
+    checkCurrent();
     if (res.status === 401) {
       const refreshed = await this.refreshSessionIfNeeded();
+      checkCurrent();
       if (refreshed) {
         res = await fetchSupabaseAuth("/rest/v1/rpc/get_sync_owner", {
           method: "POST",
-          headers: {
-            ...authHeaders,
-            Authorization: `Bearer ${SessionStore.accessToken}`
-          }
+          headers: { ...authHeaders, Authorization: `Bearer ${SessionStore.accessToken}` }
         });
-        if (sessionGeneration !== this.sessionGeneration) {
-          throw new Error("Session changed while resolving sync owner");
-        }
+        checkCurrent();
       }
     }
-
     if (!res.ok) {
-      if (res.status === 401) {
-        await this.signOut();
-      }
-      throw createOwnerResponseError(res, await res.text());
+      const responseText = await res.text();
+      checkCurrent();
+      if (res.status === 401) await this.signOut();
+      throw createOwnerResponseError(res, responseText);
     }
-
     const data = await res.json();
+    checkCurrent();
     const id = typeof data === "string" ? data.trim() : "";
-    if (!id) {
-      throw new Error("Invalid sync owner response");
-    }
-
-    if (sessionGeneration !== this.sessionGeneration) {
-      throw new Error("Session changed while resolving sync owner");
-    }
-    this.cachedEffectiveUserId = id;
+    if (!id) throw new Error("Invalid sync owner response");
+    if (cacheResult) this.cachedEffectiveUserId = id;
     return id;
   }
 }

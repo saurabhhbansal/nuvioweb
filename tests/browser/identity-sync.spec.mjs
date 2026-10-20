@@ -179,7 +179,14 @@ async function installIdentityFixture(context, {
       unexpected.push({ operation: url.pathname, reason: "unknown-catalog-path" });
       return route.abort("blockedbyclient");
     }
-    if (url.origin !== identityOrigin) return route.abort("blockedbyclient");
+    if (url.origin !== identityOrigin) {
+      // Inert inherited presentation resources are denied explicitly. Every
+      // other foreign destination is an assertion failure, even if blocked.
+      if (!["https://fonts.googleapis.com", "https://fonts.gstatic.com", "https://image.tmdb.org"].includes(url.origin) && !((url.origin === "https://v3-cinemeta.strem.io" && ["/manifest.json", "/catalog/movie/top.json", "/catalog/series/top.json"].includes(url.pathname)) || (url.origin === "https://opensubtitles-v3.strem.io" && url.pathname === "/manifest.json"))) {
+        unexpected.push({ origin: url.origin, path: url.pathname, reason: "unknown-destination" });
+      }
+      return route.abort("blockedbyclient");
+    }
     const json = (body, status = 200) => route.fulfill({ status, contentType: "application/json", body: JSON.stringify(body) });
     const operation = url.pathname.replace("/rest/v1/rpc/", "");
     if (url.pathname === "/auth/v1/token" && url.searchParams.get("grant_type") === "password") {
@@ -612,6 +619,19 @@ test("two profiles keep distinguishable nonempty add-on, watched, progress and L
   await signIn(page, "A", "1");
   await expectNonemptyLibrary(page, "1");
   await expectExactScopedData(page, "A", 1);
+
+  // Complete B→A→B and A→B→A with all four nonempty domains,
+  // including both profiles, in the same storage context.
+  for (const alias of ["B", "A"]) {
+    await signOut(page);
+    await signIn(page, alias, "1");
+    await expectExactScopedData(page, alias, 1);
+    await selectProfile(page, "2");
+    await expectExactScopedData(page, alias, 2);
+    await expectNoOtherProfileData(page, alias, 2);
+    await selectProfile(page, "1");
+    await expectExactScopedData(page, alias, 1);
+  }
 
   const operations = fixture.completions.map((entry) => `${entry.alias}:${entry.operation}:${entry.profileId ?? "-"}`);
   expect(operations).toContain("B:sync_pull_library:1");

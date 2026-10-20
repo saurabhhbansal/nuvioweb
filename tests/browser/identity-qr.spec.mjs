@@ -24,21 +24,35 @@ function deferred() {
   return { promise, resolve };
 }
 
-async function installQrFixture(context, { qrImageUrl = null, holdExchange = false, holdOwner = false } = {}) {
+async function installQrFixture(context, { qrImageUrl = null, holdExchange = false, holdOwner = false, holdPoll = false, pollStatus = "approved", expiresIn = 600000 } = {}) {
   const requests = [];
   const unexpected = [];
   const exchangeGate = holdExchange ? gate() : null;
   const exchangeStarted = deferred();
   const ownerGate = holdOwner ? gate() : null;
   const ownerStarted = deferred();
+  const pollGate = holdPoll ? gate() : null;
+  const pollStarted = deferred();
   let externalRendererRequests = 0;
+  // The posted task runs after the response's application microtask chain,
+  // including early cancellation checks that deliberately never consume JSON.
+  await context.addInitScript(() => {
+    globalThis.__qrConsumed = {};
+    const original = globalThis.fetch;
+    globalThis.fetch = async (...args) => {
+      const response = await original(...args);
+      const path = new URL(response.url).pathname;
+      setTimeout(() => { globalThis.__qrConsumed[path] = (globalThis.__qrConsumed[path] || 0) + 1; }, 0);
+      return response;
+    };
+  });
   await context.route("**/*", async (route) => {
     const request = route.request();
     const url = new URL(request.url());
     if (url.origin === "http://127.0.0.1:4371") return route.continue();
     if (url.hostname.includes("qrserver")) externalRendererRequests += 1;
     if (url.origin !== identityOrigin) {
-      if (url.hostname.includes("evil") || url.hostname.includes("qrserver")) {
+      if (!["https://fonts.googleapis.com", "https://fonts.gstatic.com", "https://image.tmdb.org"].includes(url.origin) && !((url.origin === "https://v3-cinemeta.strem.io" && ["/manifest.json", "/catalog/movie/top.json", "/catalog/series/top.json"].includes(url.pathname)) || (url.origin === "https://opensubtitles-v3.strem.io" && url.pathname === "/manifest.json"))) {
         unexpected.push({ origin: url.origin, path: url.pathname });
       }
       return route.abort("blockedbyclient");
@@ -59,13 +73,15 @@ async function installQrFixture(context, { qrImageUrl = null, holdExchange = fal
         code: "fixture-qr-code",
         qr_content: "https://nuvioweb.example.invalid/qr/fixture",
         qr_image_url: qrImageUrl,
-        expires_at_millis: Date.now() + 600000,
+        expires_at_millis: Date.now() + expiresIn,
         poll_interval_seconds: 1
       }]);
     }
     if (operation === "poll_tv_login_session") {
       requests.push({ operation });
-      return json([{ status: "approved" }]);
+      pollStarted.resolve();
+      if (pollGate) await pollGate.promise;
+      return json([{ status: pollStatus }]);
     }
     if (url.pathname === "/functions/v1/tv-logins-exchange") {
       requests.push({ operation: "exchange" });
@@ -105,6 +121,8 @@ async function installQrFixture(context, { qrImageUrl = null, holdExchange = fal
   return {
     requests,
     unexpected,
+    pollStarted: pollStarted.promise,
+    releasePoll: () => pollGate?.release(),
     exchangeStarted: exchangeStarted.promise,
     ownerStarted: ownerStarted.promise,
     releaseExchange: () => exchangeGate?.release(),
@@ -117,7 +135,8 @@ async function openQrScreen(page) {
   await page.goto("/");
   await expect(page.locator(".desktop-auth-qr")).toBeVisible();
   await page.locator(".desktop-auth-qr").click();
-  await expect(page.locator("#qr-status")).toBeVisible();
+  await expect(page.locator("#qr-code-text")).toContainText("fixture-qr-code");
+  await expect(page.locator("#qr-refresh-btn")).toBeEnabled();
 }
 
 test("the actual QR screen completes a synthetic current flow with a safe local image", async ({ context, page }) => {
@@ -179,7 +198,7 @@ test("leaving during a held owner resolution leaves no persisted account", async
   }));
   expect(beforeRelease).toEqual({ access: null, refresh: null, owner: null });
   fixture.releaseOwner();
-  await page.waitForTimeout(1200);
+  await expect.poll(() => page.evaluate(() => globalThis.__qrConsumed["/rest/v1/rpc/get_sync_owner"] || 0)).toBe(1);
   const stored = await page.evaluate(() => ({
     access: localStorage.getItem("access_token"),
     refresh: localStorage.getItem("refresh_token"),
@@ -191,7 +210,7 @@ test("leaving during a held owner resolution leaves no persisted account", async
   expect(stored.owner).toBeNull();
   expect(stored.route).not.toBe("profileSelection");
   await page.reload();
-  await page.waitForTimeout(500);
+  await expect(page.locator("#profileSelection, .desktop-auth-qr").first()).toBeVisible();
   const afterReload = await page.evaluate(() => ({
     access: localStorage.getItem("access_token"),
     refresh: localStorage.getItem("refresh_token"),
@@ -209,7 +228,7 @@ test("leaving the screen during a held exchange has no later token or navigation
   await expect(page.locator("#desktop-auth-email")).not.toBeVisible();
   await expect.poll(() => page.evaluate(() => history.state?.route)).not.toBe("profileSelection");
   fixture.releaseExchange();
-  await page.waitForTimeout(1200);
+  await expect.poll(() => page.evaluate(() => globalThis.__qrConsumed["/functions/v1/tv-logins-exchange"] || 0)).toBe(1);
   const stored = await page.evaluate(() => ({
     access: localStorage.getItem("access_token"),
     refresh: localStorage.getItem("refresh_token"),
@@ -219,5 +238,51 @@ test("leaving the screen during a held exchange has no later token or navigation
   expect(stored.refresh).toBeNull();
   expect(stored.route).not.toBe("profileSelection");
   expect(fixture.requests.some((entry) => entry.operation === "get_sync_owner")).toBe(false);
+  expect(fixture.unexpected).toEqual([]);
+});
+
+
+test("held QR polls stay serialized across multiple interval ticks", async ({ context, page }) => {
+  const fixture = await installQrFixture(context, { holdPoll: true, holdOwner: true });
+  await page.clock.install();
+  await openQrScreen(page);
+  await page.clock.runFor(2200);
+  await fixture.pollStarted;
+  await page.clock.runFor(6500);
+  expect(fixture.requests.filter((entry) => entry.operation === "poll_tv_login_session")).toHaveLength(1);
+  fixture.releasePoll();
+  await fixture.ownerStarted;
+  fixture.releaseOwner();
+  await expect(page.locator('#profileSelection .profile-card[data-profile-id="1"]')).toBeVisible();
+  expect(fixture.requests.filter((entry) => entry.operation === "exchange")).toHaveLength(1);
+  expect(fixture.unexpected).toEqual([]);
+});
+
+for (const mode of ["server", "deadline"]) {
+  test(`QR ${mode} expiry cancels the attempt and cannot publish a late approval`, async ({ context, page }) => {
+    const fixture = await installQrFixture(context, mode === "server"
+      ? { pollStatus: "expired" } : { holdPoll: true, expiresIn: 3500 });
+    await page.clock.install();
+    await openQrScreen(page);
+    await page.clock.runFor(2200);
+    await fixture.pollStarted;
+    await page.clock.runFor(2500);
+    await expect(page.locator("#qr-status")).toContainText(/expired/i);
+    fixture.releasePoll();
+    await page.clock.runFor(5000);
+    expect(fixture.requests.filter((entry) => entry.operation === "exchange")).toHaveLength(0);
+    expect(await page.evaluate(() => [localStorage.getItem("access_token"), localStorage.getItem("nuvioAccountOwnerMarker")])).toEqual([null, null]);
+    expect(fixture.unexpected).toEqual([]);
+  });
+}
+
+
+test("an already elapsed QR start leaves Refresh available", async ({ context, page }) => {
+  const fixture = await installQrFixture(context, { expiresIn: -1000 });
+  await page.goto("/");
+  await page.locator(".desktop-auth-qr").click();
+  await expect(page.locator("#qr-refresh-btn")).toBeEnabled();
+  await expect(page.locator("#qr-status")).not.toContainText(/preparing/i);
+  expect(fixture.requests.filter((entry) => entry.operation === "exchange")).toHaveLength(0);
   expect(fixture.unexpected).toEqual([]);
 });

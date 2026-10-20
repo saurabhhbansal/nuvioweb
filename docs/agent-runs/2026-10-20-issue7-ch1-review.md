@@ -2,7 +2,7 @@
 
 Scope: PR #121, child [#117](https://github.com/saurabhhbansal/nuvioweb/issues/117), parent #7.
 Base `f30c79f6045786c821047532104c90aa65b861cc`; reviewed through `2c1d2379cde0f9bc868b774c4f98fd4507e5ee80`,
-with documentation-only follow-ups after that source commit.
+with subsequent validator/test changes through PR #121 head `d1ffbfa647e60205f55294c5bf6e51ffb82d5c75`. This historic record does not establish a separate exact-head re-review of those later changes. The independent review at `0212e73` found additional coverage/canonical-repository gaps; current remediation reviews the actual combined diff.
 
 **This is an automated technical review, not independent human approval.** It does not satisfy a
 sensitive-owner review or replace protected CI.

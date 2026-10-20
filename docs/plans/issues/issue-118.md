@@ -1,13 +1,13 @@
 # Issue #118 — QR session publication and rendering safety
 
-Parent: [#7](https://github.com/saurabhbansal/nuvioweb/issues/7). Covers A6/A7 and original O1/O3.
+Parent: [#7](https://github.com/saurabhhbansal/nuvioweb/issues/7). Covers A6/A7 and original O1/O3.
 Base: `a92a9ef0abea32d8d549fb00a5d734fde00358b2`.
 
 ## Goal
 
 Stop a delayed QR exchange from publishing tokens after the attempt has been superseded, and stop
 credential-bearing QR content from reaching a third-party renderer or unsafe markup. Keep the live QR
-consent/expiry/device question under [#120](https://github.com/saurabhbansal/nuvioweb/issues/120).
+consent/expiry/device question under [#120](https://github.com/saurabhhbansal/nuvioweb/issues/120).
 
 ## Existing contract
 

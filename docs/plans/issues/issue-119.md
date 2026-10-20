@@ -1,6 +1,6 @@
 # Issue #119 — Library pending, snapshot-limit and concurrent-writer policy
 
-Parent: [#7](https://github.com/saurabhbansal/nuvioweb/issues/7). Covers A5/O2 and PRD FR-02.
+Parent: [#7](https://github.com/saurabhhbansal/nuvioweb/issues/7). Covers A5/O2 and PRD FR-02.
 Base: `2116e5b8c70a248a0cd642a1c741eac2dbd06fed`.
 
 ## Goal

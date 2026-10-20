@@ -146,7 +146,7 @@ Rollback: revert this scoped documentation commit through review and restore mat
 
 ## QR publication and rendering disposition — 2026-10-20 (synthetic)
 
-**Status: bounded synthetic fix; no live QR support claim.** Parent #7 remains open and live QR consent/expiry/nonce/device observation stays blocked under [#120](https://github.com/saurabhbansal/nuvioweb/issues/120). Evidence: [issue7-qr-ownership-2026-10-20.json](evidence/issue7-qr-ownership-2026-10-20.json); plan [issue-118.md](plans/issues/issue-118.md).
+**Status: bounded synthetic fix; no live QR support claim.** Parent #7 remains open and live QR consent/expiry/nonce/device observation stays blocked under [#120](https://github.com/saurabhhbansal/nuvioweb/issues/120). Evidence: [issue7-qr-ownership-2026-10-20.json](evidence/issue7-qr-ownership-2026-10-20.json); plan [issue-118.md](plans/issues/issue-118.md).
 
 ### Reachable sources and sinks
 

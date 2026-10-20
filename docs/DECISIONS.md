@@ -49,3 +49,7 @@ For issue #12, the local audio/container recovery prototype is bounded to altern
 No WASM demuxer or remuxer is added. The audited candidate path is LGPL-3.0-or-later with unreproduced build obligations, which fails the permissive-WASM constraint, so arbitrary MKV/AVI/standalone-TS repair stays unsupported and keeps its existing honest message. A future WASM proposal needs an amendment with exact revision, complete component licences, reproducible binaries, notices, delivered sizes, browser APIs, quotas, cancellation and quality effects.
 
 Fixture generation is a gate, not an assumption: if the eligible browser exposes no native AAC encoding, AAC-based fixtures are recorded as blocked rather than skipped or substituted. Audio evidence combines engine track identity, fixture-payload attribution and advancing video with an optional test-only analyser tone check; none of these proves audible output. Full rationale and unit ordering are in the [issue #12 plan](plans/issues/issue-12.md).
+
+## 2026-10-20 — Issue #7 live testing resumed under explicit delegation
+
+The owner's exact expanded instruction is recorded in [AGENTS.md](../AGENTS.md) and the [remediation plan](plans/issues/issue-7-sol-remediation.md). It supersedes the previous live-account pause for bounded disposable-account checks, protected integration and existing development-preview refresh. Earlier dated pause statements are historical. No permission blocker remains for these routine scoped actions; unavailable server contracts or physical devices require concrete evidence.
