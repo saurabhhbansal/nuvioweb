@@ -235,3 +235,11 @@ test("fresh remote hydration establishes clean metadata before cache publication
   assert.deepEqual((await f.repository.getAll()).map((item) => item.contentId), ["remote-clean"]);
   assert.equal(f.timers.size, 0);
 });
+
+test("authenticated nonempty cache without sync metadata is conservatively pending", async (t) => {
+  const f = await fixture(t);
+  f.seedLegacy([{ contentId: "legacy-item" }]);
+  const state = f.repository.getSyncState("1");
+  assert.equal(state.pending, true);
+  assert.ok(state.revision > 0);
+});

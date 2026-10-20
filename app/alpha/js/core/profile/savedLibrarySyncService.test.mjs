@@ -327,3 +327,41 @@ test("same-session401 refresh retries the unchanged snapshot with rotated creden
   assert.equal(f.calls[1].options.headers.Authorization, "Bearer fixture-A-rotated");
   assert.equal(f.calls[0].options.body, f.calls[1].options.body);
 });
+
+test("a local snapshot over 1000 items is refused without issuing a write", async (t) => {
+  const f = await fixture(t);
+  f.markPending();
+  let requestedLimit = null;
+  f.dependencies.savedLibraryRepository.getAll = async (limit) => {
+    requestedLimit = limit;
+    return Array.from({ length: 1001 }, (_, index) => ({ contentId: `item-${index}` }));
+  };
+  let writes = 0;
+  f.dependencies.SupabaseApi.rpc = async () => { writes += 1; return null; };
+  assert.equal(await f.service.push(2), false);
+  assert.equal(requestedLimit, 1001);
+  assert.equal(writes, 0);
+  assert.deepEqual(f.state(), { revision: 1, pending: true });
+  assert.deepEqual(f.warnings, ["Saved library sync push refused: local snapshot exceeds 1000 items"]);
+});
+
+test("two independent full-snapshot writers lose the earlier edit (unsupported characterization)", async (t) => {
+  const first = await fixture(t);
+  const second = await fixture(t);
+  first.seedLocal([{ contentId: "writer-a" }]);
+  second.seedLocal([{ contentId: "writer-b" }]);
+  first.markPending();
+  second.markPending();
+  let remote = [{ content_id: "baseline" }];
+  first.dependencies.SupabaseApi.rpc = async (...args) => {
+    if (args[0] === "sync_push_library") remote = args[1].p_items;
+    return null;
+  };
+  second.dependencies.SupabaseApi.rpc = async (...args) => {
+    if (args[0] === "sync_push_library") remote = args[1].p_items;
+    return null;
+  };
+  assert.equal(await first.service.push(2), true);
+  assert.equal(await second.service.push(2), true);
+  assert.deepEqual(remote.map((item) => item.content_id), ["writer-b"]);
+});

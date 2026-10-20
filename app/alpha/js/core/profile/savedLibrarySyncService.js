@@ -126,8 +126,15 @@ export const SavedLibrarySyncService = {
       const sessionGeneration = AuthManager.getSessionGeneration();
       const resolvedProfileId = resolveProfileId(profileId);
       const revision = savedLibraryRepository.getSyncState(resolvedProfileId).revision;
-      const items = await savedLibraryRepository.getAll(1000, resolvedProfileId);
+      // The cloud RPC is a full replacement. Reading only the first 1000 items
+      // would silently drop item 1001 from the next snapshot, so refuse instead
+      // and leave the pending revision intact for a later explicit action.
+      const items = await savedLibraryRepository.getAll(1001, resolvedProfileId);
       if (!AuthManager.isSessionCurrent(sessionGeneration)) return false;
+      if (items.length > 1000) {
+        console.warn("Saved library sync push refused: local snapshot exceeds 1000 items");
+        return false;
+      }
       // An explicit final-item removal is an intentionally empty snapshot.
       await SupabaseApi.rpc(
         PUSH_RPC,

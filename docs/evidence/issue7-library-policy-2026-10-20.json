@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "issue": 7,
+  "child": 119,
+  "date": "2026-10-20",
+  "kind": "synthetic",
+  "source_commit": "PENDING",
+  "environment": "pinned Node 22.23.1; repository/service/state modules bundled with synthetic dependency boundaries; no live account, network or Library write",
+  "commands": [
+    {
+      "command": ["node", "--test", "app/alpha/js/core/profile/savedLibrarySyncService.test.mjs"],
+      "result": "25 passed, 0 failed, 0 skipped"
+    },
+    {
+      "command": ["node", "--test", "app/alpha/js/data/repository/savedLibraryRepository.test.mjs"],
+      "result": "14 passed, 0 failed, 0 skipped"
+    },
+    {
+      "command": ["node", "--test", "app/alpha/js/data/local/savedLibrarySyncState.test.mjs"],
+      "result": "4 passed, 0 failed, 0 skipped"
+    }
+  ],
+  "characterization": {
+    "failed_mutation_reload_pull": "Existing tests preserve the pending local edit across reload and a competing cloud pull; a failed write cannot acknowledge a newer edit.",
+    "legacy_cache": "An authenticated nonempty cache with no sync metadata is treated as pending (revision increments) rather than assumed clean.",
+    "stale_acknowledgement": "An acknowledgement for an older revision is refused; a newer edit remains pending.",
+    "snapshot_limit": "The full-replacement push now reads up to 1001 local items and refuses when the set exceeds 1000, sending no request and leaving pending intact. A test records that the previous 1000-item read would have truncated item 1001.",
+    "two_writers": "Two independent full-snapshot writers are characterized as last-writer-wins: the second snapshot replaces the first and the earlier edit is lost. This is recorded as unsupported, not accepted."
+  },
+  "safe_refusal": {
+    "target": "app/alpha/js/core/profile/savedLibrarySyncService.js",
+    "behavior": "If the local snapshot has more than 1000 items, push returns false before calling sync_push_library. The pending revision is not cleared.",
+    "test": "a local snapshot over 1000 items is refused without issuing a write"
+  },
+  "policy": "docs/LIBRARY_SYNC_POLICY.md",
+  "supported": [
+    "One writer at a time, online, sequential save/remove/reload flows",
+    "Pending local edit preserved against a competing pull and retained across reload",
+    "Legacy cache treated as pending",
+    "Stale revision acknowledgement refused",
+    "1001+ items refused safely before a full snapshot"
+  ],
+  "unsupported": [
+    "Two independent same-account writers / lost update",
+    "Automatic retry/outbox or per-item durability",
+    "Multi-tab atomicity",
+    "Server-side conflict detection or merge",
+    "A larger-than-1000 library snapshot without a pagination/delta contract",
+    "Undoing an already-issued push"
+  ],
+  "limitations": [
+    "Synthetic characterization only; no live Library read, write, delete or conflict observation.",
+    "The checked client contract exposes no server version/ETag/conflict token; a client-only merge cannot be called safe.",
+    "This child adds a safe refusal and policy, not broad offline/concurrent durability."
+  ]
+}
