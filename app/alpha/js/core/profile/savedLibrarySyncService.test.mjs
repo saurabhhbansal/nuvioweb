@@ -199,7 +199,7 @@ for (const action of ["switchAccount", "signOut"]) {
   });
 }
 
-test("rejected snapshot returns failure without claiming synchronization", async (t) => {
+test("rejected explicit delete returns failure without claiming synchronization", async (t) => {
   const f = await fixture(t);
   f.dependencies.savedLibraryRepository.getAll = async () => [{ contentId: "synthetic-item" }];
   f.dependencies.SupabaseApi.rpc = async () => { throw new Error("synthetic rejection"); };
@@ -261,7 +261,7 @@ async function transportFixture(t) {
 
 const turn = () => new Promise((resolve) => setImmediate(resolve));
 
-test("real transport never publishes an old snapshot after account switch during token refresh", async (t) => {
+test("real transport never sends an old explicit delete after account switch during token refresh", async (t) => {
   const f = await transportFixture(t);
   let release;
   f.dependencies.AuthManager.isAccessTokenExpired = () => true;
@@ -292,7 +292,7 @@ test("old401 cannot refresh or retry a Library write using the later account", a
   assert.equal(refreshes, 0);
 });
 
-test("same-session transport refresh still sends the empty snapshot with rotated token", async (t) => {
+test("same-session transport refresh sends the exact delete with rotated token", async (t) => {
   const f = await transportFixture(t);
   f.dependencies.AuthManager.isAccessTokenExpired = () => true;
   f.dependencies.AuthManager.refreshSessionIfNeeded = async () => { f.session.accessToken = "fixture-A-rotated"; return true; };
@@ -316,7 +316,7 @@ test("account change during401 refresh prevents the retry", async (t) => {
   assert.equal(f.calls.length, 1);
 });
 
-test("same-session401 refresh retries the unchanged snapshot with rotated credentials", async (t) => {
+test("same-session401 refresh retries the unchanged exact delete with rotated credentials", async (t) => {
   const f = await transportFixture(t);
   globalThis.fetch = async (url, options) => {
     f.calls.push({ url, options });

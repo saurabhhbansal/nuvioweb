@@ -1,6 +1,6 @@
 # Current issue #7 remediation — 2026-10-20
 
-Implementation owner: Sol 6.1/high. Selected implementation unit: **#119**, within parent #7 remediation. #117/#118 closed after protected PR125 and guard readback; #119/#120/#7 remain open. Baseline `0212e733275bcb3b95661b288139b69d8b01c064`; feature branch `fix/issue-7-review-remediation`. [Plan](../plans/issues/issue-7-sol-remediation.md).
+Implementation owner: Sol 6.1/high. Selected implementation unit: **#119**, within parent #7 remediation. #117/#118 closed after protected PR125 and guard readback; #119/#120/#7 remain open. Baseline `0212e733275bcb3b95661b288139b69d8b01c064`; current follow-up branch `fix/issue-119-explicit-library-writes`. [Plan](../plans/issues/issue-7-sol-remediation.md).
 
 The owner's expanded authorization of 2026-10-20 supersedes the earlier live-account pause. Bounded checks with designated disposable identities, protected integration and the existing dedicated development preview are authorized. No routine owner decision is pending. Preserve secrets, unrelated account data and branch protections.
 
@@ -24,3 +24,6 @@ Runtime remediation merged at `8eec52a7de888d156fac03edd9c523fc16964f7b`; all fo
 Public API per-item Library operations were a legitimate safe alternative overlooked by the earlier full-snapshot policy. Selected #119 now implements only explicit per-key saves/deletes, never unknown snapshots, preserving unrelated concurrent keys. Same-key order, durable retry/outbox/storage guarantees remain unsupported. Current source/tests/review/hosted results will be recorded in the combined evidence PR; no broad A5 completion claim.
 
 Hosted live driver debugging preserved each failure: initial immediate form check raced mount, then chooser-only wait missed auto-resume, then quick-setup readiness was not awaited. These are driver limitations, not diagnosed causes of the historical post-removal network failure. Do not erase that older failure because of subsequent passes. New revision/observations remain separate receipts.
+
+
+Runtime/test source `083eb89` for the per-item repair passed 1432 application and 73 browser/PWA cases; separate read-only CLI re-review approved it with independently rerun57 focused tests. Descriptive test titles and combined evidence follow that source in PR126. See [review](2026-10-20-issue119-sol-review.md). Final merge/source/preview/live outcomes are in durable RUN/result.json and RUN/result.md and the linked PR/issue readbacks; a PR merge alone is not deployment. Do not close #7/#119/#120 while A2/A3/A5/A8 remain unmet. QR provider redirect400 and unavailable physical/device environment are genuine dependencies; owner permission is granted.
