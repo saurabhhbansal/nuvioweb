@@ -131,6 +131,50 @@ test("rejected and malformed refreshes return failure without inventing a replac
   }
 });
 
+test("bootstrap clears credentials and private stores only on authoritative refresh rejection", async () => {
+  for (const status of [400, 401, 403, 429, 500, 503]) {
+    await withSession({
+      access_token: token("account-a", -60), refresh_token: "fixture-refresh-a",
+      nuvioAccountOwnerMarker: "owner-a", activeProfileId: '"1"',
+      savedLibraryItems: '[{"contentId":"private-a"}]',
+      watchedItems: '[{"contentId":"watched-a"}]',
+      watchProgressItems: '[{"contentId":"progress-a"}]',
+      unrelatedDevicePreference: "preserve"
+    }, async () => json({ error: "fixture-refresh-failure" }, status), async () => {
+      await AuthManager.bootstrap();
+      assert.equal(AuthManager.getAuthState(), AuthState.SIGNED_OUT);
+      const rejected = [400, 401, 403].includes(status);
+      assert.equal(SessionStore.accessToken === null, rejected, `access token status ${status}`);
+      assert.equal(SessionStore.refreshToken === null, rejected, `refresh token status ${status}`);
+      for (const key of ["savedLibraryItems", "watchedItems", "watchProgressItems", "activeProfileId"]) {
+        assert.equal(globalThis.localStorage.getItem(key) === null, rejected, `${key} status ${status}`);
+      }
+      assert.equal(globalThis.localStorage.getItem("unrelatedDevicePreference"), "preserve");
+    });
+  }
+});
+
+test("obsolete rejected bootstrap cannot clear a completed newer login or its private stores", async () => {
+  const response = deferred();
+  const accessB = token("account-b");
+  await withSession({ access_token: token("account-a", -60), refresh_token: "fixture-refresh-a" }, async url => {
+    if (url.endsWith("grant_type=refresh_token")) return response.promise;
+    if (url.endsWith("grant_type=password")) return json({ access_token: accessB, refresh_token: "fixture-refresh-b" });
+    return json("owner-b");
+  }, async () => {
+    const obsolete = AuthManager.bootstrap();
+    await AuthManager.signOut();
+    await AuthManager.signInWithEmail("account-b@example.invalid", "fixture-password-b");
+    globalThis.localStorage.setItem("savedLibraryItems", '[{"contentId":"private-b"}]');
+    response.resolve(json({ error: "invalid_grant" }, 401));
+    await obsolete;
+    assert.equal(AuthManager.getAuthState(), AuthState.AUTHENTICATED);
+    assert.equal(SessionStore.accessToken, accessB);
+    assert.equal(SessionStore.refreshToken, "fixture-refresh-b");
+    assert.equal(globalThis.localStorage.getItem("savedLibraryItems"), '[{"contentId":"private-b"}]');
+  });
+});
+
 test("a delayed sync-owner response cannot authenticate after logout", async () => {
   const response = deferred();
   const started = deferred();

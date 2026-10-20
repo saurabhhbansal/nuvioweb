@@ -1,0 +1,11 @@
+# Issue #120 — rejected bootstrap refresh clears private state
+
+Selected issue120; parent7 remains open. Baseline0c68170d. Read-only lifecycle-driver review identified that bootstrap publishes SIGNED_OUT after a real rejected refresh without clearing stored credentials or private account caches. Reproduce at the actual AuthManager/storage boundary before runtime changes.
+
+Targets: authManager.js, lifecycle tests, bounded identity browser fixture, support/progress/current evidence and review. Contract: an authoritative refresh400/401/403 for the still-owned bootstrap session invokes existing local signOut reset (tokens, private stores, runtime caches, generation invalidation). Do not issue remote logout, create credentials, invent identity, change login/QR contracts or erase a newer session. HTTP429/5xx and transient network failure do not count as authoritative rejection and must preserve private caches. Missing/invalid refresh response handling otherwise stays unchanged.
+
+Threats: stale credentials/private cache after rejection; delayed old rejection clearing newer login; service outage mistaken for revocation; token leakage. No new recipients, privileges, dependencies, hosted compute, purchases or unrelated data writes. GPL provenance retained. Live app rejection remains unverified until actual natural expiry of a separately locally revoked new session; synthetic tests do not substitute.
+
+Required verification (Node22): actual auth lifecycle/security unit tests including400/401/403,429/500/503, delayed rejection and offline; inert build and targeted browser rejection/cache-clear fixture; app test/lint, four exact-head required workflows, docs/progress/default acceptance checks and commit-reference/whitespace checks. Separate automated read-only actual-diff review; protected PR integration only, exact merge checks and dedicated preview source/inventory readback. Default closure remains2 until all required live criteria pass.
+
+Rollback: protected revert and prior dedicated preview deployment c7a3a017. Existing original accounts, Chrome9222 and unrelated processes remain intact. Elapsed observers use separate new session-local revocation only; waiting/interruption never means pass.

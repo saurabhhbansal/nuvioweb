@@ -121,7 +121,11 @@ class AuthManagerClass {
       // rejected. `lastRefreshFailureKind` is the one fact that tells them
       // apart, and it was never recorded anywhere the device could show it.
       console.warn(`[Auth] bootstrap signed out: refresh ${this.lastRefreshFailureKind}`);
-      this.setState(AuthState.SIGNED_OUT);
+      if (this.lastRefreshFailureKind === "rejected") {
+        await this.signOut();
+      } else {
+        this.setState(AuthState.SIGNED_OUT);
+      }
       return;
     }
 
@@ -313,7 +317,7 @@ class AuthManagerClass {
         });
         if (!ownsSession()) return false;
         if (!res.ok) {
-          this.lastRefreshFailureKind = "rejected";
+          this.lastRefreshFailureKind = [400, 401, 403].includes(res.status) ? "rejected" : "unavailable";
           return false;
         }
         const data = await res.json();
