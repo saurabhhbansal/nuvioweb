@@ -1,5 +1,5 @@
 import { Router } from "../../navigation/router.js";
-import { QrLoginService } from "../../../core/auth/qrLoginService.js";
+import { QrLoginService, isSafeQrImageUrl } from "../../../core/auth/qrLoginService.js";
 import { LocalStore } from "../../../core/storage/localStore.js";
 import { ScreenUtils } from "../../navigation/screen.js";
 import { AuthManager } from "../../../core/auth/authManager.js";
@@ -35,6 +35,7 @@ export const AuthQrSignInScreen = {
     this.isMounted = true;
     this.isStartingQr = false;
     this.isLeaving = false;
+    this.activeAttemptId = null;
     this.isDesktopBrowser = Platform.isBrowser();
     ScreenUtils.show(this.container);
 
@@ -123,13 +124,15 @@ export const AuthQrSignInScreen = {
         return;
       }
 
+      this.activeAttemptId = result.attemptId ?? null;
       this.renderQr(result);
       this.setStatus(I18n.t("auth.qr.scanAndSignIn"));
       this.startPolling(
         result.code,
         result.deviceNonce,
         result.pollIntervalSeconds || 3,
-        sessionId
+        sessionId,
+        this.activeAttemptId
       );
     } finally {
       if (this.isMounted && sessionId === activeQrSessionId) {
@@ -147,9 +150,24 @@ export const AuthQrSignInScreen = {
       return;
     }
 
-    qrContainer.innerHTML = `
-      <img src="${qrImageUrl}" class="qr-image" alt="${I18n.t("auth.qr.qrImageAlt")}" />
-    `;
+    qrContainer.replaceChildren();
+    if (isSafeQrImageUrl(qrImageUrl)) {
+      const image = document.createElement("img");
+      image.className = "qr-image";
+      image.alt = I18n.t("auth.qr.qrImageAlt");
+      image.src = qrImageUrl;
+      qrContainer.appendChild(image);
+    } else {
+      const unavailable = document.createElement("p");
+      unavailable.className = "qr-unavailable";
+      unavailable.dataset.state = "unavailable";
+      unavailable.textContent = I18n.t(
+        "auth.qr.imageUnavailable",
+        {},
+        { fallback: "QR image unavailable on this device. Use the code below." }
+      );
+      qrContainer.appendChild(unavailable);
+    }
 
     codeText.innerText = I18n.t("auth.qr.codeLabel", { code });
   },
@@ -158,7 +176,7 @@ export const AuthQrSignInScreen = {
     const qrContainer = this.container?.querySelector("#qr-container");
     const codeText = this.container?.querySelector("#qr-code-text");
     if (qrContainer) {
-      qrContainer.innerHTML = "";
+      qrContainer.replaceChildren();
     }
     if (codeText) {
       codeText.innerText = "";
@@ -181,7 +199,7 @@ export const AuthQrSignInScreen = {
     countdownInterval = setInterval(renderRemaining, 1000);
   },
 
-  startPolling(code, deviceNonce, pollIntervalSeconds = 3, sessionId) {
+  startPolling(code, deviceNonce, pollIntervalSeconds = 3, sessionId, attemptId = null) {
     pollInterval = setInterval(
       async () => {
         const status = await QrLoginService.poll(code, deviceNonce);
@@ -194,12 +212,13 @@ export const AuthQrSignInScreen = {
           clearInterval(pollInterval);
           pollInterval = null;
 
-          const exchange = await QrLoginService.exchange(code, deviceNonce);
+          const exchange = await QrLoginService.exchange(code, deviceNonce, attemptId);
           if (sessionId !== activeQrSessionId) {
             return;
           }
 
           if (exchange) {
+            this.activeAttemptId = null;
             LocalStore.remove(GUEST_QR_BYPASS_KEY);
             LocalStore.set("hasSeenAuthQrOnFirstLaunch", true);
             this.isSignedIn = true;
@@ -303,6 +322,7 @@ export const AuthQrSignInScreen = {
     this.updateActionButtons();
     LocalStore.set("hasSeenAuthQrOnFirstLaunch", true);
     if (!this.isSignedIn) {
+      this.cleanup();
       continueWithoutAccount();
       return;
     } else {
@@ -406,6 +426,8 @@ export const AuthQrSignInScreen = {
   cleanup() {
     this.isMounted = false;
     activeQrSessionId += 1;
+    QrLoginService.cancelAttempt(this.activeAttemptId);
+    this.activeAttemptId = null;
     this.stopIntervals();
     if (this.refreshButton) {
       this.refreshButton.onclick = null;

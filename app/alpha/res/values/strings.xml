@@ -2787,6 +2787,7 @@
     <string name="auth.qr.notConfigured">QR sign-in is not configured on this app yet.</string>
     <string name="auth.qr.qrImageAlt">QR code</string>
     <string name="auth.qr.serviceUnavailable">QR sign-in is temporarily unavailable. Please try again later.</string>
+    <string name="auth_qr_image_unavailable">QR image unavailable on this device. Use the code below.</string>
     <string name="auth.qr.unavailableWithReason">QR unavailable: {{reason}}</string>
     <string name="auth.qr.waitingApproval">Waiting for approval on your phone...</string>
     <string name="auth.signIn.devEmailLogin">Dev Email Login</string>

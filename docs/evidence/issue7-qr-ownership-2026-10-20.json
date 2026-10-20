@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "issue": 7,
+  "child": 118,
+  "date": "2026-10-20",
+  "kind": "synthetic",
+  "source_commit": "PENDING",
+  "environment": "pinned Node 22.23.1 and Chromium via Playwright; actual modules, fake localStorage, mocked Fetch, inert loopback build; no network, account, credential, QR device or live service",
+  "red_before_fix": {
+    "source_commit": "f30c79f6045786c821047532104c90aa65b861cc",
+    "command": [
+      "node",
+      "/home/saurabh/workspace/personal/agent-runs/nuvioweb/issue7-closure-20261020/qr-ownership-probe.mjs",
+      "<audit-worktree>",
+      "--assert-safe"
+    ],
+    "observed": {
+      "staleExchangeAccepted": true,
+      "laterSessionOverwritten": true,
+      "requests": 1
+    },
+    "exit_code": 1,
+    "assertion": "stale QR exchange must not overwrite a later session",
+    "limitation": "Actual service module with mocked Fetch and a simulated later session; not a browser journey or live exploit."
+  },
+  "green_after_fix": [
+    {
+      "command": ["node", "--test", "app/alpha/js/core/auth/qrLoginService.lifecycle.test.mjs"],
+      "result": "9 passed, 0 failed, 0 skipped",
+      "tests": [
+        "a delayed QR exchange cannot overwrite a later session",
+        "a delayed anonymous bootstrap cannot publish after logout and a later login",
+        "cancelling an attempt prevents a held exchange from publishing",
+        "a rejected exchange redacts the code and nonce and keeps the anonymous session",
+        "a malformed exchange response is rejected without publishing",
+        "a current valid exchange establishes the account through the common path",
+        "a delayed AuthManager TV exchange cannot publish over a later session",
+        "a delayed email sign-in cannot publish over a later session",
+        "the QR image URL policy accepts only local, same-origin or image-data destinations"
+      ]
+    },
+    {
+      "command": ["node", "scripts/qr-ownership-probe.mjs", "app/alpha/js", "--assert-safe"],
+      "result": "exit 0; staleExchangeAccepted false, laterSessionOverwritten false, requests 1",
+      "assertion": "stale QR exchange must not overwrite a later session"
+    },
+    {
+      "command": ["npx", "playwright", "test", "tests/browser/identity-qr.spec.mjs", "--project=chromium"],
+      "result": "3 passed, 0 failed, 0 skipped",
+      "tests": [
+        "the actual QR screen completes a synthetic current flow with a safe local image",
+        "a hostile QR image URL renders as inert unavailable state and is never requested",
+        "leaving the screen during a held exchange has no later token or navigation side effect"
+      ]
+    },
+    {
+      "command": ["node", "--test", "app/alpha/js/core/auth/qrLoginService.lifecycle.test.mjs", "app/alpha/js/core/auth/authManager.lifecycle.test.mjs", "app/alpha/js/core/auth/authManager.test.mjs", "app/alpha/js/core/auth/accountLocalDataReset.test.mjs"],
+      "result": "25 passed, 0 failed, 0 skipped"
+    },
+    {
+      "command": ["npm", "test", "--prefix", "app/alpha"],
+      "result": "1405 passed, 0 failed, 0 skipped"
+    }
+  ],
+  "ownership_changes": [
+    "QrLoginService.beginAttempt/cancelAttempt define an explicit attempt with the current AuthManager session generation. start/poll/exchange accept the attempt id and check ownership after every awaited boundary.",
+    "A superseded or cancelled exchange cannot write tokens, mark an anonymous session authenticated, call get_sync_owner or navigate; the screen's post-await check is no longer the only protection.",
+    "Successful exchange publishes through AuthManager.establishAuthenticatedSession with a new authentication attempt. AuthManager increments an authentication-attempt sequence on sign-in, TV exchange, bootstrap and sign-out so stale email/TV/bootstrap completions cannot overwrite a later session.",
+    "Cleanup invalidates the attempt and clears an unapproved anonymous caller's tokens. Already-issued remote requests cannot be undone; the local publication boundary is what is controlled.",
+    "QR error text is redacted for the code and device nonce; console diagnostics use fixed messages."
+  ],
+  "rendering_changes": [
+    "Removed the external api.qrserver.com image fallback; start() returns only an upstream qr_image_url or null.",
+    "isSafeQrImageUrl accepts same-origin HTTPS, the fixture loopback HTTP origin, or base64 image data; rejects javascript:, cross-origin, credential-bearing and quote/control-character URLs.",
+    "The screen creates the image node with document.createElement, sets src/alt as properties and uses textContent for the explicit unavailable state.",
+    "Hostile image URL test asserts no image node, no script execution, no evil-host request and zero external QR renderer requests."
+  ],
+  "browser_test_limits": [
+    "Synthetic identity/add-on origins only; no live Nuvio service, QR consent or device observation.",
+    "The safe-image test uses the bundled logo as a same-origin stand-in, not a scannable QR code.",
+    "The held-exchange test proves no later local token/state/navigation side effect; it does not prove the upstream exchange was not processed server-side."
+  ],
+  "residual_risks": [
+    "Tokens remain in same-origin localStorage; a same-origin script can still read them. This change does not eliminate that architecture or claim the application is XSS-proof.",
+    "Local sign-out/cleanup is not proof of remote session revocation.",
+    "Live QR approval, consent, expiry, nonce and device behavior remain blocked under #120 and are not claimed here."
+  ],
+  "review": "Separate automated technical review recorded in docs/agent-runs/2026-10-20-issue7-ch2-review.md; not independent human approval."
+}

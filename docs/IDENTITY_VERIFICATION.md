@@ -203,3 +203,19 @@ Limits: the removal was performed by the owner, not by an automated app Save/rem
 - Existing Library deletion, receiver reload, pending-removal and delayed old-response cases remain in the same suite.
 
 Limits: these are loopback synthetic assertions. They do not prove deployed Nuvio sync, provider authorization, CORS, real new-device propagation, measured expiry/revocation, QR or named-device behavior. The earlier live failures and the single scoped live nonempty B→A pass remain separately recorded above and are not reinterpreted by the synthetic pass. A4's local matrix is green at the tested source; A1/A2 remain partial on live/QR evidence, A3 retains the unresolved post-removal switch failure, A5 remains under #119 and A6/A7 remain failing/unverified under #118. A8 stays blocked under #120.
+
+## QR publication and rendering safety — 2026-10-20 (synthetic, CH2 #118)
+
+**Status: bounded synthetic fix; #7 stays open and live QR remains blocked.** The original service-seam probe at `f30c79f` held the actual `QrLoginService.exchange()` response, completed a real `AuthManager.signOut()`, established a later authenticated session, then released the old response. It reproduced `staleExchangeAccepted: true` and `laterSessionOverwritten: true` (exit1). The same invariant is now a committed lifecycle regression and passes after the fix (9/9), and the committed `scripts/qr-ownership-probe.mjs --assert-safe` exits0 with both fields false.
+
+What changed:
+
+- `QrLoginService` now has explicit attempt ownership. `start/poll/exchange` check the attempt and session generation after every await; `exchange` refuses when the attempt was cancelled/superseded or the caller's anonymous session changed. `cleanup`/`cancelAttempt` invalidate the attempt and clear an unapproved anonymous caller's tokens.
+- A successful exchange publishes only through `AuthManager.establishAuthenticatedSession()` with a new authentication attempt. `AuthManager` now advances an authentication-attempt sequence on sign-in, TV exchange, bootstrap and sign-out; delayed email/TV/bootstrap completions cannot overwrite a later session.
+- The screen's signed-out “continue without account” path now calls cleanup before navigating, so leaving during a held exchange cancels the attempt.
+- The external `api.qrserver.com` image fallback is removed. `isSafeQrImageUrl()` accepts only same-origin HTTPS, the test loopback origin or base64 image data; the screen builds the image with DOM APIs and renders an explicit unavailable state otherwise. Error text is redacted for the code/nonce.
+- `tests/browser/identity-qr.spec.mjs` drives the actual screen with synthetic start/poll/exchange: current flow with a safe local image, hostile image URL inert with zero external renderer requests, and navigation away during a held exchange with no later token/navigation side effect. 3/3 pass.
+
+The threat model and destination policy are recorded in [NUVIO_IDENTITY_CONTRACT.md](NUVIO_IDENTITY_CONTRACT.md). Limits: all synthetic; no live QR consent/expiry/nonce/device claim. Tokens remain same-origin localStorage values, so same-origin XSS can still read them; local cleanup is not remote revocation. Live QR stays under #120.
+
+Evidence: [issue7-qr-ownership-2026-10-20.json](evidence/issue7-qr-ownership-2026-10-20.json).

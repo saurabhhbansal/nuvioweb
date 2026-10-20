@@ -75,6 +75,7 @@ class AuthManagerClass {
     this.refreshPromise = null;
     this.lastRefreshFailureKind = null;
     this.sessionGeneration = 0;
+    this.authAttemptSequence = 0;
   }
 
   // ------------------------------------
@@ -97,6 +98,7 @@ class AuthManagerClass {
   // BOOTSTRAP (equivalente observeSessionStatus)
   // ------------------------------------
   async bootstrap() {
+    const authAttempt = this.beginAuthenticationAttempt();
     const sessionGeneration = this.sessionGeneration;
     const token = SessionStore.accessToken;
 
@@ -111,7 +113,7 @@ class AuthManagerClass {
     }
 
     const refreshed = await this.refreshSessionIfNeeded();
-    if (sessionGeneration !== this.sessionGeneration) return;
+    if (authAttempt !== this.authAttemptSequence || sessionGeneration !== this.sessionGeneration) return;
     if (!refreshed) {
       // Signing out here stops every cloud pull and push for the rest of the
       // run, and nothing retries afterwards -- so a session lost to a bad
@@ -123,7 +125,7 @@ class AuthManagerClass {
       return;
     }
 
-    await this.establishAuthenticatedSession();
+    await this.establishAuthenticatedSession(authAttempt);
   }
 
   getAuthState() {
@@ -146,6 +148,8 @@ class AuthManagerClass {
   // EMAIL LOGIN
   // ------------------------------------
   async signInWithEmail(email, password) {
+    const authAttempt = this.beginAuthenticationAttempt();
+    const sessionGeneration = this.sessionGeneration;
     const res = await fetchSupabaseAuth("/auth/v1/token?grant_type=password", {
       method: "POST",
       headers: {
@@ -155,19 +159,26 @@ class AuthManagerClass {
       body: JSON.stringify({ email, password })
     });
 
+    if (authAttempt !== this.authAttemptSequence || sessionGeneration !== this.sessionGeneration) {
+      throw new Error("Session changed during sign-in");
+    }
     if (!res.ok) throw new Error("Login failed");
 
     const data = await res.json();
+    if (authAttempt !== this.authAttemptSequence || sessionGeneration !== this.sessionGeneration) {
+      throw new Error("Session changed during sign-in");
+    }
 
     SessionStore.accessToken = data.access_token;
     SessionStore.refreshToken = data.refresh_token;
     SessionStore.isAnonymousSession = false;
 
-    await this.establishAuthenticatedSession();
+    await this.establishAuthenticatedSession(authAttempt);
   }
 
   async signOut() {
     this.sessionGeneration += 1;
+    this.authAttemptSequence += 1;
     this.refreshPromise = null;
     SessionStore.clear();
     this.cachedEffectiveUserId = null;
@@ -181,11 +192,20 @@ class AuthManagerClass {
     return this.sessionGeneration;
   }
 
+  beginAuthenticationAttempt() {
+    this.authAttemptSequence += 1;
+    return this.authAttemptSequence;
+  }
+
   isSessionCurrent(generation) {
     return this.state === AuthState.AUTHENTICATED && generation === this.sessionGeneration;
   }
 
-  async establishAuthenticatedSession() {
+  async establishAuthenticatedSession(expectedAuthAttempt = null) {
+    const authAttempt = expectedAuthAttempt ?? this.authAttemptSequence;
+    if (authAttempt !== this.authAttemptSequence) {
+      throw new Error("Authentication attempt was superseded");
+    }
     // Always resolve the owner again before profile routing. A host may replace
     // a session without an explicit sign-out, and profile index alone is not an
     // account boundary.
@@ -208,6 +228,9 @@ class AuthManagerClass {
       }
       ownerId = cachedOwner;
     }
+    if (authAttempt !== this.authAttemptSequence) {
+      throw new Error("Authentication attempt was superseded");
+    }
     if (!ownerId) {
       throw new Error("Missing valid sync owner");
     }
@@ -215,17 +238,28 @@ class AuthManagerClass {
 
     // A missing marker is treated conservatively during migration: account
     // state is cleared once, then rehydrated from the authenticated owner.
+    let sessionGeneration = this.sessionGeneration;
     if (!previousOwner || previousOwner !== ownerId) {
       this.sessionGeneration += 1;
+      sessionGeneration = this.sessionGeneration;
+      if (authAttempt !== this.authAttemptSequence) {
+        throw new Error("Authentication attempt was superseded");
+      }
       this.setState(AuthState.LOADING);
       clearAccountLocalData();
       await resetAccountRuntimeState();
+      if (authAttempt !== this.authAttemptSequence || sessionGeneration !== this.sessionGeneration) {
+        throw new Error("Authentication attempt was superseded");
+      }
     }
 
     try {
       globalThis.localStorage?.setItem?.(ACCOUNT_OWNER_MARKER_KEY, ownerId);
     } catch (_) {}
     this.cachedEffectiveUserId = ownerId;
+    if (authAttempt !== this.authAttemptSequence || sessionGeneration !== this.sessionGeneration) {
+      throw new Error("Authentication attempt was superseded");
+    }
     this.setState(AuthState.AUTHENTICATED);
   }
 
@@ -341,6 +375,8 @@ class AuthManagerClass {
   }
 
   async exchangeTvLoginSession(code, deviceNonce) {
+    const authAttempt = this.beginAuthenticationAttempt();
+    const sessionGeneration = this.sessionGeneration;
     const res = await fetchSupabaseAuth("/functions/v1/tv-logins-exchange", {
       method: "POST",
       headers: {
@@ -354,14 +390,20 @@ class AuthManagerClass {
       })
     });
 
+    if (authAttempt !== this.authAttemptSequence || sessionGeneration !== this.sessionGeneration) {
+      throw new Error("Session changed during TV login exchange");
+    }
     if (!res.ok) throw new Error(await res.text());
 
     const data = await res.json();
+    if (authAttempt !== this.authAttemptSequence || sessionGeneration !== this.sessionGeneration) {
+      throw new Error("Session changed during TV login exchange");
+    }
 
     SessionStore.accessToken = data.accessToken;
     SessionStore.refreshToken = data.refreshToken;
 
-    await this.establishAuthenticatedSession();
+    await this.establishAuthenticatedSession(authAttempt);
   }
 
   // ------------------------------------
