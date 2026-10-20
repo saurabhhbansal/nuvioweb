@@ -1,0 +1,23 @@
+{
+  "file": "original-progress-vp8-opus.webm",
+  "sha256": "a04acdecae05429a9c4c3e6e95d472165c42c81f2a88cebade2d421cf6b2d020",
+  "bytes": 344925,
+  "license": "CC0-1.0",
+  "source": "scripts/generate-progress-media.mjs",
+  "generator": "ffmpeg version n9.0.1-11-ge47273f4d9-20260831 Copyright (c) 2000-2026 the FFmpeg developers",
+  "content": "Original constant background/rectangle and 440Hz sine tone; no third-party media or account data",
+  "measuredDurationSeconds": 120.008,
+  "streams": [
+    {
+      "codec_name": "vp8",
+      "codec_type": "video",
+      "width": 160,
+      "height": 90
+    },
+    {
+      "codec_name": "opus",
+      "codec_type": "audio"
+    }
+  ],
+  "limits": "Encoding bytes depend on tool version; regenerate in an empty directory. Browser duration/seek and live app progress propagation require independent observation."
+}

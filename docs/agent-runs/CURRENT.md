@@ -1,3 +1,17 @@
+# Active #120 verification fixtures — 2026-10-20
+
+PR127 storage recovery protected merge2fa72df contains approved runtime and70 focused regressions. Its exact-head four checks passed; its actual merge browser workflow exposed a delayed offline add-on fallback fixture request. Keep failed log; do not deploy/close119 until corrected canonical source passes required checks. The fix denies only exact authenticated synthetic GET fallback503 and still flags foreign owners/unknown methods/paths.
+
+Selected #120 verification plan [long lawful fixture](../plans/issues/issue-120-progress-fixture.md): separate original120.008-second/344925-byte CC0 media addon, optional static only.7 packaging/actual local duration/seek cases and2 focused fallback/recovery browser cases pass; no live progress claim. Current branch `test/issue-120-progress-fixture` is review/CI gated. Existing short demo unchanged.
+
+Durable run `/home/saurabh/workspace/personal/agent-runs/nuvioweb/sol-issue7-closure-20261020`: exact owner decisions, new guarded propagation driver reviews, failed first harness receipt, historical failure disposition and natural-expiry observer. Observer PID3697406 targets2026-10-27T08:41:40.775Z; memory-only new session, no clock/token changes. Waiting is not pass. Preserve observer, credentials, unrelated data and Chrome9222. Current preview remains0d771735/deployment8bb21fb1 while corrected source awaits integration.
+
+A5 bounded scope is evidenced; original O1–O3 and A2/A3/A8 remain open. Stronger recovery#128, provider QR#129 and physical-device identity#130 are explicitly deferred, unsupported and open. Continue independent real app propagation/Library journey, classified nonempty switches and offline/rejected-refresh work. No API insertion or API-only receiver may masquerade as complete application journey.
+
+---
+
+Prior durable context follows:
+
 # Active Sol issue #7 closure continuation — 2026-10-20
 
 Canonical baseline0d771735; selected implementation issue119 on `fix/issue-119-storage-failures`. Durable run `/home/saurabh/workspace/personal/agent-runs/nuvioweb/sol-issue7-closure-20261020`; [plan](../plans/issues/issue-119-storage-failures.md). Prior PR125/126 repairs are preserved.
