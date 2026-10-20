@@ -91,6 +91,32 @@ test("HEVC in an MP4 container is an unsupported codec, not a container failure"
   assert.equal(result.container, null);
 });
 
+test("contradictory codec declarations cannot attribute a native rejection to either codec", () => {
+  const descriptor = describeSource({
+    url: "https://media.example.invalid/movie.mp4",
+    mimeType: 'video/mp4; codecs="avc1.640028"',
+    video: { codec: "hvc1" }
+  });
+  for (const mediaErrorCode of [0, 3, 4]) {
+    const result = classifyStartupFailure({
+      descriptor,
+      nativePrediction: "not-reported",
+      engine: "native-file",
+      mediaErrorCode,
+      timedOut: true
+    });
+    assert.notEqual(result.category, "unsupported");
+    assert.equal(result.codec, null);
+    assert.equal(result.reason, mediaErrorCode === 3 ? "decode-error" : "startup-stall");
+  }
+  for (const [options, reason] of [
+    [{ headerRequired: true }, "header-required"],
+    [{ httpStatus: 403 }, "network"]
+  ]) {
+    assert.equal(classifyStartupFailure({ descriptor, nativePrediction: "not-reported", ...options }).reason, reason);
+  }
+});
+
 test("a predicted-playable source is never classified unsupported", () => {
   for (const prediction of ["probably", "maybe"]) {
     // A predicted-playable source that raised a media error keeps the engine-error

@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MPD xmlns="urn:mpeg:dash:schema:mpd:2011" type="static" profiles="urn:mpeg:dash:profile:isoff-main:2011" minBufferTime="PT0.2S" mediaPresentationDuration="PT3.791933S"><Period><AdaptationSet contentType="video" mimeType="video/mp4" segmentAlignment="true"><Representation id="original" bandwidth="1000000" width="3840" height="2160" codecs="avc1.640c34"><SegmentList timescale="1000000" duration="3791933"><Initialization sourceURL="init.mp4"/><SegmentURL media="segment.m4s"/></SegmentList></Representation></AdaptationSet></Period></MPD>

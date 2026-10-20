@@ -1,10 +1,14 @@
 import { defineConfig, devices } from "@playwright/test";
-// WebKit cannot run on every workstation (this project's ARM64 development host
-// is missing system libraries), so its project is opt-in. CI sets
-// NUVIO_PLAYWRIGHT_WEBKIT=1 and runs `--project=webkit`; the default local
-// `npx playwright test` stays Chromium-only and cannot fail on a missing browser.
+import { engineLaunchOptions } from "./scripts/engine-launch-options.mjs";
+// Additional engines are opt-in: default workstation runs remain Chromium-only.
+// These presets select engine/viewport, not branded-browser/device certification.
+// CI runs the WebKit project inside the required smoke context.
+const engineSpecs = ["**/engine-capabilities.spec.mjs", "**/quality.spec.mjs"];
 const webkitProject = process.env.NUVIO_PLAYWRIGHT_WEBKIT === "1"
-  ? [{ name: "webkit", testMatch: "**/engine-capabilities.spec.mjs", use: { ...devices["Desktop Safari"] } }]
+  ? [{ name: "webkit", testMatch: engineSpecs, use: { ...devices["Desktop Safari"], launchOptions: engineLaunchOptions("webkit") } }]
+  : [];
+const firefoxProject = process.env.NUVIO_PLAYWRIGHT_FIREFOX === "1"
+  ? [{ name: "firefox", testMatch: engineSpecs, use: { ...devices["Desktop Firefox"], launchOptions: engineLaunchOptions("firefox") } }]
   : [];
 export default defineConfig({
   testDir: "./tests/browser",
@@ -17,7 +21,8 @@ export default defineConfig({
   projects: [
     { name: "chromium", testIgnore: "**/pwa.spec.mjs", use: { ...devices["Desktop Chrome"] } },
     { name: "chromium-pwa", testMatch: "**/pwa.spec.mjs", use: { ...devices["Desktop Chrome"], serviceWorkers: "allow" } },
-    ...webkitProject
+    ...webkitProject,
+    ...firefoxProject
   ],
   webServer: [
     { command: "node tests/browser/server.mjs", env: { NUVIO_PWA_TEST: "1", NUVIO_ADDON_TEST: "1" }, url: "http://127.0.0.1:4371", reuseExistingServer: false, timeout: 15000 },

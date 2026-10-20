@@ -1,0 +1,3377 @@
+{
+  "schemaVersion": 1,
+  "scope": "Private test tools only; binaries/archives/notices retained locally, not deployed or redistributed",
+  "host": "Ubuntu24.04.5 ARM64",
+  "noSystemInstall": true,
+  "authorizedToolBytes": 800000000,
+  "archiveAndExtractedEstimateBytes": 711121288,
+  "packages": {
+    "count": 179,
+    "downloadBytes": 80607276,
+    "installedBytes": 222167040,
+    "packages": [
+      {
+        "package": "libtext-iconv-perl",
+        "version": "1.7-8build3",
+        "architecture": "arm64",
+        "downloadBytes": 13118,
+        "installedKiB": 95,
+        "sha256": "25e749dbe3331ec8c04dfde36cc3e24d4871a2f7a46dff4282d521973f4698b6",
+        "archive": "pool/main/libt/libtext-iconv-perl/libtext-iconv-perl_1.7-8build3_arm64.deb",
+        "homepage": "https://metacpan.org/release/Text-Iconv",
+        "localArchive": "packages/libtext-iconv-perl_1.7-8build3_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libtext-iconv-perl/copyright",
+        "licenseIdentifiers": [
+          "Artistic",
+          "Artistic or GPL-1+",
+          "GPL-1+"
+        ]
+      },
+      {
+        "package": "libevdev2",
+        "version": "1.13.1+dfsg-1build1",
+        "architecture": "arm64",
+        "downloadBytes": 35848,
+        "installedKiB": 153,
+        "sha256": "4fd17e552a00e3a2dc5d39a6578b26a1ac973afc80384d165647d72441f3a064",
+        "archive": "pool/main/libe/libevdev/libevdev2_1.13.1+dfsg-1build1_arm64.deb",
+        "homepage": "https://www.freedesktop.org/wiki/Software/libevdev/",
+        "localArchive": "packages/libevdev2_1.13.1+dfsg-1build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libevdev2/copyright",
+        "licenseIdentifiers": [
+          "Apache-2.0",
+          "BSD-3",
+          "GPL-2",
+          "GPL-2+",
+          "MIT"
+        ]
+      },
+      {
+        "package": "libncurses6",
+        "version": "6.4+20240113-1ubuntu2.2",
+        "architecture": "arm64",
+        "downloadBytes": 109620,
+        "installedKiB": 499,
+        "sha256": "46cd7885975573fc669d93f66f2453e014e6ccae4f568659febd49e5011630d4",
+        "archive": "pool/main/n/ncurses/libncurses6_6.4+20240113-1ubuntu2.2_arm64.deb",
+        "homepage": "https://invisible-island.net/ncurses/",
+        "localArchive": "packages/libncurses6_6.4+20240113-1ubuntu2.2_arm64.deb",
+        "copyrightFile": null
+      },
+      {
+        "package": "emacsen-common",
+        "version": "3.0.5",
+        "architecture": "all",
+        "downloadBytes": 12116,
+        "installedKiB": 55,
+        "sha256": "d802bbf9167ad1d8aa633b65684439e08672379f15bf752662d7fd7b9798dce1",
+        "archive": "pool/main/e/emacsen-common/emacsen-common_3.0.5_all.deb",
+        "homepage": null,
+        "localArchive": "packages/emacsen-common_3.0.5_all.deb",
+        "copyrightFile": "sysroot/usr/share/doc/emacsen-common/copyright",
+        "licenseIdentifiers": []
+      },
+      {
+        "package": "dictionaries-common",
+        "version": "1.29.7",
+        "architecture": "all",
+        "downloadBytes": 187642,
+        "installedKiB": 715,
+        "sha256": "601e7cb4d662aca433785eaafd8094e51b1386aab5f5aef6572a1a565b80f21e",
+        "archive": "pool/main/d/dictionaries-common/dictionaries-common_1.29.7_all.deb",
+        "homepage": "https://salsa.debian.org/debian/dictionaries-common",
+        "localArchive": "packages/dictionaries-common_1.29.7_all.deb",
+        "copyrightFile": "sysroot/usr/share/doc/dictionaries-common/copyright",
+        "licenseIdentifiers": [
+          "GPL-2+",
+          "GPL-3+"
+        ]
+      },
+      {
+        "package": "libva2",
+        "version": "2.20.0-2ubuntu0.2",
+        "architecture": "arm64",
+        "downloadBytes": 66658,
+        "installedKiB": 227,
+        "sha256": "5b2d103a48eff750159de741c890ab6ebfe8eb59e8bc9ad5ee2331455ae7c76b",
+        "archive": "pool/universe/libv/libva/libva2_2.20.0-2ubuntu0.2_arm64.deb",
+        "homepage": "https://github.com/intel/libva",
+        "localArchive": "packages/libva2_2.20.0-2ubuntu0.2_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libva2/copyright",
+        "licenseIdentifiers": [
+          "Expat",
+          "Expat-advertising",
+          "GPL-2+",
+          "other"
+        ]
+      },
+      {
+        "package": "libva-drm2",
+        "version": "2.20.0-2ubuntu0.2",
+        "architecture": "arm64",
+        "downloadBytes": 7076,
+        "installedKiB": 97,
+        "sha256": "b823bf0d4455c844bec97f6404b1248d0a2278682f227649eee4b9df09d1b276",
+        "archive": "pool/universe/libv/libva/libva-drm2_2.20.0-2ubuntu0.2_arm64.deb",
+        "homepage": "https://github.com/intel/libva",
+        "localArchive": "packages/libva-drm2_2.20.0-2ubuntu0.2_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libva-drm2/copyright",
+        "licenseIdentifiers": [
+          "Expat",
+          "Expat-advertising",
+          "GPL-2+",
+          "other"
+        ]
+      },
+      {
+        "package": "libva-x11-2",
+        "version": "2.20.0-2ubuntu0.2",
+        "architecture": "arm64",
+        "downloadBytes": 12092,
+        "installedKiB": 97,
+        "sha256": "5a6b7110c408cf00ab8080f0a69796927776d336e9ccddaee0b61c03ee6b8a51",
+        "archive": "pool/universe/libv/libva/libva-x11-2_2.20.0-2ubuntu0.2_arm64.deb",
+        "homepage": "https://github.com/intel/libva",
+        "localArchive": "packages/libva-x11-2_2.20.0-2ubuntu0.2_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libva-x11-2/copyright",
+        "licenseIdentifiers": [
+          "Expat",
+          "Expat-advertising",
+          "GPL-2+",
+          "other"
+        ]
+      },
+      {
+        "package": "libvdpau1",
+        "version": "1.5-2build1",
+        "architecture": "arm64",
+        "downloadBytes": 26378,
+        "installedKiB": 157,
+        "sha256": "cdf07628f0b9ad247e78bbbe65059d5148590548ab4808470dea9c8bdacc72de",
+        "archive": "pool/main/libv/libvdpau/libvdpau1_1.5-2build1_arm64.deb",
+        "homepage": "https://www.freedesktop.org/wiki/Software/VDPAU/",
+        "localArchive": "packages/libvdpau1_1.5-2build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libvdpau1/copyright",
+        "licenseIdentifiers": [
+          "Expat",
+          "other"
+        ]
+      },
+      {
+        "package": "ocl-icd-libopencl1",
+        "version": "2.3.2-1build1",
+        "architecture": "arm64",
+        "downloadBytes": 37602,
+        "installedKiB": 200,
+        "sha256": "a3433cbacf5e8fac7bc9108d7f050c028be04e9d6c234a0e71004821f8d06b6b",
+        "archive": "pool/universe/o/ocl-icd/ocl-icd-libopencl1_2.3.2-1build1_arm64.deb",
+        "homepage": "https://github.com/OCL-dev/ocl-icd",
+        "localArchive": "packages/ocl-icd-libopencl1_2.3.2-1build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/ocl-icd-libopencl1/copyright",
+        "licenseIdentifiers": [
+          "BSD-2-Clause"
+        ]
+      },
+      {
+        "package": "libavutil58",
+        "version": "7:6.1.1-3ubuntu5",
+        "architecture": "arm64",
+        "downloadBytes": 388002,
+        "installedKiB": 1051,
+        "sha256": "446d732c91b6ca9d890e5ba054839a2e5faf9f110e8d84c2c94f75fa2497fab7",
+        "archive": "pool/universe/f/ffmpeg/libavutil58_6.1.1-3ubuntu5_arm64.deb",
+        "homepage": "https://ffmpeg.org/",
+        "localArchive": "packages/libavutil58_7%3a6.1.1-3ubuntu5_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libavutil58/copyright",
+        "licenseIdentifiers": [
+          "BSD-1-clause",
+          "BSD-2-clause",
+          "BSD-3-clause",
+          "BSL",
+          "Expat",
+          "GPL-2+",
+          "GPL-3+",
+          "IJG",
+          "ISC",
+          "LGPL-2+",
+          "LGPL-2.1+",
+          "LGPL-2.1+ and BSD-2-clause",
+          "LGPL-2.1+ and BSD-3-clause",
+          "LGPL-2.1+ and BSL",
+          "LGPL-2.1+ and Expat",
+          "LGPL-2.1+ and Sundry",
+          "Sundry",
+          "Zlib",
+          "man-page",
+          "public-domain"
+        ]
+      },
+      {
+        "package": "libcodec2-1.2",
+        "version": "1.2.0-2build1",
+        "architecture": "arm64",
+        "downloadBytes": 8995538,
+        "installedKiB": 16458,
+        "sha256": "2661af66edfe60bb6c628d4b8481fefe97cca6a13d3df32b088e5cf916d4af85",
+        "archive": "pool/universe/c/codec2/libcodec2-1.2_1.2.0-2build1_arm64.deb",
+        "homepage": "http://rowetel.com/codec2.html",
+        "localArchive": "packages/libcodec2-1.2_1.2.0-2build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libcodec2-1.2/copyright",
+        "licenseIdentifiers": [
+          "JMVBSD",
+          "KISSFFTBSD",
+          "LGPL-2.1"
+        ]
+      },
+      {
+        "package": "libdav1d7",
+        "version": "1.4.1-1build1",
+        "architecture": "arm64",
+        "downloadBytes": 298218,
+        "installedKiB": 730,
+        "sha256": "cfccd3c4a516ea80b7a470c2a120c26925d496cdc13b8d7f15c4e19525597eaf",
+        "archive": "pool/universe/d/dav1d/libdav1d7_1.4.1-1build1_arm64.deb",
+        "homepage": "https://www.videolan.org/projects/dav1d.html",
+        "localArchive": "packages/libdav1d7_1.4.1-1build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libdav1d7/copyright",
+        "licenseIdentifiers": [
+          "BSD-2-clause",
+          "ISC",
+          "ISC and BSD-2-clause",
+          "public-domain"
+        ]
+      },
+      {
+        "package": "libgsm1",
+        "version": "1.0.22-1build1",
+        "architecture": "arm64",
+        "downloadBytes": 26982,
+        "installedKiB": 89,
+        "sha256": "ea4f65d804eead68de373fac06beceadf962a05748437ca576da113dc9489ccc",
+        "archive": "pool/universe/libg/libgsm/libgsm1_1.0.22-1build1_arm64.deb",
+        "homepage": "http://www.quut.com/gsm/",
+        "localArchive": "packages/libgsm1_1.0.22-1build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libgsm1/copyright",
+        "licenseIdentifiers": [
+          "TU-Berlin-2.0"
+        ]
+      },
+      {
+        "package": "libhwy1t64",
+        "version": "1.0.7-8.1build1",
+        "architecture": "arm64",
+        "downloadBytes": 436666,
+        "installedKiB": 2464,
+        "sha256": "57e8fc1a01fb5b122bd47feec7eec9189c152cfc72e2288066c6ef19defe5195",
+        "archive": "pool/universe/h/highway/libhwy1t64_1.0.7-8.1build1_arm64.deb",
+        "homepage": "https://github.com/google/highway",
+        "localArchive": "packages/libhwy1t64_1.0.7-8.1build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libhwy1t64/copyright",
+        "licenseIdentifiers": [
+          "Apache-2.0"
+        ]
+      },
+      {
+        "package": "libjxl0.7",
+        "version": "0.7.0-10.2ubuntu6.1",
+        "architecture": "arm64",
+        "downloadBytes": 690038,
+        "installedKiB": 1823,
+        "sha256": "91ecf29b9d6a7c9884219d61842524f5d136ece52ca59a5ebf3976eba3fb1a45",
+        "archive": "pool/universe/j/jpeg-xl/libjxl0.7_0.7.0-10.2ubuntu6.1_arm64.deb",
+        "homepage": "https://github.com/libjxl/libjxl",
+        "localArchive": "packages/libjxl0.7_0.7.0-10.2ubuntu6.1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libjxl0.7/copyright",
+        "licenseIdentifiers": [
+          "BSD-3-clause-Google",
+          "ISC-License"
+        ]
+      },
+      {
+        "package": "libmp3lame0",
+        "version": "3.100-6build1",
+        "architecture": "arm64",
+        "downloadBytes": 140858,
+        "installedKiB": 349,
+        "sha256": "a12e5e953294f424fba8a9fa0c47e081a0216150b277c4b02da1468d4b78507f",
+        "archive": "pool/main/l/lame/libmp3lame0_3.100-6build1_arm64.deb",
+        "homepage": "https://lame.sourceforge.io/",
+        "localArchive": "packages/libmp3lame0_3.100-6build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libmp3lame0/copyright",
+        "licenseIdentifiers": [
+          "BSD-3-clause",
+          "GPL-1+",
+          "LGPL-2+",
+          "LGPL-2.1+",
+          "zlib/libpng"
+        ]
+      },
+      {
+        "package": "libopenjp2-7",
+        "version": "2.5.0-2ubuntu0.5",
+        "architecture": "arm64",
+        "downloadBytes": 171336,
+        "installedKiB": 445,
+        "sha256": "6953f6da9dcdb5b2a0905d55bf42c32e4fbfdb52f822d03dac67896f7f34e065",
+        "archive": "pool/main/o/openjpeg2/libopenjp2-7_2.5.0-2ubuntu0.5_arm64.deb",
+        "homepage": "https://www.openjpeg.org",
+        "localArchive": "packages/libopenjp2-7_2.5.0-2ubuntu0.5_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libopenjp2-7/copyright",
+        "licenseIdentifiers": [
+          "BSD-2",
+          "BSD-3",
+          "LIBPNG",
+          "LIBTIFF",
+          "LIBTIFF-GLARSON",
+          "LIBTIFF-PIXAR",
+          "MIT",
+          "ZLIB",
+          "public-domain"
+        ]
+      },
+      {
+        "package": "librav1e0",
+        "version": "0.7.1-2",
+        "architecture": "arm64",
+        "downloadBytes": 759866,
+        "installedKiB": 2141,
+        "sha256": "a37b89e7558d84d1b6dd9e24a142762758edd691505ef92c1b66d181ef56d080",
+        "archive": "pool/universe/r/rust-rav1e/librav1e0_0.7.1-2_arm64.deb",
+        "homepage": "https://github.com/xiph/rav1e",
+        "localArchive": "packages/librav1e0_0.7.1-2_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/librav1e0/copyright",
+        "licenseIdentifiers": [
+          "BSD-2-Clause",
+          "BSD-2-clause",
+          "ISC"
+        ]
+      },
+      {
+        "package": "libshine3",
+        "version": "3.1.1-2build1",
+        "architecture": "arm64",
+        "downloadBytes": 25760,
+        "installedKiB": 83,
+        "sha256": "edea9033dfe3a636eb1358a36401803cab5ef0a02410cc9c22cb5537205236b9",
+        "archive": "pool/universe/s/shine/libshine3_3.1.1-2build1_arm64.deb",
+        "homepage": "https://github.com/savonet/shine",
+        "localArchive": "packages/libshine3_3.1.1-2build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libshine3/copyright",
+        "licenseIdentifiers": [
+          "GPL-2+",
+          "LGPL-2"
+        ]
+      },
+      {
+        "package": "libsnappy1v5",
+        "version": "1.1.10-1build1",
+        "architecture": "arm64",
+        "downloadBytes": 28622,
+        "installedKiB": 113,
+        "sha256": "5ec333edcfe04b83e11be0d08520b119b3a2e3809551af14fdb46b1521e776a4",
+        "archive": "pool/main/s/snappy/libsnappy1v5_1.1.10-1build1_arm64.deb",
+        "homepage": "https://google.github.io/snappy/",
+        "localArchive": "packages/libsnappy1v5_1.1.10-1build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libsnappy1v5/copyright",
+        "licenseIdentifiers": [
+          "BSD-3-Clause",
+          "CC-BY-3.0",
+          "CC-BY-4.0",
+          "MIT",
+          "public-domain"
+        ]
+      },
+      {
+        "package": "libspeex1",
+        "version": "1.2.1-2ubuntu2.24.04.1",
+        "architecture": "arm64",
+        "downloadBytes": 56156,
+        "installedKiB": 149,
+        "sha256": "8ba1a6feb898b9f28f1c071c96ad0a992b4d449ad75aecb791d1ebd2a43c0ada",
+        "archive": "pool/main/s/speex/libspeex1_1.2.1-2ubuntu2.24.04.1_arm64.deb",
+        "homepage": "https://www.speex.org/",
+        "localArchive": "packages/libspeex1_1.2.1-2ubuntu2.24.04.1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libspeex1/copyright",
+        "licenseIdentifiers": [
+          "BSD-3-Clause",
+          "BSD-3-Clause and custom-1",
+          "GFDL-1.1-or-later",
+          "LGPL-2.0-or-later",
+          "custom-1"
+        ]
+      },
+      {
+        "package": "libsvtav1enc1d1",
+        "version": "1.7.0+dfsg-2build1",
+        "architecture": "arm64",
+        "downloadBytes": 1276090,
+        "installedKiB": 3252,
+        "sha256": "68794ed6409e18560c1eebb340f112ba63f0897dab513ca7c7298870c4e91e75",
+        "archive": "pool/universe/s/svt-av1/libsvtav1enc1d1_1.7.0+dfsg-2build1_arm64.deb",
+        "homepage": "https://gitlab.com/AOMediaCodec/SVT-AV1",
+        "localArchive": "packages/libsvtav1enc1d1_1.7.0+dfsg-2build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libsvtav1enc1d1/copyright",
+        "licenseIdentifiers": [
+          "BSD-2-clause",
+          "BSD-3-Clause-Clear",
+          "BSD-3-clause",
+          "Expat",
+          "ISC",
+          "LGPL-2.1+"
+        ]
+      },
+      {
+        "package": "libsoxr0",
+        "version": "0.1.3-4build3",
+        "architecture": "arm64",
+        "downloadBytes": 56436,
+        "installedKiB": 148,
+        "sha256": "46efb96163ac0dd618f30242c78f4a2900b970a9ed0aac2b5bbd9970102b5aa4",
+        "archive": "pool/universe/libs/libsoxr/libsoxr0_0.1.3-4build3_arm64.deb",
+        "homepage": "http://sourceforge.net/projects/soxr/",
+        "localArchive": "packages/libsoxr0_0.1.3-4build3_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libsoxr0/copyright",
+        "licenseIdentifiers": [
+          "LGPL-2.1+",
+          "Spherepack",
+          "permissive1",
+          "permissive2"
+        ]
+      },
+      {
+        "package": "libswresample4",
+        "version": "7:6.1.1-3ubuntu5",
+        "architecture": "arm64",
+        "downloadBytes": 57894,
+        "installedKiB": 197,
+        "sha256": "3d1ddc8dc72d487d4b5eb091dfc1e0af19ac24f5b6b6e7d7b728c3eedb3b459b",
+        "archive": "pool/universe/f/ffmpeg/libswresample4_6.1.1-3ubuntu5_arm64.deb",
+        "homepage": "https://ffmpeg.org/",
+        "localArchive": "packages/libswresample4_7%3a6.1.1-3ubuntu5_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libswresample4/copyright",
+        "licenseIdentifiers": [
+          "BSD-1-clause",
+          "BSD-2-clause",
+          "BSD-3-clause",
+          "BSL",
+          "Expat",
+          "GPL-2+",
+          "GPL-3+",
+          "IJG",
+          "ISC",
+          "LGPL-2+",
+          "LGPL-2.1+",
+          "LGPL-2.1+ and BSD-2-clause",
+          "LGPL-2.1+ and BSD-3-clause",
+          "LGPL-2.1+ and BSL",
+          "LGPL-2.1+ and Expat",
+          "LGPL-2.1+ and Sundry",
+          "Sundry",
+          "Zlib",
+          "man-page",
+          "public-domain"
+        ]
+      },
+      {
+        "package": "libtwolame0",
+        "version": "0.4.0-2build3",
+        "architecture": "arm64",
+        "downloadBytes": 51738,
+        "installedKiB": 150,
+        "sha256": "f2fffdedec9f9bc58fc700ccbc146c50a5a1d5ae2e6881e501bd727234aa5d16",
+        "archive": "pool/main/t/twolame/libtwolame0_0.4.0-2build3_arm64.deb",
+        "homepage": "http://www.twolame.org",
+        "localArchive": "packages/libtwolame0_0.4.0-2build3_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libtwolame0/copyright",
+        "licenseIdentifiers": [
+          "LGPL-2+"
+        ]
+      },
+      {
+        "package": "libvpx9",
+        "version": "1.14.0-1ubuntu2.3",
+        "architecture": "arm64",
+        "downloadBytes": 1233486,
+        "installedKiB": 2713,
+        "sha256": "0a11569cb76d303978bb8d1a97cb012d96baadb5e093e6936f5b53de802241ec",
+        "archive": "pool/main/libv/libvpx/libvpx9_1.14.0-1ubuntu2.3_arm64.deb",
+        "homepage": "https://www.webmproject.org",
+        "localArchive": "packages/libvpx9_1.14.0-1ubuntu2.3_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libvpx9/copyright",
+        "licenseIdentifiers": [
+          "BSD-3-Clause",
+          "ISC",
+          "public-domain"
+        ]
+      },
+      {
+        "package": "libwebpmux3",
+        "version": "1.3.2-0.4build3",
+        "architecture": "arm64",
+        "downloadBytes": 24982,
+        "installedKiB": 88,
+        "sha256": "9bbb0b872fc59f84609b1a0cba524b13b401689c1ceaa93fb3edb47eb1d0439e",
+        "archive": "pool/main/libw/libwebp/libwebpmux3_1.3.2-0.4build3_arm64.deb",
+        "homepage": "https://developers.google.com/speed/webp/",
+        "localArchive": "packages/libwebpmux3_1.3.2-0.4build3_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libwebpmux3/copyright",
+        "licenseIdentifiers": [
+          "Apache-2.0",
+          "BSD-3-Clause"
+        ]
+      },
+      {
+        "package": "libx264-164",
+        "version": "2:0.164.3108+git31e19f9-1",
+        "architecture": "arm64",
+        "downloadBytes": 541828,
+        "installedKiB": 1367,
+        "sha256": "3c39d6d99faab1bc07178f0ad64512e8c7301329d24458d7538a28890fd044a2",
+        "archive": "pool/universe/x/x264/libx264-164_0.164.3108+git31e19f9-1_arm64.deb",
+        "homepage": "https://www.videolan.org/developers/x264.html",
+        "localArchive": "packages/libx264-164_2%3a0.164.3108+git31e19f9-1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libx264-164/copyright",
+        "licenseIdentifiers": [
+          "BSD-3-clause",
+          "Expat",
+          "GPL-2+",
+          "GPL-2+ with other exception",
+          "ISC",
+          "LGPL-2.1+",
+          "public-domain"
+        ]
+      },
+      {
+        "package": "libx265-199",
+        "version": "3.5-2build1",
+        "architecture": "arm64",
+        "downloadBytes": 714434,
+        "installedKiB": 3056,
+        "sha256": "23e9cf56c15408662daadcefaa4be3ab09e79c4f9c76b3e2e165be7470b227ff",
+        "archive": "pool/universe/x/x265/libx265-199_3.5-2build1_arm64.deb",
+        "homepage": "http://x265.org",
+        "localArchive": "packages/libx265-199_3.5-2build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libx265-199/copyright",
+        "licenseIdentifiers": [
+          "Expat",
+          "GPL-2+",
+          "ISC",
+          "LGPL-2.1+"
+        ]
+      },
+      {
+        "package": "libxvidcore4",
+        "version": "2:1.3.7-1build1",
+        "architecture": "arm64",
+        "downloadBytes": 180298,
+        "installedKiB": 469,
+        "sha256": "2eeecbaf713c7a953e195926f53dd7daa668f2486535b2935327593b9deaed4d",
+        "archive": "pool/universe/x/xvidcore/libxvidcore4_1.3.7-1build1_arm64.deb",
+        "homepage": "https://labs.xvid.com/source/",
+        "localArchive": "packages/libxvidcore4_2%3a1.3.7-1build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libxvidcore4/copyright",
+        "licenseIdentifiers": [
+          "GPL-2+",
+          "LGPL-2+"
+        ]
+      },
+      {
+        "package": "libzvbi-common",
+        "version": "0.2.42-2",
+        "architecture": "all",
+        "downloadBytes": 42360,
+        "installedKiB": 161,
+        "sha256": "c099fcdaaa1f0ccfb0551470faae76f43798150809e07ff8a08f4743fc1a8074",
+        "archive": "pool/universe/z/zvbi/libzvbi-common_0.2.42-2_all.deb",
+        "homepage": "https://github.com/zapping-vbi/zvbi",
+        "localArchive": "packages/libzvbi-common_0.2.42-2_all.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libzvbi-common/copyright",
+        "licenseIdentifiers": [
+          "BSD-2-Clause",
+          "BSD-3-Clause",
+          "GPL-2",
+          "GPL-2+",
+          "GPL-2+ or BSD-3-Clause",
+          "LGPL-2+",
+          "LGPL-2.1+",
+          "MIT"
+        ]
+      },
+      {
+        "package": "libzvbi0t64",
+        "version": "0.2.42-2",
+        "architecture": "arm64",
+        "downloadBytes": 259460,
+        "installedKiB": 689,
+        "sha256": "4fee17c566ab50cbbae9ae7b1dc60d575c19c85a978bb23361b8750ffb28f256",
+        "archive": "pool/universe/z/zvbi/libzvbi0t64_0.2.42-2_arm64.deb",
+        "homepage": "https://github.com/zapping-vbi/zvbi",
+        "localArchive": "packages/libzvbi0t64_0.2.42-2_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libzvbi0t64/copyright",
+        "licenseIdentifiers": [
+          "BSD-2-Clause",
+          "BSD-3-Clause",
+          "GPL-2",
+          "GPL-2+",
+          "GPL-2+ or BSD-3-Clause",
+          "LGPL-2+",
+          "LGPL-2.1+",
+          "MIT"
+        ]
+      },
+      {
+        "package": "libavcodec60",
+        "version": "7:6.1.1-3ubuntu5",
+        "architecture": "arm64",
+        "downloadBytes": 5768814,
+        "installedKiB": 14096,
+        "sha256": "c2eb6e847b8134076e170e4c2aa5851cbe8e4cf367399ff9ffb7b05f602795ff",
+        "archive": "pool/universe/f/ffmpeg/libavcodec60_6.1.1-3ubuntu5_arm64.deb",
+        "homepage": "https://ffmpeg.org/",
+        "localArchive": "packages/libavcodec60_7%3a6.1.1-3ubuntu5_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libavcodec60/copyright",
+        "licenseIdentifiers": [
+          "BSD-1-clause",
+          "BSD-2-clause",
+          "BSD-3-clause",
+          "BSL",
+          "Expat",
+          "GPL-2+",
+          "GPL-3+",
+          "IJG",
+          "ISC",
+          "LGPL-2+",
+          "LGPL-2.1+",
+          "LGPL-2.1+ and BSD-2-clause",
+          "LGPL-2.1+ and BSD-3-clause",
+          "LGPL-2.1+ and BSL",
+          "LGPL-2.1+ and Expat",
+          "LGPL-2.1+ and Sundry",
+          "Sundry",
+          "Zlib",
+          "man-page",
+          "public-domain"
+        ]
+      },
+      {
+        "package": "libraw1394-11",
+        "version": "2.1.2-2build3",
+        "architecture": "arm64",
+        "downloadBytes": 26948,
+        "installedKiB": 87,
+        "sha256": "3a55e774189eb21b220e5cbf14a635e627f370dba0a52bbe6eea6b5a785e0a87",
+        "archive": "pool/main/libr/libraw1394/libraw1394-11_2.1.2-2build3_arm64.deb",
+        "homepage": "https://ieee1394.wiki.kernel.org/",
+        "localArchive": "packages/libraw1394-11_2.1.2-2build3_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libraw1394-11/copyright",
+        "licenseIdentifiers": [
+          "This package is free software; you can redistribute it and/or"
+        ]
+      },
+      {
+        "package": "libavc1394-0",
+        "version": "0.5.4-5build3",
+        "architecture": "arm64",
+        "downloadBytes": 15778,
+        "installedKiB": 152,
+        "sha256": "b707ec893678e9dec0b80e4481ed2dc581eac3d21de2be65984121640e3d5afe",
+        "archive": "pool/main/liba/libavc1394/libavc1394-0_0.5.4-5build3_arm64.deb",
+        "homepage": "http://sourceforge.net/projects/libavc1394/",
+        "localArchive": "packages/libavc1394-0_0.5.4-5build3_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libavc1394-0/copyright",
+        "licenseIdentifiers": [
+          "GPL-2+",
+          "LGPL-2.1+"
+        ]
+      },
+      {
+        "package": "libunibreak5",
+        "version": "5.1-2build1",
+        "architecture": "arm64",
+        "downloadBytes": 25336,
+        "installedKiB": 149,
+        "sha256": "b6f95f1a5991ebcbe44829b4b9588e32bc6cbf4afc006990391ec8e4945b2063",
+        "archive": "pool/universe/libu/libunibreak/libunibreak5_5.1-2build1_arm64.deb",
+        "homepage": "https://github.com/adah1972/libunibreak",
+        "localArchive": "packages/libunibreak5_5.1-2build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libunibreak5/copyright",
+        "licenseIdentifiers": [
+          "Zlib",
+          "unicode-data"
+        ]
+      },
+      {
+        "package": "libass9",
+        "version": "1:0.17.1-2build1",
+        "architecture": "arm64",
+        "downloadBytes": 91696,
+        "installedKiB": 213,
+        "sha256": "72d820bb9cdfa49d22a6d16a496cfd22cb2434bf02e125ac8eb94098994e3bce",
+        "archive": "pool/universe/liba/libass/libass9_0.17.1-2build1_arm64.deb",
+        "homepage": "https://github.com/libass/libass",
+        "localArchive": "packages/libass9_1%3a0.17.1-2build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libass9/copyright",
+        "licenseIdentifiers": [
+          "GPL-2+",
+          "ISC",
+          "NTP",
+          "Unlicense"
+        ]
+      },
+      {
+        "package": "libudfread0",
+        "version": "1.1.2-1build1",
+        "architecture": "arm64",
+        "downloadBytes": 17004,
+        "installedKiB": 83,
+        "sha256": "c3833623e029241e1aa93eace31ec149d1962284794b8f0bbf2da94dee6f962d",
+        "archive": "pool/universe/libu/libudfread/libudfread0_1.1.2-1build1_arm64.deb",
+        "homepage": "https://www.videolan.org/developers/libudfread.html",
+        "localArchive": "packages/libudfread0_1.1.2-1build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libudfread0/copyright",
+        "licenseIdentifiers": [
+          "GPL-2+ with autoconf-macro exception",
+          "LGPL-2.1+"
+        ]
+      },
+      {
+        "package": "libbluray2",
+        "version": "1:1.3.4-1build1",
+        "architecture": "arm64",
+        "downloadBytes": 148774,
+        "installedKiB": 427,
+        "sha256": "e090bf75675572f8f10e0ac6b7101a1ce5d606a62fdc5c4ea96502073337f0b5",
+        "archive": "pool/universe/libb/libbluray/libbluray2_1.3.4-1build1_arm64.deb",
+        "homepage": "https://www.videolan.org/developers/libbluray.html",
+        "localArchive": "packages/libbluray2_1%3a1.3.4-1build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libbluray2/copyright",
+        "licenseIdentifiers": [
+          "BSD-3-clause",
+          "GPL-2+",
+          "LGPL-2.1+",
+          "MPL-1.0",
+          "MPL-1.0 or GPL-2+ or LGPL-2.1+",
+          "custom"
+        ]
+      },
+      {
+        "package": "libchromaprint1",
+        "version": "1.5.1-5",
+        "architecture": "arm64",
+        "downloadBytes": 29294,
+        "installedKiB": 88,
+        "sha256": "6c2fcee51449d1ea41384c889dedcebab102b39e34f05588280f2a6a3a8ef618",
+        "archive": "pool/universe/c/chromaprint/libchromaprint1_1.5.1-5_arm64.deb",
+        "homepage": "https://acoustid.org/chromaprint",
+        "localArchive": "packages/libchromaprint1_1.5.1-5_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libchromaprint1/copyright",
+        "licenseIdentifiers": [
+          "BSD-3-clause",
+          "Expat",
+          "LGPL-2.1+"
+        ]
+      },
+      {
+        "package": "libgme0",
+        "version": "0.6.3-7build1",
+        "architecture": "arm64",
+        "downloadBytes": 129440,
+        "installedKiB": 340,
+        "sha256": "cca6bb8277b4d7c064cfd5f54735d5ce43c5dcb21e93e222b6c897c2feeaef39",
+        "archive": "pool/universe/g/game-music-emu/libgme0_0.6.3-7build1_arm64.deb",
+        "homepage": "https://github.com/libgme/game-music-emu",
+        "localArchive": "packages/libgme0_0.6.3-7build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libgme0/copyright",
+        "licenseIdentifiers": [
+          "LGPL-2.1+",
+          "MIT"
+        ]
+      },
+      {
+        "package": "libmpg123-0t64",
+        "version": "1.32.5-1ubuntu1.1",
+        "architecture": "arm64",
+        "downloadBytes": 171596,
+        "installedKiB": 347,
+        "sha256": "7f78498103c42cebe15f1283fb2dd98286069a59f29aca4de372bc98f70d06d2",
+        "archive": "pool/main/m/mpg123/libmpg123-0t64_1.32.5-1ubuntu1.1_arm64.deb",
+        "homepage": "http://mpg123.org/",
+        "localArchive": "packages/libmpg123-0t64_1.32.5-1ubuntu1.1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libmpg123-0t64/copyright",
+        "licenseIdentifiers": [
+          "LGPL-2.1"
+        ]
+      },
+      {
+        "package": "libvorbisfile3",
+        "version": "1.3.7-1build3",
+        "architecture": "arm64",
+        "downloadBytes": 17118,
+        "installedKiB": 85,
+        "sha256": "f5ada31b1f50150ba43a56a5332bb231066f762bdc0746e685aef7dbbd02c643",
+        "archive": "pool/main/libv/libvorbis/libvorbisfile3_1.3.7-1build3_arm64.deb",
+        "homepage": "https://www.xiph.org/vorbis/",
+        "localArchive": "packages/libvorbisfile3_1.3.7-1build3_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libvorbisfile3/copyright",
+        "licenseIdentifiers": [
+          "BSD-3-Clause",
+          "RFC-special"
+        ]
+      },
+      {
+        "package": "libopenmpt0t64",
+        "version": "0.7.3-1.1build3",
+        "architecture": "arm64",
+        "downloadBytes": 617950,
+        "installedKiB": 1544,
+        "sha256": "99a54f5b7971bc071f3a49a9d099cecd55499564e5d05f2b8faa2aad17c6fc15",
+        "archive": "pool/universe/libo/libopenmpt/libopenmpt0t64_0.7.3-1.1build3_arm64.deb",
+        "homepage": "https://lib.openmpt.org/libopenmpt/",
+        "localArchive": "packages/libopenmpt0t64_0.7.3-1.1build3_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libopenmpt0t64/copyright",
+        "licenseIdentifiers": [
+          "BSD-3-clause",
+          "BSD-3-clause or BSL-1.0",
+          "BSL-1.0",
+          "GNU-All-Permissive-License",
+          "GNU-All-Permissive-License-FSF",
+          "GPL-2+ with Autoconf exception",
+          "GPL-2+ with LibTool exception",
+          "GPL-3+ with AutoConf exception",
+          "GPL-3+ with Autoconf Macros exception",
+          "X11"
+        ]
+      },
+      {
+        "package": "librabbitmq4",
+        "version": "0.11.0-1ubuntu0.2",
+        "architecture": "arm64",
+        "downloadBytes": 38920,
+        "installedKiB": 150,
+        "sha256": "09fcf24f5d06b5c33e774ee5f620c733f9a2a62eb4aab23ab3aa3492e6256bef",
+        "archive": "pool/main/libr/librabbitmq/librabbitmq4_0.11.0-1ubuntu0.2_arm64.deb",
+        "homepage": "https://github.com/alanxz/rabbitmq-c",
+        "localArchive": "packages/librabbitmq4_0.11.0-1ubuntu0.2_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/librabbitmq4/copyright",
+        "licenseIdentifiers": [
+          "BSD-Author",
+          "Expat"
+        ]
+      },
+      {
+        "package": "libcjson1",
+        "version": "1.7.17-1",
+        "architecture": "arm64",
+        "downloadBytes": 25102,
+        "installedKiB": 152,
+        "sha256": "abfd20e8ff027fc6620e4c2398bafd75c66ed90094a1091b1d5b187b023103db",
+        "archive": "pool/universe/c/cjson/libcjson1_1.7.17-1_arm64.deb",
+        "homepage": "https://github.com/DaveGamble/cJSON",
+        "localArchive": "packages/libcjson1_1.7.17-1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libcjson1/copyright",
+        "licenseIdentifiers": [
+          "Apache-2.0",
+          "MIT"
+        ]
+      },
+      {
+        "package": "libmbedcrypto7t64",
+        "version": "2.28.8-1",
+        "architecture": "arm64",
+        "downloadBytes": 209074,
+        "installedKiB": 563,
+        "sha256": "02eb8701ac42a9230a20d2360206f8f193253dde4043e41b3563bc5f282ab527",
+        "archive": "pool/universe/m/mbedtls/libmbedcrypto7t64_2.28.8-1_arm64.deb",
+        "homepage": "https://www.trustedfirmware.org/projects/mbed-tls/",
+        "localArchive": "packages/libmbedcrypto7t64_2.28.8-1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libmbedcrypto7t64/copyright",
+        "licenseIdentifiers": [
+          "Apache-2.0",
+          "Apache-2.0 or GPL-2+",
+          "GPL-2+"
+        ]
+      },
+      {
+        "package": "librist4",
+        "version": "0.2.10+dfsg-2",
+        "architecture": "arm64",
+        "downloadBytes": 76224,
+        "installedKiB": 218,
+        "sha256": "73d6d62718c93fd6fa3081e9d8d54567553e97e0bca2626515838535d78630f8",
+        "archive": "pool/universe/libr/librist/librist4_0.2.10+dfsg-2_arm64.deb",
+        "homepage": "https://code.videolan.org/rist/librist",
+        "localArchive": "packages/librist4_0.2.10+dfsg-2_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/librist4/copyright",
+        "licenseIdentifiers": [
+          "BSD-1-clause",
+          "BSD-2-clause",
+          "ISC",
+          "public-domain"
+        ]
+      },
+      {
+        "package": "libsrt1.5-gnutls",
+        "version": "1.5.3-1build2",
+        "architecture": "arm64",
+        "downloadBytes": 306452,
+        "installedKiB": 812,
+        "sha256": "75b53688f1764f926e8754bddfd9025efcd6893fbc4301ec0f81ee93e2a79621",
+        "archive": "pool/universe/s/srt/libsrt1.5-gnutls_1.5.3-1build2_arm64.deb",
+        "homepage": "https://github.com/Haivision/srt",
+        "localArchive": "packages/libsrt1.5-gnutls_1.5.3-1build2_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libsrt1.5-gnutls/copyright",
+        "licenseIdentifiers": [
+          "BSD-3-clause",
+          "LGPL-2.1+",
+          "MPL-2.0",
+          "Zlib",
+          "unlicense"
+        ]
+      },
+      {
+        "package": "libssh-gcrypt-4",
+        "version": "0.10.6-2ubuntu0.5",
+        "architecture": "arm64",
+        "downloadBytes": 226976,
+        "installedKiB": 633,
+        "sha256": "bcc6340756c1cf8f1d297422f4c9018435844e1ee9613cc21f7624d772b8173b",
+        "archive": "pool/main/libs/libssh/libssh-gcrypt-4_0.10.6-2ubuntu0.5_arm64.deb",
+        "homepage": "https://www.libssh.org/",
+        "localArchive": "packages/libssh-gcrypt-4_0.10.6-2ubuntu0.5_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libssh-gcrypt-4/copyright",
+        "licenseIdentifiers": [
+          "BSD-2-clause",
+          "BSD-3-clause",
+          "LGPL-2.1",
+          "LGPL-2.1+~OpenSSL",
+          "LGPL-2.1+~OpenSSL or BSD-2-clause or BSD-3-clause",
+          "public-domain"
+        ]
+      },
+      {
+        "package": "libnorm1t64",
+        "version": "1.5.9+dfsg-3.1build1",
+        "architecture": "arm64",
+        "downloadBytes": 149826,
+        "installedKiB": 415,
+        "sha256": "b31886b4f3f142183083d0904ea0bbf2cf4949e258cec2db6d9c6c822303dd23",
+        "archive": "pool/universe/n/norm/libnorm1t64_1.5.9+dfsg-3.1build1_arm64.deb",
+        "homepage": "https://www.nrl.navy.mil/itd/ncs/products/norm",
+        "localArchive": "packages/libnorm1t64_1.5.9+dfsg-3.1build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libnorm1t64/copyright",
+        "licenseIdentifiers": [
+          "BSD-2-clause",
+          "BSD-3-clause",
+          "BSD-4-clause-UC",
+          "NRL-2-clause",
+          "NRL-3-clause"
+        ]
+      },
+      {
+        "package": "libpgm-5.3-0t64",
+        "version": "5.3.128~dfsg-2.1build1",
+        "architecture": "arm64",
+        "downloadBytes": 161792,
+        "installedKiB": 347,
+        "sha256": "7ee8d73f8a553bd2c38724fb9b832abc9c7df42af5d81598f57407bcebc0e721",
+        "archive": "pool/universe/libp/libpgm/libpgm-5.3-0t64_5.3.128~dfsg-2.1build1_arm64.deb",
+        "homepage": "https://github.com/steve-o/openpgm",
+        "localArchive": "packages/libpgm-5.3-0t64_5.3.128~dfsg-2.1build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libpgm-5.3-0t64/copyright",
+        "licenseIdentifiers": [
+          "BSD-3-clause",
+          "BSD-3-clause and ISC",
+          "ISC",
+          "LGPL-2+",
+          "LGPL-2.1"
+        ]
+      },
+      {
+        "package": "libsodium23",
+        "version": "1.0.18-1ubuntu0.24.04.1",
+        "architecture": "arm64",
+        "downloadBytes": 119490,
+        "installedKiB": 313,
+        "sha256": "78471032060f3edfd539a01cb69a9ce8560a15e1d9efcd93ac7854731e9d679c",
+        "archive": "pool/main/libs/libsodium/libsodium23_1.0.18-1ubuntu0.24.04.1_arm64.deb",
+        "homepage": "https://www.libsodium.org/",
+        "localArchive": "packages/libsodium23_1.0.18-1ubuntu0.24.04.1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libsodium23/copyright",
+        "licenseIdentifiers": [
+          "BSD-2-clause",
+          "CC0",
+          "GPL-2+",
+          "ISC",
+          "MIT",
+          "public-domain"
+        ]
+      },
+      {
+        "package": "libzmq5",
+        "version": "4.3.5-1build2",
+        "architecture": "arm64",
+        "downloadBytes": 246946,
+        "installedKiB": 693,
+        "sha256": "c2e63e26929404b1627f55323b8902a098ee9e6d3054f317a6490ed3adf17f4b",
+        "archive": "pool/universe/z/zeromq3/libzmq5_4.3.5-1build2_arm64.deb",
+        "homepage": "https://www.zeromq.org/",
+        "localArchive": "packages/libzmq5_4.3.5-1build2_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libzmq5/copyright",
+        "licenseIdentifiers": [
+          "LGPL-2.0+",
+          "MIT",
+          "MPL-2.0"
+        ]
+      },
+      {
+        "package": "libavformat60",
+        "version": "7:6.1.1-3ubuntu5",
+        "architecture": "arm64",
+        "downloadBytes": 1187774,
+        "installedKiB": 2952,
+        "sha256": "5842b1c1816144839e78c07d41062955a202c5a2ccde059ef106e1a17ced9407",
+        "archive": "pool/universe/f/ffmpeg/libavformat60_6.1.1-3ubuntu5_arm64.deb",
+        "homepage": "https://ffmpeg.org/",
+        "localArchive": "packages/libavformat60_7%3a6.1.1-3ubuntu5_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libavformat60/copyright",
+        "licenseIdentifiers": [
+          "BSD-1-clause",
+          "BSD-2-clause",
+          "BSD-3-clause",
+          "BSL",
+          "Expat",
+          "GPL-2+",
+          "GPL-3+",
+          "IJG",
+          "ISC",
+          "LGPL-2+",
+          "LGPL-2.1+",
+          "LGPL-2.1+ and BSD-2-clause",
+          "LGPL-2.1+ and BSD-3-clause",
+          "LGPL-2.1+ and BSL",
+          "LGPL-2.1+ and Expat",
+          "LGPL-2.1+ and Sundry",
+          "Sundry",
+          "Zlib",
+          "man-page",
+          "public-domain"
+        ]
+      },
+      {
+        "package": "libbs2b0",
+        "version": "3.1.0+dfsg-7build1",
+        "architecture": "arm64",
+        "downloadBytes": 9976,
+        "installedKiB": 83,
+        "sha256": "ca1887388d9f3b7d4f6b69b48d2b6f40dc0f6239283dd6419aec3ef46e4f6893",
+        "archive": "pool/universe/libb/libbs2b/libbs2b0_3.1.0+dfsg-7build1_arm64.deb",
+        "homepage": "https://bs2b.sourceforge.net/",
+        "localArchive": "packages/libbs2b0_3.1.0+dfsg-7build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libbs2b0/copyright",
+        "licenseIdentifiers": [
+          "Expat",
+          "FSF-unlimited",
+          "GPL-2+",
+          "GPL-3+",
+          "MIT+FSF-public"
+        ]
+      },
+      {
+        "package": "libflite1",
+        "version": "2.2-6build3",
+        "architecture": "arm64",
+        "downloadBytes": 13576178,
+        "installedKiB": 27268,
+        "sha256": "d792b1148cb4fa09946dfb32c502df80bdaa7c77662a3a8f57e1f999a5bd16d3",
+        "archive": "pool/universe/f/flite/libflite1_2.2-6build3_arm64.deb",
+        "homepage": "http://cmuflite.org",
+        "localArchive": "packages/libflite1_2.2-6build3_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libflite1/copyright",
+        "licenseIdentifiers": [
+          "Permission is granted to anyone to use this software for any",
+          "Permission is granted to make and distribute verbatim copies of",
+          "Permission is hereby granted, free of charge, to use and distribute",
+          "Permission to use, copy, modify, and distribute this",
+          "Permission to use, copy, modify, distribute, and sell this software and its",
+          "Redistribution and use in source and binary forms, with or without",
+          "Redistribution and use of this software, modifcation and inclusion",
+          "This program is free software; you can redistribute it and/or modify"
+        ]
+      },
+      {
+        "package": "libserd-0-0",
+        "version": "0.32.2-1",
+        "architecture": "arm64",
+        "downloadBytes": 42876,
+        "installedKiB": 155,
+        "sha256": "ea7db067715a32abe6601855a764d2230088251330a5ceb1aff981ae1e48046d",
+        "archive": "pool/universe/s/serd/libserd-0-0_0.32.2-1_arm64.deb",
+        "homepage": "https://drobilla.net/software/serd.html",
+        "localArchive": "packages/libserd-0-0_0.32.2-1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libserd-0-0/copyright",
+        "licenseIdentifiers": [
+          "0BSD",
+          "BSD-3-clause",
+          "ISC"
+        ]
+      },
+      {
+        "package": "libzix-0-0",
+        "version": "0.4.2-2build1",
+        "architecture": "arm64",
+        "downloadBytes": 23980,
+        "installedKiB": 87,
+        "sha256": "630fbd7b13a333c049a0bdf45fc90bc6e799fe94baaf97f845298f165633d433",
+        "archive": "pool/universe/z/zix/libzix-0-0_0.4.2-2build1_arm64.deb",
+        "homepage": "https://gitlab.com/drobilla/zix",
+        "localArchive": "packages/libzix-0-0_0.4.2-2build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libzix-0-0/copyright",
+        "licenseIdentifiers": [
+          "0BSD",
+          "0BSD or ISC",
+          "ISC"
+        ]
+      },
+      {
+        "package": "libsord-0-0",
+        "version": "0.16.16-2build1",
+        "architecture": "arm64",
+        "downloadBytes": 15674,
+        "installedKiB": 86,
+        "sha256": "792d4aab748cbdc4f7b15d6b93fec9892024d59a962fcc282018dc7c0f3a7bf0",
+        "archive": "pool/universe/s/sord/libsord-0-0_0.16.16-2build1_arm64.deb",
+        "homepage": "https://drobilla.net/software/sord.html",
+        "localArchive": "packages/libsord-0-0_0.16.16-2build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libsord-0-0/copyright",
+        "licenseIdentifiers": [
+          "ISC"
+        ]
+      },
+      {
+        "package": "libsratom-0-0",
+        "version": "0.6.16-1build1",
+        "architecture": "arm64",
+        "downloadBytes": 15766,
+        "installedKiB": 84,
+        "sha256": "d9d635a8df4bc75458f325f8919fa291eca35b85f62f6b64b336ceeb35be3846",
+        "archive": "pool/universe/s/sratom/libsratom-0-0_0.6.16-1build1_arm64.deb",
+        "homepage": "https://drobilla.net/software/sratom/",
+        "localArchive": "packages/libsratom-0-0_0.6.16-1build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libsratom-0-0/copyright",
+        "licenseIdentifiers": [
+          "ISC"
+        ]
+      },
+      {
+        "package": "liblilv-0-0",
+        "version": "0.24.22-1build1",
+        "architecture": "arm64",
+        "downloadBytes": 41092,
+        "installedKiB": 157,
+        "sha256": "c3c163490e351931bf205663921706163f5ea2b3bd71dd98ad0433e49ed4a469",
+        "archive": "pool/universe/l/lilv/liblilv-0-0_0.24.22-1build1_arm64.deb",
+        "homepage": "https://drobilla.net/software/lilv.html",
+        "localArchive": "packages/liblilv-0-0_0.24.22-1build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/liblilv-0-0/copyright",
+        "licenseIdentifiers": [
+          "0BSD",
+          "0BSD or ISC",
+          "ISC"
+        ]
+      },
+      {
+        "package": "libmysofa1",
+        "version": "1.3.2+dfsg-2ubuntu2",
+        "architecture": "arm64",
+        "downloadBytes": 1157018,
+        "installedKiB": 1271,
+        "sha256": "fbf045108ff5ceae2edcf9ccdb48a7fef504e6b4bbd40e1d76999646d564ef43",
+        "archive": "pool/universe/libm/libmysofa/libmysofa1_1.3.2+dfsg-2ubuntu2_arm64.deb",
+        "homepage": "https://github.com/hoene/libmysofa",
+        "localArchive": "packages/libmysofa1_1.3.2+dfsg-2ubuntu2_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libmysofa1/copyright",
+        "licenseIdentifiers": [
+          "BSD-3-clause",
+          "CC-BY-4.0",
+          "CC-BY-SA-3.0",
+          "cipic",
+          "listen-ircam",
+          "mit-kemar",
+          "public-domain"
+        ]
+      },
+      {
+        "package": "libplacebo338",
+        "version": "6.338.2-2build1",
+        "architecture": "arm64",
+        "downloadBytes": 2569952,
+        "installedKiB": 8191,
+        "sha256": "9367c6c1e178aa793d3fda419d6d2a1e91c78a12e135862e9f29811e0d8176c4",
+        "archive": "pool/universe/libp/libplacebo/libplacebo338_6.338.2-2build1_arm64.deb",
+        "homepage": "https://code.videolan.org/videolan/libplacebo",
+        "localArchive": "packages/libplacebo338_6.338.2-2build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libplacebo338/copyright",
+        "licenseIdentifiers": [
+          "CC0",
+          "Expat",
+          "LGPL-2.1+",
+          "LGPL-2.1+ and CC0",
+          "LGPL-2.1+ and Zlib",
+          "LGPL-2.1+ or Expat",
+          "Zlib"
+        ]
+      },
+      {
+        "package": "libblas3",
+        "version": "3.12.0-3build1.1",
+        "architecture": "arm64",
+        "downloadBytes": 143534,
+        "installedKiB": 477,
+        "sha256": "4e8102189451f653e51571cb77072fb4403efc40e682335264184083ab2d7b56",
+        "archive": "pool/main/l/lapack/libblas3_3.12.0-3build1.1_arm64.deb",
+        "homepage": "https://www.netlib.org/lapack/",
+        "localArchive": "packages/libblas3_3.12.0-3build1.1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libblas3/copyright",
+        "licenseIdentifiers": [
+          "BSD-3-clause",
+          "BSD-3-clause-intel"
+        ]
+      },
+      {
+        "package": "libgfortran5",
+        "version": "14.2.0-4ubuntu2~24.04.1",
+        "architecture": "arm64",
+        "downloadBytes": 438652,
+        "installedKiB": 1669,
+        "sha256": "99e5f2383ce0325fb7876c118494a8dd486afa30546102f14c26b93667ee2c70",
+        "archive": "pool/main/g/gcc-14/libgfortran5_14.2.0-4ubuntu2~24.04.1_arm64.deb",
+        "homepage": "http://gcc.gnu.org/",
+        "localArchive": "packages/libgfortran5_14.2.0-4ubuntu2~24.04.1_arm64.deb",
+        "copyrightFile": null
+      },
+      {
+        "package": "liblapack3",
+        "version": "3.12.0-3build1.1",
+        "architecture": "arm64",
+        "downloadBytes": 2241256,
+        "installedKiB": 5793,
+        "sha256": "5c4d4b359ab5f964382cb7ec476e7ebc10975ca21e65bbb1ab0afd09da4d1f89",
+        "archive": "pool/main/l/lapack/liblapack3_3.12.0-3build1.1_arm64.deb",
+        "homepage": "https://www.netlib.org/lapack/",
+        "localArchive": "packages/liblapack3_3.12.0-3build1.1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/liblapack3/copyright",
+        "licenseIdentifiers": [
+          "BSD-3-clause",
+          "BSD-3-clause-intel"
+        ]
+      },
+      {
+        "package": "libasyncns0",
+        "version": "0.8-6build4",
+        "architecture": "arm64",
+        "downloadBytes": 11152,
+        "installedKiB": 82,
+        "sha256": "acda11529a3bdc32961cec888060417d835be9626b00ab8f34607f7935cda11f",
+        "archive": "pool/main/liba/libasyncns/libasyncns0_0.8-6build4_arm64.deb",
+        "homepage": "http://0pointer.de/lennart/projects/libasyncns/",
+        "localArchive": "packages/libasyncns0_0.8-6build4_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libasyncns0/copyright",
+        "licenseIdentifiers": [
+          "LGPL-2.1+"
+        ]
+      },
+      {
+        "package": "libflac12t64",
+        "version": "1.4.3+ds-2.1ubuntu2",
+        "architecture": "arm64",
+        "downloadBytes": 169516,
+        "installedKiB": 363,
+        "sha256": "9738c071c167b2baa8dd1a509d85076150108953a1429de839280f87b0b01b83",
+        "archive": "pool/main/f/flac/libflac12t64_1.4.3+ds-2.1ubuntu2_arm64.deb",
+        "homepage": "https://xiph.org/flac/",
+        "localArchive": "packages/libflac12t64_1.4.3+ds-2.1ubuntu2_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libflac12t64/copyright",
+        "licenseIdentifiers": [
+          "BSD-3-clause",
+          "GFDL-1.1+",
+          "GPL-2+",
+          "GPL-2+ or LGPL-2.1+",
+          "ISC",
+          "LGPL-2+",
+          "LGPL-2.1+",
+          "Public-domain"
+        ]
+      },
+      {
+        "package": "libsndfile1",
+        "version": "1.2.2-1ubuntu5.24.04.1",
+        "architecture": "arm64",
+        "downloadBytes": 207960,
+        "installedKiB": 613,
+        "sha256": "3fc5c0cb78110c739a0aa9cedad1812c04a5b3ee9068a4775233b51d8dc5c0f7",
+        "archive": "pool/main/libs/libsndfile/libsndfile1_1.2.2-1ubuntu5.24.04.1_arm64.deb",
+        "homepage": "http://www.mega-nerd.com/libsndfile/",
+        "localArchive": "packages/libsndfile1_1.2.2-1ubuntu5.24.04.1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libsndfile1/copyright",
+        "licenseIdentifiers": [
+          "Apache-2.0",
+          "BSD-2-clause",
+          "BSD-3-clause",
+          "BSD-3-clause and LGPL-2.1+",
+          "FSFAP",
+          "GPL-2+",
+          "GPL-3+",
+          "LGPL-2+",
+          "LGPL-2.1+",
+          "NTP",
+          "gsm",
+          "sun"
+        ]
+      },
+      {
+        "package": "libpulse0",
+        "version": "1:16.1+dfsg1-2ubuntu10.1",
+        "architecture": "arm64",
+        "downloadBytes": 270832,
+        "installedKiB": 986,
+        "sha256": "863bf58ca712b687873c9f57bac2968555b0f1bcdeeb79265da4130d0102fea3",
+        "archive": "pool/main/p/pulseaudio/libpulse0_16.1+dfsg1-2ubuntu10.1_arm64.deb",
+        "homepage": "https://www.pulseaudio.org",
+        "localArchive": "packages/libpulse0_1%3a16.1+dfsg1-2ubuntu10.1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libpulse0/copyright",
+        "licenseIdentifiers": [
+          "GPL-2+",
+          "LGPL-2+",
+          "LGPL-2.1+",
+          "other"
+        ]
+      },
+      {
+        "package": "libsphinxbase3t64",
+        "version": "0.8+5prealpha+1-17build2",
+        "architecture": "arm64",
+        "downloadBytes": 124498,
+        "installedKiB": 437,
+        "sha256": "43e1b5bcdc0b71735665ade56ba68d2ce6824659e29e1db66004f45f471b3e73",
+        "archive": "pool/universe/s/sphinxbase/libsphinxbase3t64_0.8+5prealpha+1-17build2_arm64.deb",
+        "homepage": "https://cmusphinx.sourceforge.net/",
+        "localArchive": "packages/libsphinxbase3t64_0.8+5prealpha+1-17build2_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libsphinxbase3t64/copyright",
+        "licenseIdentifiers": [
+          "BSD-2-clause",
+          "BSD-2-clause-beyond",
+          "BSD-3-clause",
+          "BSD-3-clause-carnegie",
+          "GPL-2+",
+          "lucent",
+          "u-o-tennesee"
+        ]
+      },
+      {
+        "package": "libpocketsphinx3",
+        "version": "0.8.0+real5prealpha+1-15ubuntu5",
+        "architecture": "arm64",
+        "downloadBytes": 129248,
+        "installedKiB": 342,
+        "sha256": "707f5b795a9ef77f9af76fc920ac2116cca9c228e75ad324e500f150c1ba2e34",
+        "archive": "pool/universe/p/pocketsphinx/libpocketsphinx3_0.8.0+real5prealpha+1-15ubuntu5_arm64.deb",
+        "homepage": "http://cmusphinx.sourceforge.net/",
+        "localArchive": "packages/libpocketsphinx3_0.8.0+real5prealpha+1-15ubuntu5_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libpocketsphinx3/copyright",
+        "licenseIdentifiers": [
+          "BSD-2",
+          "BSD-3-clause",
+          "GPL-2+"
+        ]
+      },
+      {
+        "package": "libpostproc57",
+        "version": "7:6.1.1-3ubuntu5",
+        "architecture": "arm64",
+        "downloadBytes": 41214,
+        "installedKiB": 132,
+        "sha256": "d68cef7537990f8681919b5469faaf26d0e52c8962f3306bc7076ed563bfc0fc",
+        "archive": "pool/universe/f/ffmpeg/libpostproc57_6.1.1-3ubuntu5_arm64.deb",
+        "homepage": "https://ffmpeg.org/",
+        "localArchive": "packages/libpostproc57_7%3a6.1.1-3ubuntu5_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libpostproc57/copyright",
+        "licenseIdentifiers": [
+          "BSD-1-clause",
+          "BSD-2-clause",
+          "BSD-3-clause",
+          "BSL",
+          "Expat",
+          "GPL-2+",
+          "GPL-3+",
+          "IJG",
+          "ISC",
+          "LGPL-2+",
+          "LGPL-2.1+",
+          "LGPL-2.1+ and BSD-2-clause",
+          "LGPL-2.1+ and BSD-3-clause",
+          "LGPL-2.1+ and BSL",
+          "LGPL-2.1+ and Expat",
+          "LGPL-2.1+ and Sundry",
+          "Sundry",
+          "Zlib",
+          "man-page",
+          "public-domain"
+        ]
+      },
+      {
+        "package": "libfftw3-double3",
+        "version": "3.3.10-1ubuntu3",
+        "architecture": "arm64",
+        "downloadBytes": 383620,
+        "installedKiB": 935,
+        "sha256": "242274e1c51242396e7d8d49671cd5ebc416aa96eac181bba5ec67aed96f9ca9",
+        "archive": "pool/main/f/fftw3/libfftw3-double3_3.3.10-1ubuntu3_arm64.deb",
+        "homepage": "https://fftw.org",
+        "localArchive": "packages/libfftw3-double3_3.3.10-1ubuntu3_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libfftw3-double3/copyright",
+        "licenseIdentifiers": [
+          "GPL-2+"
+        ]
+      },
+      {
+        "package": "libsamplerate0",
+        "version": "0.2.2-4build1",
+        "architecture": "arm64",
+        "downloadBytes": 1342758,
+        "installedKiB": 1495,
+        "sha256": "b19c04f6bbbf6fe9a59bf0697dff0d35b5e70351e72681bf9c74053e49e4fedd",
+        "archive": "pool/main/libs/libsamplerate/libsamplerate0_0.2.2-4build1_arm64.deb",
+        "homepage": "https://libsndfile.github.io/libsamplerate/",
+        "localArchive": "packages/libsamplerate0_0.2.2-4build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libsamplerate0/copyright",
+        "licenseIdentifiers": [
+          "BSD-2-clause",
+          "FSFAP",
+          "GPL-2+",
+          "GPL-3+"
+        ]
+      },
+      {
+        "package": "librubberband2",
+        "version": "3.3.0+dfsg-2build1",
+        "architecture": "arm64",
+        "downloadBytes": 120110,
+        "installedKiB": 342,
+        "sha256": "8c3b1d6c37be688c740db73b850f55438c0ce5fd5b25267c0598c5791b344597",
+        "archive": "pool/universe/r/rubberband/librubberband2_3.3.0+dfsg-2build1_arm64.deb",
+        "homepage": "https://www.breakfastquay.com/rubberband/",
+        "localArchive": "packages/librubberband2_3.3.0+dfsg-2build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/librubberband2/copyright",
+        "licenseIdentifiers": [
+          "BSD-3-clause",
+          "Expat",
+          "GPL-2+",
+          "Zlib",
+          "other-1"
+        ]
+      },
+      {
+        "package": "libswscale7",
+        "version": "7:6.1.1-3ubuntu5",
+        "architecture": "arm64",
+        "downloadBytes": 172716,
+        "installedKiB": 517,
+        "sha256": "80d58ac7cc2fe9efd05907a201e78775932484f8b18af0fc82cbb41142057078",
+        "archive": "pool/universe/f/ffmpeg/libswscale7_6.1.1-3ubuntu5_arm64.deb",
+        "homepage": "https://ffmpeg.org/",
+        "localArchive": "packages/libswscale7_7%3a6.1.1-3ubuntu5_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libswscale7/copyright",
+        "licenseIdentifiers": [
+          "BSD-1-clause",
+          "BSD-2-clause",
+          "BSD-3-clause",
+          "BSL",
+          "Expat",
+          "GPL-2+",
+          "GPL-3+",
+          "IJG",
+          "ISC",
+          "LGPL-2+",
+          "LGPL-2.1+",
+          "LGPL-2.1+ and BSD-2-clause",
+          "LGPL-2.1+ and BSD-3-clause",
+          "LGPL-2.1+ and BSL",
+          "LGPL-2.1+ and Expat",
+          "LGPL-2.1+ and Sundry",
+          "Sundry",
+          "Zlib",
+          "man-page",
+          "public-domain"
+        ]
+      },
+      {
+        "package": "libvidstab1.1",
+        "version": "1.1.0-2build1",
+        "architecture": "arm64",
+        "downloadBytes": 38688,
+        "installedKiB": 144,
+        "sha256": "145557606e48490f6f477a4e249800ee8cb24cfa76809e240822feb8d26025d4",
+        "archive": "pool/universe/libv/libvidstab/libvidstab1.1_1.1.0-2build1_arm64.deb",
+        "homepage": "http://public.hronopik.de/vid.stab/",
+        "localArchive": "packages/libvidstab1.1_1.1.0-2build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libvidstab1.1/copyright",
+        "licenseIdentifiers": [
+          "GPL-2.0+"
+        ]
+      },
+      {
+        "package": "libzimg2",
+        "version": "3.0.5+ds1-1build1",
+        "architecture": "arm64",
+        "downloadBytes": 118680,
+        "installedKiB": 339,
+        "sha256": "6f9137417252afd5291872f6ee3067d7da63e2e953525eb0eaabefcab2ae4ce5",
+        "archive": "pool/universe/z/zimg/libzimg2_3.0.5+ds1-1build1_arm64.deb",
+        "homepage": "https://github.com/sekrit-twc/zimg",
+        "localArchive": "packages/libzimg2_3.0.5+ds1-1build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libzimg2/copyright",
+        "licenseIdentifiers": [
+          "GPL-3+ with AutoConf exception",
+          "WTFPL-2"
+        ]
+      },
+      {
+        "package": "libavfilter9",
+        "version": "7:6.1.1-3ubuntu5",
+        "architecture": "arm64",
+        "downloadBytes": 4089168,
+        "installedKiB": 12428,
+        "sha256": "70bbce97e0d9d39d38d3b865778ff840f480e8a9d144ee79964daaa6c0501ed1",
+        "archive": "pool/universe/f/ffmpeg/libavfilter9_6.1.1-3ubuntu5_arm64.deb",
+        "homepage": "https://ffmpeg.org/",
+        "localArchive": "packages/libavfilter9_7%3a6.1.1-3ubuntu5_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libavfilter9/copyright",
+        "licenseIdentifiers": [
+          "BSD-1-clause",
+          "BSD-2-clause",
+          "BSD-3-clause",
+          "BSL",
+          "Expat",
+          "GPL-2+",
+          "GPL-3+",
+          "IJG",
+          "ISC",
+          "LGPL-2+",
+          "LGPL-2.1+",
+          "LGPL-2.1+ and BSD-2-clause",
+          "LGPL-2.1+ and BSD-3-clause",
+          "LGPL-2.1+ and BSL",
+          "LGPL-2.1+ and Expat",
+          "LGPL-2.1+ and Sundry",
+          "Sundry",
+          "Zlib",
+          "man-page",
+          "public-domain"
+        ]
+      },
+      {
+        "package": "libcaca0",
+        "version": "0.99.beta20-4ubuntu0.2",
+        "architecture": "arm64",
+        "downloadBytes": 206264,
+        "installedKiB": 1057,
+        "sha256": "95dffb776d959bee43bc2db755c1e4330547b9449eb20f48f8ba1dfddf435cf2",
+        "archive": "pool/main/libc/libcaca/libcaca0_0.99.beta20-4ubuntu0.2_arm64.deb",
+        "homepage": "http://caca.zoy.org/wiki/libcaca",
+        "localArchive": "packages/libcaca0_0.99.beta20-4ubuntu0.2_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libcaca0/copyright",
+        "licenseIdentifiers": [
+          "GPL",
+          "GPL-2+",
+          "ISC",
+          "LGPL-2+",
+          "WTFPL-2"
+        ]
+      },
+      {
+        "package": "libcdio19t64",
+        "version": "2.1.0-4.1ubuntu1.2",
+        "architecture": "arm64",
+        "downloadBytes": 64196,
+        "installedKiB": 225,
+        "sha256": "e25427450953f57dd79921259937499b08bd8a90a0e7c9cbe4eef5a4092a5bd4",
+        "archive": "pool/main/libc/libcdio/libcdio19t64_2.1.0-4.1ubuntu1.2_arm64.deb",
+        "homepage": "https://www.gnu.org/software/libcdio/",
+        "localArchive": "packages/libcdio19t64_2.1.0-4.1ubuntu1.2_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libcdio19t64/copyright",
+        "licenseIdentifiers": [
+          "GFDL-1.2",
+          "GPL-2+ with autoconf-macro exception",
+          "GPL-3",
+          "GPL-3 and GFDL-1.2"
+        ]
+      },
+      {
+        "package": "libcdio-cdda2t64",
+        "version": "10.2+2.0.1-1.1build2",
+        "architecture": "arm64",
+        "downloadBytes": 16224,
+        "installedKiB": 86,
+        "sha256": "57b3c489271ed8309c1acfa1719236d01d2d9ee82884d7783ceb3c349ab3626a",
+        "archive": "pool/main/libc/libcdio-paranoia/libcdio-cdda2t64_10.2+2.0.1-1.1build2_arm64.deb",
+        "homepage": "https://www.gnu.org/software/libcdio/",
+        "localArchive": "packages/libcdio-cdda2t64_10.2+2.0.1-1.1build2_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libcdio-cdda2t64/copyright",
+        "licenseIdentifiers": []
+      },
+      {
+        "package": "libcdio-paranoia2t64",
+        "version": "10.2+2.0.1-1.1build2",
+        "architecture": "arm64",
+        "downloadBytes": 15826,
+        "installedKiB": 85,
+        "sha256": "2ea19df92fb3c1cf34083134934e03eca5304d002d6c0028d56366affb354adb",
+        "archive": "pool/main/libc/libcdio-paranoia/libcdio-paranoia2t64_10.2+2.0.1-1.1build2_arm64.deb",
+        "homepage": "https://www.gnu.org/software/libcdio/",
+        "localArchive": "packages/libcdio-paranoia2t64_10.2+2.0.1-1.1build2_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libcdio-paranoia2t64/copyright",
+        "licenseIdentifiers": []
+      },
+      {
+        "package": "libdc1394-25",
+        "version": "2.2.6-4build1",
+        "architecture": "arm64",
+        "downloadBytes": 90300,
+        "installedKiB": 286,
+        "sha256": "5fa5406d04487684ec1a8bbb6603723903a46ee721d5af1bd5757b8ac27ed376",
+        "archive": "pool/universe/libd/libdc1394/libdc1394-25_2.2.6-4build1_arm64.deb",
+        "homepage": "https://sourceforge.net/projects/libdc1394/",
+        "localArchive": "packages/libdc1394-25_2.2.6-4build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libdc1394-25/copyright",
+        "licenseIdentifiers": []
+      },
+      {
+        "package": "libiec61883-0",
+        "version": "1.2.0-6build1",
+        "architecture": "arm64",
+        "downloadBytes": 24256,
+        "installedKiB": 89,
+        "sha256": "83644951ab8aff10f530066e74129431f723dc5b810e14025520b4f70bb58bbe",
+        "archive": "pool/main/libi/libiec61883/libiec61883-0_1.2.0-6build1_arm64.deb",
+        "homepage": "https://ieee1394.wiki.kernel.org/index.php/Main_Page",
+        "localArchive": "packages/libiec61883-0_1.2.0-6build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libiec61883-0/copyright",
+        "licenseIdentifiers": [
+          "This library is free software; you can redistribute it and/or"
+        ]
+      },
+      {
+        "package": "libjack-jackd2-0",
+        "version": "1.9.21~dfsg-3ubuntu3",
+        "architecture": "arm64",
+        "downloadBytes": 285078,
+        "installedKiB": 1263,
+        "sha256": "29cf290a4d920a8dc71530d9c2410e5b540e84301a9409bea47fb0673954b12a",
+        "archive": "pool/main/j/jackd2/libjack-jackd2-0_1.9.21~dfsg-3ubuntu3_arm64.deb",
+        "homepage": "https://jackaudio.org/",
+        "localArchive": "packages/libjack-jackd2-0_1.9.21~dfsg-3ubuntu3_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libjack-jackd2-0/copyright",
+        "licenseIdentifiers": [
+          "BSD-2-clause",
+          "BSD-3-clause",
+          "Expat",
+          "GPL-2",
+          "GPL-2+",
+          "GPL-2~either",
+          "GPL-2~or",
+          "GPL-3+",
+          "LGPL-2+",
+          "LGPL-2.1+",
+          "public-domain~Kroon"
+        ]
+      },
+      {
+        "package": "libopenal-data",
+        "version": "1:1.23.1-4build1",
+        "architecture": "all",
+        "downloadBytes": 160710,
+        "installedKiB": 256,
+        "sha256": "0de2f2b7a29fa337432fa044ce6c238bc511b83dac14d68a32673d9803cbab83",
+        "archive": "pool/universe/o/openal-soft/libopenal-data_1.23.1-4build1_all.deb",
+        "homepage": "https://github.com/kcat/openal-soft",
+        "localArchive": "packages/libopenal-data_1%3a1.23.1-4build1_all.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libopenal-data/copyright",
+        "licenseIdentifiers": [
+          "Apache-2.0",
+          "BSD-3-clause",
+          "Expat",
+          "GPL-2+",
+          "GPL-3+",
+          "LGPL-2+"
+        ]
+      },
+      {
+        "package": "libsndio7.0",
+        "version": "1.9.0-0.3build3",
+        "architecture": "arm64",
+        "downloadBytes": 29000,
+        "installedKiB": 88,
+        "sha256": "33c1ae918bd758a4fb7fec64bfee98d4c7b880ade313980dd682fd6e6727f983",
+        "archive": "pool/universe/s/sndio/libsndio7.0_1.9.0-0.3build3_arm64.deb",
+        "homepage": "https://www.sndio.org/",
+        "localArchive": "packages/libsndio7.0_1.9.0-0.3build3_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libsndio7.0/copyright",
+        "licenseIdentifiers": [
+          "ISC",
+          "ISC-packaging"
+        ]
+      },
+      {
+        "package": "libopenal1",
+        "version": "1:1.23.1-4build1",
+        "architecture": "arm64",
+        "downloadBytes": 509692,
+        "installedKiB": 1151,
+        "sha256": "d718a9242ee0f8bcfd45c06d1b98348009b200fa03e82a8a334f4096a358e2af",
+        "archive": "pool/universe/o/openal-soft/libopenal1_1.23.1-4build1_arm64.deb",
+        "homepage": "https://github.com/kcat/openal-soft",
+        "localArchive": "packages/libopenal1_1%3a1.23.1-4build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libopenal1/copyright",
+        "licenseIdentifiers": [
+          "Apache-2.0",
+          "BSD-3-clause",
+          "Expat",
+          "GPL-2+",
+          "GPL-3+",
+          "LGPL-2+"
+        ]
+      },
+      {
+        "package": "libdecor-0-0",
+        "version": "0.2.2-1build2",
+        "architecture": "arm64",
+        "downloadBytes": 16536,
+        "installedKiB": 86,
+        "sha256": "561403959907cbdb8b73a836373cca5ec2380b81723ad73698e9ba460ec08b69",
+        "archive": "pool/main/libd/libdecor-0/libdecor-0-0_0.2.2-1build2_arm64.deb",
+        "homepage": "https://gitlab.freedesktop.org/libdecor/libdecor",
+        "localArchive": "packages/libdecor-0-0_0.2.2-1build2_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libdecor-0-0/copyright",
+        "licenseIdentifiers": [
+          "Expat",
+          "GPL-3.0+"
+        ]
+      },
+      {
+        "package": "libxss1",
+        "version": "1:1.2.3-1build3",
+        "architecture": "arm64",
+        "downloadBytes": 7244,
+        "installedKiB": 83,
+        "sha256": "8159cb3813e3706a3bac3bae1042da6caaa2b8e454e636738d00394160bd654d",
+        "archive": "pool/main/libx/libxss/libxss1_1.2.3-1build3_arm64.deb",
+        "homepage": null,
+        "localArchive": "packages/libxss1_1%3a1.2.3-1build3_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libxss1/copyright",
+        "licenseIdentifiers": []
+      },
+      {
+        "package": "libsdl2-2.0-0",
+        "version": "2.30.0+dfsg-1ubuntu3.1",
+        "architecture": "arm64",
+        "downloadBytes": 671180,
+        "installedKiB": 2050,
+        "sha256": "3406a7a3cf98a633c9a1289eb20a31e03a04477afb95c8558f2de7f70abdd0bb",
+        "archive": "pool/main/libs/libsdl2/libsdl2-2.0-0_2.30.0+dfsg-1ubuntu3.1_arm64.deb",
+        "homepage": "https://www.libsdl.org/",
+        "localArchive": "packages/libsdl2-2.0-0_2.30.0+dfsg-1ubuntu3.1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libsdl2-2.0-0/copyright",
+        "licenseIdentifiers": [
+          "Apache-2.0",
+          "BSD-3-clause",
+          "BSD-3-clause or GPL-3 or hidapi-orig, and zlib/libpng",
+          "BSD-3-clause-chromium",
+          "BSD-3-clause-kitware",
+          "BrownUn_UnCalifornia_ErikCorry",
+          "Expat",
+          "Expat and MIT-open-group",
+          "Expat-like",
+          "GPL-3",
+          "Gareth_McCaughan",
+          "LGPL-2.1+",
+          "MIT-open-group",
+          "Mozilla-permissive",
+          "Mozilla-permissive and Expat and zlib/libpng",
+          "PublicDomain_David_Ludwig",
+          "PublicDomain_Edgar_Simo",
+          "PublicDomain_Sam_Lantinga",
+          "RSA_Data_Security",
+          "SGI-Free-Software-License-B",
+          "SunPro",
+          "hidapi-orig",
+          "zlib-libpng-like-permissive",
+          "zlib/libpng",
+          "zlib/libpng and Expat-like and Apache-2.0",
+          "zlib/libpng and RSA_Data_Security",
+          "zlib/libpng and zlib-libpng-like-permissive"
+        ]
+      },
+      {
+        "package": "libxcb-shape0",
+        "version": "1.15-1ubuntu2",
+        "architecture": "arm64",
+        "downloadBytes": 6250,
+        "installedKiB": 82,
+        "sha256": "678a611d3181c6bb72a9cd003d55e46a2491763f897c32e7712032635b62cc48",
+        "archive": "pool/main/libx/libxcb/libxcb-shape0_1.15-1ubuntu2_arm64.deb",
+        "homepage": "https://xcb.freedesktop.org",
+        "localArchive": "packages/libxcb-shape0_1.15-1ubuntu2_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libxcb-shape0/copyright",
+        "licenseIdentifiers": []
+      },
+      {
+        "package": "libxv1",
+        "version": "2:1.0.11-1.1build1",
+        "architecture": "arm64",
+        "downloadBytes": 10660,
+        "installedKiB": 82,
+        "sha256": "1b308a4b91d4f957478c2f5d94cbbcdd8a7311151919ef29beb8b43e30697445",
+        "archive": "pool/main/libx/libxv/libxv1_1.0.11-1.1build1_arm64.deb",
+        "homepage": null,
+        "localArchive": "packages/libxv1_2%3a1.0.11-1.1build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libxv1/copyright",
+        "licenseIdentifiers": [
+          "All Rights Reserved"
+        ]
+      },
+      {
+        "package": "libavdevice60",
+        "version": "7:6.1.1-3ubuntu5",
+        "architecture": "arm64",
+        "downloadBytes": 81564,
+        "installedKiB": 257,
+        "sha256": "c06baf3ad100d1d1ce9440862ada5bd8d358eaa35354f508e96ae459c4eb33d2",
+        "archive": "pool/universe/f/ffmpeg/libavdevice60_6.1.1-3ubuntu5_arm64.deb",
+        "homepage": "https://ffmpeg.org/",
+        "localArchive": "packages/libavdevice60_7%3a6.1.1-3ubuntu5_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libavdevice60/copyright",
+        "licenseIdentifiers": [
+          "BSD-1-clause",
+          "BSD-2-clause",
+          "BSD-3-clause",
+          "BSL",
+          "Expat",
+          "GPL-2+",
+          "GPL-3+",
+          "IJG",
+          "ISC",
+          "LGPL-2+",
+          "LGPL-2.1+",
+          "LGPL-2.1+ and BSD-2-clause",
+          "LGPL-2.1+ and BSD-3-clause",
+          "LGPL-2.1+ and BSL",
+          "LGPL-2.1+ and Expat",
+          "LGPL-2.1+ and Sundry",
+          "Sundry",
+          "Zlib",
+          "man-page",
+          "public-domain"
+        ]
+      },
+      {
+        "package": "ffmpeg",
+        "version": "7:6.1.1-3ubuntu5",
+        "architecture": "arm64",
+        "downloadBytes": 1880294,
+        "installedKiB": 2564,
+        "sha256": "b67d11113ce72b679586ca23f962d68e111e46dafeb0aec0333037b4348a2711",
+        "archive": "pool/universe/f/ffmpeg/ffmpeg_6.1.1-3ubuntu5_arm64.deb",
+        "homepage": "https://ffmpeg.org/",
+        "localArchive": "packages/ffmpeg_7%3a6.1.1-3ubuntu5_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/ffmpeg/copyright",
+        "licenseIdentifiers": [
+          "BSD-1-clause",
+          "BSD-2-clause",
+          "BSD-3-clause",
+          "BSL",
+          "Expat",
+          "GPL-2+",
+          "GPL-3+",
+          "IJG",
+          "ISC",
+          "LGPL-2+",
+          "LGPL-2.1+",
+          "LGPL-2.1+ and BSD-2-clause",
+          "LGPL-2.1+ and BSD-3-clause",
+          "LGPL-2.1+ and BSL",
+          "LGPL-2.1+ and Expat",
+          "LGPL-2.1+ and Sundry",
+          "Sundry",
+          "Zlib",
+          "man-page",
+          "public-domain"
+        ]
+      },
+      {
+        "package": "libproxy1v5",
+        "version": "0.5.4-4build1",
+        "architecture": "arm64",
+        "downloadBytes": 26098,
+        "installedKiB": 167,
+        "sha256": "4ea61580d2b5c6ec4f05445ed63618130743256d0208501cd5af14c28764040b",
+        "archive": "pool/main/libp/libproxy/libproxy1v5_0.5.4-4build1_arm64.deb",
+        "homepage": "https://libproxy.github.io/libproxy/",
+        "localArchive": "packages/libproxy1v5_0.5.4-4build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libproxy1v5/copyright",
+        "licenseIdentifiers": [
+          "GPL-2+",
+          "GPL-3+",
+          "LGPL-2.1+",
+          "LGPL-2.1+ or GPL-2+ or NPL-1.1",
+          "MPL-1.1",
+          "NPL-1.1"
+        ]
+      },
+      {
+        "package": "glib-networking-common",
+        "version": "2.80.0-1build1",
+        "architecture": "all",
+        "downloadBytes": 6702,
+        "installedKiB": 44,
+        "sha256": "c9bc3b5c3dc8a75e752efcf246e5ef2d3b9e80cd1301fd37fcb0c36562062931",
+        "archive": "pool/main/g/glib-networking/glib-networking-common_2.80.0-1build1_all.deb",
+        "homepage": null,
+        "localArchive": "packages/glib-networking-common_2.80.0-1build1_all.deb",
+        "copyrightFile": "sysroot/usr/share/doc/glib-networking-common/copyright",
+        "licenseIdentifiers": [
+          "LGPL-2+",
+          "LGPL-2+ and LGPL-2.1+",
+          "LGPL-2.1+"
+        ]
+      },
+      {
+        "package": "glib-networking-services",
+        "version": "2.80.0-1build1",
+        "architecture": "arm64",
+        "downloadBytes": 12748,
+        "installedKiB": 89,
+        "sha256": "a93e273d521c2a06ab579a17af4bfc1e4270f48b01af5cd957f7a1c82202c5fd",
+        "archive": "pool/main/g/glib-networking/glib-networking-services_2.80.0-1build1_arm64.deb",
+        "homepage": null,
+        "localArchive": "packages/glib-networking-services_2.80.0-1build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/glib-networking-services/copyright",
+        "licenseIdentifiers": [
+          "LGPL-2+",
+          "LGPL-2+ and LGPL-2.1+",
+          "LGPL-2.1+"
+        ]
+      },
+      {
+        "package": "glib-networking",
+        "version": "2.80.0-1build1",
+        "architecture": "arm64",
+        "downloadBytes": 63904,
+        "installedKiB": 295,
+        "sha256": "f229b9b01b384d73bf17d50a549802432bbcca36bb3eb74f0dac11f628f5c380",
+        "archive": "pool/main/g/glib-networking/glib-networking_2.80.0-1build1_arm64.deb",
+        "homepage": null,
+        "localArchive": "packages/glib-networking_2.80.0-1build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/glib-networking/copyright",
+        "licenseIdentifiers": [
+          "LGPL-2+",
+          "LGPL-2+ and LGPL-2.1+",
+          "LGPL-2.1+"
+        ]
+      },
+      {
+        "package": "gstreamer1.0-libav",
+        "version": "1.24.1-1build1",
+        "architecture": "arm64",
+        "downloadBytes": 100110,
+        "installedKiB": 272,
+        "sha256": "4f33f3087d95d5088cd4bbe02585dcec399bd83430b8cfdfdde9973eff4f6f2b",
+        "archive": "pool/universe/g/gst-libav1.0/gstreamer1.0-libav_1.24.1-1build1_arm64.deb",
+        "homepage": "https://gstreamer.freedesktop.org",
+        "localArchive": "packages/gstreamer1.0-libav_1.24.1-1build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/gstreamer1.0-libav/copyright",
+        "licenseIdentifiers": [
+          "LGPL-2+",
+          "LGPL-2.1+"
+        ]
+      },
+      {
+        "package": "libaa1",
+        "version": "1.4p5-51.1",
+        "architecture": "arm64",
+        "downloadBytes": 49726,
+        "installedKiB": 155,
+        "sha256": "c6ba7e5a2d291a92fc3f9604ac298193e0102dc02c3b7d67c112819a7a9a2511",
+        "archive": "pool/main/a/aalib/libaa1_1.4p5-51.1_arm64.deb",
+        "homepage": "http://aa-project.sourceforge.net/aalib/",
+        "localArchive": "packages/libaa1_1.4p5-51.1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libaa1/copyright",
+        "licenseIdentifiers": [
+          "Abstyles",
+          "Custom",
+          "LGPL-2.0+"
+        ]
+      },
+      {
+        "package": "libdv4t64",
+        "version": "1.0.0-17.1build1",
+        "architecture": "arm64",
+        "downloadBytes": 60228,
+        "installedKiB": 176,
+        "sha256": "0d91e6739333a460c61467e55156b38ac426e40c92bda606197e91b6f98864be",
+        "archive": "pool/main/libd/libdv/libdv4t64_1.0.0-17.1build1_arm64.deb",
+        "homepage": "http://libdv.sourceforge.net/",
+        "localArchive": "packages/libdv4t64_1.0.0-17.1build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libdv4t64/copyright",
+        "licenseIdentifiers": [
+          "GPL-2+",
+          "LGPL-2.1+"
+        ]
+      },
+      {
+        "package": "libgstreamer-plugins-good1.0-0",
+        "version": "1.24.2-1ubuntu1.8",
+        "architecture": "arm64",
+        "downloadBytes": 34020,
+        "installedKiB": 206,
+        "sha256": "a67bd34f000e34163221749b20aa605487ba1a3fd562a07b81d2060eb3006d5d",
+        "archive": "pool/main/g/gst-plugins-good1.0/libgstreamer-plugins-good1.0-0_1.24.2-1ubuntu1.8_arm64.deb",
+        "homepage": "https://gstreamer.freedesktop.org",
+        "localArchive": "packages/libgstreamer-plugins-good1.0-0_1.24.2-1ubuntu1.8_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libgstreamer-plugins-good1.0-0/copyright",
+        "licenseIdentifiers": [
+          "BSD",
+          "BSD (3 clause)",
+          "GPL-2+",
+          "LGPL",
+          "LGPL-2",
+          "LGPL-2+",
+          "LGPL-2.1+",
+          "MIT/X11 (BSD like) LGPL-2+"
+        ]
+      },
+      {
+        "package": "libshout3",
+        "version": "2.4.6-1build2",
+        "architecture": "arm64",
+        "downloadBytes": 51010,
+        "installedKiB": 163,
+        "sha256": "3099f4bdaf6bf7ee418a4db7b7d3a191c9a36902164dc22d62e7e10b40ffe94f",
+        "archive": "pool/main/libs/libshout/libshout3_2.4.6-1build2_arm64.deb",
+        "homepage": "https://www.icecast.org/",
+        "localArchive": "packages/libshout3_2.4.6-1build2_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libshout3/copyright",
+        "licenseIdentifiers": [
+          "FSFUL",
+          "FSFULLR",
+          "FSFULLR and GPL-2+ with Libtool exception",
+          "FSFULLR~Makefile.in",
+          "GPL-2+",
+          "GPL-2+ with Autoconf exception",
+          "GPL-3+",
+          "GPL-3+~file",
+          "GPL-3+~file with Autoconf exception",
+          "LGPL-2+",
+          "NTP~Rushing",
+          "X11"
+        ]
+      },
+      {
+        "package": "libtag1v5-vanilla",
+        "version": "1.13.1-1build1",
+        "architecture": "arm64",
+        "downloadBytes": 303348,
+        "installedKiB": 1231,
+        "sha256": "27db0f02f005a969e7e557e3ca7670a1f215814f4f446bab155446ace17d496c",
+        "archive": "pool/main/t/taglib/libtag1v5-vanilla_1.13.1-1build1_arm64.deb",
+        "homepage": "https://taglib.github.io/",
+        "localArchive": "packages/libtag1v5-vanilla_1.13.1-1build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libtag1v5-vanilla/copyright",
+        "licenseIdentifiers": [
+          "BSD-2-clause",
+          "BSL-1.0",
+          "LGPL-2.1",
+          "LGPL-2.1 or MPL-1.1",
+          "MPL-1.1"
+        ]
+      },
+      {
+        "package": "libtag1v5",
+        "version": "1.13.1-1build1",
+        "architecture": "arm64",
+        "downloadBytes": 11684,
+        "installedKiB": 46,
+        "sha256": "d6d23bb62694e291775b65ce618a04393d9b2ca61c88c765a05cd9df6e1cba81",
+        "archive": "pool/main/t/taglib/libtag1v5_1.13.1-1build1_arm64.deb",
+        "homepage": "https://taglib.github.io/",
+        "localArchive": "packages/libtag1v5_1.13.1-1build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libtag1v5/copyright",
+        "licenseIdentifiers": [
+          "BSD-2-clause",
+          "BSL-1.0",
+          "LGPL-2.1",
+          "LGPL-2.1 or MPL-1.1",
+          "MPL-1.1"
+        ]
+      },
+      {
+        "package": "libv4lconvert0t64",
+        "version": "1.26.1-4build3",
+        "architecture": "arm64",
+        "downloadBytes": 88632,
+        "installedKiB": 440,
+        "sha256": "cfb01d4343d1ed4a92476df431d4ef89f6871708c8befd6ef8e711a40dfc0808",
+        "archive": "pool/main/v/v4l-utils/libv4lconvert0t64_1.26.1-4build3_arm64.deb",
+        "homepage": "https://linuxtv.org/wiki/index.php/V4l-utils",
+        "localArchive": "packages/libv4lconvert0t64_1.26.1-4build3_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libv4lconvert0t64/copyright",
+        "licenseIdentifiers": [
+          "BSD-2-clause",
+          "BSD-3-clause",
+          "BSD-3-clause or GPL-2",
+          "BSD-3-clause or GPL-2+",
+          "BSD-3-clause or LGPL-2.1",
+          "Expat",
+          "FSFULLR",
+          "GPL-2",
+          "GPL-2+",
+          "GPL-3+",
+          "HPND-sell-variant",
+          "LGPL",
+          "LGPL-2+",
+          "LGPL-2.1",
+          "LGPL-2.1+",
+          "jpeg-group"
+        ]
+      },
+      {
+        "package": "libv4l-0t64",
+        "version": "1.26.1-4build3",
+        "architecture": "arm64",
+        "downloadBytes": 46392,
+        "installedKiB": 474,
+        "sha256": "0efed54458a4a3da075defb2675b243d7123115d26219ea2ffb88750e777f0e3",
+        "archive": "pool/main/v/v4l-utils/libv4l-0t64_1.26.1-4build3_arm64.deb",
+        "homepage": "https://linuxtv.org/wiki/index.php/V4l-utils",
+        "localArchive": "packages/libv4l-0t64_1.26.1-4build3_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libv4l-0t64/copyright",
+        "licenseIdentifiers": [
+          "BSD-2-clause",
+          "BSD-3-clause",
+          "BSD-3-clause or GPL-2",
+          "BSD-3-clause or GPL-2+",
+          "BSD-3-clause or LGPL-2.1",
+          "Expat",
+          "FSFULLR",
+          "GPL-2",
+          "GPL-2+",
+          "GPL-3+",
+          "HPND-sell-variant",
+          "LGPL",
+          "LGPL-2+",
+          "LGPL-2.1",
+          "LGPL-2.1+",
+          "jpeg-group"
+        ]
+      },
+      {
+        "package": "libwavpack1",
+        "version": "5.6.0-1build1",
+        "architecture": "arm64",
+        "downloadBytes": 79156,
+        "installedKiB": 223,
+        "sha256": "fd86ac4ecc6aaa218744e38ba7e8c0d4bb13f45c5508c3247e059fdcee33ad55",
+        "archive": "pool/main/w/wavpack/libwavpack1_5.6.0-1build1_arm64.deb",
+        "homepage": "http://www.wavpack.com",
+        "localArchive": "packages/libwavpack1_5.6.0-1build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libwavpack1/copyright",
+        "licenseIdentifiers": [
+          "BSD-2-clause",
+          "BSD-3-clause",
+          "public-domain"
+        ]
+      },
+      {
+        "package": "libsoup-3.0-common",
+        "version": "3.4.4-5ubuntu0.9",
+        "architecture": "all",
+        "downloadBytes": 12284,
+        "installedKiB": 48,
+        "sha256": "950de96545c81a4bcf9c67600c6c6b84fcf5fd680f87d4301a1e3dc1238474f0",
+        "archive": "pool/main/libs/libsoup3/libsoup-3.0-common_3.4.4-5ubuntu0.9_all.deb",
+        "homepage": "https://wiki.gnome.org/Projects/libsoup",
+        "localArchive": "packages/libsoup-3.0-common_3.4.4-5ubuntu0.9_all.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libsoup-3.0-common/copyright",
+        "licenseIdentifiers": [
+          "Expat",
+          "LGPL-2+",
+          "LGPL-2.1+",
+          "MPL-2.0",
+          "MPL-2.0 or RSA-Other",
+          "RSA-Other"
+        ]
+      },
+      {
+        "package": "libsoup-3.0-0",
+        "version": "3.4.4-5ubuntu0.9",
+        "architecture": "arm64",
+        "downloadBytes": 290826,
+        "installedKiB": 806,
+        "sha256": "4e8d6e982f00af17ef465f2429aa96821fc553ad3ed67117061c7c907baeeefe",
+        "archive": "pool/main/libs/libsoup3/libsoup-3.0-0_3.4.4-5ubuntu0.9_arm64.deb",
+        "homepage": "https://wiki.gnome.org/Projects/libsoup",
+        "localArchive": "packages/libsoup-3.0-0_3.4.4-5ubuntu0.9_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libsoup-3.0-0/copyright",
+        "licenseIdentifiers": [
+          "Expat",
+          "LGPL-2+",
+          "LGPL-2.1+",
+          "MPL-2.0",
+          "MPL-2.0 or RSA-Other",
+          "RSA-Other"
+        ]
+      },
+      {
+        "package": "gstreamer1.0-plugins-good",
+        "version": "1.24.2-1ubuntu1.8",
+        "architecture": "arm64",
+        "downloadBytes": 2154830,
+        "installedKiB": 9452,
+        "sha256": "c1dba2da2de061f8df51eaedf3ee22ac4aefaae6356d79b0fd9918cb64b8beae",
+        "archive": "pool/main/g/gst-plugins-good1.0/gstreamer1.0-plugins-good_1.24.2-1ubuntu1.8_arm64.deb",
+        "homepage": "https://gstreamer.freedesktop.org",
+        "localArchive": "packages/gstreamer1.0-plugins-good_1.24.2-1ubuntu1.8_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/gstreamer1.0-plugins-good/copyright",
+        "licenseIdentifiers": [
+          "BSD",
+          "BSD (3 clause)",
+          "GPL-2+",
+          "LGPL",
+          "LGPL-2",
+          "LGPL-2+",
+          "LGPL-2.1+",
+          "MIT/X11 (BSD like) LGPL-2+"
+        ]
+      },
+      {
+        "package": "hunspell-en-us",
+        "version": "1:2020.12.07-2",
+        "architecture": "all",
+        "downloadBytes": 280206,
+        "installedKiB": 878,
+        "sha256": "d231c94b54792215038a4f719c562deafe8efe0a7710c0c7218974cab513330c",
+        "archive": "pool/main/s/scowl/hunspell-en-us_2020.12.07-2_all.deb",
+        "homepage": "http://wordlist.sourceforge.net/",
+        "localArchive": "packages/hunspell-en-us_1%3a2020.12.07-2_all.deb",
+        "copyrightFile": "sysroot/usr/share/doc/hunspell-en-us/copyright",
+        "licenseIdentifiers": []
+      },
+      {
+        "package": "libabsl20220623t64",
+        "version": "20220623.1-3.1ubuntu3.2",
+        "architecture": "arm64",
+        "downloadBytes": 413238,
+        "installedKiB": 4679,
+        "sha256": "bb2c97960dd21896e0e0a9d0df7aa552943b75cee653ca817e51f53d827cffd4",
+        "archive": "pool/main/a/abseil/libabsl20220623t64_20220623.1-3.1ubuntu3.2_arm64.deb",
+        "homepage": "https://abseil.io/",
+        "localArchive": "packages/libabsl20220623t64_20220623.1-3.1ubuntu3.2_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libabsl20220623t64/copyright",
+        "licenseIdentifiers": [
+          "Apache-2.0"
+        ]
+      },
+      {
+        "package": "libaspell15",
+        "version": "0.60.8.1-1build1",
+        "architecture": "arm64",
+        "downloadBytes": 315930,
+        "installedKiB": 2620,
+        "sha256": "7a3da894c71c254c7ed7074284bb035eabb44f0e56cabaf96186e345813d1d6f",
+        "archive": "pool/main/a/aspell/libaspell15_0.60.8.1-1build1_arm64.deb",
+        "homepage": "http://aspell.net/",
+        "localArchive": "packages/libaspell15_0.60.8.1-1build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libaspell15/copyright",
+        "licenseIdentifiers": [
+          "GFDL-1.2+",
+          "LGPL-2.1+"
+        ]
+      },
+      {
+        "package": "libgav1-1",
+        "version": "0.18.0-1build3",
+        "architecture": "arm64",
+        "downloadBytes": 496004,
+        "installedKiB": 1172,
+        "sha256": "403d560357251c0002f42037e0c69dc6cb59649fcd025d26db916f630f08127d",
+        "archive": "pool/universe/libg/libgav1/libgav1-1_0.18.0-1build3_arm64.deb",
+        "homepage": "https://chromium.googlesource.com/codecs/libgav1/",
+        "localArchive": "packages/libgav1-1_0.18.0-1build3_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libgav1-1/copyright",
+        "licenseIdentifiers": [
+          "Apache-2.0",
+          "BSD-3-clause"
+        ]
+      },
+      {
+        "package": "libyuv0",
+        "version": "0.0~git202401110.af6ac82-1",
+        "architecture": "arm64",
+        "downloadBytes": 142894,
+        "installedKiB": 531,
+        "sha256": "927405a85ab7b53612ded42f680e6d6d4f83a394220ad276504d5e45869c25e5",
+        "archive": "pool/universe/liby/libyuv/libyuv0_0.0~git202401110.af6ac82-1_arm64.deb",
+        "homepage": "https://chromium.googlesource.com/libyuv/libyuv/",
+        "localArchive": "packages/libyuv0_0.0~git202401110.af6ac82-1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libyuv0/copyright",
+        "licenseIdentifiers": [
+          "BSD-3-Clause",
+          "public-domain"
+        ]
+      },
+      {
+        "package": "libavif16",
+        "version": "1.0.4-1ubuntu3",
+        "architecture": "arm64",
+        "downloadBytes": 89624,
+        "installedKiB": 223,
+        "sha256": "0dfdf3b2281df61345f72dfaffa61775ddad2c7e77f52d6928f41ac22cb27166",
+        "archive": "pool/universe/liba/libavif/libavif16_1.0.4-1ubuntu3_arm64.deb",
+        "homepage": "https://github.com/AOMediaCodec/libavif",
+        "localArchive": "packages/libavif16_1.0.4-1ubuntu3_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libavif16/copyright",
+        "licenseIdentifiers": [
+          "Apache-2.0",
+          "BSD-2-Clause",
+          "BSD-3-Clause",
+          "CC0-1.0",
+          "custom-1"
+        ]
+      },
+      {
+        "package": "libavtp0",
+        "version": "0.2.0-1build1",
+        "architecture": "arm64",
+        "downloadBytes": 6544,
+        "installedKiB": 80,
+        "sha256": "a44b6266bba41936a051fd2bad088b45f5064de81e4f340894a255142df8109c",
+        "archive": "pool/universe/liba/libavtp/libavtp0_0.2.0-1build1_arm64.deb",
+        "homepage": "https://github.com/Avnu/libavtp",
+        "localArchive": "packages/libavtp0_0.2.0-1build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libavtp0/copyright",
+        "licenseIdentifiers": [
+          "BSD-3-clause"
+        ]
+      },
+      {
+        "package": "libde265-0",
+        "version": "1.0.15-1ubuntu0.2",
+        "architecture": "arm64",
+        "downloadBytes": 144210,
+        "installedKiB": 348,
+        "sha256": "c3bbb199cbad5996a0cc98f67c2c737019fb6bce7011869d80f0054fabc69ed5",
+        "archive": "pool/main/libd/libde265/libde265-0_1.0.15-1ubuntu0.2_arm64.deb",
+        "homepage": "https://github.com/strukturag/libde265",
+        "localArchive": "packages/libde265-0_1.0.15-1ubuntu0.2_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libde265-0/copyright",
+        "licenseIdentifiers": [
+          "BSD-4-clause",
+          "GPL-3+",
+          "LGPL-3+",
+          "other-1",
+          "public-domain-1"
+        ]
+      },
+      {
+        "package": "libdirectfb-1.7-7t64",
+        "version": "1.7.7-11.1ubuntu2",
+        "architecture": "arm64",
+        "downloadBytes": 1006338,
+        "installedKiB": 5221,
+        "sha256": "730178b3fb4121de18ed1727548fa8623f8700fced069190e87883b82fccc545",
+        "archive": "pool/universe/d/directfb/libdirectfb-1.7-7t64_1.7.7-11.1ubuntu2_arm64.deb",
+        "homepage": "http://www.directfb.net",
+        "localArchive": "packages/libdirectfb-1.7-7t64_1.7.7-11.1ubuntu2_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libdirectfb-1.7-7t64/copyright",
+        "licenseIdentifiers": [
+          "Apache-2.0",
+          "BSD-3-clause",
+          "BSD-3-clause or GPL-2+",
+          "Expat",
+          "GPL-2",
+          "GPL-2 and Expat",
+          "GPL-2+",
+          "LGPL-2.0+",
+          "LGPL-2.0+ and Expat",
+          "LGPL-2.1+"
+        ]
+      },
+      {
+        "package": "libdvdread8t64",
+        "version": "6.1.3-1.1build1",
+        "architecture": "arm64",
+        "downloadBytes": 52792,
+        "installedKiB": 158,
+        "sha256": "888fd7e967bce314d4ec046b67041f07559f61fee2465459c0ed2f7455e830ca",
+        "archive": "pool/universe/libd/libdvdread/libdvdread8t64_6.1.3-1.1build1_arm64.deb",
+        "homepage": "https://www.videolan.org/developers/libdvdnav.html",
+        "localArchive": "packages/libdvdread8t64_6.1.3-1.1build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libdvdread8t64/copyright",
+        "licenseIdentifiers": [
+          "GPL-2",
+          "GPL-2 or GPL-3",
+          "GPL-2+",
+          "GPL-3",
+          "LGPL-2.1+"
+        ]
+      },
+      {
+        "package": "libdvdnav4",
+        "version": "6.1.1-3build1",
+        "architecture": "arm64",
+        "downloadBytes": 37796,
+        "installedKiB": 159,
+        "sha256": "91c3a156bc6481026af4d5f6aada30c1d44e3c3cfb02638a7b7e2e2a74a3a56e",
+        "archive": "pool/universe/libd/libdvdnav/libdvdnav4_6.1.1-3build1_arm64.deb",
+        "homepage": "https://www.videolan.org/developers/libdvdnav.html",
+        "localArchive": "packages/libdvdnav4_6.1.1-3build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libdvdnav4/copyright",
+        "licenseIdentifiers": [
+          "GPL-2+",
+          "LGPL-2+"
+        ]
+      },
+      {
+        "package": "libhunspell-1.7-0",
+        "version": "1.7.2+really1.7.2-10build3",
+        "architecture": "arm64",
+        "downloadBytes": 274062,
+        "installedKiB": 766,
+        "sha256": "905d26e0c736b7334027ff9a0e12f8faa913d33ff861c0ca5c9c20b43071bca7",
+        "archive": "pool/main/h/hunspell/libhunspell-1.7-0_1.7.2+really1.7.2-10build3_arm64.deb",
+        "homepage": "https://hunspell.github.io/",
+        "localArchive": "packages/libhunspell-1.7-0_1.7.2+really1.7.2-10build3_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libhunspell-1.7-0/copyright",
+        "licenseIdentifiers": [
+          "MPL 1.1/GPL 2.0/LGPL 2.1"
+        ]
+      },
+      {
+        "package": "libenchant-2-2",
+        "version": "2.3.3-2build2",
+        "architecture": "arm64",
+        "downloadBytes": 50298,
+        "installedKiB": 304,
+        "sha256": "a8334fe77eabef07ead474657e38faeb7590da494d012480feb230e05a70b7ed",
+        "archive": "pool/main/e/enchant-2/libenchant-2-2_2.3.3-2build2_arm64.deb",
+        "homepage": "https://abiword.github.io/enchant/",
+        "localArchive": "packages/libenchant-2-2_2.3.3-2build2_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libenchant-2-2/copyright",
+        "licenseIdentifiers": [
+          "Expat",
+          "FSFAP",
+          "GPL-2.0+",
+          "GPL-3.0+",
+          "LGPL-2.0+",
+          "LGPL-2.1+",
+          "LGPL-3.0+"
+        ]
+      },
+      {
+        "package": "libfaad2",
+        "version": "2.11.1-1build1",
+        "architecture": "arm64",
+        "downloadBytes": 206730,
+        "installedKiB": 550,
+        "sha256": "8709e1ed476b8738ef995b39535679814f16167e211fd88c2077b6c969b485ea",
+        "archive": "pool/universe/f/faad2/libfaad2_2.11.1-1build1_arm64.deb",
+        "homepage": "https://github.com/knik0/faad2",
+        "localArchive": "packages/libfaad2_2.11.1-1build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libfaad2/copyright",
+        "licenseIdentifiers": [
+          "GPL-2+",
+          "GPL-3+"
+        ]
+      },
+      {
+        "package": "libinstpatch-1.0-2",
+        "version": "1.1.6-1build2",
+        "architecture": "arm64",
+        "downloadBytes": 252388,
+        "installedKiB": 832,
+        "sha256": "af89f6cfdbc26fa5645f1bc81752054cca622d37a7412a0ba12233fd0c261135",
+        "archive": "pool/universe/libi/libinstpatch/libinstpatch-1.0-2_1.1.6-1build2_arm64.deb",
+        "homepage": "https://github.com/swami/libinstpatch",
+        "localArchive": "packages/libinstpatch-1.0-2_1.1.6-1build2_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libinstpatch-1.0-2/copyright",
+        "licenseIdentifiers": [
+          "LGPL-2.1",
+          "Public_Domain_1",
+          "Public_Domain_2"
+        ]
+      },
+      {
+        "package": "libwebrtc-audio-processing1",
+        "version": "0.3.1-0ubuntu6",
+        "architecture": "arm64",
+        "downloadBytes": 284776,
+        "installedKiB": 723,
+        "sha256": "fa09397ba97a2a359952136d652d48ef1ce14072addf8e1594d1e7e76203c483",
+        "archive": "pool/main/w/webrtc-audio-processing/libwebrtc-audio-processing1_0.3.1-0ubuntu6_arm64.deb",
+        "homepage": "http://freedesktop.org/software/pulseaudio/webrtc-audio-processing/",
+        "localArchive": "packages/libwebrtc-audio-processing1_0.3.1-0ubuntu6_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libwebrtc-audio-processing1/copyright",
+        "licenseIdentifiers": [
+          "BSD-3-clause"
+        ]
+      },
+      {
+        "package": "libspa-0.2-modules",
+        "version": "1.0.5-1ubuntu3.3",
+        "architecture": "arm64",
+        "downloadBytes": 576036,
+        "installedKiB": 2657,
+        "sha256": "8f390dc22eb22b22004b8613f39c131bc0ec164c127b6217beef5c7a8307a541",
+        "archive": "pool/main/p/pipewire/libspa-0.2-modules_1.0.5-1ubuntu3.3_arm64.deb",
+        "homepage": "https://pipewire.org/",
+        "localArchive": "packages/libspa-0.2-modules_1.0.5-1ubuntu3.3_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libspa-0.2-modules/copyright",
+        "licenseIdentifiers": [
+          "BZIP2",
+          "Expat",
+          "Expat and LGPL-2.1+",
+          "FFTPACK",
+          "GPL-2",
+          "LGPL-2+",
+          "LGPL-2+ and LGPL-2.1+ and Expat",
+          "LGPL-2.1+"
+        ]
+      },
+      {
+        "package": "libpipewire-0.3-0t64",
+        "version": "1.0.5-1ubuntu3.3",
+        "architecture": "arm64",
+        "downloadBytes": 247036,
+        "installedKiB": 953,
+        "sha256": "2be10a9a87efa3d4456ca178a89673db79e4258bc52935fdea204434caacd252",
+        "archive": "pool/main/p/pipewire/libpipewire-0.3-0t64_1.0.5-1ubuntu3.3_arm64.deb",
+        "homepage": "https://pipewire.org/",
+        "localArchive": "packages/libpipewire-0.3-0t64_1.0.5-1ubuntu3.3_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libpipewire-0.3-0t64/copyright",
+        "licenseIdentifiers": [
+          "BZIP2",
+          "Expat",
+          "Expat and LGPL-2.1+",
+          "FFTPACK",
+          "GPL-2",
+          "LGPL-2+",
+          "LGPL-2+ and LGPL-2.1+ and Expat",
+          "LGPL-2.1+"
+        ]
+      },
+      {
+        "package": "timgm6mb-soundfont",
+        "version": "1.3-5",
+        "architecture": "all",
+        "downloadBytes": 5426680,
+        "installedKiB": 6073,
+        "sha256": "b70bc29b8f27adef8f92a2d9c1e26cee977b84c68110f0dd4326d97730a7c3ed",
+        "archive": "pool/universe/t/timgm6mb-soundfont/timgm6mb-soundfont_1.3-5_all.deb",
+        "homepage": "https://timbrechbill.com/saxguru/Timidity.php",
+        "localArchive": "packages/timgm6mb-soundfont_1.3-5_all.deb",
+        "copyrightFile": "sysroot/usr/share/doc/timgm6mb-soundfont/copyright",
+        "licenseIdentifiers": [
+          "GPL-2",
+          "GPL-3+"
+        ]
+      },
+      {
+        "package": "libfluidsynth3",
+        "version": "2.3.4-1build3",
+        "architecture": "arm64",
+        "downloadBytes": 241450,
+        "installedKiB": 633,
+        "sha256": "2a4ac17e85096577b127c078ee1ebab8e213152c59f3105d3553f6eac05e9cd3",
+        "archive": "pool/universe/f/fluidsynth/libfluidsynth3_2.3.4-1build3_arm64.deb",
+        "homepage": "https://github.com/Fluidsynth/fluidsynth",
+        "localArchive": "packages/libfluidsynth3_2.3.4-1build3_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libfluidsynth3/copyright",
+        "licenseIdentifiers": [
+          "CC-BY-SA-3.0",
+          "LGPL-2+",
+          "LGPL-2.1+",
+          "MIT/X11",
+          "Public-domain"
+        ]
+      },
+      {
+        "package": "libfreeaptx0",
+        "version": "0.1.1-2build1",
+        "architecture": "arm64",
+        "downloadBytes": 13322,
+        "installedKiB": 82,
+        "sha256": "384e2aa65abbf3f1ac82198830ec4facfd00735e3c3b0b6f7f0901a3097d402b",
+        "archive": "pool/main/libf/libfreeaptx/libfreeaptx0_0.1.1-2build1_arm64.deb",
+        "homepage": "https://github.com/iamthehorker/libfreeaptx",
+        "localArchive": "packages/libfreeaptx0_0.1.1-2build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libfreeaptx0/copyright",
+        "licenseIdentifiers": [
+          "GPL-2+",
+          "LGPL-2.1+"
+        ]
+      },
+      {
+        "package": "libgssdp-1.6-0",
+        "version": "1.6.3-1build3",
+        "architecture": "arm64",
+        "downloadBytes": 39874,
+        "installedKiB": 157,
+        "sha256": "d2f48c4d3374ce1ca8e7cad081b0808a23344a83e01081b5df69782372c139ab",
+        "archive": "pool/main/g/gssdp/libgssdp-1.6-0_1.6.3-1build3_arm64.deb",
+        "homepage": "https://wiki.gnome.org/Projects/GUPnP",
+        "localArchive": "packages/libgssdp-1.6-0_1.6.3-1build3_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libgssdp-1.6-0/copyright",
+        "licenseIdentifiers": [
+          "LGPL-2.1+"
+        ]
+      },
+      {
+        "package": "libgupnp-1.6-0",
+        "version": "1.6.6-1build3",
+        "architecture": "arm64",
+        "downloadBytes": 93366,
+        "installedKiB": 299,
+        "sha256": "c5f306f2764f8eccea59622003b7aa58aece115585f195429750d673638305be",
+        "archive": "pool/main/g/gupnp/libgupnp-1.6-0_1.6.6-1build3_arm64.deb",
+        "homepage": "https://wiki.gnome.org/Projects/GUPnP",
+        "localArchive": "packages/libgupnp-1.6-0_1.6.6-1build3_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libgupnp-1.6-0/copyright",
+        "licenseIdentifiers": [
+          "LGPL-2+"
+        ]
+      },
+      {
+        "package": "libgupnp-igd-1.6-0",
+        "version": "1.6.0-3build3",
+        "architecture": "arm64",
+        "downloadBytes": 16494,
+        "installedKiB": 84,
+        "sha256": "9fb2de0d9383d3730a1f7ee82a3934d9484e57162b84d9c1751beb1163dce841",
+        "archive": "pool/universe/g/gupnp-igd/libgupnp-igd-1.6-0_1.6.0-3build3_arm64.deb",
+        "homepage": "https://wiki.gnome.org/Projects/GUPnP",
+        "localArchive": "packages/libgupnp-igd-1.6-0_1.6.0-3build3_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libgupnp-igd-1.6-0/copyright",
+        "licenseIdentifiers": [
+          "BSD-2-clause",
+          "GPL-3",
+          "LGPL-2.1+"
+        ]
+      },
+      {
+        "package": "libharfbuzz-icu0",
+        "version": "8.3.0-2build2",
+        "architecture": "arm64",
+        "downloadBytes": 13236,
+        "installedKiB": 112,
+        "sha256": "92f1311987c69b90432408c19e28b4796ff7584927cb55c9cec74bd3bab9efb4",
+        "archive": "pool/main/h/harfbuzz/libharfbuzz-icu0_8.3.0-2build2_arm64.deb",
+        "homepage": "https://www.freedesktop.org/wiki/Software/HarfBuzz",
+        "localArchive": "packages/libharfbuzz-icu0_8.3.0-2build2_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libharfbuzz-icu0/copyright",
+        "licenseIdentifiers": [
+          "Apache-2.0",
+          "CC0-1.0",
+          "Expat",
+          "FSFAP",
+          "FSFUL",
+          "FSFULLR",
+          "GPL-2+ with AutoConf exception",
+          "GPL-2+ with Font exception",
+          "GPL-2+ with LibTool exception",
+          "GPL-3+",
+          "GPL-3+ with AutoConf exception",
+          "ISC",
+          "LGPL-2.1+",
+          "MIT",
+          "Monotype",
+          "OFL-1.1",
+          "UFL-1.0",
+          "Unicode"
+        ]
+      },
+      {
+        "package": "libhyphen0",
+        "version": "2.8.8-7build3",
+        "architecture": "arm64",
+        "downloadBytes": 26408,
+        "installedKiB": 115,
+        "sha256": "ac159cf84661f8027d0f4274d9ff559eb41ab9e2a476d5d63cf2573bda542c94",
+        "archive": "pool/main/h/hyphen/libhyphen0_2.8.8-7build3_arm64.deb",
+        "homepage": "https://github.com/hunspell/hyphen",
+        "localArchive": "packages/libhyphen0_2.8.8-7build3_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libhyphen0/copyright",
+        "licenseIdentifiers": [
+          "GPL-2+",
+          "GPL-2+ or LGPL-2.1+ or MPL-1.1+",
+          "LGPL-2.1+",
+          "MPL-1.1+"
+        ]
+      },
+      {
+        "package": "libimath-3-1-29t64",
+        "version": "3.1.9-3.1ubuntu2",
+        "architecture": "arm64",
+        "downloadBytes": 68152,
+        "installedKiB": 340,
+        "sha256": "952e44384af8bba0decc8cacbcaddaf1f48e6449955fa5abfd84ec143d2ae56b",
+        "archive": "pool/universe/i/imath/libimath-3-1-29t64_3.1.9-3.1ubuntu2_arm64.deb",
+        "homepage": "https://www.openexr.com",
+        "localArchive": "packages/libimath-3-1-29t64_3.1.9-3.1ubuntu2_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libimath-3-1-29t64/copyright",
+        "licenseIdentifiers": [
+          "imath"
+        ]
+      },
+      {
+        "package": "liblc3-1",
+        "version": "1.0.4-3build1",
+        "architecture": "arm64",
+        "downloadBytes": 69372,
+        "installedKiB": 146,
+        "sha256": "2017938bca5efa7754afbab602980dbeefeb26842e66e883dd322211a439604f",
+        "archive": "pool/main/libl/liblc3/liblc3-1_1.0.4-3build1_arm64.deb",
+        "homepage": "https://github.com/google/liblc3",
+        "localArchive": "packages/liblc3-1_1.0.4-3build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/liblc3-1/copyright",
+        "licenseIdentifiers": [
+          "Apache-2.0"
+        ]
+      },
+      {
+        "package": "libldacbt-enc2",
+        "version": "2.0.2.3+git20200429+ed310a0-4ubuntu2",
+        "architecture": "arm64",
+        "downloadBytes": 26674,
+        "installedKiB": 82,
+        "sha256": "e81cdcb882cbd5a555dadd7dd3e2db1fa8fd115cb0004920f3827e4b9d82a8ec",
+        "archive": "pool/main/libl/libldac/libldacbt-enc2_2.0.2.3+git20200429+ed310a0-4ubuntu2_arm64.deb",
+        "homepage": "https://android.googlesource.com/platform/external/libldac",
+        "localArchive": "packages/libldacbt-enc2_2.0.2.3+git20200429+ed310a0-4ubuntu2_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libldacbt-enc2/copyright",
+        "licenseIdentifiers": [
+          "Apache-2"
+        ]
+      },
+      {
+        "package": "libxslt1.1",
+        "version": "1.1.39-0exp1ubuntu0.24.04.3",
+        "architecture": "arm64",
+        "downloadBytes": 166772,
+        "installedKiB": 456,
+        "sha256": "1e8b809859ddf2c827de14152741e74ea2f83907c7c06cba470c6cc75624ba49",
+        "archive": "pool/main/libx/libxslt/libxslt1.1_1.1.39-0exp1ubuntu0.24.04.3_arm64.deb",
+        "homepage": "https://gitlab.gnome.org/GNOME/libxslt/-/wikis/home",
+        "localArchive": "packages/libxslt1.1_1.1.39-0exp1ubuntu0.24.04.3_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libxslt1.1/copyright",
+        "licenseIdentifiers": []
+      },
+      {
+        "package": "libyajl2",
+        "version": "2.1.0-5build1",
+        "architecture": "arm64",
+        "downloadBytes": 19716,
+        "installedKiB": 86,
+        "sha256": "521e80ea03413dcd29277cd85e42305be3115fead2ce150570290a09d8e13b83",
+        "archive": "pool/main/y/yajl/libyajl2_2.1.0-5build1_arm64.deb",
+        "homepage": "https://lloyd.github.io/yajl/",
+        "localArchive": "packages/libyajl2_2.1.0-5build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libyajl2/copyright",
+        "licenseIdentifiers": [
+          "ISC"
+        ]
+      },
+      {
+        "package": "libraptor2-0",
+        "version": "2.0.16-3ubuntu0.1",
+        "architecture": "arm64",
+        "downloadBytes": 164348,
+        "installedKiB": 501,
+        "sha256": "a1cbb62458956dfd88b6f9e847b1b7b26f0afc39ecbf7bed7f4e8b4c760f9e56",
+        "archive": "pool/main/r/raptor2/libraptor2-0_2.0.16-3ubuntu0.1_arm64.deb",
+        "homepage": "https://librdf.org/raptor/",
+        "localArchive": "packages/libraptor2-0_2.0.16-3ubuntu0.1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libraptor2-0/copyright",
+        "licenseIdentifiers": [
+          "Apache-2.0",
+          "GPL-2+",
+          "GPL-3+",
+          "LGPL-2.1+",
+          "LGPL-2.1+ or GPL-2+ or Apache-2.0",
+          "public-domain"
+        ]
+      },
+      {
+        "package": "liblrdf0",
+        "version": "0.6.1-4build1",
+        "architecture": "arm64",
+        "downloadBytes": 18602,
+        "installedKiB": 104,
+        "sha256": "3471086b03ae52832e5fe2b488b00079b5444c80add2238a384ffb43c7ba6c0b",
+        "archive": "pool/universe/libl/liblrdf/liblrdf0_0.6.1-4build1_arm64.deb",
+        "homepage": "https://github.com/swh/LRDF",
+        "localArchive": "packages/liblrdf0_0.6.1-4build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/liblrdf0/copyright",
+        "licenseIdentifiers": [
+          "FSFUL~documentation",
+          "GPL-2",
+          "GPL-2+",
+          "LGPL-2.1+",
+          "X11",
+          "public-domain"
+        ]
+      },
+      {
+        "package": "libltc11",
+        "version": "1.3.2-1build1",
+        "architecture": "arm64",
+        "downloadBytes": 13462,
+        "installedKiB": 82,
+        "sha256": "bf7019b1344ff5eec7f315207a6e7429d5172f7e81181f3d6dbd606f55406354",
+        "archive": "pool/universe/libl/libltc/libltc11_1.3.2-1build1_arm64.deb",
+        "homepage": "https://github.com/x42/libltc",
+        "localArchive": "packages/libltc11_1.3.2-1build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libltc11/copyright",
+        "licenseIdentifiers": [
+          "LGPL-3+"
+        ]
+      },
+      {
+        "package": "libmanette-0.2-0",
+        "version": "0.2.7-1build2",
+        "architecture": "arm64",
+        "downloadBytes": 30406,
+        "installedKiB": 215,
+        "sha256": "9e5585c1d791e192f48ed4d6579c5dbdbc79f2330afc4f7998fd5e72e654bf2b",
+        "archive": "pool/main/libm/libmanette/libmanette-0.2-0_0.2.7-1build2_arm64.deb",
+        "homepage": "https://gitlab.gnome.org/aplazas/libmanette",
+        "localArchive": "packages/libmanette-0.2-0_0.2.7-1build2_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libmanette-0.2-0/copyright",
+        "licenseIdentifiers": [
+          "LGPL-2.1+"
+        ]
+      },
+      {
+        "package": "libmjpegutils-2.1-0t64",
+        "version": "1:2.1.0+debian-8.1build1",
+        "architecture": "arm64",
+        "downloadBytes": 25956,
+        "installedKiB": 87,
+        "sha256": "7bdef4bcebf36896d12ee24d9825cd5b66cfd3cb947c11d71bbfb45e9a149fb0",
+        "archive": "pool/universe/m/mjpegtools/libmjpegutils-2.1-0t64_2.1.0+debian-8.1build1_arm64.deb",
+        "homepage": "http://mjpeg.sourceforge.net/",
+        "localArchive": "packages/libmjpegutils-2.1-0t64_1%3a2.1.0+debian-8.1build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libmjpegutils-2.1-0t64/copyright",
+        "licenseIdentifiers": [
+          "Copyright \u00a9 2000-2008, mjpegtools authors"
+        ]
+      },
+      {
+        "package": "libmodplug1",
+        "version": "1:0.8.9.0-3build1",
+        "architecture": "arm64",
+        "downloadBytes": 160880,
+        "installedKiB": 351,
+        "sha256": "4d2eb766a768b8963e7b93c48e2d8edd9a1898c142e738628639d663641cda3c",
+        "archive": "pool/universe/libm/libmodplug/libmodplug1_0.8.9.0-3build1_arm64.deb",
+        "homepage": "http://modplug-xmms.sourceforge.net/",
+        "localArchive": "packages/libmodplug1_1%3a0.8.9.0-3build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libmodplug1/copyright",
+        "licenseIdentifiers": [
+          "Public Domain"
+        ]
+      },
+      {
+        "package": "libmpcdec6",
+        "version": "2:0.1~r495-2build1",
+        "architecture": "arm64",
+        "downloadBytes": 32252,
+        "installedKiB": 90,
+        "sha256": "9d67d5a9c6f53b39768a738bfeac20b7d1653f762e2f0708110ebf527f3d5d74",
+        "archive": "pool/universe/libm/libmpc/libmpcdec6_0.1~r495-2build1_arm64.deb",
+        "homepage": "http://www.musepack.net",
+        "localArchive": "packages/libmpcdec6_2%3a0.1~r495-2build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libmpcdec6/copyright",
+        "licenseIdentifiers": [
+          "For common/fastmath.c,"
+        ]
+      },
+      {
+        "package": "libmpeg2encpp-2.1-0t64",
+        "version": "1:2.1.0+debian-8.1build1",
+        "architecture": "arm64",
+        "downloadBytes": 72852,
+        "installedKiB": 215,
+        "sha256": "5389486a1c0d5f68bf3d1635d4c34f81ae6b509bb3b7a90ee9a6d85648192330",
+        "archive": "pool/universe/m/mjpegtools/libmpeg2encpp-2.1-0t64_2.1.0+debian-8.1build1_arm64.deb",
+        "homepage": "http://mjpeg.sourceforge.net/",
+        "localArchive": "packages/libmpeg2encpp-2.1-0t64_1%3a2.1.0+debian-8.1build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libmpeg2encpp-2.1-0t64/copyright",
+        "licenseIdentifiers": [
+          "Copyright \u00a9 2000-2008, mjpegtools authors"
+        ]
+      },
+      {
+        "package": "libmplex2-2.1-0t64",
+        "version": "1:2.1.0+debian-8.1build1",
+        "architecture": "arm64",
+        "downloadBytes": 45626,
+        "installedKiB": 151,
+        "sha256": "24103d5a5e633eb1774a4e7bbfd406975befb66c9b9af2388bbd29bf9cf0e8da",
+        "archive": "pool/universe/m/mjpegtools/libmplex2-2.1-0t64_2.1.0+debian-8.1build1_arm64.deb",
+        "homepage": "http://mjpeg.sourceforge.net/",
+        "localArchive": "packages/libmplex2-2.1-0t64_1%3a2.1.0+debian-8.1build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libmplex2-2.1-0t64/copyright",
+        "licenseIdentifiers": [
+          "Copyright \u00a9 2000-2008, mjpegtools authors"
+        ]
+      },
+      {
+        "package": "libneon27t64",
+        "version": "0.33.0-1.1build3",
+        "architecture": "arm64",
+        "downloadBytes": 101474,
+        "installedKiB": 246,
+        "sha256": "57f71847f6d47b27dbcc34fc1265f6c8eff579fea5a7ce9981c5c880fb9bb807",
+        "archive": "pool/universe/n/neon27/libneon27t64_0.33.0-1.1build3_arm64.deb",
+        "homepage": "https://notroj.github.io/neon/",
+        "localArchive": "packages/libneon27t64_0.33.0-1.1build3_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libneon27t64/copyright",
+        "licenseIdentifiers": [
+          "GPL-2+"
+        ]
+      },
+      {
+        "package": "libnice10",
+        "version": "0.1.21-2build3",
+        "architecture": "arm64",
+        "downloadBytes": 152934,
+        "installedKiB": 444,
+        "sha256": "c697155b6294c444afe13f8983bdb8027d47ed85792b372abea47e5a149ded4c",
+        "archive": "pool/universe/libn/libnice/libnice10_0.1.21-2build3_arm64.deb",
+        "homepage": "https://nice.freedesktop.org/",
+        "localArchive": "packages/libnice10_0.1.21-2build3_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libnice10/copyright",
+        "licenseIdentifiers": [
+          "The Nice Glib ICE library is licensed under both the Mozilla Public License"
+        ]
+      },
+      {
+        "package": "libopenexr-3-1-30",
+        "version": "3.1.5-5.1build3",
+        "architecture": "arm64",
+        "downloadBytes": 939096,
+        "installedKiB": 4459,
+        "sha256": "9cd50f8c28282e4e0f7e946ce2f940ef9d12ce018f339866b2960a8d63567b9d",
+        "archive": "pool/universe/o/openexr/libopenexr-3-1-30_3.1.5-5.1build3_arm64.deb",
+        "homepage": "https://www.openexr.com",
+        "localArchive": "packages/libopenexr-3-1-30_3.1.5-5.1build3_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libopenexr-3-1-30/copyright",
+        "licenseIdentifiers": [
+          "BSD-3-clause",
+          "openexr"
+        ]
+      },
+      {
+        "package": "libopenh264-7",
+        "version": "2.4.1+dfsg-1",
+        "architecture": "arm64",
+        "downloadBytes": 376044,
+        "installedKiB": 984,
+        "sha256": "f52fec7317fedf0ce08ec7622ca62ce9ffa01aa76ca2f804e811d0b76b6f3941",
+        "archive": "pool/universe/o/openh264/libopenh264-7_2.4.1+dfsg-1_arm64.deb",
+        "homepage": "https://www.openh264.org",
+        "localArchive": "packages/libopenh264-7_2.4.1+dfsg-1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libopenh264-7/copyright",
+        "licenseIdentifiers": [
+          "Apache-2.0",
+          "BSD-2-clause",
+          "Expat",
+          "MPL-2.0"
+        ]
+      },
+      {
+        "package": "libopenni2-0",
+        "version": "2.2.0.33+dfsg-18",
+        "architecture": "arm64",
+        "downloadBytes": 373730,
+        "installedKiB": 1288,
+        "sha256": "e4d33694a43cd8339beabac917eb645f00098098c6c3d4ec224c3f929307c27c",
+        "archive": "pool/universe/o/openni2/libopenni2-0_2.2.0.33+dfsg-18_arm64.deb",
+        "homepage": "https://structure.io/openni",
+        "localArchive": "packages/libopenni2-0_2.2.0.33+dfsg-18_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libopenni2-0/copyright",
+        "licenseIdentifiers": [
+          "APACHE-2.0",
+          "BSD-3-clause-NVIDIA-LICENSE",
+          "GPL-3+",
+          "Google",
+          "LGPL-2.1",
+          "LibJPEG"
+        ]
+      },
+      {
+        "package": "libqrencode4",
+        "version": "4.1.1-1build2",
+        "architecture": "arm64",
+        "downloadBytes": 25312,
+        "installedKiB": 85,
+        "sha256": "3058779db8d36d1e0850afa57127794580bb1a07231b1fbe2c4c06183ead006b",
+        "archive": "pool/universe/q/qrencode/libqrencode4_4.1.1-1build2_arm64.deb",
+        "homepage": "https://fukuchi.org/works/qrencode/index.html.en",
+        "localArchive": "packages/libqrencode4_4.1.1-1build2_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libqrencode4/copyright",
+        "licenseIdentifiers": [
+          "LGPL-2.1+",
+          "public-domain"
+        ]
+      },
+      {
+        "package": "libsoundtouch1",
+        "version": "2.3.2+ds1-1build1",
+        "architecture": "arm64",
+        "downloadBytes": 53828,
+        "installedKiB": 213,
+        "sha256": "09b2f09d182436cfb08435c95be4eba6c48418b6c9a50625b3555f68c5157722",
+        "archive": "pool/universe/s/soundtouch/libsoundtouch1_2.3.2+ds1-1build1_arm64.deb",
+        "homepage": "https://www.surina.net/soundtouch/",
+        "localArchive": "packages/libsoundtouch1_2.3.2+ds1-1build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libsoundtouch1/copyright",
+        "licenseIdentifiers": [
+          "LGPL-2.1+"
+        ]
+      },
+      {
+        "package": "libspandsp2t64",
+        "version": "0.0.6+dfsg-2.1build1",
+        "architecture": "arm64",
+        "downloadBytes": 312618,
+        "installedKiB": 887,
+        "sha256": "e8b8622638bea4a3643498b9e3b29145a51b2f1b46326a3ec6a6b85c7b746438",
+        "archive": "pool/universe/s/spandsp/libspandsp2t64_0.0.6+dfsg-2.1build1_arm64.deb",
+        "homepage": "https://www.soft-switch.org/installing-spandsp.html",
+        "localArchive": "packages/libspandsp2t64_0.0.6+dfsg-2.1build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libspandsp2t64/copyright",
+        "licenseIdentifiers": []
+      },
+      {
+        "package": "libsrtp2-1",
+        "version": "2.5.0-3build1",
+        "architecture": "arm64",
+        "downloadBytes": 42914,
+        "installedKiB": 159,
+        "sha256": "118c6f8508b0441607e3bcbe69667ef5cae743596b4b89cf87274ddb70595e14",
+        "archive": "pool/universe/libs/libsrtp2/libsrtp2-1_2.5.0-3build1_arm64.deb",
+        "homepage": "https://github.com/cisco/libsrtp",
+        "localArchive": "packages/libsrtp2-1_2.5.0-3build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libsrtp2-1/copyright",
+        "licenseIdentifiers": [
+          "BSD-3-clause~Cisco",
+          "BSD-3-clause~Ingate",
+          "Expat",
+          "FSFUL",
+          "GPL-2+",
+          "GPL-2+ with Autoconf exception",
+          "GPL-3+",
+          "X11"
+        ]
+      },
+      {
+        "package": "libwayland-server0",
+        "version": "1.22.0-2.1build1",
+        "architecture": "arm64",
+        "downloadBytes": 34640,
+        "installedKiB": 152,
+        "sha256": "2b6dec0d40070685f4ce346d20b064fc5e118a3149f30be88465251985b496ed",
+        "archive": "pool/main/w/wayland/libwayland-server0_1.22.0-2.1build1_arm64.deb",
+        "homepage": "https://wayland.freedesktop.org/",
+        "localArchive": "packages/libwayland-server0_1.22.0-2.1build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libwayland-server0/copyright",
+        "licenseIdentifiers": [
+          "X11"
+        ]
+      },
+      {
+        "package": "libwebpdemux2",
+        "version": "1.3.2-0.4build3",
+        "architecture": "arm64",
+        "downloadBytes": 12296,
+        "installedKiB": 88,
+        "sha256": "234d050c6710e104ce91cf4f6dead4d61cee0c03af2e494d50af0a2f05908333",
+        "archive": "pool/main/libw/libwebp/libwebpdemux2_1.3.2-0.4build3_arm64.deb",
+        "homepage": "https://developers.google.com/speed/webp/",
+        "localArchive": "packages/libwebpdemux2_1.3.2-0.4build3_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libwebpdemux2/copyright",
+        "licenseIdentifiers": [
+          "Apache-2.0",
+          "BSD-3-Clause"
+        ]
+      },
+      {
+        "package": "libwildmidi2",
+        "version": "0.4.3-1build3",
+        "architecture": "arm64",
+        "downloadBytes": 68692,
+        "installedKiB": 171,
+        "sha256": "490eb2573817c123ae929ade450025ba57a4329170fd449512aafb73233f3a39",
+        "archive": "pool/universe/w/wildmidi/libwildmidi2_0.4.3-1build3_arm64.deb",
+        "homepage": "http://www.mindwerks.net/projects/wildmidi/",
+        "localArchive": "packages/libwildmidi2_0.4.3-1build3_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libwildmidi2/copyright",
+        "licenseIdentifiers": [
+          "CC-BY-SA-4.0",
+          "GPL-3+",
+          "LGPL-3+"
+        ]
+      },
+      {
+        "package": "libxcb-xkb1",
+        "version": "1.15-1ubuntu2",
+        "architecture": "arm64",
+        "downloadBytes": 32616,
+        "installedKiB": 167,
+        "sha256": "e559534b89be9518f9eca70c111ace3eb3d21cc37aa5266754873122a8bd8e71",
+        "archive": "pool/main/libx/libxcb/libxcb-xkb1_1.15-1ubuntu2_arm64.deb",
+        "homepage": "https://xcb.freedesktop.org",
+        "localArchive": "packages/libxcb-xkb1_1.15-1ubuntu2_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libxcb-xkb1/copyright",
+        "licenseIdentifiers": []
+      },
+      {
+        "package": "libxkbcommon-x11-0",
+        "version": "1.6.0-1build1",
+        "architecture": "arm64",
+        "downloadBytes": 13606,
+        "installedKiB": 85,
+        "sha256": "350c788f4d34aee330e2065288d607b356d207f3be4256d95975cf99a5920f2e",
+        "archive": "pool/main/libx/libxkbcommon/libxkbcommon-x11-0_1.6.0-1build1_arm64.deb",
+        "homepage": "https://www.xkbcommon.org/",
+        "localArchive": "packages/libxkbcommon-x11-0_1.6.0-1build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libxkbcommon-x11-0/copyright",
+        "licenseIdentifiers": []
+      },
+      {
+        "package": "libzbar0t64",
+        "version": "0.23.93-4build3",
+        "architecture": "arm64",
+        "downloadBytes": 118922,
+        "installedKiB": 284,
+        "sha256": "624492a4d9a71aeb45c28d13754aa914d8103df991063074a49b2934f7e13639",
+        "archive": "pool/universe/z/zbar/libzbar0t64_0.23.93-4build3_arm64.deb",
+        "homepage": "https://github.com/mchehab/zbar",
+        "localArchive": "packages/libzbar0t64_0.23.93-4build3_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libzbar0t64/copyright",
+        "licenseIdentifiers": []
+      },
+      {
+        "package": "libzxing3",
+        "version": "2.2.1-3",
+        "architecture": "arm64",
+        "downloadBytes": 551312,
+        "installedKiB": 1116,
+        "sha256": "2868d46914a0b244ac6428afb24d5849f9730834bb919f419bce1cbe07b3f4ee",
+        "archive": "pool/universe/z/zxing-cpp/libzxing3_2.2.1-3_arm64.deb",
+        "homepage": "https://github.com/zxing-cpp/zxing-cpp",
+        "localArchive": "packages/libzxing3_2.2.1-3_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libzxing3/copyright",
+        "licenseIdentifiers": [
+          "Apache-2.0",
+          "BSD-3-Clause",
+          "CC0-1.0",
+          "CC0-1.0 or Apache-2.0",
+          "Unicode-license-v3"
+        ]
+      },
+      {
+        "package": "libgstreamer-plugins-bad1.0-0",
+        "version": "1.24.2-1ubuntu4",
+        "architecture": "arm64",
+        "downloadBytes": 770868,
+        "installedKiB": 3195,
+        "sha256": "917784636880a70102884e4842b4bf226feafb5b29417fdd71522dff4253c2ec",
+        "archive": "pool/universe/g/gst-plugins-bad1.0/libgstreamer-plugins-bad1.0-0_1.24.2-1ubuntu4_arm64.deb",
+        "homepage": "https://gstreamer.freedesktop.org",
+        "localArchive": "packages/libgstreamer-plugins-bad1.0-0_1.24.2-1ubuntu4_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libgstreamer-plugins-bad1.0-0/copyright",
+        "licenseIdentifiers": [
+          "BSD (2 clause)",
+          "BSD (3 clause)",
+          "GPL-2+",
+          "GPL-3+",
+          "LGPL",
+          "LGPL-2+",
+          "LGPL-2.1+",
+          "LGPL-2.1,",
+          "MIT/X11 (BSD like)",
+          "MIT/X11 (BSD like) LGPL-2+",
+          "MPL-1.1",
+          "MPL-1.1 GPL",
+          "MPL-1.1 GPL GPL-2+ LGPL (v2 or later) (with incorrect FSF address)",
+          "MPL-1.1 LGPL-2+",
+          "This package is free software; you can redistribute it and/or",
+          "UNKNOWN"
+        ]
+      },
+      {
+        "package": "libdca0",
+        "version": "0.0.7-2build1",
+        "architecture": "arm64",
+        "downloadBytes": 91282,
+        "installedKiB": 211,
+        "sha256": "abfc3ee227b3e05213d9a6df9b57390cdd2f10febe6546729ddce8e8000135a9",
+        "archive": "pool/universe/libd/libdca/libdca0_0.0.7-2build1_arm64.deb",
+        "homepage": "https://www.videolan.org/developers/libdca.html",
+        "localArchive": "packages/libdca0_0.0.7-2build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libdca0/copyright",
+        "licenseIdentifiers": [
+          "GPL-2+",
+          "LGPL-2+"
+        ]
+      },
+      {
+        "package": "libsbc1",
+        "version": "2.0-1build1",
+        "architecture": "arm64",
+        "downloadBytes": 29264,
+        "installedKiB": 83,
+        "sha256": "97ed02bf314b50b865a61e5bfb3b54fe1316d049772ad71187b263f14bdf824f",
+        "archive": "pool/main/s/sbc/libsbc1_2.0-1build1_arm64.deb",
+        "homepage": "https://www.bluez.org/",
+        "localArchive": "packages/libsbc1_2.0-1build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libsbc1/copyright",
+        "licenseIdentifiers": [
+          "GPL-2+",
+          "LGPL-2.1+"
+        ]
+      },
+      {
+        "package": "libvo-aacenc0",
+        "version": "0.1.3-2build1",
+        "architecture": "arm64",
+        "downloadBytes": 70548,
+        "installedKiB": 149,
+        "sha256": "b793225badbc378e16c372a443c7596ad45633f401f2e81824fb3068fac998fd",
+        "archive": "pool/universe/v/vo-aacenc/libvo-aacenc0_0.1.3-2build1_arm64.deb",
+        "homepage": "http://opencore-amr.git.sourceforge.net/",
+        "localArchive": "packages/libvo-aacenc0_0.1.3-2build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libvo-aacenc0/copyright",
+        "licenseIdentifiers": [
+          "Apache-2.0"
+        ]
+      },
+      {
+        "package": "libvo-amrwbenc0",
+        "version": "0.1.3-2build1",
+        "architecture": "arm64",
+        "downloadBytes": 73158,
+        "installedKiB": 176,
+        "sha256": "3d995af2cabe07c92aa8b24dd4057d4a19f6125b18b144fddd57881c3559d3fd",
+        "archive": "pool/universe/v/vo-amrwbenc/libvo-amrwbenc0_0.1.3-2build1_arm64.deb",
+        "homepage": "http://opencore-amr.git.sourceforge.net/",
+        "localArchive": "packages/libvo-amrwbenc0_0.1.3-2build1_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libvo-amrwbenc0/copyright",
+        "licenseIdentifiers": [
+          "Apache-2.0"
+        ]
+      },
+      {
+        "package": "gstreamer1.0-plugins-bad",
+        "version": "1.24.2-1ubuntu4",
+        "architecture": "arm64",
+        "downloadBytes": 2821832,
+        "installedKiB": 14667,
+        "sha256": "4948ce79d4e173ec50605188784082f2161e7fd374a584e28db38d44e8cf46ff",
+        "archive": "pool/universe/g/gst-plugins-bad1.0/gstreamer1.0-plugins-bad_1.24.2-1ubuntu4_arm64.deb",
+        "homepage": "https://gstreamer.freedesktop.org",
+        "localArchive": "packages/gstreamer1.0-plugins-bad_1.24.2-1ubuntu4_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/gstreamer1.0-plugins-bad/copyright",
+        "licenseIdentifiers": [
+          "BSD (2 clause)",
+          "BSD (3 clause)",
+          "GPL-2+",
+          "GPL-3+",
+          "LGPL",
+          "LGPL-2+",
+          "LGPL-2.1+",
+          "LGPL-2.1,",
+          "MIT/X11 (BSD like)",
+          "MIT/X11 (BSD like) LGPL-2+",
+          "MPL-1.1",
+          "MPL-1.1 GPL",
+          "MPL-1.1 GPL GPL-2+ LGPL (v2 or later) (with incorrect FSF address)",
+          "MPL-1.1 LGPL-2+",
+          "This package is free software; you can redistribute it and/or",
+          "UNKNOWN"
+        ]
+      },
+      {
+        "package": "libevent-2.1-7t64",
+        "version": "2.1.12-stable-9ubuntu2.2",
+        "architecture": "arm64",
+        "downloadBytes": 140880,
+        "installedKiB": 444,
+        "sha256": "fa673bc6df96f47db3aad32fa0158fccd0d15af9065fa4a4e11d90007abe4c9f",
+        "archive": "pool/main/libe/libevent/libevent-2.1-7t64_2.1.12-stable-9ubuntu2.2_arm64.deb",
+        "homepage": "https://libevent.org/",
+        "localArchive": "packages/libevent-2.1-7t64_2.1.12-stable-9ubuntu2.2_arm64.deb",
+        "copyrightFile": "sysroot/usr/share/doc/libevent-2.1-7t64/copyright",
+        "licenseIdentifiers": [
+          "BSD-2-clause",
+          "BSD-3-clause",
+          "BSL",
+          "Expat",
+          "FSFUL",
+          "FSFULLR",
+          "FSFULLR-No-Warranty",
+          "GPL-2+",
+          "GPL-3+",
+          "ISC",
+          "curl"
+        ]
+      }
+    ]
+  },
+  "extraGStreamerTool": {
+    "package": "gstreamer1.0-tools",
+    "version": "1.24.2-1ubuntu0.1",
+    "architecture": "arm64",
+    "downloadBytes": 65524,
+    "installedKiB": 463,
+    "sha256": "f1e42af0a6626f5c575ae5746559354c6211614e6cb389cecc8e3ba2945cdee4",
+    "archive": "pool/main/g/gstreamer1.0/gstreamer1.0-tools_1.24.2-1ubuntu0.1_arm64.deb",
+    "localArchive": "packages/gstreamer1.0-tools_1.24.2-1ubuntu0.1_arm64.deb",
+    "copyrightFile": "sysroot/usr/share/doc/gstreamer1.0-tools/copyright",
+    "licenseIdentifiers": [
+      "GPL-2+",
+      "GPL-3+",
+      "LGPL-2+",
+      "LGPL-2.1+"
+    ]
+  },
+  "nativeGecko": {
+    "source": "https://cdn.playwright.dev/dbazure/download/playwright/builds/firefox/1555/firefox-ubuntu-24.04-arm64.zip",
+    "archiveBytes": 107640796,
+    "archiveSha256": "fe2e1fd49048866e9b9249d1b9394b4989f58f589a35b19edcbce8aab1501f8c",
+    "extractedBytes": 300166540,
+    "version": "157.0",
+    "revision": "1555",
+    "architecture": "ARM64",
+    "executable": "<workspace>/.tmp/issue10/native-browsers/firefox-1555/firefox/firefox",
+    "license": "MPL-2.0 and bundled component notices (see extracted firefox distribution)"
+  },
+  "notes": [
+    "Package SHA256 verified against apt metadata before dpkg-deb extraction; no maintainer scripts",
+    "No sudo, system library replacement or explicit security-disabling launch flags",
+    "/dev/dri absent; compiled hwaccel/plugin enumeration does not prove a usable device",
+    "UA architecture/platform spoofing is not hardware evidence",
+    "FFmpeg GPL and Gecko MPL/component notices remain with tools; original procedural media CC0"
+  ]
+}

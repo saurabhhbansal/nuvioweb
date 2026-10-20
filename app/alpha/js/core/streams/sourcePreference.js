@@ -1,5 +1,6 @@
 import {
   describeSource,
+  hasSourceCodecConflict,
   normalizeSourceDescriptor,
   probeNativeSource
 } from "./sourceCapabilities.js";
@@ -24,6 +25,7 @@ export function orderSourcesByNativePrediction(
     // A file probe cannot establish an adaptive engine's support. A bare MIME
     // type also says nothing about the actual codecs a container may contain.
     if (
+      hasSourceCodecConflict(descriptor) ||
       descriptor.transportHint !== "direct" ||
       raw.transportHint !== "direct" ||
       !descriptor.contentType?.startsWith("video/") ||

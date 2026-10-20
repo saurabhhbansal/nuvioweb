@@ -206,6 +206,53 @@ test("forged internal descriptors are normalized before rendering or capability 
   assert.equal(normalizeSourceDescriptor({ requiredHeaderCount: 100000 }).requiredHeaderCount, 256);
 });
 
+test("contradictory MIME and video codec declarations remain unknown without probing either configuration", async () => {
+  const source = declared();
+  source.video.codec = "vp09.00.10.08";
+  const before = JSON.stringify(source);
+  let nativeCalls = 0;
+  let decodingCalls = 0;
+  const report = await probeSourceCapabilities(source, {
+    videoElement: { canPlayType() { nativeCalls++; return "probably"; } },
+    mediaCapabilities: {
+      async decodingInfo() {
+        decodingCalls++;
+        return { supported: true, smooth: true, powerEfficient: true };
+      }
+    }
+  });
+  assert.equal(report.native, "unknown");
+  assert.equal(report.decodingStatus, "unknown");
+  assert.equal(report.videoDecoding, null);
+  assert.equal(nativeCalls, 0);
+  assert.equal(decodingCalls, 0);
+  assert.equal(JSON.stringify(source), before);
+});
+
+test("explicit negative decoding reports stay reported while malformed results stay unknown", async () => {
+  for (const [result, status, expected] of [
+    [{ supported: false, smooth: false, powerEfficient: false }, "reported", { supported: false, smooth: false, powerEfficient: false }],
+    [{ supported: false, smooth: "false", powerEfficient: false }, "unknown", null],
+    [undefined, "unknown", null]
+  ]) {
+    const report = await probeSourceCapabilities(declared(), {
+      mediaCapabilities: { async decodingInfo() { return result; } }
+    });
+    assert.equal(report.decodingStatus, status);
+    assert.deepEqual(report.videoDecoding, expected);
+  }
+  const source = declared();
+  source.video.codec = null;
+  let calls = 0;
+  const report = await probeSourceCapabilities(source, {
+    videoElement: { canPlayType: () => "maybe" },
+    mediaCapabilities: { async decodingInfo() { calls++; } }
+  });
+  assert.equal(report.native, "maybe");
+  assert.equal(report.decodingStatus, "unknown");
+  assert.equal(calls, 0);
+});
+
 test("selectSourceContentType prefers a validated media type over provider aliases", () => {
   // A short alias must not shadow the declared MIME type that carries the
   // container declaration the startup classifier needs.

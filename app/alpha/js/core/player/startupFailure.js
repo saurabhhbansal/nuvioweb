@@ -2,7 +2,7 @@
 // This module is pure: no DOM, no network, no storage, no user-facing strings.
 // It never authorizes transcoding, remuxing or a "supported" claim; it only
 // separates a failure the engine positively rejected from one it never explained.
-import { normalizeSourceDescriptor } from "../streams/sourceCapabilities.js";
+import { hasSourceCodecConflict, normalizeSourceDescriptor } from "../streams/sourceCapabilities.js";
 
 export const STARTUP_FAILURE_REASONS = Object.freeze({
   HEADER_REQUIRED: "header-required",
@@ -170,6 +170,7 @@ function containerEvidence(descriptor) {
 }
 
 function codecEvidence(descriptor) {
+  if (hasSourceCodecConflict(descriptor)) return null;
   const declared = descriptor?.video?.codec;
   if (typeof declared === "string" && declared) return declared;
   // MIME-only declarations are common in the wild: a provider may give
@@ -255,7 +256,10 @@ export function classifyStartupFailure({
   const nativeContainer = NATIVE_ENGINES.has(engineName);
   const adaptiveTransport = transportHint === "hls" || transportHint === "dash";
   const detailInspected = detailFullyInspected(detail);
-  if (normalizedDescriptor && nativeContainer && !adaptiveTransport && detailInspected) {
+  if (
+    normalizedDescriptor && nativeContainer && !adaptiveTransport && detailInspected &&
+    !hasSourceCodecConflict(normalizedDescriptor)
+  ) {
     const engineRejected =
       prediction === "not-reported" ||
       code === MEDIA_ERR_DECODE ||

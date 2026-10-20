@@ -1,0 +1,3695 @@
+{
+  "schemaVersion": 1,
+  "requiredCaseIds": [
+    "h264-2160",
+    "hevc-2160",
+    "vp9-2160",
+    "av1-2160",
+    "h264-2160-60",
+    "hdr10-hevc-2160",
+    "hlg-hevc-2160",
+    "pq-vp9-2160",
+    "hlg-vp9-2160"
+  ],
+  "matrixScope": "Full fixed nine-case matrix; missing/unavailable generation remains an explicit unmeasured host gap",
+  "observedAt": "2026-10-20T16:51:22.229Z",
+  "sourceRevision": "f5f15892d9078cb6e445cd01e529fade2b908c18",
+  "verifierSha256": "1efe22aa5f2150fdbacca7e4f6b702d9406d8a0fe4243d4935a8960745fe8848",
+  "fixtureInventorySha256": "f750365ee9e63c59993f3c91d57b55b1b759fbd5332495610e3493efaade1907",
+  "sourceCapabilitiesSha256": "5ae5686ce24c0f95be33022eec5c164c888b8e16b9e9bbfa77c24ab8ac6051fb",
+  "launchHelperSha256": "9f06acd85bab1507301f49d9a127b0e73092ad905c1dad5c20d5ec34d3722d4e",
+  "deliveryHelperSha256": "fec7c9a790671ab2a285b8f42be1db1fc403a1540269cba15c8bcd16f9bd31c3",
+  "codecParserSha256": "9e7c9cdb407aa6f82ece939e564288c9687d145cfef28494b77d3d94f0b4d901",
+  "layer": "actual headless engine native playback + real API predictions; not bundled player journey or HDR display certification",
+  "environment": {
+    "node": "v22.23.1",
+    "platform": "linux",
+    "architecture": "arm64"
+  },
+  "mappings": {
+    "chromium": [
+      "Chrome",
+      "Edge",
+      "Brave",
+      "Opera"
+    ],
+    "webkit": [
+      "Safari"
+    ],
+    "firefox": [
+      "Firefox"
+    ]
+  },
+  "engines": [
+    {
+      "engine": "chromium",
+      "status": "LAUNCHED",
+      "cases": [
+        {
+          "id": "h264-2160",
+          "fixtureSha256": "3bb83d153dbd93a3f31e6a881a83c695843d287a1bdff67d068fef5c40f3a60e",
+          "input": {
+            "codec": "h264",
+            "codecTag": "avc1",
+            "profile": "Constrained Baseline",
+            "level": 51,
+            "width": 3840,
+            "height": 2160,
+            "pixelFormat": "yuv420p",
+            "fps": 24,
+            "frames": 48,
+            "duration": 2,
+            "bitrate": 39903500,
+            "bitrateBasis": "ffprobe-stream",
+            "colorPrimaries": "bt709",
+            "colorTransfer": "bt709",
+            "colorSpace": "bt709",
+            "sideData": []
+          },
+          "predictionType": "video/mp4; codecs=\"avc1.42c033\"",
+          "predictionScope": "Measured RFC6381 initialization bytes",
+          "hdr": null,
+          "prediction": {
+            "evidence": "browser-prediction",
+            "native": "probably",
+            "videoDecoding": {
+              "supported": true,
+              "smooth": true,
+              "powerEfficient": false
+            },
+            "decodingStatus": "reported",
+            "scope": "video-only; audio/HDR/output unverified"
+          },
+          "metadata": {
+            "width": 3840,
+            "height": 2160,
+            "duration": 2,
+            "currentSrcPath": "/media/h264-2160.mp4"
+          },
+          "playback": {
+            "advancedSeconds": 0.95,
+            "elapsedSeconds": 1.0010999999046326,
+            "ended": false,
+            "error": null
+          },
+          "seek": {
+            "target": 0.75,
+            "observed": 0.75,
+            "progressedTo": 0.8936,
+            "resumeElapsedMs": 150.5,
+            "frameCallbackAvailable": true,
+            "postSeekFrame": {
+              "firstMediaTime": 0.791667,
+              "firstPresentedFrames": 25,
+              "presentedFrames": 26,
+              "frames": 2,
+              "mediaTime": 0.833333,
+              "width": 3840,
+              "height": 2160
+            },
+            "error": null
+          },
+          "delivery": {
+            "elapsedSeconds": 1.0010999999046326,
+            "callbacks": 23,
+            "callbackFps": 22.97472780160927,
+            "presentedFps": 21.97582659284365,
+            "totalFrames": 27,
+            "droppedFrames": 0,
+            "maximumCallbackGapMs": 51.59799980926513,
+            "advancingFrames": true,
+            "firstFrame": {
+              "wall": 147.398,
+              "mediaTime": 0,
+              "presentedFrames": 1,
+              "width": 3840,
+              "height": 2160
+            },
+            "lastFrame": {
+              "wall": 1047.4,
+              "mediaTime": 0.916667,
+              "presentedFrames": 23,
+              "width": 3840,
+              "height": 2160
+            },
+            "windows": [
+              {
+                "wallMs": 500.69999980926514,
+                "mediaTime": 0.4498,
+                "quality": {
+                  "total": 15,
+                  "dropped": 0,
+                  "corrupted": 0
+                }
+              },
+              {
+                "wallMs": 1000.9000000953674,
+                "mediaTime": 0.95,
+                "quality": {
+                  "total": 27,
+                  "dropped": 0,
+                  "corrupted": 0
+                }
+              }
+            ],
+            "sustained60Observed": false
+          },
+          "mediaErrorCode": null,
+          "result": "DECODE_AND_SEEK_OBSERVED",
+          "limitation": null,
+          "limitationDetail": null,
+          "requests": [
+            {
+              "path": "/media/h264-2160.mp4",
+              "status": 206,
+              "range": true,
+              "authorizationPresent": false,
+              "cookiePresent": false
+            }
+          ]
+        },
+        {
+          "id": "hevc-2160",
+          "fixtureSha256": "e1a05c72aae8d495cff66377b14617c98ccc98606f8ac8b1f2304101c03c2ad6",
+          "input": {
+            "codec": "hevc",
+            "codecTag": "hvc1",
+            "profile": "Main",
+            "level": 150,
+            "width": 3840,
+            "height": 2160,
+            "pixelFormat": "yuv420p",
+            "fps": 24,
+            "frames": 48,
+            "duration": 2,
+            "bitrate": 11885224,
+            "bitrateBasis": "ffprobe-stream",
+            "colorPrimaries": "bt709",
+            "colorTransfer": "bt709",
+            "colorSpace": "bt709",
+            "sideData": []
+          },
+          "predictionType": "video/mp4; codecs=\"hvc1.1.6.L150.90\"",
+          "predictionScope": "Measured RFC6381 initialization bytes",
+          "hdr": null,
+          "prediction": {
+            "evidence": "browser-prediction",
+            "native": "not-reported",
+            "videoDecoding": {
+              "supported": false,
+              "smooth": false,
+              "powerEfficient": false
+            },
+            "decodingStatus": "reported",
+            "scope": "video-only; audio/HDR/output unverified"
+          },
+          "metadata": null,
+          "playback": null,
+          "seek": null,
+          "delivery": null,
+          "mediaErrorCode": 4,
+          "failure": "media-error-4",
+          "result": "DECODE_NOT_ESTABLISHED",
+          "limitation": "HOST_ENVIRONMENT",
+          "limitationDetail": "Tested engine-build/host media stack; inherent cross-platform engine limitation not established",
+          "requests": [
+            {
+              "path": "/media/hevc-2160.mp4",
+              "status": 206,
+              "range": true,
+              "authorizationPresent": false,
+              "cookiePresent": false
+            }
+          ]
+        },
+        {
+          "id": "vp9-2160",
+          "fixtureSha256": "3fe1dc9669a0c6039b37ae855a66b7af6fd59c3d2e97abdccbba91ccbe5a7e14",
+          "input": {
+            "codec": "vp9",
+            "codecTag": "[0][0][0][0]",
+            "profile": "Profile 0",
+            "level": -99,
+            "width": 3840,
+            "height": 2160,
+            "pixelFormat": "yuv420p",
+            "fps": 24,
+            "frames": 48,
+            "duration": 2,
+            "bitrate": 16965524,
+            "bitrateBasis": "ffprobe-container",
+            "colorPrimaries": "bt709",
+            "colorTransfer": "bt709",
+            "colorSpace": "bt709",
+            "sideData": []
+          },
+          "predictionType": "video/webm; codecs=\"vp9\"",
+          "predictionScope": "WebM VP9 family alias; profile recorded separately, no invented level",
+          "hdr": null,
+          "prediction": {
+            "evidence": "browser-prediction",
+            "native": "probably",
+            "videoDecoding": {
+              "supported": false,
+              "smooth": false,
+              "powerEfficient": false
+            },
+            "decodingStatus": "reported",
+            "scope": "video-only; audio/HDR/output unverified"
+          },
+          "metadata": {
+            "width": 3840,
+            "height": 2160,
+            "duration": 2,
+            "currentSrcPath": "/media/vp9-2160.webm"
+          },
+          "playback": {
+            "advancedSeconds": 0.9214,
+            "elapsedSeconds": 1.0003999996185302,
+            "ended": false,
+            "error": null
+          },
+          "seek": {
+            "target": 0.75,
+            "observed": 0.75,
+            "progressedTo": 0.8505,
+            "resumeElapsedMs": 100.40000009536743,
+            "frameCallbackAvailable": true,
+            "postSeekFrame": {
+              "firstMediaTime": 0.792,
+              "firstPresentedFrames": 25,
+              "presentedFrames": 26,
+              "frames": 2,
+              "mediaTime": 0.833,
+              "width": 3840,
+              "height": 2160
+            },
+            "error": null
+          },
+          "delivery": {
+            "elapsedSeconds": 1.0003999996185302,
+            "callbacks": 23,
+            "callbackFps": 22.99080368729538,
+            "presentedFps": 21.99120352697819,
+            "totalFrames": 26,
+            "droppedFrames": 0,
+            "maximumCallbackGapMs": 50.09999999999991,
+            "advancingFrames": true,
+            "firstFrame": {
+              "wall": 1464.1,
+              "mediaTime": 0,
+              "presentedFrames": 1,
+              "width": 3840,
+              "height": 2160
+            },
+            "lastFrame": {
+              "wall": 2397.3,
+              "mediaTime": 0.917,
+              "presentedFrames": 23,
+              "width": 3840,
+              "height": 2160
+            },
+            "windows": [
+              {
+                "wallMs": 500.19999980926514,
+                "mediaTime": 0.4212,
+                "quality": {
+                  "total": 14,
+                  "dropped": 0,
+                  "corrupted": 0
+                }
+              },
+              {
+                "wallMs": 1000.3999996185303,
+                "mediaTime": 0.9214,
+                "quality": {
+                  "total": 26,
+                  "dropped": 0,
+                  "corrupted": 0
+                }
+              }
+            ],
+            "sustained60Observed": false
+          },
+          "mediaErrorCode": null,
+          "result": "DECODE_AND_SEEK_OBSERVED",
+          "limitation": null,
+          "limitationDetail": null,
+          "requests": [
+            {
+              "path": "/media/vp9-2160.webm",
+              "status": 206,
+              "range": true,
+              "authorizationPresent": false,
+              "cookiePresent": false
+            }
+          ]
+        },
+        {
+          "id": "av1-2160",
+          "fixtureSha256": "024c6e2e2a03f4a84b79835e7e7b7314a02f3847120b0c2899962322c5f3caa9",
+          "input": {
+            "codec": "av1",
+            "codecTag": "av01",
+            "profile": "Main",
+            "level": 12,
+            "width": 3840,
+            "height": 2160,
+            "pixelFormat": "yuv420p",
+            "fps": 24,
+            "frames": 48,
+            "duration": 2,
+            "bitrate": 5235116,
+            "bitrateBasis": "ffprobe-stream",
+            "colorPrimaries": "bt709",
+            "colorTransfer": "bt709",
+            "colorSpace": "bt709",
+            "sideData": []
+          },
+          "predictionType": "video/mp4; codecs=\"av01.0.12M.08\"",
+          "predictionScope": "Measured RFC6381 initialization bytes",
+          "hdr": null,
+          "prediction": {
+            "evidence": "browser-prediction",
+            "native": "probably",
+            "videoDecoding": {
+              "supported": true,
+              "smooth": true,
+              "powerEfficient": false
+            },
+            "decodingStatus": "reported",
+            "scope": "video-only; audio/HDR/output unverified"
+          },
+          "metadata": {
+            "width": 3840,
+            "height": 2160,
+            "duration": 2,
+            "currentSrcPath": "/media/av1-2160.mp4"
+          },
+          "playback": {
+            "advancedSeconds": 0.8922,
+            "elapsedSeconds": 1.0015,
+            "ended": false,
+            "error": null
+          },
+          "seek": {
+            "target": 0.75,
+            "observed": 0.75,
+            "progressedTo": 0.8501,
+            "resumeElapsedMs": 100.2999997138977,
+            "frameCallbackAvailable": true,
+            "postSeekFrame": {
+              "firstMediaTime": 0.791667,
+              "firstPresentedFrames": 24,
+              "presentedFrames": 25,
+              "frames": 2,
+              "mediaTime": 0.833333,
+              "width": 3840,
+              "height": 2160
+            },
+            "error": null
+          },
+          "delivery": {
+            "elapsedSeconds": 1.0015,
+            "callbacks": 22,
+            "callbackFps": 21.967049425861205,
+            "presentedFps": 20.96854717923115,
+            "totalFrames": 26,
+            "droppedFrames": 0,
+            "maximumCallbackGapMs": 83.30000000000018,
+            "advancingFrames": true,
+            "firstFrame": {
+              "wall": 2814.1,
+              "mediaTime": 0,
+              "presentedFrames": 1,
+              "width": 3840,
+              "height": 2160
+            },
+            "lastFrame": {
+              "wall": 3747.3,
+              "mediaTime": 0.875,
+              "presentedFrames": 22,
+              "width": 3840,
+              "height": 2160
+            },
+            "windows": [
+              {
+                "wallMs": 501.30000019073486,
+                "mediaTime": 0.392,
+                "quality": {
+                  "total": 14,
+                  "dropped": 0,
+                  "corrupted": 0
+                }
+              },
+              {
+                "wallMs": 1001.5,
+                "mediaTime": 0.8922,
+                "quality": {
+                  "total": 26,
+                  "dropped": 0,
+                  "corrupted": 0
+                }
+              }
+            ],
+            "sustained60Observed": false
+          },
+          "mediaErrorCode": null,
+          "result": "DECODE_AND_SEEK_OBSERVED",
+          "limitation": null,
+          "limitationDetail": null,
+          "requests": [
+            {
+              "path": "/media/av1-2160.mp4",
+              "status": 206,
+              "range": true,
+              "authorizationPresent": false,
+              "cookiePresent": false
+            }
+          ]
+        },
+        {
+          "id": "h264-2160-60",
+          "fixtureSha256": "7dd599a6d5ce20b77e8fa99eaff7b60b80f7c5fc9757a0f1a05d1793acf4027f",
+          "input": {
+            "codec": "h264",
+            "codecTag": "avc1",
+            "profile": "Constrained Baseline",
+            "level": 52,
+            "width": 3840,
+            "height": 2160,
+            "pixelFormat": "yuv420p",
+            "fps": 60,
+            "frames": 720,
+            "duration": 12,
+            "bitrate": 25835960,
+            "bitrateBasis": "ffprobe-stream",
+            "colorPrimaries": "bt709",
+            "colorTransfer": "bt709",
+            "colorSpace": "bt709",
+            "sideData": []
+          },
+          "predictionType": "video/mp4; codecs=\"avc1.42c034\"",
+          "predictionScope": "Measured RFC6381 initialization bytes",
+          "hdr": null,
+          "prediction": {
+            "evidence": "browser-prediction",
+            "native": "probably",
+            "videoDecoding": {
+              "supported": true,
+              "smooth": true,
+              "powerEfficient": false
+            },
+            "decodingStatus": "reported",
+            "scope": "video-only; audio/HDR/output unverified"
+          },
+          "metadata": {
+            "width": 3840,
+            "height": 2160,
+            "duration": 12,
+            "currentSrcPath": "/media/h264-2160-60.mp4"
+          },
+          "playback": {
+            "advancedSeconds": 8.4337,
+            "elapsedSeconds": 8.508800000190735,
+            "ended": false,
+            "error": null
+          },
+          "seek": {
+            "target": 0.75,
+            "observed": 0.75,
+            "progressedTo": 0.8957,
+            "resumeElapsedMs": 150.5,
+            "frameCallbackAvailable": true,
+            "postSeekFrame": {
+              "firstMediaTime": 0.783333,
+              "firstPresentedFrames": 509,
+              "presentedFrames": 511,
+              "frames": 2,
+              "mediaTime": 0.816667,
+              "width": 3840,
+              "height": 2160
+            },
+            "error": null
+          },
+          "delivery": {
+            "elapsedSeconds": 8.508800000190735,
+            "callbacks": 478,
+            "callbackFps": 56.177134259741095,
+            "presentedFps": 59.350319667718104,
+            "totalFrames": 512,
+            "droppedFrames": 3,
+            "maximumCallbackGapMs": 51.3639998092649,
+            "advancingFrames": true,
+            "firstFrame": {
+              "wall": 4230.664,
+              "mediaTime": 0,
+              "presentedFrames": 1,
+              "width": 3840,
+              "height": 2160
+            },
+            "lastFrame": {
+              "wall": 12680.3,
+              "mediaTime": 8.433333,
+              "presentedFrames": 506,
+              "width": 3840,
+              "height": 2160
+            },
+            "windows": [
+              {
+                "wallMs": 500.19999980926514,
+                "mediaTime": 0.4251,
+                "quality": {
+                  "total": 31,
+                  "dropped": 2,
+                  "corrupted": 0
+                }
+              },
+              {
+                "wallMs": 1000.5,
+                "mediaTime": 0.9253,
+                "quality": {
+                  "total": 61,
+                  "dropped": 2,
+                  "corrupted": 0
+                }
+              },
+              {
+                "wallMs": 1500.5999999046326,
+                "mediaTime": 1.4255,
+                "quality": {
+                  "total": 91,
+                  "dropped": 2,
+                  "corrupted": 0
+                }
+              },
+              {
+                "wallMs": 2000.8000001907349,
+                "mediaTime": 1.9257,
+                "quality": {
+                  "total": 121,
+                  "dropped": 2,
+                  "corrupted": 0
+                }
+              },
+              {
+                "wallMs": 2501.0999999046326,
+                "mediaTime": 2.426,
+                "quality": {
+                  "total": 151,
+                  "dropped": 2,
+                  "corrupted": 0
+                }
+              },
+              {
+                "wallMs": 3001.300000190735,
+                "mediaTime": 2.9262,
+                "quality": {
+                  "total": 181,
+                  "dropped": 2,
+                  "corrupted": 0
+                }
+              },
+              {
+                "wallMs": 3501.4000000953674,
+                "mediaTime": 3.4264,
+                "quality": {
+                  "total": 211,
+                  "dropped": 2,
+                  "corrupted": 0
+                }
+              },
+              {
+                "wallMs": 4001.9000000953674,
+                "mediaTime": 3.9267,
+                "quality": {
+                  "total": 241,
+                  "dropped": 2,
+                  "corrupted": 0
+                }
+              },
+              {
+                "wallMs": 4502,
+                "mediaTime": 4.4269,
+                "quality": {
+                  "total": 272,
+                  "dropped": 2,
+                  "corrupted": 0
+                }
+              },
+              {
+                "wallMs": 5002.199999809265,
+                "mediaTime": 4.9271,
+                "quality": {
+                  "total": 302,
+                  "dropped": 2,
+                  "corrupted": 0
+                }
+              },
+              {
+                "wallMs": 5503.699999809265,
+                "mediaTime": 5.4286,
+                "quality": {
+                  "total": 332,
+                  "dropped": 2,
+                  "corrupted": 0
+                }
+              },
+              {
+                "wallMs": 6004.300000190735,
+                "mediaTime": 5.9291,
+                "quality": {
+                  "total": 362,
+                  "dropped": 2,
+                  "corrupted": 0
+                }
+              },
+              {
+                "wallMs": 6504.5,
+                "mediaTime": 6.4293,
+                "quality": {
+                  "total": 392,
+                  "dropped": 2,
+                  "corrupted": 0
+                }
+              },
+              {
+                "wallMs": 7004.599999904633,
+                "mediaTime": 6.9295,
+                "quality": {
+                  "total": 422,
+                  "dropped": 2,
+                  "corrupted": 0
+                }
+              },
+              {
+                "wallMs": 7504.800000190735,
+                "mediaTime": 7.4297,
+                "quality": {
+                  "total": 452,
+                  "dropped": 2,
+                  "corrupted": 0
+                }
+              },
+              {
+                "wallMs": 8005,
+                "mediaTime": 7.9299,
+                "quality": {
+                  "total": 482,
+                  "dropped": 3,
+                  "corrupted": 0
+                }
+              },
+              {
+                "wallMs": 8508.699999809265,
+                "mediaTime": 8.4337,
+                "quality": {
+                  "total": 512,
+                  "dropped": 3,
+                  "corrupted": 0
+                }
+              }
+            ],
+            "sustained60Observed": false
+          },
+          "mediaErrorCode": null,
+          "result": "DECODE_AND_SEEK_OBSERVED",
+          "limitation": null,
+          "limitationDetail": null,
+          "requests": [
+            {
+              "path": "/media/h264-2160-60.mp4",
+              "status": 206,
+              "range": true,
+              "authorizationPresent": false,
+              "cookiePresent": false
+            }
+          ]
+        },
+        {
+          "id": "hdr10-hevc-2160",
+          "fixtureSha256": "08d38cf3df782864d8b7b9510b1f615b80eebc7a921b61a3bd8eab08fb321638",
+          "input": {
+            "codec": "hevc",
+            "codecTag": "hvc1",
+            "profile": "Main 10",
+            "level": 150,
+            "width": 3840,
+            "height": 2160,
+            "pixelFormat": "yuv420p10le",
+            "fps": 24,
+            "frames": 48,
+            "duration": 2,
+            "bitrate": 846844,
+            "bitrateBasis": "ffprobe-stream",
+            "colorPrimaries": "bt2020",
+            "colorTransfer": "smpte2084",
+            "colorSpace": "bt2020nc",
+            "sideData": []
+          },
+          "predictionType": "video/mp4; codecs=\"hvc1.2.4.L150.90\"",
+          "predictionScope": "Measured RFC6381 initialization bytes",
+          "hdr": "smpte2084",
+          "prediction": {
+            "evidence": "browser-prediction",
+            "native": "not-reported",
+            "videoDecoding": {
+              "supported": false,
+              "smooth": false,
+              "powerEfficient": false
+            },
+            "decodingStatus": "reported",
+            "scope": "video-only; audio/HDR/output unverified"
+          },
+          "metadata": null,
+          "playback": null,
+          "seek": null,
+          "delivery": null,
+          "mediaErrorCode": 4,
+          "failure": "media-error-4",
+          "result": "DECODE_NOT_ESTABLISHED",
+          "limitation": "HOST_ENVIRONMENT",
+          "limitationDetail": "Tested engine-build/host media stack; inherent cross-platform engine limitation not established",
+          "requests": [
+            {
+              "path": "/media/hdr10-hevc-2160.mp4",
+              "status": 206,
+              "range": true,
+              "authorizationPresent": false,
+              "cookiePresent": false
+            }
+          ]
+        },
+        {
+          "id": "hlg-hevc-2160",
+          "fixtureSha256": "169d3926504ae072a1dc33d00bd04e56ead92cfa23b0aa985cfbc36c45558e4f",
+          "input": {
+            "codec": "hevc",
+            "codecTag": "hvc1",
+            "profile": "Main 10",
+            "level": 150,
+            "width": 3840,
+            "height": 2160,
+            "pixelFormat": "yuv420p10le",
+            "fps": 24,
+            "frames": 48,
+            "duration": 2,
+            "bitrate": 2853124,
+            "bitrateBasis": "ffprobe-stream",
+            "colorPrimaries": "bt2020",
+            "colorTransfer": "arib-std-b67",
+            "colorSpace": "bt2020nc",
+            "sideData": []
+          },
+          "predictionType": "video/mp4; codecs=\"hvc1.2.4.L150.90\"",
+          "predictionScope": "Measured RFC6381 initialization bytes",
+          "hdr": "arib-std-b67",
+          "prediction": {
+            "evidence": "browser-prediction",
+            "native": "not-reported",
+            "videoDecoding": {
+              "supported": false,
+              "smooth": false,
+              "powerEfficient": false
+            },
+            "decodingStatus": "reported",
+            "scope": "video-only; audio/HDR/output unverified"
+          },
+          "metadata": null,
+          "playback": null,
+          "seek": null,
+          "delivery": null,
+          "mediaErrorCode": 4,
+          "failure": "media-error-4",
+          "result": "DECODE_NOT_ESTABLISHED",
+          "limitation": "HOST_ENVIRONMENT",
+          "limitationDetail": "Tested engine-build/host media stack; inherent cross-platform engine limitation not established",
+          "requests": [
+            {
+              "path": "/media/hlg-hevc-2160.mp4",
+              "status": 206,
+              "range": true,
+              "authorizationPresent": false,
+              "cookiePresent": false
+            }
+          ]
+        },
+        {
+          "id": "pq-vp9-2160",
+          "fixtureSha256": "ba1d539fa25a24f0e74082c406545c606db19ee9198342af2fb86a62994631b0",
+          "input": {
+            "codec": "vp9",
+            "codecTag": "[0][0][0][0]",
+            "profile": "Profile 2",
+            "level": -99,
+            "width": 3840,
+            "height": 2160,
+            "pixelFormat": "yuv420p10le",
+            "fps": 24,
+            "frames": 48,
+            "duration": 2,
+            "bitrate": 3390820,
+            "bitrateBasis": "ffprobe-container",
+            "colorPrimaries": "bt2020",
+            "colorTransfer": "smpte2084",
+            "colorSpace": "bt2020nc",
+            "sideData": []
+          },
+          "predictionType": "video/webm; codecs=\"vp9\"",
+          "predictionScope": "WebM VP9 family alias; profile recorded separately, no invented level",
+          "hdr": "smpte2084",
+          "prediction": {
+            "evidence": "browser-prediction",
+            "native": "probably",
+            "videoDecoding": {
+              "supported": false,
+              "smooth": false,
+              "powerEfficient": false
+            },
+            "decodingStatus": "reported",
+            "scope": "video-only; audio/HDR/output unverified"
+          },
+          "metadata": {
+            "width": 3840,
+            "height": 2160,
+            "duration": 2,
+            "currentSrcPath": "/media/pq-vp9-2160.webm"
+          },
+          "playback": {
+            "advancedSeconds": 0.9187,
+            "elapsedSeconds": 1.0005,
+            "ended": false,
+            "error": null
+          },
+          "seek": {
+            "target": 0.75,
+            "observed": 0.75,
+            "progressedTo": 0.851,
+            "resumeElapsedMs": 101.09999990463257,
+            "frameCallbackAvailable": true,
+            "postSeekFrame": {
+              "firstMediaTime": 0.792,
+              "firstPresentedFrames": 25,
+              "presentedFrames": 26,
+              "frames": 2,
+              "mediaTime": 0.833,
+              "width": 3840,
+              "height": 2160
+            },
+            "error": null
+          },
+          "delivery": {
+            "elapsedSeconds": 1.0005,
+            "callbacks": 23,
+            "callbackFps": 22.98850574712644,
+            "presentedFps": 21.989005497251377,
+            "totalFrames": 26,
+            "droppedFrames": 0,
+            "maximumCallbackGapMs": 66.66799999999967,
+            "advancingFrames": true,
+            "firstFrame": {
+              "wall": 13163.632,
+              "mediaTime": 0,
+              "presentedFrames": 1,
+              "width": 3840,
+              "height": 2160
+            },
+            "lastFrame": {
+              "wall": 14113.6,
+              "mediaTime": 0.917,
+              "presentedFrames": 23,
+              "width": 3840,
+              "height": 2160
+            },
+            "windows": [
+              {
+                "wallMs": 500.19999980926514,
+                "mediaTime": 0.4185,
+                "quality": {
+                  "total": 14,
+                  "dropped": 0,
+                  "corrupted": 0
+                }
+              },
+              {
+                "wallMs": 1000.5,
+                "mediaTime": 0.9187,
+                "quality": {
+                  "total": 26,
+                  "dropped": 0,
+                  "corrupted": 0
+                }
+              }
+            ],
+            "sustained60Observed": false
+          },
+          "mediaErrorCode": null,
+          "result": "DECODE_AND_SEEK_OBSERVED",
+          "limitation": null,
+          "limitationDetail": null,
+          "requests": [
+            {
+              "path": "/media/pq-vp9-2160.webm",
+              "status": 206,
+              "range": true,
+              "authorizationPresent": false,
+              "cookiePresent": false
+            }
+          ]
+        },
+        {
+          "id": "hlg-vp9-2160",
+          "fixtureSha256": "35767dd1b76b2e7c24d984db2077dc0fc542173ee236e5cfde03a68ed4fcc9cd",
+          "input": {
+            "codec": "vp9",
+            "codecTag": "[0][0][0][0]",
+            "profile": "Profile 2",
+            "level": -99,
+            "width": 3840,
+            "height": 2160,
+            "pixelFormat": "yuv420p10le",
+            "fps": 24,
+            "frames": 48,
+            "duration": 2,
+            "bitrate": 8377828,
+            "bitrateBasis": "ffprobe-container",
+            "colorPrimaries": "bt2020",
+            "colorTransfer": "arib-std-b67",
+            "colorSpace": "bt2020nc",
+            "sideData": []
+          },
+          "predictionType": "video/webm; codecs=\"vp9\"",
+          "predictionScope": "WebM VP9 family alias; profile recorded separately, no invented level",
+          "hdr": "arib-std-b67",
+          "prediction": {
+            "evidence": "browser-prediction",
+            "native": "probably",
+            "videoDecoding": {
+              "supported": false,
+              "smooth": false,
+              "powerEfficient": false
+            },
+            "decodingStatus": "reported",
+            "scope": "video-only; audio/HDR/output unverified"
+          },
+          "metadata": {
+            "width": 3840,
+            "height": 2160,
+            "duration": 2,
+            "currentSrcPath": "/media/hlg-vp9-2160.webm"
+          },
+          "playback": {
+            "advancedSeconds": 0.8802,
+            "elapsedSeconds": 1.0004000000953674,
+            "ended": false,
+            "error": null
+          },
+          "seek": {
+            "target": 0.75,
+            "observed": 0.75,
+            "progressedTo": 0.8503,
+            "resumeElapsedMs": 100.40000009536743,
+            "frameCallbackAvailable": true,
+            "postSeekFrame": {
+              "firstMediaTime": 0.792,
+              "firstPresentedFrames": 24,
+              "presentedFrames": 25,
+              "frames": 2,
+              "mediaTime": 0.833,
+              "width": 3840,
+              "height": 2160
+            },
+            "error": null
+          },
+          "delivery": {
+            "elapsedSeconds": 1.0004000000953674,
+            "callbacks": 22,
+            "callbackFps": 21.991203516496157,
+            "presentedFps": 20.99160335665542,
+            "totalFrames": 25,
+            "droppedFrames": 0,
+            "maximumCallbackGapMs": 83.23600000000079,
+            "advancingFrames": true,
+            "firstFrame": {
+              "wall": 14596.964,
+              "mediaTime": 0,
+              "presentedFrames": 1,
+              "width": 3840,
+              "height": 2160
+            },
+            "lastFrame": {
+              "wall": 15530.2,
+              "mediaTime": 0.875,
+              "presentedFrames": 22,
+              "width": 3840,
+              "height": 2160
+            },
+            "windows": [
+              {
+                "wallMs": 500.19999980926514,
+                "mediaTime": 0.38,
+                "quality": {
+                  "total": 13,
+                  "dropped": 0,
+                  "corrupted": 0
+                }
+              },
+              {
+                "wallMs": 1000.4000000953674,
+                "mediaTime": 0.8802,
+                "quality": {
+                  "total": 25,
+                  "dropped": 0,
+                  "corrupted": 0
+                }
+              }
+            ],
+            "sustained60Observed": false
+          },
+          "mediaErrorCode": null,
+          "result": "DECODE_AND_SEEK_OBSERVED",
+          "limitation": null,
+          "limitationDetail": null,
+          "requests": [
+            {
+              "path": "/media/hlg-vp9-2160.webm",
+              "status": 206,
+              "range": true,
+              "authorizationPresent": false,
+              "cookiePresent": false
+            }
+          ]
+        }
+      ],
+      "version": "156.0.8078.4",
+      "environment": {
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+        "hardwareConcurrency": 4,
+        "deviceMemoryGiB": 16,
+        "hdrScreenReported": false,
+        "colorGamutP3": false,
+        "colorGamut2020": false,
+        "requestVideoFrameCallback": true,
+        "mediaCapabilities": true
+      },
+      "transport": {
+        "corsAllowed": {
+          "status": 200,
+          "ok": true
+        },
+        "corsDenied": {
+          "rejected": true
+        },
+        "forbidden403": {
+          "status": 403,
+          "ok": false
+        },
+        "expired410": {
+          "status": 410,
+          "ok": false
+        }
+      }
+    },
+    {
+      "engine": "webkit",
+      "status": "LAUNCHED",
+      "cases": [
+        {
+          "id": "h264-2160",
+          "fixtureSha256": "3bb83d153dbd93a3f31e6a881a83c695843d287a1bdff67d068fef5c40f3a60e",
+          "input": {
+            "codec": "h264",
+            "codecTag": "avc1",
+            "profile": "Constrained Baseline",
+            "level": 51,
+            "width": 3840,
+            "height": 2160,
+            "pixelFormat": "yuv420p",
+            "fps": 24,
+            "frames": 48,
+            "duration": 2,
+            "bitrate": 39903500,
+            "bitrateBasis": "ffprobe-stream",
+            "colorPrimaries": "bt709",
+            "colorTransfer": "bt709",
+            "colorSpace": "bt709",
+            "sideData": []
+          },
+          "predictionType": "video/mp4; codecs=\"avc1.42c033\"",
+          "predictionScope": "Measured RFC6381 initialization bytes",
+          "hdr": null,
+          "prediction": {
+            "evidence": "browser-prediction",
+            "native": "probably",
+            "videoDecoding": {
+              "supported": true,
+              "smooth": true,
+              "powerEfficient": false
+            },
+            "decodingStatus": "reported",
+            "scope": "video-only; audio/HDR/output unverified"
+          },
+          "metadata": {
+            "width": 3840,
+            "height": 2160,
+            "duration": 2,
+            "currentSrcPath": "/media/h264-2160.mp4"
+          },
+          "playback": {
+            "advancedSeconds": 1.0005569060000001,
+            "elapsedSeconds": 1.001,
+            "ended": false,
+            "error": null
+          },
+          "seek": {
+            "target": 0.75,
+            "observed": 0.75,
+            "progressedTo": 1.100811613,
+            "resumeElapsedMs": 712,
+            "frameCallbackAvailable": true,
+            "postSeekFrame": {
+              "firstMediaTime": 1.041666,
+              "firstPresentedFrames": 26,
+              "presentedFrames": 35,
+              "frames": 2,
+              "mediaTime": 1.083333,
+              "width": 3840,
+              "height": 2160
+            },
+            "error": null
+          },
+          "delivery": {
+            "elapsedSeconds": 1.001,
+            "callbacks": 22,
+            "callbackFps": 21.97802197802198,
+            "presentedFps": 22.97702297702298,
+            "totalFrames": 23,
+            "droppedFrames": 0,
+            "maximumCallbackGapMs": 82,
+            "advancingFrames": true,
+            "firstFrame": {
+              "wall": 426,
+              "mediaTime": 0,
+              "presentedFrames": 1,
+              "width": 3840,
+              "height": 2160
+            },
+            "lastFrame": {
+              "wall": 1396,
+              "mediaTime": 0.958333,
+              "presentedFrames": 24,
+              "width": 3840,
+              "height": 2160
+            },
+            "windows": [
+              {
+                "wallMs": 501,
+                "mediaTime": 0.502185958,
+                "quality": {
+                  "total": 12,
+                  "dropped": 0,
+                  "corrupted": 0
+                }
+              },
+              {
+                "wallMs": 1001,
+                "mediaTime": 1.002370591,
+                "quality": {
+                  "total": 24,
+                  "dropped": 0,
+                  "corrupted": 0
+                }
+              }
+            ],
+            "sustained60Observed": false
+          },
+          "mediaErrorCode": null,
+          "result": "DECODE_AND_SEEK_OBSERVED",
+          "limitation": null,
+          "limitationDetail": null,
+          "requests": [
+            {
+              "path": "/media/h264-2160.mp4",
+              "status": 200,
+              "range": false,
+              "authorizationPresent": false,
+              "cookiePresent": false
+            }
+          ]
+        },
+        {
+          "id": "hevc-2160",
+          "fixtureSha256": "e1a05c72aae8d495cff66377b14617c98ccc98606f8ac8b1f2304101c03c2ad6",
+          "input": {
+            "codec": "hevc",
+            "codecTag": "hvc1",
+            "profile": "Main",
+            "level": 150,
+            "width": 3840,
+            "height": 2160,
+            "pixelFormat": "yuv420p",
+            "fps": 24,
+            "frames": 48,
+            "duration": 2,
+            "bitrate": 11885224,
+            "bitrateBasis": "ffprobe-stream",
+            "colorPrimaries": "bt709",
+            "colorTransfer": "bt709",
+            "colorSpace": "bt709",
+            "sideData": []
+          },
+          "predictionType": "video/mp4; codecs=\"hvc1.1.6.L150.90\"",
+          "predictionScope": "Measured RFC6381 initialization bytes",
+          "hdr": null,
+          "prediction": {
+            "evidence": "browser-prediction",
+            "native": "probably",
+            "videoDecoding": {
+              "supported": true,
+              "smooth": true,
+              "powerEfficient": false
+            },
+            "decodingStatus": "reported",
+            "scope": "video-only; audio/HDR/output unverified"
+          },
+          "metadata": {
+            "width": 3840,
+            "height": 2160,
+            "duration": 2,
+            "currentSrcPath": "/media/hevc-2160.mp4"
+          },
+          "playback": {
+            "advancedSeconds": 1.000562866,
+            "elapsedSeconds": 1,
+            "ended": false,
+            "error": null
+          },
+          "seek": {
+            "target": 0.75,
+            "observed": 0.75,
+            "progressedTo": 1.196598496,
+            "resumeElapsedMs": 986,
+            "frameCallbackAvailable": true,
+            "postSeekFrame": {
+              "firstMediaTime": 1.041666,
+              "firstPresentedFrames": 25,
+              "presentedFrames": 31,
+              "frames": 2,
+              "mediaTime": 1.166666,
+              "width": 3840,
+              "height": 2160
+            },
+            "error": null
+          },
+          "delivery": {
+            "elapsedSeconds": 1,
+            "callbacks": 22,
+            "callbackFps": 22,
+            "presentedFps": 22,
+            "totalFrames": 22,
+            "droppedFrames": 0,
+            "maximumCallbackGapMs": 66,
+            "advancingFrames": true,
+            "firstFrame": {
+              "wall": 2546,
+              "mediaTime": 0,
+              "presentedFrames": 1,
+              "width": 3840,
+              "height": 2160
+            },
+            "lastFrame": {
+              "wall": 3496,
+              "mediaTime": 0.958333,
+              "presentedFrames": 23,
+              "width": 3840,
+              "height": 2160
+            },
+            "windows": [
+              {
+                "wallMs": 500,
+                "mediaTime": 0.501159635,
+                "quality": {
+                  "total": 11,
+                  "dropped": 0,
+                  "corrupted": 0
+                }
+              },
+              {
+                "wallMs": 1000,
+                "mediaTime": 1.001398188,
+                "quality": {
+                  "total": 23,
+                  "dropped": 0,
+                  "corrupted": 0
+                }
+              }
+            ],
+            "sustained60Observed": false
+          },
+          "mediaErrorCode": null,
+          "result": "DECODE_AND_SEEK_OBSERVED",
+          "limitation": null,
+          "limitationDetail": null,
+          "requests": [
+            {
+              "path": "/media/hevc-2160.mp4",
+              "status": 200,
+              "range": false,
+              "authorizationPresent": false,
+              "cookiePresent": false
+            }
+          ]
+        },
+        {
+          "id": "vp9-2160",
+          "fixtureSha256": "3fe1dc9669a0c6039b37ae855a66b7af6fd59c3d2e97abdccbba91ccbe5a7e14",
+          "input": {
+            "codec": "vp9",
+            "codecTag": "[0][0][0][0]",
+            "profile": "Profile 0",
+            "level": -99,
+            "width": 3840,
+            "height": 2160,
+            "pixelFormat": "yuv420p",
+            "fps": 24,
+            "frames": 48,
+            "duration": 2,
+            "bitrate": 16965524,
+            "bitrateBasis": "ffprobe-container",
+            "colorPrimaries": "bt709",
+            "colorTransfer": "bt709",
+            "colorSpace": "bt709",
+            "sideData": []
+          },
+          "predictionType": "video/webm; codecs=\"vp9\"",
+          "predictionScope": "WebM VP9 family alias; profile recorded separately, no invented level",
+          "hdr": null,
+          "prediction": {
+            "evidence": "browser-prediction",
+            "native": "probably",
+            "videoDecoding": {
+              "supported": true,
+              "smooth": true,
+              "powerEfficient": false
+            },
+            "decodingStatus": "reported",
+            "scope": "video-only; audio/HDR/output unverified"
+          },
+          "metadata": {
+            "width": 3840,
+            "height": 2160,
+            "duration": 2,
+            "currentSrcPath": "/media/vp9-2160.webm"
+          },
+          "playback": {
+            "advancedSeconds": 0.181581502,
+            "elapsedSeconds": 1,
+            "ended": false,
+            "error": null
+          },
+          "seek": {
+            "target": 0.75,
+            "observed": 0.75,
+            "progressedTo": 2,
+            "resumeElapsedMs": 0,
+            "frameCallbackAvailable": true,
+            "postSeekFrame": {
+              "firstMediaTime": 0.75,
+              "firstPresentedFrames": 7,
+              "presentedFrames": 8,
+              "frames": 2,
+              "mediaTime": 0.792,
+              "width": 3840,
+              "height": 2160
+            },
+            "error": null
+          },
+          "delivery": {
+            "elapsedSeconds": 1,
+            "callbacks": 5,
+            "callbackFps": 5,
+            "presentedFps": 5,
+            "totalFrames": 4,
+            "droppedFrames": 0,
+            "maximumCallbackGapMs": 776,
+            "advancingFrames": true,
+            "firstFrame": {
+              "wall": 4816,
+              "mediaTime": 0,
+              "presentedFrames": 1,
+              "width": 3840,
+              "height": 2160
+            },
+            "lastFrame": {
+              "wall": 5031,
+              "mediaTime": 0.208,
+              "presentedFrames": 6,
+              "width": 3840,
+              "height": 2160
+            },
+            "windows": [
+              {
+                "wallMs": 500,
+                "mediaTime": 0.183273626,
+                "quality": {
+                  "total": 4,
+                  "dropped": 0,
+                  "corrupted": 0
+                }
+              },
+              {
+                "wallMs": 1000,
+                "mediaTime": 0.183273626,
+                "quality": {
+                  "total": 4,
+                  "dropped": 0,
+                  "corrupted": 0
+                }
+              }
+            ],
+            "sustained60Observed": false
+          },
+          "mediaErrorCode": null,
+          "result": "DECODE_AND_SEEK_OBSERVED",
+          "limitation": null,
+          "limitationDetail": null,
+          "requests": [
+            {
+              "path": "/media/vp9-2160.webm",
+              "status": 200,
+              "range": false,
+              "authorizationPresent": false,
+              "cookiePresent": false
+            }
+          ]
+        },
+        {
+          "id": "av1-2160",
+          "fixtureSha256": "024c6e2e2a03f4a84b79835e7e7b7314a02f3847120b0c2899962322c5f3caa9",
+          "input": {
+            "codec": "av1",
+            "codecTag": "av01",
+            "profile": "Main",
+            "level": 12,
+            "width": 3840,
+            "height": 2160,
+            "pixelFormat": "yuv420p",
+            "fps": 24,
+            "frames": 48,
+            "duration": 2,
+            "bitrate": 5235116,
+            "bitrateBasis": "ffprobe-stream",
+            "colorPrimaries": "bt709",
+            "colorTransfer": "bt709",
+            "colorSpace": "bt709",
+            "sideData": []
+          },
+          "predictionType": "video/mp4; codecs=\"av01.0.12M.08\"",
+          "predictionScope": "Measured RFC6381 initialization bytes",
+          "hdr": null,
+          "prediction": {
+            "evidence": "browser-prediction",
+            "native": "probably",
+            "videoDecoding": {
+              "supported": true,
+              "smooth": true,
+              "powerEfficient": false
+            },
+            "decodingStatus": "reported",
+            "scope": "video-only; audio/HDR/output unverified"
+          },
+          "metadata": {
+            "width": 3840,
+            "height": 2160,
+            "duration": 2,
+            "currentSrcPath": "/media/av1-2160.mp4"
+          },
+          "playback": {
+            "advancedSeconds": 0.58270637,
+            "elapsedSeconds": 1,
+            "ended": false,
+            "error": null
+          },
+          "seek": {
+            "target": 0.75,
+            "observed": 0.75,
+            "progressedTo": 1.958333332,
+            "resumeElapsedMs": 2658,
+            "frameCallbackAvailable": true,
+            "postSeekFrame": {
+              "firstMediaTime": 1.083333,
+              "firstPresentedFrames": 2,
+              "presentedFrames": 7,
+              "frames": 2,
+              "mediaTime": 1.916666,
+              "width": 3840,
+              "height": 2160
+            },
+            "error": null
+          },
+          "delivery": {
+            "elapsedSeconds": 1,
+            "callbacks": 1,
+            "callbackFps": 1,
+            "presentedFps": 0,
+            "totalFrames": 0,
+            "droppedFrames": 2,
+            "maximumCallbackGapMs": 989,
+            "advancingFrames": true,
+            "firstFrame": {
+              "wall": 7587,
+              "mediaTime": 0,
+              "presentedFrames": 1,
+              "width": 3840,
+              "height": 2160
+            },
+            "lastFrame": {
+              "wall": 7587,
+              "mediaTime": 0,
+              "presentedFrames": 1,
+              "width": 3840,
+              "height": 2160
+            },
+            "windows": [
+              {
+                "wallMs": 500,
+                "mediaTime": 0.083333332,
+                "quality": {
+                  "total": 1,
+                  "dropped": 1,
+                  "corrupted": 0
+                }
+              },
+              {
+                "wallMs": 1000,
+                "mediaTime": 0.583333332,
+                "quality": {
+                  "total": 1,
+                  "dropped": 2,
+                  "corrupted": 0
+                }
+              }
+            ],
+            "sustained60Observed": false
+          },
+          "mediaErrorCode": null,
+          "result": "DECODE_AND_SEEK_OBSERVED",
+          "limitation": null,
+          "limitationDetail": null,
+          "requests": [
+            {
+              "path": "/media/av1-2160.mp4",
+              "status": 200,
+              "range": false,
+              "authorizationPresent": false,
+              "cookiePresent": false
+            }
+          ]
+        },
+        {
+          "id": "h264-2160-60",
+          "fixtureSha256": "7dd599a6d5ce20b77e8fa99eaff7b60b80f7c5fc9757a0f1a05d1793acf4027f",
+          "input": {
+            "codec": "h264",
+            "codecTag": "avc1",
+            "profile": "Constrained Baseline",
+            "level": 52,
+            "width": 3840,
+            "height": 2160,
+            "pixelFormat": "yuv420p",
+            "fps": 60,
+            "frames": 720,
+            "duration": 12,
+            "bitrate": 25835960,
+            "bitrateBasis": "ffprobe-stream",
+            "colorPrimaries": "bt709",
+            "colorTransfer": "bt709",
+            "colorSpace": "bt709",
+            "sideData": []
+          },
+          "predictionType": "video/mp4; codecs=\"avc1.42c034\"",
+          "predictionScope": "Measured RFC6381 initialization bytes",
+          "hdr": null,
+          "prediction": {
+            "evidence": "browser-prediction",
+            "native": "probably",
+            "videoDecoding": {
+              "supported": true,
+              "smooth": true,
+              "powerEfficient": false
+            },
+            "decodingStatus": "reported",
+            "scope": "video-only; audio/HDR/output unverified"
+          },
+          "metadata": {
+            "width": 3840,
+            "height": 2160,
+            "duration": 12,
+            "currentSrcPath": "/media/h264-2160-60.mp4"
+          },
+          "playback": {
+            "advancedSeconds": 8.539003287,
+            "elapsedSeconds": 8.539,
+            "ended": false,
+            "error": null
+          },
+          "seek": {
+            "target": 0.75,
+            "observed": 0.75,
+            "progressedTo": 0.881574175,
+            "resumeElapsedMs": 507,
+            "frameCallbackAvailable": true,
+            "postSeekFrame": {
+              "firstMediaTime": 0.75,
+              "firstPresentedFrames": 515,
+              "presentedFrames": 516,
+              "frames": 2,
+              "mediaTime": 0.766666,
+              "width": 3840,
+              "height": 2160
+            },
+            "error": null
+          },
+          "delivery": {
+            "elapsedSeconds": 8.539,
+            "callbacks": 478,
+            "callbackFps": 55.97845180934536,
+            "presentedFps": 59.960182691181636,
+            "totalFrames": 513,
+            "droppedFrames": 0,
+            "maximumCallbackGapMs": 51,
+            "advancingFrames": true,
+            "firstFrame": {
+              "wall": 12009,
+              "mediaTime": 0,
+              "presentedFrames": 1,
+              "width": 3840,
+              "height": 2160
+            },
+            "lastFrame": {
+              "wall": 20529,
+              "mediaTime": 8.533333,
+              "presentedFrames": 513,
+              "width": 3840,
+              "height": 2160
+            },
+            "windows": [
+              {
+                "wallMs": 502,
+                "mediaTime": 0.503477801,
+                "quality": {
+                  "total": 30,
+                  "dropped": 0,
+                  "corrupted": 0
+                }
+              },
+              {
+                "wallMs": 1003,
+                "mediaTime": 1.003697194,
+                "quality": {
+                  "total": 60,
+                  "dropped": 0,
+                  "corrupted": 0
+                }
+              },
+              {
+                "wallMs": 1503,
+                "mediaTime": 1.503981947,
+                "quality": {
+                  "total": 91,
+                  "dropped": 0,
+                  "corrupted": 0
+                }
+              },
+              {
+                "wallMs": 2003,
+                "mediaTime": 2.004142419,
+                "quality": {
+                  "total": 120,
+                  "dropped": 0,
+                  "corrupted": 0
+                }
+              },
+              {
+                "wallMs": 2510,
+                "mediaTime": 2.510632828,
+                "quality": {
+                  "total": 151,
+                  "dropped": 0,
+                  "corrupted": 0
+                }
+              },
+              {
+                "wallMs": 3010,
+                "mediaTime": 3.011238382,
+                "quality": {
+                  "total": 181,
+                  "dropped": 0,
+                  "corrupted": 0
+                }
+              },
+              {
+                "wallMs": 3510,
+                "mediaTime": 3.511432175,
+                "quality": {
+                  "total": 211,
+                  "dropped": 0,
+                  "corrupted": 0
+                }
+              },
+              {
+                "wallMs": 4010,
+                "mediaTime": 4.011604328,
+                "quality": {
+                  "total": 241,
+                  "dropped": 0,
+                  "corrupted": 0
+                }
+              },
+              {
+                "wallMs": 4511,
+                "mediaTime": 4.51181588,
+                "quality": {
+                  "total": 271,
+                  "dropped": 0,
+                  "corrupted": 0
+                }
+              },
+              {
+                "wallMs": 5011,
+                "mediaTime": 5.012023953,
+                "quality": {
+                  "total": 301,
+                  "dropped": 0,
+                  "corrupted": 0
+                }
+              },
+              {
+                "wallMs": 5515,
+                "mediaTime": 5.516516797,
+                "quality": {
+                  "total": 331,
+                  "dropped": 0,
+                  "corrupted": 0
+                }
+              },
+              {
+                "wallMs": 6017,
+                "mediaTime": 6.018489394,
+                "quality": {
+                  "total": 361,
+                  "dropped": 0,
+                  "corrupted": 0
+                }
+              },
+              {
+                "wallMs": 6521,
+                "mediaTime": 6.522540677,
+                "quality": {
+                  "total": 391,
+                  "dropped": 0,
+                  "corrupted": 0
+                }
+              },
+              {
+                "wallMs": 7027,
+                "mediaTime": 7.028298644,
+                "quality": {
+                  "total": 422,
+                  "dropped": 0,
+                  "corrupted": 0
+                }
+              },
+              {
+                "wallMs": 7529,
+                "mediaTime": 7.530474241,
+                "quality": {
+                  "total": 452,
+                  "dropped": 0,
+                  "corrupted": 0
+                }
+              },
+              {
+                "wallMs": 8033,
+                "mediaTime": 8.034510164,
+                "quality": {
+                  "total": 482,
+                  "dropped": 0,
+                  "corrupted": 0
+                }
+              },
+              {
+                "wallMs": 8539,
+                "mediaTime": 8.539746609,
+                "quality": {
+                  "total": 513,
+                  "dropped": 0,
+                  "corrupted": 0
+                }
+              }
+            ],
+            "sustained60Observed": false
+          },
+          "mediaErrorCode": null,
+          "result": "DECODE_AND_SEEK_OBSERVED",
+          "limitation": null,
+          "limitationDetail": null,
+          "requests": [
+            {
+              "path": "/media/h264-2160-60.mp4",
+              "status": 200,
+              "range": false,
+              "authorizationPresent": false,
+              "cookiePresent": false
+            }
+          ]
+        },
+        {
+          "id": "hdr10-hevc-2160",
+          "fixtureSha256": "08d38cf3df782864d8b7b9510b1f615b80eebc7a921b61a3bd8eab08fb321638",
+          "input": {
+            "codec": "hevc",
+            "codecTag": "hvc1",
+            "profile": "Main 10",
+            "level": 150,
+            "width": 3840,
+            "height": 2160,
+            "pixelFormat": "yuv420p10le",
+            "fps": 24,
+            "frames": 48,
+            "duration": 2,
+            "bitrate": 846844,
+            "bitrateBasis": "ffprobe-stream",
+            "colorPrimaries": "bt2020",
+            "colorTransfer": "smpte2084",
+            "colorSpace": "bt2020nc",
+            "sideData": []
+          },
+          "predictionType": "video/mp4; codecs=\"hvc1.2.4.L150.90\"",
+          "predictionScope": "Measured RFC6381 initialization bytes",
+          "hdr": "smpte2084",
+          "prediction": {
+            "evidence": "browser-prediction",
+            "native": "probably",
+            "videoDecoding": {
+              "supported": true,
+              "smooth": true,
+              "powerEfficient": false
+            },
+            "decodingStatus": "reported",
+            "scope": "video-only; audio/HDR/output unverified"
+          },
+          "metadata": {
+            "width": 3840,
+            "height": 2160,
+            "duration": 2,
+            "currentSrcPath": "/media/hdr10-hevc-2160.mp4"
+          },
+          "playback": {
+            "advancedSeconds": 0.789179539,
+            "elapsedSeconds": 1.001,
+            "ended": false,
+            "error": null
+          },
+          "seek": {
+            "target": 0.75,
+            "observed": 0.75,
+            "progressedTo": 1.999999999,
+            "resumeElapsedMs": 2108,
+            "frameCallbackAvailable": true,
+            "postSeekFrame": {
+              "firstMediaTime": 1.208333,
+              "firstPresentedFrames": 3,
+              "presentedFrames": 6,
+              "frames": 2,
+              "mediaTime": 1.958333,
+              "width": 3840,
+              "height": 2160
+            },
+            "error": null
+          },
+          "delivery": {
+            "elapsedSeconds": 1.001,
+            "callbacks": 2,
+            "callbackFps": 1.9980019980019983,
+            "presentedFps": 0.9990009990009991,
+            "totalFrames": 2,
+            "droppedFrames": 2,
+            "maximumCallbackGapMs": 680,
+            "advancingFrames": true,
+            "firstFrame": {
+              "wall": 21473,
+              "mediaTime": 0,
+              "presentedFrames": 1,
+              "width": 3840,
+              "height": 2160
+            },
+            "lastFrame": {
+              "wall": 21778,
+              "mediaTime": 0.041666,
+              "presentedFrames": 2,
+              "width": 3840,
+              "height": 2160
+            },
+            "windows": [
+              {
+                "wallMs": 500,
+                "mediaTime": 0.291666666,
+                "quality": {
+                  "total": 2,
+                  "dropped": 1,
+                  "corrupted": 0
+                }
+              },
+              {
+                "wallMs": 1001,
+                "mediaTime": 0.791666666,
+                "quality": {
+                  "total": 2,
+                  "dropped": 2,
+                  "corrupted": 0
+                }
+              }
+            ],
+            "sustained60Observed": false
+          },
+          "mediaErrorCode": null,
+          "result": "DECODE_AND_SEEK_OBSERVED",
+          "limitation": null,
+          "limitationDetail": null,
+          "requests": [
+            {
+              "path": "/media/hdr10-hevc-2160.mp4",
+              "status": 200,
+              "range": false,
+              "authorizationPresent": false,
+              "cookiePresent": false
+            }
+          ]
+        },
+        {
+          "id": "hlg-hevc-2160",
+          "fixtureSha256": "169d3926504ae072a1dc33d00bd04e56ead92cfa23b0aa985cfbc36c45558e4f",
+          "input": {
+            "codec": "hevc",
+            "codecTag": "hvc1",
+            "profile": "Main 10",
+            "level": 150,
+            "width": 3840,
+            "height": 2160,
+            "pixelFormat": "yuv420p10le",
+            "fps": 24,
+            "frames": 48,
+            "duration": 2,
+            "bitrate": 2853124,
+            "bitrateBasis": "ffprobe-stream",
+            "colorPrimaries": "bt2020",
+            "colorTransfer": "arib-std-b67",
+            "colorSpace": "bt2020nc",
+            "sideData": []
+          },
+          "predictionType": "video/mp4; codecs=\"hvc1.2.4.L150.90\"",
+          "predictionScope": "Measured RFC6381 initialization bytes",
+          "hdr": "arib-std-b67",
+          "prediction": {
+            "evidence": "browser-prediction",
+            "native": "probably",
+            "videoDecoding": {
+              "supported": true,
+              "smooth": true,
+              "powerEfficient": false
+            },
+            "decodingStatus": "reported",
+            "scope": "video-only; audio/HDR/output unverified"
+          },
+          "metadata": {
+            "width": 3840,
+            "height": 2160,
+            "duration": 2,
+            "currentSrcPath": "/media/hlg-hevc-2160.mp4"
+          },
+          "playback": {
+            "advancedSeconds": 0.749404278,
+            "elapsedSeconds": 1.001,
+            "ended": false,
+            "error": null
+          },
+          "seek": {
+            "target": 0.75,
+            "observed": 0.75,
+            "progressedTo": 1.874999999,
+            "resumeElapsedMs": 1957,
+            "frameCallbackAvailable": true,
+            "postSeekFrame": {
+              "firstMediaTime": 0.916666,
+              "firstPresentedFrames": 4,
+              "presentedFrames": 7,
+              "frames": 2,
+              "mediaTime": 1.833333,
+              "width": 3840,
+              "height": 2160
+            },
+            "error": null
+          },
+          "delivery": {
+            "elapsedSeconds": 1.001,
+            "callbacks": 3,
+            "callbackFps": 2.997002997002997,
+            "presentedFps": 1.9980019980019983,
+            "totalFrames": 3,
+            "droppedFrames": 1,
+            "maximumCallbackGapMs": 419,
+            "advancingFrames": true,
+            "firstFrame": {
+              "wall": 25469,
+              "mediaTime": 0,
+              "presentedFrames": 1,
+              "width": 3840,
+              "height": 2160
+            },
+            "lastFrame": {
+              "wall": 26254,
+              "mediaTime": 0.708333,
+              "presentedFrames": 3,
+              "width": 3840,
+              "height": 2160
+            },
+            "windows": [
+              {
+                "wallMs": 500,
+                "mediaTime": 0.291666666,
+                "quality": {
+                  "total": 2,
+                  "dropped": 1,
+                  "corrupted": 0
+                }
+              },
+              {
+                "wallMs": 1001,
+                "mediaTime": 0.749999999,
+                "quality": {
+                  "total": 3,
+                  "dropped": 1,
+                  "corrupted": 0
+                }
+              }
+            ],
+            "sustained60Observed": false
+          },
+          "mediaErrorCode": null,
+          "result": "DECODE_AND_SEEK_OBSERVED",
+          "limitation": null,
+          "limitationDetail": null,
+          "requests": [
+            {
+              "path": "/media/hlg-hevc-2160.mp4",
+              "status": 200,
+              "range": false,
+              "authorizationPresent": false,
+              "cookiePresent": false
+            }
+          ]
+        },
+        {
+          "id": "pq-vp9-2160",
+          "fixtureSha256": "ba1d539fa25a24f0e74082c406545c606db19ee9198342af2fb86a62994631b0",
+          "input": {
+            "codec": "vp9",
+            "codecTag": "[0][0][0][0]",
+            "profile": "Profile 2",
+            "level": -99,
+            "width": 3840,
+            "height": 2160,
+            "pixelFormat": "yuv420p10le",
+            "fps": 24,
+            "frames": 48,
+            "duration": 2,
+            "bitrate": 3390820,
+            "bitrateBasis": "ffprobe-container",
+            "colorPrimaries": "bt2020",
+            "colorTransfer": "smpte2084",
+            "colorSpace": "bt2020nc",
+            "sideData": []
+          },
+          "predictionType": "video/webm; codecs=\"vp9\"",
+          "predictionScope": "WebM VP9 family alias; profile recorded separately, no invented level",
+          "hdr": "smpte2084",
+          "prediction": {
+            "evidence": "browser-prediction",
+            "native": "probably",
+            "videoDecoding": {
+              "supported": true,
+              "smooth": true,
+              "powerEfficient": false
+            },
+            "decodingStatus": "reported",
+            "scope": "video-only; audio/HDR/output unverified"
+          },
+          "metadata": {
+            "width": 3840,
+            "height": 2160,
+            "duration": 2,
+            "currentSrcPath": "/media/pq-vp9-2160.webm"
+          },
+          "playback": {
+            "advancedSeconds": 1.373745704,
+            "elapsedSeconds": 2.677,
+            "ended": false,
+            "error": null
+          },
+          "seek": {
+            "target": 0.75,
+            "observed": 0.75,
+            "progressedTo": 0.954837802,
+            "resumeElapsedMs": 627,
+            "frameCallbackAvailable": true,
+            "postSeekFrame": {
+              "firstMediaTime": 0.75,
+              "firstPresentedFrames": 19,
+              "presentedFrames": 20,
+              "frames": 2,
+              "mediaTime": 0.792,
+              "width": 3840,
+              "height": 2160
+            },
+            "error": null
+          },
+          "delivery": {
+            "elapsedSeconds": 2.677,
+            "callbacks": 8,
+            "callbackFps": 2.9884198729921554,
+            "presentedFps": 6.35039223010833,
+            "totalFrames": 17,
+            "droppedFrames": 1,
+            "maximumCallbackGapMs": 1258,
+            "advancingFrames": true,
+            "firstFrame": {
+              "wall": 28990,
+              "mediaTime": 0,
+              "presentedFrames": 1,
+              "width": 3840,
+              "height": 2160
+            },
+            "lastFrame": {
+              "wall": 30401,
+              "mediaTime": 1.292,
+              "presentedFrames": 18,
+              "width": 3840,
+              "height": 2160
+            },
+            "windows": [
+              {
+                "wallMs": 500,
+                "mediaTime": 0.083666666,
+                "quality": {
+                  "total": 1,
+                  "dropped": 1,
+                  "corrupted": 0
+                }
+              },
+              {
+                "wallMs": 2677,
+                "mediaTime": 1.374666666,
+                "quality": {
+                  "total": 17,
+                  "dropped": 1,
+                  "corrupted": 0
+                }
+              }
+            ],
+            "sustained60Observed": false
+          },
+          "mediaErrorCode": null,
+          "result": "DECODE_AND_SEEK_OBSERVED",
+          "limitation": null,
+          "limitationDetail": null,
+          "requests": [
+            {
+              "path": "/media/pq-vp9-2160.webm",
+              "status": 200,
+              "range": false,
+              "authorizationPresent": false,
+              "cookiePresent": false
+            }
+          ]
+        },
+        {
+          "id": "hlg-vp9-2160",
+          "fixtureSha256": "35767dd1b76b2e7c24d984db2077dc0fc542173ee236e5cfde03a68ed4fcc9cd",
+          "input": {
+            "codec": "vp9",
+            "codecTag": "[0][0][0][0]",
+            "profile": "Profile 2",
+            "level": -99,
+            "width": 3840,
+            "height": 2160,
+            "pixelFormat": "yuv420p10le",
+            "fps": 24,
+            "frames": 48,
+            "duration": 2,
+            "bitrate": 8377828,
+            "bitrateBasis": "ffprobe-container",
+            "colorPrimaries": "bt2020",
+            "colorTransfer": "arib-std-b67",
+            "colorSpace": "bt2020nc",
+            "sideData": []
+          },
+          "predictionType": "video/webm; codecs=\"vp9\"",
+          "predictionScope": "WebM VP9 family alias; profile recorded separately, no invented level",
+          "hdr": "arib-std-b67",
+          "prediction": {
+            "evidence": "browser-prediction",
+            "native": "probably",
+            "videoDecoding": {
+              "supported": true,
+              "smooth": true,
+              "powerEfficient": false
+            },
+            "decodingStatus": "reported",
+            "scope": "video-only; audio/HDR/output unverified"
+          },
+          "metadata": {
+            "width": 3840,
+            "height": 2160,
+            "duration": 2,
+            "currentSrcPath": "/media/hlg-vp9-2160.webm"
+          },
+          "playback": {
+            "advancedSeconds": 0.364422527,
+            "elapsedSeconds": 1,
+            "ended": false,
+            "error": null
+          },
+          "seek": {
+            "target": 0.75,
+            "observed": 0.75,
+            "progressedTo": 2,
+            "resumeElapsedMs": 0,
+            "frameCallbackAvailable": true,
+            "postSeekFrame": {
+              "firstMediaTime": 0.75,
+              "firstPresentedFrames": 11,
+              "presentedFrames": 12,
+              "frames": 2,
+              "mediaTime": 0.792,
+              "width": 3840,
+              "height": 2160
+            },
+            "error": null
+          },
+          "delivery": {
+            "elapsedSeconds": 1,
+            "callbacks": 0,
+            "callbackFps": 0,
+            "presentedFps": null,
+            "totalFrames": 8,
+            "droppedFrames": 0,
+            "maximumCallbackGapMs": 1000,
+            "advancingFrames": true,
+            "firstFrame": null,
+            "lastFrame": null,
+            "windows": [
+              {
+                "wallMs": 500,
+                "mediaTime": 0.365811451,
+                "quality": {
+                  "total": 8,
+                  "dropped": 0,
+                  "corrupted": 0
+                }
+              },
+              {
+                "wallMs": 1000,
+                "mediaTime": 0.365811451,
+                "quality": {
+                  "total": 8,
+                  "dropped": 0,
+                  "corrupted": 0
+                }
+              }
+            ],
+            "sustained60Observed": false
+          },
+          "mediaErrorCode": null,
+          "result": "DECODE_AND_SEEK_OBSERVED",
+          "limitation": null,
+          "limitationDetail": null,
+          "requests": [
+            {
+              "path": "/media/hlg-vp9-2160.webm",
+              "status": 200,
+              "range": false,
+              "authorizationPresent": false,
+              "cookiePresent": false
+            }
+          ]
+        }
+      ],
+      "version": "27.2",
+      "environment": {
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/27.2 Safari/605.1.15",
+        "hardwareConcurrency": 4,
+        "deviceMemoryGiB": null,
+        "hdrScreenReported": false,
+        "colorGamutP3": false,
+        "colorGamut2020": false,
+        "requestVideoFrameCallback": true,
+        "mediaCapabilities": true
+      },
+      "transport": {
+        "corsAllowed": {
+          "status": 200,
+          "ok": true
+        },
+        "corsDenied": {
+          "rejected": true
+        },
+        "forbidden403": {
+          "status": 403,
+          "ok": false
+        },
+        "expired410": {
+          "status": 410,
+          "ok": false
+        }
+      }
+    },
+    {
+      "engine": "firefox",
+      "status": "LAUNCHED",
+      "cases": [
+        {
+          "id": "h264-2160",
+          "fixtureSha256": "3bb83d153dbd93a3f31e6a881a83c695843d287a1bdff67d068fef5c40f3a60e",
+          "input": {
+            "codec": "h264",
+            "codecTag": "avc1",
+            "profile": "Constrained Baseline",
+            "level": 51,
+            "width": 3840,
+            "height": 2160,
+            "pixelFormat": "yuv420p",
+            "fps": 24,
+            "frames": 48,
+            "duration": 2,
+            "bitrate": 39903500,
+            "bitrateBasis": "ffprobe-stream",
+            "colorPrimaries": "bt709",
+            "colorTransfer": "bt709",
+            "colorSpace": "bt709",
+            "sideData": []
+          },
+          "predictionType": "video/mp4; codecs=\"avc1.42c033\"",
+          "predictionScope": "Measured RFC6381 initialization bytes",
+          "hdr": null,
+          "prediction": {
+            "evidence": "browser-prediction",
+            "native": "probably",
+            "videoDecoding": {
+              "supported": true,
+              "smooth": true,
+              "powerEfficient": false
+            },
+            "decodingStatus": "reported",
+            "scope": "video-only; audio/HDR/output unverified"
+          },
+          "metadata": {
+            "width": 3840,
+            "height": 2160,
+            "duration": 2,
+            "currentSrcPath": "/media/h264-2160.mp4"
+          },
+          "playback": {
+            "advancedSeconds": 0.963347,
+            "elapsedSeconds": 1,
+            "ended": false,
+            "error": null
+          },
+          "seek": {
+            "target": 0.75,
+            "observed": 0.75,
+            "progressedTo": 0.915339,
+            "resumeElapsedMs": 201,
+            "frameCallbackAvailable": true,
+            "postSeekFrame": {
+              "firstMediaTime": 0.75,
+              "firstPresentedFrames": 26,
+              "presentedFrames": 60,
+              "frames": 2,
+              "mediaTime": 0.791666,
+              "width": 3840,
+              "height": 2160
+            },
+            "error": null
+          },
+          "delivery": {
+            "elapsedSeconds": 1,
+            "callbacks": 23,
+            "callbackFps": 23,
+            "presentedFps": 23,
+            "totalFrames": 24,
+            "droppedFrames": 0,
+            "maximumCallbackGapMs": 80.36000000000001,
+            "advancingFrames": true,
+            "firstFrame": {
+              "wall": 674.56,
+              "mediaTime": 0,
+              "presentedFrames": 2,
+              "width": 3840,
+              "height": 2160
+            },
+            "lastFrame": {
+              "wall": 1583.68,
+              "mediaTime": 0.958333,
+              "presentedFrames": 25,
+              "width": 3840,
+              "height": 2160
+            },
+            "windows": [
+              {
+                "wallMs": 500,
+                "mediaTime": 0.480838,
+                "quality": {
+                  "total": 12,
+                  "dropped": 0,
+                  "corrupted": null
+                }
+              },
+              {
+                "wallMs": 1000,
+                "mediaTime": 0.963347,
+                "quality": {
+                  "total": 24,
+                  "dropped": 0,
+                  "corrupted": null
+                }
+              }
+            ],
+            "sustained60Observed": false
+          },
+          "mediaErrorCode": null,
+          "result": "DECODE_AND_SEEK_OBSERVED",
+          "limitation": null,
+          "limitationDetail": null,
+          "requests": [
+            {
+              "path": "/media/h264-2160.mp4",
+              "status": 206,
+              "range": true,
+              "authorizationPresent": false,
+              "cookiePresent": false
+            },
+            {
+              "path": "/media/h264-2160.mp4",
+              "status": 206,
+              "range": true,
+              "authorizationPresent": false,
+              "cookiePresent": false
+            }
+          ]
+        },
+        {
+          "id": "hevc-2160",
+          "fixtureSha256": "e1a05c72aae8d495cff66377b14617c98ccc98606f8ac8b1f2304101c03c2ad6",
+          "input": {
+            "codec": "hevc",
+            "codecTag": "hvc1",
+            "profile": "Main",
+            "level": 150,
+            "width": 3840,
+            "height": 2160,
+            "pixelFormat": "yuv420p",
+            "fps": 24,
+            "frames": 48,
+            "duration": 2,
+            "bitrate": 11885224,
+            "bitrateBasis": "ffprobe-stream",
+            "colorPrimaries": "bt709",
+            "colorTransfer": "bt709",
+            "colorSpace": "bt709",
+            "sideData": []
+          },
+          "predictionType": "video/mp4; codecs=\"hvc1.1.6.L150.90\"",
+          "predictionScope": "Measured RFC6381 initialization bytes",
+          "hdr": null,
+          "prediction": {
+            "evidence": "browser-prediction",
+            "native": "probably",
+            "videoDecoding": {
+              "supported": true,
+              "smooth": true,
+              "powerEfficient": true
+            },
+            "decodingStatus": "reported",
+            "scope": "video-only; audio/HDR/output unverified"
+          },
+          "metadata": {
+            "width": 3840,
+            "height": 2160,
+            "duration": 2,
+            "currentSrcPath": "/media/hevc-2160.mp4"
+          },
+          "playback": {
+            "advancedSeconds": 0.989653,
+            "elapsedSeconds": 1.001,
+            "ended": false,
+            "error": null
+          },
+          "seek": {
+            "target": 0.75,
+            "observed": 0.75,
+            "progressedTo": 0.91593,
+            "resumeElapsedMs": 257,
+            "frameCallbackAvailable": true,
+            "postSeekFrame": {
+              "firstMediaTime": 0.75,
+              "firstPresentedFrames": 87,
+              "presentedFrames": 121,
+              "frames": 2,
+              "mediaTime": 0.791666,
+              "width": 3840,
+              "height": 2160
+            },
+            "error": null
+          },
+          "delivery": {
+            "elapsedSeconds": 1.001,
+            "callbacks": 22,
+            "callbackFps": 21.97802197802198,
+            "presentedFps": 23.976023976023978,
+            "totalFrames": 24,
+            "droppedFrames": 2,
+            "maximumCallbackGapMs": 113.40000000000009,
+            "advancingFrames": true,
+            "firstFrame": {
+              "wall": 2169.4,
+              "mediaTime": 0,
+              "presentedFrames": 62,
+              "width": 3840,
+              "height": 2160
+            },
+            "lastFrame": {
+              "wall": 3046.32,
+              "mediaTime": 1,
+              "presentedFrames": 86,
+              "width": 3840,
+              "height": 2160
+            },
+            "windows": [
+              {
+                "wallMs": 501,
+                "mediaTime": 0.499999,
+                "quality": {
+                  "total": 11,
+                  "dropped": 2,
+                  "corrupted": null
+                }
+              },
+              {
+                "wallMs": 1001,
+                "mediaTime": 0.989653,
+                "quality": {
+                  "total": 24,
+                  "dropped": 2,
+                  "corrupted": null
+                }
+              }
+            ],
+            "sustained60Observed": false
+          },
+          "mediaErrorCode": null,
+          "result": "DECODE_AND_SEEK_OBSERVED",
+          "limitation": null,
+          "limitationDetail": null,
+          "requests": [
+            {
+              "path": "/media/hevc-2160.mp4",
+              "status": 206,
+              "range": true,
+              "authorizationPresent": false,
+              "cookiePresent": false
+            }
+          ]
+        },
+        {
+          "id": "vp9-2160",
+          "fixtureSha256": "3fe1dc9669a0c6039b37ae855a66b7af6fd59c3d2e97abdccbba91ccbe5a7e14",
+          "input": {
+            "codec": "vp9",
+            "codecTag": "[0][0][0][0]",
+            "profile": "Profile 0",
+            "level": -99,
+            "width": 3840,
+            "height": 2160,
+            "pixelFormat": "yuv420p",
+            "fps": 24,
+            "frames": 48,
+            "duration": 2,
+            "bitrate": 16965524,
+            "bitrateBasis": "ffprobe-container",
+            "colorPrimaries": "bt709",
+            "colorTransfer": "bt709",
+            "colorSpace": "bt709",
+            "sideData": []
+          },
+          "predictionType": "video/webm; codecs=\"vp9\"",
+          "predictionScope": "WebM VP9 family alias; profile recorded separately, no invented level",
+          "hdr": null,
+          "prediction": {
+            "evidence": "browser-prediction",
+            "native": "probably",
+            "videoDecoding": {
+              "supported": true,
+              "smooth": true,
+              "powerEfficient": false
+            },
+            "decodingStatus": "reported",
+            "scope": "video-only; audio/HDR/output unverified"
+          },
+          "metadata": {
+            "width": 3840,
+            "height": 2160,
+            "duration": 2,
+            "currentSrcPath": "/media/vp9-2160.webm"
+          },
+          "playback": {
+            "advancedSeconds": 0.971511,
+            "elapsedSeconds": 1.001,
+            "ended": false,
+            "error": null
+          },
+          "seek": {
+            "target": 0.75,
+            "observed": 0.75,
+            "progressedTo": 0.875,
+            "resumeElapsedMs": 205,
+            "frameCallbackAvailable": true,
+            "postSeekFrame": {
+              "firstMediaTime": 0.75,
+              "firstPresentedFrames": 147,
+              "presentedFrames": 181,
+              "frames": 2,
+              "mediaTime": 0.792,
+              "width": 3840,
+              "height": 2160
+            },
+            "error": null
+          },
+          "delivery": {
+            "elapsedSeconds": 1.001,
+            "callbacks": 23,
+            "callbackFps": 22.97702297702298,
+            "presentedFps": 22.97702297702298,
+            "totalFrames": 25,
+            "droppedFrames": 1,
+            "maximumCallbackGapMs": 80.32000000000062,
+            "advancingFrames": true,
+            "firstFrame": {
+              "wall": 3912.08,
+              "mediaTime": 0,
+              "presentedFrames": 123,
+              "width": 3840,
+              "height": 2160
+            },
+            "lastFrame": {
+              "wall": 4810.18,
+              "mediaTime": 0.958,
+              "presentedFrames": 146,
+              "width": 3840,
+              "height": 2160
+            },
+            "windows": [
+              {
+                "wallMs": 501,
+                "mediaTime": 0.486913,
+                "quality": {
+                  "total": 13,
+                  "dropped": 1,
+                  "corrupted": null
+                }
+              },
+              {
+                "wallMs": 1001,
+                "mediaTime": 0.971511,
+                "quality": {
+                  "total": 25,
+                  "dropped": 1,
+                  "corrupted": null
+                }
+              }
+            ],
+            "sustained60Observed": false
+          },
+          "mediaErrorCode": null,
+          "result": "DECODE_AND_SEEK_OBSERVED",
+          "limitation": null,
+          "limitationDetail": null,
+          "requests": [
+            {
+              "path": "/media/vp9-2160.webm",
+              "status": 206,
+              "range": true,
+              "authorizationPresent": false,
+              "cookiePresent": false
+            }
+          ]
+        },
+        {
+          "id": "av1-2160",
+          "fixtureSha256": "024c6e2e2a03f4a84b79835e7e7b7314a02f3847120b0c2899962322c5f3caa9",
+          "input": {
+            "codec": "av1",
+            "codecTag": "av01",
+            "profile": "Main",
+            "level": 12,
+            "width": 3840,
+            "height": 2160,
+            "pixelFormat": "yuv420p",
+            "fps": 24,
+            "frames": 48,
+            "duration": 2,
+            "bitrate": 5235116,
+            "bitrateBasis": "ffprobe-stream",
+            "colorPrimaries": "bt709",
+            "colorTransfer": "bt709",
+            "colorSpace": "bt709",
+            "sideData": []
+          },
+          "predictionType": "video/mp4; codecs=\"av01.0.12M.08\"",
+          "predictionScope": "Measured RFC6381 initialization bytes",
+          "hdr": null,
+          "prediction": {
+            "evidence": "browser-prediction",
+            "native": "probably",
+            "videoDecoding": {
+              "supported": true,
+              "smooth": true,
+              "powerEfficient": false
+            },
+            "decodingStatus": "reported",
+            "scope": "video-only; audio/HDR/output unverified"
+          },
+          "metadata": {
+            "width": 3840,
+            "height": 2160,
+            "duration": 2,
+            "currentSrcPath": "/media/av1-2160.mp4"
+          },
+          "playback": {
+            "advancedSeconds": 0.981684,
+            "elapsedSeconds": 1.001,
+            "ended": false,
+            "error": null
+          },
+          "seek": {
+            "target": 0.75,
+            "observed": 0.75,
+            "progressedTo": 0.874999,
+            "resumeElapsedMs": 204,
+            "frameCallbackAvailable": true,
+            "postSeekFrame": {
+              "firstMediaTime": 0.75,
+              "firstPresentedFrames": 207,
+              "presentedFrames": 241,
+              "frames": 2,
+              "mediaTime": 0.791666,
+              "width": 3840,
+              "height": 2160
+            },
+            "error": null
+          },
+          "delivery": {
+            "elapsedSeconds": 1.001,
+            "callbacks": 21,
+            "callbackFps": 20.97902097902098,
+            "presentedFps": 22.97702297702298,
+            "totalFrames": 24,
+            "droppedFrames": 2,
+            "maximumCallbackGapMs": 120.9399999999996,
+            "advancingFrames": true,
+            "firstFrame": {
+              "wall": 5417.8,
+              "mediaTime": 0,
+              "presentedFrames": 183,
+              "width": 3840,
+              "height": 2160
+            },
+            "lastFrame": {
+              "wall": 6329.4,
+              "mediaTime": 0.958333,
+              "presentedFrames": 206,
+              "width": 3840,
+              "height": 2160
+            },
+            "windows": [
+              {
+                "wallMs": 500,
+                "mediaTime": 0.458332,
+                "quality": {
+                  "total": 11,
+                  "dropped": 2,
+                  "corrupted": null
+                }
+              },
+              {
+                "wallMs": 1001,
+                "mediaTime": 0.981684,
+                "quality": {
+                  "total": 24,
+                  "dropped": 2,
+                  "corrupted": null
+                }
+              }
+            ],
+            "sustained60Observed": false
+          },
+          "mediaErrorCode": null,
+          "result": "DECODE_AND_SEEK_OBSERVED",
+          "limitation": null,
+          "limitationDetail": null,
+          "requests": [
+            {
+              "path": "/media/av1-2160.mp4",
+              "status": 206,
+              "range": true,
+              "authorizationPresent": false,
+              "cookiePresent": false
+            }
+          ]
+        },
+        {
+          "id": "h264-2160-60",
+          "fixtureSha256": "7dd599a6d5ce20b77e8fa99eaff7b60b80f7c5fc9757a0f1a05d1793acf4027f",
+          "input": {
+            "codec": "h264",
+            "codecTag": "avc1",
+            "profile": "Constrained Baseline",
+            "level": 52,
+            "width": 3840,
+            "height": 2160,
+            "pixelFormat": "yuv420p",
+            "fps": 60,
+            "frames": 720,
+            "duration": 12,
+            "bitrate": 25835960,
+            "bitrateBasis": "ffprobe-stream",
+            "colorPrimaries": "bt709",
+            "colorTransfer": "bt709",
+            "colorSpace": "bt709",
+            "sideData": []
+          },
+          "predictionType": "video/mp4; codecs=\"avc1.42c034\"",
+          "predictionScope": "Measured RFC6381 initialization bytes",
+          "hdr": null,
+          "prediction": {
+            "evidence": "browser-prediction",
+            "native": "probably",
+            "videoDecoding": {
+              "supported": true,
+              "smooth": true,
+              "powerEfficient": false
+            },
+            "decodingStatus": "reported",
+            "scope": "video-only; audio/HDR/output unverified"
+          },
+          "metadata": {
+            "width": 3840,
+            "height": 2160,
+            "duration": 12,
+            "currentSrcPath": "/media/h264-2160-60.mp4"
+          },
+          "playback": {
+            "advancedSeconds": 8.542228,
+            "elapsedSeconds": 8.551,
+            "ended": false,
+            "error": null
+          },
+          "seek": {
+            "target": 0.75,
+            "observed": 0.75,
+            "progressedTo": 0.872049,
+            "resumeElapsedMs": 155,
+            "frameCallbackAvailable": true,
+            "postSeekFrame": {
+              "firstMediaTime": 0.75,
+              "firstPresentedFrames": 757,
+              "presentedFrames": 1280,
+              "frames": 2,
+              "mediaTime": 0.766666,
+              "width": 3840,
+              "height": 2160
+            },
+            "error": null
+          },
+          "delivery": {
+            "elapsedSeconds": 8.551,
+            "callbacks": 211,
+            "callbackFps": 24.675476552450004,
+            "presentedFps": 59.99298327680973,
+            "totalFrames": 513,
+            "droppedFrames": 4,
+            "maximumCallbackGapMs": 57.159999999999854,
+            "advancingFrames": true,
+            "firstFrame": {
+              "wall": 6969.16,
+              "mediaTime": 0,
+              "presentedFrames": 243,
+              "width": 3840,
+              "height": 2160
+            },
+            "lastFrame": {
+              "wall": 15453.78,
+              "mediaTime": 8.55,
+              "presentedFrames": 756,
+              "width": 3840,
+              "height": 2160
+            },
+            "windows": [
+              {
+                "wallMs": 501,
+                "mediaTime": 0.460938,
+                "quality": {
+                  "total": 29,
+                  "dropped": 4,
+                  "corrupted": null
+                }
+              },
+              {
+                "wallMs": 1002,
+                "mediaTime": 0.987983,
+                "quality": {
+                  "total": 60,
+                  "dropped": 4,
+                  "corrupted": null
+                }
+              },
+              {
+                "wallMs": 1513,
+                "mediaTime": 1.471,
+                "quality": {
+                  "total": 90,
+                  "dropped": 4,
+                  "corrupted": null
+                }
+              },
+              {
+                "wallMs": 2016,
+                "mediaTime": 1.999355,
+                "quality": {
+                  "total": 121,
+                  "dropped": 4,
+                  "corrupted": null
+                }
+              },
+              {
+                "wallMs": 2517,
+                "mediaTime": 2.481529,
+                "quality": {
+                  "total": 150,
+                  "dropped": 4,
+                  "corrupted": null
+                }
+              },
+              {
+                "wallMs": 3017,
+                "mediaTime": 3.004698,
+                "quality": {
+                  "total": 180,
+                  "dropped": 4,
+                  "corrupted": null
+                }
+              },
+              {
+                "wallMs": 3518,
+                "mediaTime": 3.488672,
+                "quality": {
+                  "total": 210,
+                  "dropped": 4,
+                  "corrupted": null
+                }
+              },
+              {
+                "wallMs": 4017,
+                "mediaTime": 4.010785,
+                "quality": {
+                  "total": 241,
+                  "dropped": 4,
+                  "corrupted": null
+                }
+              },
+              {
+                "wallMs": 4518,
+                "mediaTime": 4.495292,
+                "quality": {
+                  "total": 271,
+                  "dropped": 4,
+                  "corrupted": null
+                }
+              },
+              {
+                "wallMs": 5019,
+                "mediaTime": 4.979027,
+                "quality": {
+                  "total": 301,
+                  "dropped": 4,
+                  "corrupted": null
+                }
+              },
+              {
+                "wallMs": 5533,
+                "mediaTime": 5.507495,
+                "quality": {
+                  "total": 332,
+                  "dropped": 4,
+                  "corrupted": null
+                }
+              },
+              {
+                "wallMs": 6034,
+                "mediaTime": 5.990535,
+                "quality": {
+                  "total": 362,
+                  "dropped": 4,
+                  "corrupted": null
+                }
+              },
+              {
+                "wallMs": 6534,
+                "mediaTime": 6.520945,
+                "quality": {
+                  "total": 392,
+                  "dropped": 4,
+                  "corrupted": null
+                }
+              },
+              {
+                "wallMs": 7036,
+                "mediaTime": 7.007518,
+                "quality": {
+                  "total": 422,
+                  "dropped": 4,
+                  "corrupted": null
+                }
+              },
+              {
+                "wallMs": 7550,
+                "mediaTime": 7.530671,
+                "quality": {
+                  "total": 453,
+                  "dropped": 4,
+                  "corrupted": null
+                }
+              },
+              {
+                "wallMs": 8050,
+                "mediaTime": 8.017323,
+                "quality": {
+                  "total": 482,
+                  "dropped": 4,
+                  "corrupted": null
+                }
+              },
+              {
+                "wallMs": 8551,
+                "mediaTime": 8.542228,
+                "quality": {
+                  "total": 513,
+                  "dropped": 4,
+                  "corrupted": null
+                }
+              }
+            ],
+            "sustained60Observed": false
+          },
+          "mediaErrorCode": null,
+          "result": "DECODE_AND_SEEK_OBSERVED",
+          "limitation": null,
+          "limitationDetail": null,
+          "requests": [
+            {
+              "path": "/media/h264-2160-60.mp4",
+              "status": 206,
+              "range": true,
+              "authorizationPresent": false,
+              "cookiePresent": false
+            },
+            {
+              "path": "/media/h264-2160-60.mp4",
+              "status": 206,
+              "range": true,
+              "authorizationPresent": false,
+              "cookiePresent": false
+            }
+          ]
+        },
+        {
+          "id": "hdr10-hevc-2160",
+          "fixtureSha256": "08d38cf3df782864d8b7b9510b1f615b80eebc7a921b61a3bd8eab08fb321638",
+          "input": {
+            "codec": "hevc",
+            "codecTag": "hvc1",
+            "profile": "Main 10",
+            "level": 150,
+            "width": 3840,
+            "height": 2160,
+            "pixelFormat": "yuv420p10le",
+            "fps": 24,
+            "frames": 48,
+            "duration": 2,
+            "bitrate": 846844,
+            "bitrateBasis": "ffprobe-stream",
+            "colorPrimaries": "bt2020",
+            "colorTransfer": "smpte2084",
+            "colorSpace": "bt2020nc",
+            "sideData": []
+          },
+          "predictionType": "video/mp4; codecs=\"hvc1.2.4.L150.90\"",
+          "predictionScope": "Measured RFC6381 initialization bytes",
+          "hdr": "smpte2084",
+          "prediction": {
+            "evidence": "browser-prediction",
+            "native": "probably",
+            "videoDecoding": {
+              "supported": true,
+              "smooth": true,
+              "powerEfficient": true
+            },
+            "decodingStatus": "reported",
+            "scope": "video-only; audio/HDR/output unverified"
+          },
+          "metadata": {
+            "width": 3840,
+            "height": 2160,
+            "duration": 2,
+            "currentSrcPath": "/media/hdr10-hevc-2160.mp4"
+          },
+          "playback": {
+            "advancedSeconds": 0.979486,
+            "elapsedSeconds": 1.002,
+            "ended": false,
+            "error": null
+          },
+          "seek": {
+            "target": 0.75,
+            "observed": 0.75,
+            "progressedTo": 0.874999,
+            "resumeElapsedMs": 252,
+            "frameCallbackAvailable": true,
+            "postSeekFrame": {
+              "firstMediaTime": 0.75,
+              "firstPresentedFrames": 1306,
+              "presentedFrames": 1332,
+              "frames": 2,
+              "mediaTime": 0.791666,
+              "width": 3840,
+              "height": 2160
+            },
+            "error": null
+          },
+          "delivery": {
+            "elapsedSeconds": 1.002,
+            "callbacks": 19,
+            "callbackFps": 18.962075848303392,
+            "presentedFps": 22.954091816367267,
+            "totalFrames": 24,
+            "droppedFrames": 3,
+            "maximumCallbackGapMs": 147.54000000000087,
+            "advancingFrames": true,
+            "firstFrame": {
+              "wall": 16135.54,
+              "mediaTime": 0,
+              "presentedFrames": 1282,
+              "width": 3840,
+              "height": 2160
+            },
+            "lastFrame": {
+              "wall": 16968.16,
+              "mediaTime": 0.958333,
+              "presentedFrames": 1305,
+              "width": 3840,
+              "height": 2160
+            },
+            "windows": [
+              {
+                "wallMs": 501,
+                "mediaTime": 0.477384,
+                "quality": {
+                  "total": 11,
+                  "dropped": 3,
+                  "corrupted": null
+                }
+              },
+              {
+                "wallMs": 1002,
+                "mediaTime": 0.979486,
+                "quality": {
+                  "total": 24,
+                  "dropped": 3,
+                  "corrupted": null
+                }
+              }
+            ],
+            "sustained60Observed": false
+          },
+          "mediaErrorCode": null,
+          "result": "DECODE_AND_SEEK_OBSERVED",
+          "limitation": null,
+          "limitationDetail": null,
+          "requests": [
+            {
+              "path": "/media/hdr10-hevc-2160.mp4",
+              "status": 206,
+              "range": true,
+              "authorizationPresent": false,
+              "cookiePresent": false
+            }
+          ]
+        },
+        {
+          "id": "hlg-hevc-2160",
+          "fixtureSha256": "169d3926504ae072a1dc33d00bd04e56ead92cfa23b0aa985cfbc36c45558e4f",
+          "input": {
+            "codec": "hevc",
+            "codecTag": "hvc1",
+            "profile": "Main 10",
+            "level": 150,
+            "width": 3840,
+            "height": 2160,
+            "pixelFormat": "yuv420p10le",
+            "fps": 24,
+            "frames": 48,
+            "duration": 2,
+            "bitrate": 2853124,
+            "bitrateBasis": "ffprobe-stream",
+            "colorPrimaries": "bt2020",
+            "colorTransfer": "arib-std-b67",
+            "colorSpace": "bt2020nc",
+            "sideData": []
+          },
+          "predictionType": "video/mp4; codecs=\"hvc1.2.4.L150.90\"",
+          "predictionScope": "Measured RFC6381 initialization bytes",
+          "hdr": "arib-std-b67",
+          "prediction": {
+            "evidence": "browser-prediction",
+            "native": "probably",
+            "videoDecoding": {
+              "supported": true,
+              "smooth": true,
+              "powerEfficient": true
+            },
+            "decodingStatus": "reported",
+            "scope": "video-only; audio/HDR/output unverified"
+          },
+          "metadata": {
+            "width": 3840,
+            "height": 2160,
+            "duration": 2,
+            "currentSrcPath": "/media/hlg-hevc-2160.mp4"
+          },
+          "playback": {
+            "advancedSeconds": 0.977865,
+            "elapsedSeconds": 1.001,
+            "ended": false,
+            "error": null
+          },
+          "seek": {
+            "target": 0.75,
+            "observed": 0.75,
+            "progressedTo": 0.874999,
+            "resumeElapsedMs": 302,
+            "frameCallbackAvailable": true,
+            "postSeekFrame": {
+              "firstMediaTime": 0.75,
+              "firstPresentedFrames": 1358,
+              "presentedFrames": 1390,
+              "frames": 2,
+              "mediaTime": 0.791666,
+              "width": 3840,
+              "height": 2160
+            },
+            "error": null
+          },
+          "delivery": {
+            "elapsedSeconds": 1.001,
+            "callbacks": 17,
+            "callbackFps": 16.983016983016984,
+            "presentedFps": 22.97702297702298,
+            "totalFrames": 24,
+            "droppedFrames": 5,
+            "maximumCallbackGapMs": 140.5,
+            "advancingFrames": true,
+            "firstFrame": {
+              "wall": 18025.5,
+              "mediaTime": 0,
+              "presentedFrames": 1334,
+              "width": 3840,
+              "height": 2160
+            },
+            "lastFrame": {
+              "wall": 18862.58,
+              "mediaTime": 0.958333,
+              "presentedFrames": 1357,
+              "width": 3840,
+              "height": 2160
+            },
+            "windows": [
+              {
+                "wallMs": 500,
+                "mediaTime": 0.478272,
+                "quality": {
+                  "total": 12,
+                  "dropped": 5,
+                  "corrupted": null
+                }
+              },
+              {
+                "wallMs": 1001,
+                "mediaTime": 0.977865,
+                "quality": {
+                  "total": 24,
+                  "dropped": 5,
+                  "corrupted": null
+                }
+              }
+            ],
+            "sustained60Observed": false
+          },
+          "mediaErrorCode": null,
+          "result": "DECODE_AND_SEEK_OBSERVED",
+          "limitation": null,
+          "limitationDetail": null,
+          "requests": [
+            {
+              "path": "/media/hlg-hevc-2160.mp4",
+              "status": 206,
+              "range": true,
+              "authorizationPresent": false,
+              "cookiePresent": false
+            }
+          ]
+        },
+        {
+          "id": "pq-vp9-2160",
+          "fixtureSha256": "ba1d539fa25a24f0e74082c406545c606db19ee9198342af2fb86a62994631b0",
+          "input": {
+            "codec": "vp9",
+            "codecTag": "[0][0][0][0]",
+            "profile": "Profile 2",
+            "level": -99,
+            "width": 3840,
+            "height": 2160,
+            "pixelFormat": "yuv420p10le",
+            "fps": 24,
+            "frames": 48,
+            "duration": 2,
+            "bitrate": 3390820,
+            "bitrateBasis": "ffprobe-container",
+            "colorPrimaries": "bt2020",
+            "colorTransfer": "smpte2084",
+            "colorSpace": "bt2020nc",
+            "sideData": []
+          },
+          "predictionType": "video/webm; codecs=\"vp9\"",
+          "predictionScope": "WebM VP9 family alias; profile recorded separately, no invented level",
+          "hdr": "smpte2084",
+          "prediction": {
+            "evidence": "browser-prediction",
+            "native": "probably",
+            "videoDecoding": {
+              "supported": true,
+              "smooth": true,
+              "powerEfficient": false
+            },
+            "decodingStatus": "reported",
+            "scope": "video-only; audio/HDR/output unverified"
+          },
+          "metadata": {
+            "width": 3840,
+            "height": 2160,
+            "duration": 2,
+            "currentSrcPath": "/media/pq-vp9-2160.webm"
+          },
+          "playback": {
+            "advancedSeconds": 0.984009,
+            "elapsedSeconds": 1,
+            "ended": false,
+            "error": null
+          },
+          "seek": {
+            "target": 0.75,
+            "observed": 0.75,
+            "progressedTo": 0.875,
+            "resumeElapsedMs": 203,
+            "frameCallbackAvailable": true,
+            "postSeekFrame": {
+              "firstMediaTime": 0.75,
+              "firstPresentedFrames": 1417,
+              "presentedFrames": 1451,
+              "frames": 2,
+              "mediaTime": 0.792,
+              "width": 3840,
+              "height": 2160
+            },
+            "error": null
+          },
+          "delivery": {
+            "elapsedSeconds": 1,
+            "callbacks": 24,
+            "callbackFps": 24,
+            "presentedFps": 24,
+            "totalFrames": 25,
+            "droppedFrames": 2,
+            "maximumCallbackGapMs": 63.900000000001455,
+            "advancingFrames": true,
+            "firstFrame": {
+              "wall": 19921.9,
+              "mediaTime": 0,
+              "presentedFrames": 1392,
+              "width": 3840,
+              "height": 2160
+            },
+            "lastFrame": {
+              "wall": 20841.96,
+              "mediaTime": 1,
+              "presentedFrames": 1416,
+              "width": 3840,
+              "height": 2160
+            },
+            "windows": [
+              {
+                "wallMs": 501,
+                "mediaTime": 0.461017,
+                "quality": {
+                  "total": 13,
+                  "dropped": 2,
+                  "corrupted": null
+                }
+              },
+              {
+                "wallMs": 1000,
+                "mediaTime": 0.984009,
+                "quality": {
+                  "total": 25,
+                  "dropped": 2,
+                  "corrupted": null
+                }
+              }
+            ],
+            "sustained60Observed": false
+          },
+          "mediaErrorCode": null,
+          "result": "DECODE_AND_SEEK_OBSERVED",
+          "limitation": null,
+          "limitationDetail": null,
+          "requests": [
+            {
+              "path": "/media/pq-vp9-2160.webm",
+              "status": 206,
+              "range": true,
+              "authorizationPresent": false,
+              "cookiePresent": false
+            }
+          ]
+        },
+        {
+          "id": "hlg-vp9-2160",
+          "fixtureSha256": "35767dd1b76b2e7c24d984db2077dc0fc542173ee236e5cfde03a68ed4fcc9cd",
+          "input": {
+            "codec": "vp9",
+            "codecTag": "[0][0][0][0]",
+            "profile": "Profile 2",
+            "level": -99,
+            "width": 3840,
+            "height": 2160,
+            "pixelFormat": "yuv420p10le",
+            "fps": 24,
+            "frames": 48,
+            "duration": 2,
+            "bitrate": 8377828,
+            "bitrateBasis": "ffprobe-container",
+            "colorPrimaries": "bt2020",
+            "colorTransfer": "arib-std-b67",
+            "colorSpace": "bt2020nc",
+            "sideData": []
+          },
+          "predictionType": "video/webm; codecs=\"vp9\"",
+          "predictionScope": "WebM VP9 family alias; profile recorded separately, no invented level",
+          "hdr": "arib-std-b67",
+          "prediction": {
+            "evidence": "browser-prediction",
+            "native": "probably",
+            "videoDecoding": {
+              "supported": true,
+              "smooth": true,
+              "powerEfficient": false
+            },
+            "decodingStatus": "reported",
+            "scope": "video-only; audio/HDR/output unverified"
+          },
+          "metadata": {
+            "width": 3840,
+            "height": 2160,
+            "duration": 2,
+            "currentSrcPath": "/media/hlg-vp9-2160.webm"
+          },
+          "playback": {
+            "advancedSeconds": 0.98489,
+            "elapsedSeconds": 1.001,
+            "ended": false,
+            "error": null
+          },
+          "seek": {
+            "target": 0.75,
+            "observed": 0.75,
+            "progressedTo": 0.875,
+            "resumeElapsedMs": 209,
+            "frameCallbackAvailable": true,
+            "postSeekFrame": {
+              "firstMediaTime": 0.75,
+              "firstPresentedFrames": 1478,
+              "presentedFrames": 1512,
+              "frames": 2,
+              "mediaTime": 0.792,
+              "width": 3840,
+              "height": 2160
+            },
+            "error": null
+          },
+          "delivery": {
+            "elapsedSeconds": 1.001,
+            "callbacks": 23,
+            "callbackFps": 22.97702297702298,
+            "presentedFps": 23.976023976023978,
+            "totalFrames": 25,
+            "droppedFrames": 1,
+            "maximumCallbackGapMs": 80.36000000000058,
+            "advancingFrames": true,
+            "firstFrame": {
+              "wall": 21443.36,
+              "mediaTime": 0,
+              "presentedFrames": 1453,
+              "width": 3840,
+              "height": 2160
+            },
+            "lastFrame": {
+              "wall": 22348.18,
+              "mediaTime": 1,
+              "presentedFrames": 1477,
+              "width": 3840,
+              "height": 2160
+            },
+            "windows": [
+              {
+                "wallMs": 500,
+                "mediaTime": 0.458,
+                "quality": {
+                  "total": 13,
+                  "dropped": 1,
+                  "corrupted": null
+                }
+              },
+              {
+                "wallMs": 1001,
+                "mediaTime": 0.98489,
+                "quality": {
+                  "total": 25,
+                  "dropped": 1,
+                  "corrupted": null
+                }
+              }
+            ],
+            "sustained60Observed": false
+          },
+          "mediaErrorCode": null,
+          "result": "DECODE_AND_SEEK_OBSERVED",
+          "limitation": null,
+          "limitationDetail": null,
+          "requests": [
+            {
+              "path": "/media/hlg-vp9-2160.webm",
+              "status": 206,
+              "range": true,
+              "authorizationPresent": false,
+              "cookiePresent": false
+            }
+          ]
+        }
+      ],
+      "version": "157.0",
+      "environment": {
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64; rv:157.0) Gecko/20100101 Firefox/157.0",
+        "hardwareConcurrency": 4,
+        "deviceMemoryGiB": null,
+        "hdrScreenReported": false,
+        "colorGamutP3": false,
+        "colorGamut2020": false,
+        "requestVideoFrameCallback": true,
+        "mediaCapabilities": true
+      },
+      "transport": {
+        "corsAllowed": {
+          "status": 200,
+          "ok": true
+        },
+        "corsDenied": {
+          "rejected": true
+        },
+        "forbidden403": {
+          "status": 403,
+          "ok": false
+        },
+        "expired410": {
+          "status": 410,
+          "ok": false
+        }
+      }
+    }
+  ],
+  "limits": [
+    "Mappings are owner-requested engine-family mappings, not duplicate branded/device runs",
+    "Software/headless Linux pipeline: successful HDR-encoded decode does not prove HDR luminance, gamut, tone mapping or display output",
+    "An unsuccessful codec decode is a limitation of this tested engine build/host combination unless isolated otherwise; never proof of all versions/platforms",
+    "No audio, DRM, billing, account, production, preview or real-provider operation"
+  ],
+  "credentialLeakObserved": false,
+  "exitSemantics": {
+    "0": "Completed; all positively predicted decode/seek and sustained60 criteria passed; negative predictions remain explicit unsupported rows",
+    "2": "Engine/driver or positively predicted decode/seek failure, or credential leak",
+    "3": "Measurement completed but sustained60 criterion not observed",
+    "4": "Required fixture rows are missing/unmeasured; matrix incomplete"
+  },
+  "commandExitCode": 3,
+  "rawReceiptSha256": "e1d13543bc97bfe32076984692feffabcda79f4b10204a1c0c492cf468a34498",
+  "sanitization": "Only local workspace/home prefixes replaced; observations/statuses preserved.",
+  "historicalMeasurement": {
+    "sourceRevision": "586092eafde0eea7c15b2b58eb58be6497c772e3",
+    "rawReceiptSha256": "b7e7bb8075c927a8ca62222aef3d424d283420e08f5b476518a53cbc7ee0da31",
+    "commandExitCode": 2,
+    "reasonSuperseded": "The first post-seek frame remains near target; later genuine presentation must advance media timestamp and presentation counter. Two best-effort notifications need not both fall inside the target window. Sustained60 criteria unchanged.",
+    "webkitPriorPartialRows": [
+      "av1-2160",
+      "hdr10-hevc-2160",
+      "hlg-hevc-2160"
+    ]
+  }
+}

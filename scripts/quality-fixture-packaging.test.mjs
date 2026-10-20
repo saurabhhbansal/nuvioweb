@@ -69,6 +69,52 @@ test("fixed-format packaging rejects truncation, absolute addressing and unobser
   );
 });
 
+test("canonical native MP4s retain the original encoded samples and public provenance", async () => {
+  const native = JSON.parse(await readFile(new URL("native-provenance.json", root), "utf8"));
+  assert.equal(native.license, "CC0-1.0");
+  const hash = bytes => createHash("sha256").update(bytes).digest("hex");
+  assert.equal(hash(await readFile(new URL(`../${native.source}`, import.meta.url))), native.sourceSha256);
+  for (const entry of native.files) {
+    const canonical = await readFile(new URL(entry.file, root));
+    const original = await readFile(new URL(entry.source, root));
+    assert.equal(hash(canonical), entry.sha256);
+    assert.equal(hash(original), entry.sourceSha256);
+    const mdat = bytes => boxes(bytes).filter(box => box.type === "mdat").map(box => bytes.subarray(box.start + 8, box.end));
+    // FFmpeg packet hashes from executed remux plus byte-identical AVC payload.
+    assert.deepEqual(Buffer.concat(mdat(canonical)), Buffer.concat(mdat(original)));
+    assert.equal(entry.packetCount, entry.packetDataHashes.length);
+    assert(entry.exactEncodedPacketsPreserved);
+  }
+});
+
+test("canonical adaptive fragments preserve original AVC payload, source hashes and measured timing", async () => {
+  const adaptive = JSON.parse(await readFile(new URL("adaptive-provenance.json", root), "utf8"));
+  const hash = bytes => createHash("sha256").update(bytes).digest("hex");
+  assert.equal(adaptive.license, "CC0-1.0");
+  assert.equal(hash(await readFile(new URL(`../${adaptive.source}`, import.meta.url))), adaptive.sourceSha256);
+  assert.equal(hash(await readFile(new URL(`../${adaptive.packagingSource}`, import.meta.url))), adaptive.packagingSourceSha256);
+  const payload = bytes => Buffer.concat(boxes(bytes).filter(box => box.type === "mdat").map(box => bytes.subarray(box.start + 8, box.end)));
+  for (const entry of adaptive.files) {
+    const original = await readFile(new URL(entry.source, root));
+    const canonical = await readFile(new URL(entry.canonicalFile, root));
+    assert.equal(hash(original), entry.sourceSha256);
+    assert.equal(hash(canonical), entry.canonicalSha256);
+    assert.deepEqual(payload(canonical), payload(original));
+    assert(entry.exactEncodedPacketsPreserved && entry.exactMdatPayloadPreserved);
+    assert.equal(entry.packetCount, entry.packetDataHashes.length);
+    const packaged = packageQualityFixture(canonical, { width: entry.width, height: entry.height, duration: entry.duration });
+    assert.equal(packaged.codec, entry.codec);
+    for (const file of entry.packaged) {
+      const bytes = await readFile(new URL(file.file, root));
+      assert.equal(hash(bytes), file.sha256);
+      assert.deepEqual(bytes, packaged.files.get(file.file.split("/").at(-1)));
+    }
+    const segment = await readFile(new URL(`${entry.directory}/segment.m4s`, root));
+    assert.deepEqual(payload(segment), payload(original));
+    assert.match(packaged.files.get("manifest.mpd").toString(), new RegExp(`mediaPresentationDuration="PT${entry.duration.toFixed(6)}S"`));
+  }
+});
+
 test("quality provenance identifies the exact generator and bounded packager source", async () => {
   for (const [path, expected] of [
     [provenance.source, provenance.sourceSha256],

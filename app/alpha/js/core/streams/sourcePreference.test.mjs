@@ -102,6 +102,23 @@ test("missing, throwing and malformed native APIs do not turn unknown into unsup
   assert.deepEqual(orderSourcesByNativePrediction(null), []);
 });
 
+test("conflicting codec declarations cannot share cached predictions with consistent sources", () => {
+  const clean = source("clean", { video: { codec: "vp8" } });
+  const conflict = source("conflict", { video: { codec: "vp09.00.10.08" } });
+  const unknown = source("unknown", { mimeType: null });
+  for (const [streams, expected] of [
+    [[clean, unknown, conflict], ["clean", "unknown", "conflict"]],
+    [[conflict, clean, unknown], ["clean", "conflict", "unknown"]]
+  ]) {
+    let calls = 0;
+    const ranked = order(streams, {
+      videoElement: { canPlayType() { calls++; return "probably"; } }
+    });
+    assert.deepEqual(ids(ranked), expected);
+    assert.equal(calls, 1);
+  }
+});
+
 test("each declared MIME is probed once per call and predictions are not cached across calls", () => {
   const streams = [source("first"), source("second")];
   let calls = 0;

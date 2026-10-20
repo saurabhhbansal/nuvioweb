@@ -1,0 +1,1675 @@
+{
+  "schemaVersion": 1,
+  "sourceRevision": "f5f15892d9078cb6e445cd01e529fade2b908c18",
+  "qualityTestSha256": "95386d427d61786e07f9ebf172a7fb423083f2976dc42ffca961e9df3e75f5be",
+  "rawReportSha256": "d366808bfc9dd69304382f3f37a37b504da5b3e4d12878d2908726e85ea25f52",
+  "commandExitCode": 0,
+  "command": "NUVIO_PLAYWRIGHT_WEBKIT=1 NUVIO_PLAYWRIGHT_FIREFOX=1 npx playwright test tests/browser/quality.spec.mjs tests/browser/engine-capabilities.spec.mjs --project=chromium --project=webkit --project=firefox --reporter=list,json",
+  "stats": {
+    "startTime": "2026-10-20T16:52:42.255Z",
+    "duration": 109999.222,
+    "expected": 27,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "limits": [
+    "Synthetic loopback original CC0 video-only fixtures, not live provider, hosted app, audio, HDR output or sustained60 certification",
+    "Canonical containers preserve exact original encoded packets; historical legacy containers not relabelled as fixed",
+    "WebKit native HTTP status may be unavailable; independent fixture-control HEAD explicitly distinguished from real browser GET/failure",
+    "First post-seek presented frame near target; second advances media timestamp and presentation counter without assuming callback cadence"
+  ],
+  "observations": [
+    {
+      "engine": "chromium",
+      "title": "the classifier agrees with this engine's own capability answer",
+      "status": "passed",
+      "durationMs": 325,
+      "attachments": [
+        {
+          "name": "engine-capabilities.json",
+          "observations": {
+            "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.8078.4 Safari/537.36",
+            "matroska": {
+              "contentType": "video/x-matroska; codecs=\"hvc1\"",
+              "nativePrediction": "not-reported",
+              "stall": {
+                "reason": "unsupported-container",
+                "category": "unsupported",
+                "evidence": "native-not-reported",
+                "container": "matroska",
+                "codec": "hvc1"
+              },
+              "mediaError": {
+                "reason": "unsupported-container",
+                "category": "unsupported",
+                "evidence": "native-not-reported",
+                "container": "matroska",
+                "codec": "hvc1"
+              },
+              "network": {
+                "reason": "network",
+                "category": "network",
+                "evidence": "http-status",
+                "container": "matroska",
+                "codec": "hvc1",
+                "httpStatus": 403
+              },
+              "header": {
+                "reason": "header-required",
+                "category": "header-required",
+                "evidence": "provider-declared",
+                "container": "matroska",
+                "codec": "hvc1"
+              },
+              "adaptive": {
+                "reason": "startup-stall",
+                "category": "stall",
+                "evidence": "startup-timeout",
+                "container": "matroska",
+                "codec": "hvc1"
+              }
+            },
+            "mp4-hevc": {
+              "contentType": "video/mp4; codecs=\"hvc1\"",
+              "nativePrediction": "not-reported",
+              "stall": {
+                "reason": "unsupported-codec",
+                "category": "unsupported",
+                "evidence": "native-not-reported",
+                "container": null,
+                "codec": "hvc1"
+              },
+              "mediaError": {
+                "reason": "unsupported-codec",
+                "category": "unsupported",
+                "evidence": "native-not-reported",
+                "container": null,
+                "codec": "hvc1"
+              },
+              "network": {
+                "reason": "network",
+                "category": "network",
+                "evidence": "http-status",
+                "container": null,
+                "codec": "hvc1",
+                "httpStatus": 403
+              },
+              "header": {
+                "reason": "header-required",
+                "category": "header-required",
+                "evidence": "provider-declared",
+                "container": null,
+                "codec": "hvc1"
+              },
+              "adaptive": {
+                "reason": "startup-stall",
+                "category": "stall",
+                "evidence": "startup-timeout",
+                "container": null,
+                "codec": "hvc1"
+              }
+            },
+            "mp4-h264": {
+              "contentType": "video/mp4; codecs=\"avc1.640028\"",
+              "nativePrediction": "probably",
+              "stall": {
+                "reason": "startup-stall",
+                "category": "stall",
+                "evidence": "startup-timeout",
+                "container": null,
+                "codec": "avc1.640028"
+              },
+              "mediaError": {
+                "reason": "startup-media-error",
+                "category": "engine-error",
+                "evidence": "engine-error",
+                "container": null,
+                "codec": "avc1.640028"
+              },
+              "network": {
+                "reason": "network",
+                "category": "network",
+                "evidence": "http-status",
+                "container": null,
+                "codec": "avc1.640028",
+                "httpStatus": 403
+              },
+              "header": {
+                "reason": "header-required",
+                "category": "header-required",
+                "evidence": "provider-declared",
+                "container": null,
+                "codec": "avc1.640028"
+              },
+              "adaptive": {
+                "reason": "startup-stall",
+                "category": "stall",
+                "evidence": "startup-timeout",
+                "container": null,
+                "codec": "avc1.640028"
+              }
+            },
+            "hls": {
+              "contentType": "application/vnd.apple.mpegurl",
+              "nativePrediction": "maybe",
+              "stall": {
+                "reason": "startup-stall",
+                "category": "stall",
+                "evidence": "startup-timeout",
+                "container": "application/vnd.apple.mpegurl",
+                "codec": null
+              },
+              "mediaError": {
+                "reason": "startup-media-error",
+                "category": "engine-error",
+                "evidence": "engine-error",
+                "container": "application/vnd.apple.mpegurl",
+                "codec": null
+              },
+              "network": {
+                "reason": "network",
+                "category": "network",
+                "evidence": "http-status",
+                "container": "application/vnd.apple.mpegurl",
+                "codec": null,
+                "httpStatus": 403
+              },
+              "header": {
+                "reason": "header-required",
+                "category": "header-required",
+                "evidence": "provider-declared",
+                "container": "application/vnd.apple.mpegurl",
+                "codec": null
+              },
+              "adaptive": {
+                "reason": "startup-stall",
+                "category": "stall",
+                "evidence": "startup-timeout",
+                "container": "application/vnd.apple.mpegurl",
+                "codec": null
+              }
+            }
+          }
+        }
+      ],
+      "errors": []
+    },
+    {
+      "engine": "chromium",
+      "title": "the startup overlay shows engine-honest guidance in this engine",
+      "status": "passed",
+      "durationMs": 739,
+      "attachments": [],
+      "errors": []
+    },
+    {
+      "engine": "webkit",
+      "title": "the classifier agrees with this engine's own capability answer",
+      "status": "passed",
+      "durationMs": 621,
+      "attachments": [
+        {
+          "name": "engine-capabilities.json",
+          "observations": {
+            "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/27.2 Safari/605.1.15",
+            "matroska": {
+              "contentType": "video/x-matroska; codecs=\"hvc1\"",
+              "nativePrediction": "probably",
+              "stall": {
+                "reason": "startup-stall",
+                "category": "stall",
+                "evidence": "startup-timeout",
+                "container": "matroska",
+                "codec": "hvc1"
+              },
+              "mediaError": {
+                "reason": "startup-media-error",
+                "category": "engine-error",
+                "evidence": "engine-error",
+                "container": "matroska",
+                "codec": "hvc1"
+              },
+              "network": {
+                "reason": "network",
+                "category": "network",
+                "evidence": "http-status",
+                "container": "matroska",
+                "codec": "hvc1",
+                "httpStatus": 403
+              },
+              "header": {
+                "reason": "header-required",
+                "category": "header-required",
+                "evidence": "provider-declared",
+                "container": "matroska",
+                "codec": "hvc1"
+              },
+              "adaptive": {
+                "reason": "startup-stall",
+                "category": "stall",
+                "evidence": "startup-timeout",
+                "container": "matroska",
+                "codec": "hvc1"
+              }
+            },
+            "mp4-hevc": {
+              "contentType": "video/mp4; codecs=\"hvc1\"",
+              "nativePrediction": "probably",
+              "stall": {
+                "reason": "startup-stall",
+                "category": "stall",
+                "evidence": "startup-timeout",
+                "container": null,
+                "codec": "hvc1"
+              },
+              "mediaError": {
+                "reason": "startup-media-error",
+                "category": "engine-error",
+                "evidence": "engine-error",
+                "container": null,
+                "codec": "hvc1"
+              },
+              "network": {
+                "reason": "network",
+                "category": "network",
+                "evidence": "http-status",
+                "container": null,
+                "codec": "hvc1",
+                "httpStatus": 403
+              },
+              "header": {
+                "reason": "header-required",
+                "category": "header-required",
+                "evidence": "provider-declared",
+                "container": null,
+                "codec": "hvc1"
+              },
+              "adaptive": {
+                "reason": "startup-stall",
+                "category": "stall",
+                "evidence": "startup-timeout",
+                "container": null,
+                "codec": "hvc1"
+              }
+            },
+            "mp4-h264": {
+              "contentType": "video/mp4; codecs=\"avc1.640028\"",
+              "nativePrediction": "probably",
+              "stall": {
+                "reason": "startup-stall",
+                "category": "stall",
+                "evidence": "startup-timeout",
+                "container": null,
+                "codec": "avc1.640028"
+              },
+              "mediaError": {
+                "reason": "startup-media-error",
+                "category": "engine-error",
+                "evidence": "engine-error",
+                "container": null,
+                "codec": "avc1.640028"
+              },
+              "network": {
+                "reason": "network",
+                "category": "network",
+                "evidence": "http-status",
+                "container": null,
+                "codec": "avc1.640028",
+                "httpStatus": 403
+              },
+              "header": {
+                "reason": "header-required",
+                "category": "header-required",
+                "evidence": "provider-declared",
+                "container": null,
+                "codec": "avc1.640028"
+              },
+              "adaptive": {
+                "reason": "startup-stall",
+                "category": "stall",
+                "evidence": "startup-timeout",
+                "container": null,
+                "codec": "avc1.640028"
+              }
+            },
+            "hls": {
+              "contentType": "application/vnd.apple.mpegurl",
+              "nativePrediction": "not-reported",
+              "stall": {
+                "reason": "startup-stall",
+                "category": "stall",
+                "evidence": "startup-timeout",
+                "container": "application/vnd.apple.mpegurl",
+                "codec": null
+              },
+              "mediaError": {
+                "reason": "startup-media-error",
+                "category": "engine-error",
+                "evidence": "engine-error",
+                "container": "application/vnd.apple.mpegurl",
+                "codec": null
+              },
+              "network": {
+                "reason": "network",
+                "category": "network",
+                "evidence": "http-status",
+                "container": "application/vnd.apple.mpegurl",
+                "codec": null,
+                "httpStatus": 403
+              },
+              "header": {
+                "reason": "header-required",
+                "category": "header-required",
+                "evidence": "provider-declared",
+                "container": "application/vnd.apple.mpegurl",
+                "codec": null
+              },
+              "adaptive": {
+                "reason": "startup-stall",
+                "category": "stall",
+                "evidence": "startup-timeout",
+                "container": "application/vnd.apple.mpegurl",
+                "codec": null
+              }
+            }
+          }
+        }
+      ],
+      "errors": []
+    },
+    {
+      "engine": "webkit",
+      "title": "the startup overlay shows engine-honest guidance in this engine",
+      "status": "passed",
+      "durationMs": 988,
+      "attachments": [],
+      "errors": []
+    },
+    {
+      "engine": "firefox",
+      "title": "the classifier agrees with this engine's own capability answer",
+      "status": "passed",
+      "durationMs": 1765,
+      "attachments": [
+        {
+          "name": "engine-capabilities.json",
+          "observations": {
+            "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:157.0) Gecko/20100101 Firefox/157.0",
+            "matroska": {
+              "contentType": "video/x-matroska; codecs=\"hvc1\"",
+              "nativePrediction": "not-reported",
+              "stall": {
+                "reason": "unsupported-container",
+                "category": "unsupported",
+                "evidence": "native-not-reported",
+                "container": "matroska",
+                "codec": "hvc1"
+              },
+              "mediaError": {
+                "reason": "unsupported-container",
+                "category": "unsupported",
+                "evidence": "native-not-reported",
+                "container": "matroska",
+                "codec": "hvc1"
+              },
+              "network": {
+                "reason": "network",
+                "category": "network",
+                "evidence": "http-status",
+                "container": "matroska",
+                "codec": "hvc1",
+                "httpStatus": 403
+              },
+              "header": {
+                "reason": "header-required",
+                "category": "header-required",
+                "evidence": "provider-declared",
+                "container": "matroska",
+                "codec": "hvc1"
+              },
+              "adaptive": {
+                "reason": "startup-stall",
+                "category": "stall",
+                "evidence": "startup-timeout",
+                "container": "matroska",
+                "codec": "hvc1"
+              }
+            },
+            "mp4-hevc": {
+              "contentType": "video/mp4; codecs=\"hvc1\"",
+              "nativePrediction": "not-reported",
+              "stall": {
+                "reason": "unsupported-codec",
+                "category": "unsupported",
+                "evidence": "native-not-reported",
+                "container": null,
+                "codec": "hvc1"
+              },
+              "mediaError": {
+                "reason": "unsupported-codec",
+                "category": "unsupported",
+                "evidence": "native-not-reported",
+                "container": null,
+                "codec": "hvc1"
+              },
+              "network": {
+                "reason": "network",
+                "category": "network",
+                "evidence": "http-status",
+                "container": null,
+                "codec": "hvc1",
+                "httpStatus": 403
+              },
+              "header": {
+                "reason": "header-required",
+                "category": "header-required",
+                "evidence": "provider-declared",
+                "container": null,
+                "codec": "hvc1"
+              },
+              "adaptive": {
+                "reason": "startup-stall",
+                "category": "stall",
+                "evidence": "startup-timeout",
+                "container": null,
+                "codec": "hvc1"
+              }
+            },
+            "mp4-h264": {
+              "contentType": "video/mp4; codecs=\"avc1.640028\"",
+              "nativePrediction": "probably",
+              "stall": {
+                "reason": "startup-stall",
+                "category": "stall",
+                "evidence": "startup-timeout",
+                "container": null,
+                "codec": "avc1.640028"
+              },
+              "mediaError": {
+                "reason": "startup-media-error",
+                "category": "engine-error",
+                "evidence": "engine-error",
+                "container": null,
+                "codec": "avc1.640028"
+              },
+              "network": {
+                "reason": "network",
+                "category": "network",
+                "evidence": "http-status",
+                "container": null,
+                "codec": "avc1.640028",
+                "httpStatus": 403
+              },
+              "header": {
+                "reason": "header-required",
+                "category": "header-required",
+                "evidence": "provider-declared",
+                "container": null,
+                "codec": "avc1.640028"
+              },
+              "adaptive": {
+                "reason": "startup-stall",
+                "category": "stall",
+                "evidence": "startup-timeout",
+                "container": null,
+                "codec": "avc1.640028"
+              }
+            },
+            "hls": {
+              "contentType": "application/vnd.apple.mpegurl",
+              "nativePrediction": "not-reported",
+              "stall": {
+                "reason": "startup-stall",
+                "category": "stall",
+                "evidence": "startup-timeout",
+                "container": "application/vnd.apple.mpegurl",
+                "codec": null
+              },
+              "mediaError": {
+                "reason": "startup-media-error",
+                "category": "engine-error",
+                "evidence": "engine-error",
+                "container": "application/vnd.apple.mpegurl",
+                "codec": null
+              },
+              "network": {
+                "reason": "network",
+                "category": "network",
+                "evidence": "http-status",
+                "container": "application/vnd.apple.mpegurl",
+                "codec": null,
+                "httpStatus": 403
+              },
+              "header": {
+                "reason": "header-required",
+                "category": "header-required",
+                "evidence": "provider-declared",
+                "container": "application/vnd.apple.mpegurl",
+                "codec": null
+              },
+              "adaptive": {
+                "reason": "startup-stall",
+                "category": "stall",
+                "evidence": "startup-timeout",
+                "container": "application/vnd.apple.mpegurl",
+                "codec": null
+              }
+            }
+          }
+        }
+      ],
+      "errors": []
+    },
+    {
+      "engine": "firefox",
+      "title": "the startup overlay shows engine-honest guidance in this engine",
+      "status": "passed",
+      "durationMs": 1457,
+      "attachments": [],
+      "errors": []
+    },
+    {
+      "engine": "chromium",
+      "title": "bundled quality-1080 preserves original dimensions and supports seek",
+      "status": "passed",
+      "durationMs": 2773,
+      "attachments": [
+        {
+          "name": "actual-quality-observation",
+          "observations": {
+            "scenario": "quality-1080",
+            "outcome": "ORIGINAL_DECODE_AND_SEEK",
+            "engine": "chromium",
+            "predictionType": "video/mp4; codecs=\"avc1.42c02a\"",
+            "nativePrediction": "probably",
+            "originalEncodedSourceSha256": "6ca4ff483d09902b23c305d028aed66c34e759ad30c28c83e6aecc341486ba12",
+            "servedSourceSha256": "d13b088925f4db1fb9d81870f504fde8f5b149d03d250663c88ae2b091a5b4ed",
+            "containerNormalization": "Lossless canonical test container; exact original encoded packets retained",
+            "expectedDuration": 3.845867,
+            "postSeek": {
+              "seeked": true,
+              "playRejection": null,
+              "frames": [
+                {
+                  "mediaTime": 0.600967,
+                  "presentedFrames": 4,
+                  "width": 1920,
+                  "height": 1080
+                },
+                {
+                  "mediaTime": 0.8033,
+                  "presentedFrames": 5,
+                  "width": 1920,
+                  "height": 1080
+                }
+              ],
+              "frameDeadline": false
+            },
+            "initial": {
+              "width": 1920,
+              "height": 1080,
+              "src": "http://127.0.0.1:4373/media/quality/native-1080p.mp4",
+              "duration": 4.004867,
+              "error": null
+            },
+            "media": [
+              {
+                "path": "/media/quality/native-1080p.mp4",
+                "status": 206
+              }
+            ],
+            "engineEvents": []
+          }
+        }
+      ],
+      "errors": []
+    },
+    {
+      "engine": "chromium",
+      "title": "bundled quality-2160 preserves original dimensions and supports seek",
+      "status": "passed",
+      "durationMs": 2871,
+      "attachments": [
+        {
+          "name": "actual-quality-observation",
+          "observations": {
+            "scenario": "quality-2160",
+            "outcome": "ORIGINAL_DECODE_AND_SEEK",
+            "engine": "chromium",
+            "predictionType": "video/mp4; codecs=\"avc1.640c34\"",
+            "nativePrediction": "probably",
+            "originalEncodedSourceSha256": "53b22203016da937bf4ed24af102fe8bd941c940f2869895a936b0076ca5e06a",
+            "servedSourceSha256": "d7d27ffaaa7309df81be593ee75cf30aa8b66f6d9042cf41145e689127be464f",
+            "containerNormalization": "Lossless canonical test container; exact original encoded packets retained",
+            "expectedDuration": 3.633967,
+            "postSeek": {
+              "seeked": true,
+              "playRejection": null,
+              "frames": [
+                {
+                  "mediaTime": 0.590167,
+                  "presentedFrames": 4,
+                  "width": 3840,
+                  "height": 2160
+                },
+                {
+                  "mediaTime": 0.7904,
+                  "presentedFrames": 5,
+                  "width": 3840,
+                  "height": 2160
+                }
+              ],
+              "frameDeadline": false
+            },
+            "initial": {
+              "width": 3840,
+              "height": 2160,
+              "src": "http://127.0.0.1:4373/media/quality/native-2160p.mp4",
+              "duration": 3.791933,
+              "error": null
+            },
+            "media": [
+              {
+                "path": "/media/quality/native-2160p.mp4",
+                "status": 206
+              }
+            ],
+            "engineEvents": []
+          }
+        }
+      ],
+      "errors": []
+    },
+    {
+      "engine": "chromium",
+      "title": "bundled quality-hls preserves original dimensions and supports seek",
+      "status": "passed",
+      "durationMs": 2666,
+      "attachments": [
+        {
+          "name": "actual-quality-observation",
+          "observations": {
+            "scenario": "quality-hls",
+            "outcome": "ORIGINAL_DECODE_AND_SEEK",
+            "engine": "chromium",
+            "predictionType": "video/mp4; codecs=\"avc1.640c34\"",
+            "nativePrediction": "probably",
+            "originalEncodedSourceSha256": "53b22203016da937bf4ed24af102fe8bd941c940f2869895a936b0076ca5e06a",
+            "servedSourceSha256": "7d25d4c2b18be4b6513b17095d5ff0817524a3f3f5b343a783cef7e6f0017476",
+            "containerNormalization": "Lossless canonical test container; exact original encoded packets retained",
+            "expectedDuration": 3.791933,
+            "postSeek": {
+              "seeked": true,
+              "playRejection": null,
+              "frames": [
+                {
+                  "mediaTime": 0.590166,
+                  "presentedFrames": 4,
+                  "width": 3840,
+                  "height": 2160
+                },
+                {
+                  "mediaTime": 0.7904,
+                  "presentedFrames": 5,
+                  "width": 3840,
+                  "height": 2160
+                }
+              ],
+              "frameDeadline": false
+            },
+            "initial": {
+              "width": 3840,
+              "height": 2160,
+              "src": "blob:http://127.0.0.1:4371/3db309b9-71ea-428c-838e-16c3ba14a005",
+              "duration": 3.791932,
+              "error": null
+            },
+            "media": [
+              {
+                "path": "/media/quality/canonical2160p/stream.m3u8",
+                "status": 200
+              },
+              {
+                "path": "/media/quality/canonical2160p/stream.m3u8",
+                "status": 200
+              },
+              {
+                "path": "/media/quality/canonical2160p/init.mp4",
+                "status": 200
+              },
+              {
+                "path": "/media/quality/canonical2160p/segment.m4s",
+                "status": 200
+              },
+              {
+                "path": "/media/quality/canonical2160p/stream.m3u8",
+                "status": 200
+              }
+            ],
+            "engineEvents": []
+          }
+        }
+      ],
+      "errors": []
+    },
+    {
+      "engine": "chromium",
+      "title": "bundled quality-dash preserves original dimensions and supports seek",
+      "status": "passed",
+      "durationMs": 2604,
+      "attachments": [
+        {
+          "name": "actual-quality-observation",
+          "observations": {
+            "scenario": "quality-dash",
+            "outcome": "ORIGINAL_DECODE_AND_SEEK",
+            "engine": "chromium",
+            "predictionType": "video/mp4; codecs=\"avc1.640c34\"",
+            "nativePrediction": "probably",
+            "originalEncodedSourceSha256": "53b22203016da937bf4ed24af102fe8bd941c940f2869895a936b0076ca5e06a",
+            "servedSourceSha256": "61c3cf4b9af90ef9d7decf5ecec5efe6af77d93703ea552074d56c556605f98e",
+            "containerNormalization": "Lossless canonical test container; exact original encoded packets retained",
+            "expectedDuration": 3.791933,
+            "postSeek": {
+              "seeked": true,
+              "playRejection": null,
+              "frames": [
+                {
+                  "mediaTime": 0.590166,
+                  "presentedFrames": 4,
+                  "width": 3840,
+                  "height": 2160
+                },
+                {
+                  "mediaTime": 0.7904,
+                  "presentedFrames": 5,
+                  "width": 3840,
+                  "height": 2160
+                }
+              ],
+              "frameDeadline": false
+            },
+            "initial": {
+              "width": 3840,
+              "height": 2160,
+              "src": "blob:http://127.0.0.1:4371/89a7e090-a856-465f-befe-47e235776aa3",
+              "duration": 3.791932,
+              "error": null
+            },
+            "media": [
+              {
+                "path": "/media/quality/canonical2160p/manifest.mpd",
+                "status": 200
+              },
+              {
+                "path": "/media/quality/canonical2160p/manifest.mpd",
+                "status": 200
+              },
+              {
+                "path": "/media/quality/canonical2160p/init.mp4",
+                "status": 200
+              },
+              {
+                "path": "/media/quality/canonical2160p/segment.m4s",
+                "status": 200
+              },
+              {
+                "path": "/media/quality/canonical2160p/manifest.mpd",
+                "status": 200
+              }
+            ],
+            "engineEvents": [
+              "dash.js",
+              "dash.js",
+              "dash.js",
+              "dash.js",
+              "dash.js"
+            ]
+          }
+        }
+      ],
+      "errors": []
+    },
+    {
+      "engine": "chromium",
+      "title": "bundled quality-expired surfaces playback failure and allows return",
+      "status": "passed",
+      "durationMs": 1897,
+      "attachments": [
+        {
+          "name": "actual-source-failure",
+          "observations": {
+            "scenario": "quality-expired",
+            "failed": [
+              {
+                "path": "/media/quality/expired.mp4",
+                "status": 410
+              }
+            ],
+            "rejected": [],
+            "message": "Playback Error\nThe browser could not load this source. The link, access, network or format may be responsible. Refresh sources or choose another source.\nPlatform: browser\nReason: startup-source-error\nHTTP status: unavailable\nVideo readyState: 0\nVideo networkState: 3\nCurrent source: 127.0.0.1 \u2022 .mp4\nPlayback engine: native-file\nSource: Legal Fixture / Original 2160p MP4 fixture / Legal Fixture-0-[redacted]\nSource endpoint: 127.0.0.1 \u2022 .mp4\nGo Back"
+          }
+        }
+      ],
+      "errors": []
+    },
+    {
+      "engine": "chromium",
+      "title": "bundled quality-restricted surfaces playback failure and allows return",
+      "status": "passed",
+      "durationMs": 1840,
+      "attachments": [
+        {
+          "name": "actual-source-failure",
+          "observations": {
+            "scenario": "quality-restricted",
+            "failed": [
+              {
+                "path": "/media/quality/restricted.mp4",
+                "status": 403
+              }
+            ],
+            "rejected": [],
+            "message": "Playback Error\nThe browser could not load this source. The link, access, network or format may be responsible. Refresh sources or choose another source.\nPlatform: browser\nReason: startup-source-error\nHTTP status: unavailable\nVideo readyState: 0\nVideo networkState: 3\nCurrent source: 127.0.0.1 \u2022 .mp4\nPlayback engine: native-file\nSource: Legal Fixture / Original 2160p MP4 fixture / Legal Fixture-0-[redacted]\nSource endpoint: 127.0.0.1 \u2022 .mp4\nGo Back"
+          }
+        }
+      ],
+      "errors": []
+    },
+    {
+      "engine": "chromium",
+      "title": "bundled quality-hls-cors surfaces playback failure and allows return",
+      "status": "passed",
+      "durationMs": 1888,
+      "attachments": [
+        {
+          "name": "actual-source-failure",
+          "observations": {
+            "scenario": "quality-hls-cors",
+            "failed": [
+              {
+                "path": "/media/quality/cors-denied/stream.m3u8",
+                "status": 200
+              }
+            ],
+            "rejected": [
+              {
+                "path": "/media/quality/cors-denied/stream.m3u8",
+                "error": "net::ERR_FAILED"
+              },
+              {
+                "path": "/media/quality/cors-denied/stream.m3u8",
+                "error": "net::ERR_FAILED"
+              },
+              {
+                "path": "/media/quality/cors-denied/stream.m3u8",
+                "error": "net::ERR_FAILED"
+              },
+              {
+                "path": "/media/quality/cors-denied/stream.m3u8",
+                "error": "net::ERR_FAILED"
+              },
+              {
+                "path": "/media/quality/cors-denied/stream.m3u8",
+                "error": "net::ERR_FAILED"
+              },
+              {
+                "path": "/media/quality/cors-denied/init.mp4",
+                "error": "net::ERR_BLOCKED_BY_ORB"
+              },
+              {
+                "path": "/media/quality/cors-denied/segment.m4s",
+                "error": "net::ERR_BLOCKED_BY_ORB"
+              }
+            ],
+            "message": "Playback Error\nThe browser could not load this source. The link, access, network or format may be responsible. Refresh sources or choose another source.\nPlatform: browser\nReason: startup-source-error\nHTTP status: unavailable\nVideo readyState: 0\nVideo networkState: 3\nCurrent source: 127.0.0.1 \u2022 .m3u8\nPlayback engine: native-hls\nSource: Legal Fixture / Original 2160p MP4 fixture / Legal Fixture-0-[redacted]\nSource endpoint: 127.0.0.1 \u2022 .m3u8\nGo Back"
+          }
+        }
+      ],
+      "errors": []
+    },
+    {
+      "engine": "webkit",
+      "title": "bundled quality-1080 preserves original dimensions and supports seek",
+      "status": "passed",
+      "durationMs": 9526,
+      "attachments": [
+        {
+          "name": "actual-quality-observation",
+          "observations": {
+            "scenario": "quality-1080",
+            "outcome": "ORIGINAL_DECODE_AND_SEEK",
+            "engine": "webkit",
+            "predictionType": "video/mp4; codecs=\"avc1.42c02a\"",
+            "nativePrediction": "probably",
+            "originalEncodedSourceSha256": "6ca4ff483d09902b23c305d028aed66c34e759ad30c28c83e6aecc341486ba12",
+            "servedSourceSha256": "d13b088925f4db1fb9d81870f504fde8f5b149d03d250663c88ae2b091a5b4ed",
+            "containerNormalization": "Lossless canonical test container; exact original encoded packets retained",
+            "expectedDuration": 3.845867,
+            "postSeek": {
+              "seeked": true,
+              "playRejection": null,
+              "frames": [
+                {
+                  "mediaTime": 0.600966,
+                  "presentedFrames": 5,
+                  "width": 1920,
+                  "height": 1080
+                },
+                {
+                  "mediaTime": 2.0074,
+                  "presentedFrames": 12,
+                  "width": 1920,
+                  "height": 1080
+                }
+              ],
+              "frameDeadline": false
+            },
+            "initial": {
+              "width": 1920,
+              "height": 1080,
+              "src": "http://127.0.0.1:4373/media/quality/native-1080p.mp4",
+              "duration": 4.005,
+              "error": null
+            },
+            "media": [
+              {
+                "path": "/media/quality/native-1080p.mp4",
+                "status": 0
+              },
+              {
+                "path": "/media/quality/native-1080p.mp4",
+                "status": 200
+              }
+            ],
+            "engineEvents": []
+          }
+        }
+      ],
+      "errors": []
+    },
+    {
+      "engine": "webkit",
+      "title": "bundled quality-2160 preserves original dimensions and supports seek",
+      "status": "passed",
+      "durationMs": 9859,
+      "attachments": [
+        {
+          "name": "actual-quality-observation",
+          "observations": {
+            "scenario": "quality-2160",
+            "outcome": "ORIGINAL_DECODE_AND_SEEK",
+            "engine": "webkit",
+            "predictionType": "video/mp4; codecs=\"avc1.640c34\"",
+            "nativePrediction": "probably",
+            "originalEncodedSourceSha256": "53b22203016da937bf4ed24af102fe8bd941c940f2869895a936b0076ca5e06a",
+            "servedSourceSha256": "d7d27ffaaa7309df81be593ee75cf30aa8b66f6d9042cf41145e689127be464f",
+            "containerNormalization": "Lossless canonical test container; exact original encoded packets retained",
+            "expectedDuration": 3.633967,
+            "postSeek": {
+              "seeked": true,
+              "playRejection": null,
+              "frames": [
+                {
+                  "mediaTime": 0.590166,
+                  "presentedFrames": 6,
+                  "width": 3840,
+                  "height": 2160
+                },
+                {
+                  "mediaTime": 1.793466,
+                  "presentedFrames": 12,
+                  "width": 3840,
+                  "height": 2160
+                }
+              ],
+              "frameDeadline": false
+            },
+            "initial": {
+              "width": 3840,
+              "height": 2160,
+              "src": "http://127.0.0.1:4373/media/quality/native-2160p.mp4",
+              "duration": 3.792,
+              "error": null
+            },
+            "media": [
+              {
+                "path": "/media/quality/native-2160p.mp4",
+                "status": 0
+              },
+              {
+                "path": "/media/quality/native-2160p.mp4",
+                "status": 200
+              }
+            ],
+            "engineEvents": []
+          }
+        }
+      ],
+      "errors": []
+    },
+    {
+      "engine": "webkit",
+      "title": "bundled quality-hls preserves original dimensions and supports seek",
+      "status": "passed",
+      "durationMs": 9598,
+      "attachments": [
+        {
+          "name": "actual-quality-observation",
+          "observations": {
+            "scenario": "quality-hls",
+            "outcome": "ORIGINAL_DECODE_AND_SEEK",
+            "engine": "webkit",
+            "predictionType": "video/mp4; codecs=\"avc1.640c34\"",
+            "nativePrediction": "probably",
+            "originalEncodedSourceSha256": "53b22203016da937bf4ed24af102fe8bd941c940f2869895a936b0076ca5e06a",
+            "servedSourceSha256": "7d25d4c2b18be4b6513b17095d5ff0817524a3f3f5b343a783cef7e6f0017476",
+            "containerNormalization": "Lossless canonical test container; exact original encoded packets retained",
+            "expectedDuration": 3.791933,
+            "postSeek": {
+              "seeked": true,
+              "playRejection": null,
+              "frames": [
+                {
+                  "mediaTime": 0.4,
+                  "presentedFrames": 4,
+                  "width": 3840,
+                  "height": 2160
+                },
+                {
+                  "mediaTime": 1.793466,
+                  "presentedFrames": 11,
+                  "width": 3840,
+                  "height": 2160
+                }
+              ],
+              "frameDeadline": false
+            },
+            "initial": {
+              "width": 3840,
+              "height": 2160,
+              "src": "blob:http://127.0.0.1:4371/3204d06e-0a84-4646-aa1c-e14b8efe42d6",
+              "duration": 3.800866,
+              "error": null
+            },
+            "media": [
+              {
+                "path": "/media/quality/canonical2160p/stream.m3u8",
+                "status": 200
+              },
+              {
+                "path": "/media/quality/canonical2160p/stream.m3u8",
+                "status": 200
+              },
+              {
+                "path": "/media/quality/canonical2160p/init.mp4",
+                "status": 200
+              },
+              {
+                "path": "/media/quality/canonical2160p/segment.m4s",
+                "status": 200
+              },
+              {
+                "path": "/media/quality/canonical2160p/stream.m3u8",
+                "status": 200
+              }
+            ],
+            "engineEvents": []
+          }
+        }
+      ],
+      "errors": []
+    },
+    {
+      "engine": "webkit",
+      "title": "bundled quality-dash preserves original dimensions and supports seek",
+      "status": "passed",
+      "durationMs": 9278,
+      "attachments": [
+        {
+          "name": "actual-quality-observation",
+          "observations": {
+            "scenario": "quality-dash",
+            "outcome": "ORIGINAL_DECODE_AND_SEEK",
+            "engine": "webkit",
+            "predictionType": "video/mp4; codecs=\"avc1.640c34\"",
+            "nativePrediction": "probably",
+            "originalEncodedSourceSha256": "53b22203016da937bf4ed24af102fe8bd941c940f2869895a936b0076ca5e06a",
+            "servedSourceSha256": "61c3cf4b9af90ef9d7decf5ecec5efe6af77d93703ea552074d56c556605f98e",
+            "containerNormalization": "Lossless canonical test container; exact original encoded packets retained",
+            "expectedDuration": 3.791933,
+            "postSeek": {
+              "seeked": true,
+              "playRejection": null,
+              "frames": [
+                {
+                  "mediaTime": 0.4,
+                  "presentedFrames": 4,
+                  "width": 3840,
+                  "height": 2160
+                },
+                {
+                  "mediaTime": 1.793466,
+                  "presentedFrames": 11,
+                  "width": 3840,
+                  "height": 2160
+                }
+              ],
+              "frameDeadline": false
+            },
+            "initial": {
+              "width": 3840,
+              "height": 2160,
+              "src": "blob:http://127.0.0.1:4371/bbb67151-f6b6-49b2-87af-d78bbe9913ed",
+              "duration": 3.800866,
+              "error": null
+            },
+            "media": [
+              {
+                "path": "/media/quality/canonical2160p/manifest.mpd",
+                "status": 200
+              },
+              {
+                "path": "/media/quality/canonical2160p/manifest.mpd",
+                "status": 200
+              },
+              {
+                "path": "/media/quality/canonical2160p/init.mp4",
+                "status": 200
+              },
+              {
+                "path": "/media/quality/canonical2160p/manifest.mpd",
+                "status": 200
+              },
+              {
+                "path": "/media/quality/canonical2160p/segment.m4s",
+                "status": 200
+              }
+            ],
+            "engineEvents": [
+              "dash.js",
+              "dash.js",
+              "dash.js",
+              "dash.js",
+              "dash.js"
+            ]
+          }
+        }
+      ],
+      "errors": []
+    },
+    {
+      "engine": "webkit",
+      "title": "bundled quality-expired surfaces playback failure and allows return",
+      "status": "passed",
+      "durationMs": 6982,
+      "attachments": [
+        {
+          "name": "native-http-failure-evidence",
+          "observations": {
+            "browserObservation": "GET_AND_REQUEST_FAILED_HTTP_STATUS_NOT_EXPOSED",
+            "path": "/media/quality/expired.mp4",
+            "rejected": [
+              {
+                "path": "/media/quality/expired.mp4",
+                "error": "Load request cancelled"
+              }
+            ],
+            "fixtureControl": {
+              "method": "HEAD",
+              "status": 410,
+              "scope": "INDEPENDENT_FIXTURE_CONTROL_NOT_BROWSER_RESPONSE"
+            }
+          }
+        },
+        {
+          "name": "actual-source-failure",
+          "observations": {
+            "scenario": "quality-expired",
+            "failed": [
+              {
+                "path": "/media/quality/expired.mp4",
+                "status": 0
+              }
+            ],
+            "rejected": [
+              {
+                "path": "/media/quality/expired.mp4",
+                "error": "Load request cancelled"
+              }
+            ],
+            "message": "Playback Error\nThe browser could not load this source. The link, access, network or format may be responsible. Refresh sources or choose another source.\nPlatform: browser\nReason: startup-source-error\nHTTP status: unavailable\nVideo readyState: 0\nVideo networkState: 3\nCurrent source: 127.0.0.1 \u2022 .mp4\nPlayback engine: native-file\nSource: Legal Fixture / Original 2160p MP4 fixture / Legal Fixture-0-[redacted]\nSource endpoint: 127.0.0.1 \u2022 .mp4\nGo Back"
+          }
+        }
+      ],
+      "errors": []
+    },
+    {
+      "engine": "webkit",
+      "title": "bundled quality-restricted surfaces playback failure and allows return",
+      "status": "passed",
+      "durationMs": 6129,
+      "attachments": [
+        {
+          "name": "native-http-failure-evidence",
+          "observations": {
+            "browserObservation": "GET_AND_REQUEST_FAILED_HTTP_STATUS_NOT_EXPOSED",
+            "path": "/media/quality/restricted.mp4",
+            "rejected": [
+              {
+                "path": "/media/quality/restricted.mp4",
+                "error": "Load request cancelled"
+              }
+            ],
+            "fixtureControl": {
+              "method": "HEAD",
+              "status": 403,
+              "scope": "INDEPENDENT_FIXTURE_CONTROL_NOT_BROWSER_RESPONSE"
+            }
+          }
+        },
+        {
+          "name": "actual-source-failure",
+          "observations": {
+            "scenario": "quality-restricted",
+            "failed": [
+              {
+                "path": "/media/quality/restricted.mp4",
+                "status": 0
+              }
+            ],
+            "rejected": [
+              {
+                "path": "/media/quality/restricted.mp4",
+                "error": "Load request cancelled"
+              }
+            ],
+            "message": "Playback Error\nThe browser could not load this source. The link, access, network or format may be responsible. Refresh sources or choose another source.\nPlatform: browser\nReason: startup-source-error\nHTTP status: unavailable\nVideo readyState: 0\nVideo networkState: 3\nCurrent source: 127.0.0.1 \u2022 .mp4\nPlayback engine: native-file\nSource: Legal Fixture / Original 2160p MP4 fixture / Legal Fixture-0-[redacted]\nSource endpoint: 127.0.0.1 \u2022 .mp4\nGo Back"
+          }
+        }
+      ],
+      "errors": []
+    },
+    {
+      "engine": "webkit",
+      "title": "bundled quality-hls-cors surfaces playback failure and allows return",
+      "status": "passed",
+      "durationMs": 8131,
+      "attachments": [
+        {
+          "name": "actual-source-failure",
+          "observations": {
+            "scenario": "quality-hls-cors",
+            "failed": [],
+            "rejected": [
+              {
+                "path": "/media/quality/cors-denied/stream.m3u8",
+                "error": "Origin http://127.0.0.1:4371 is not allowed by Access-Control-Allow-Origin. Status code: 200"
+              },
+              {
+                "path": "/media/quality/cors-denied/stream.m3u8",
+                "error": "Origin http://127.0.0.1:4371 is not allowed by Access-Control-Allow-Origin. Status code: 200"
+              },
+              {
+                "path": "/media/quality/cors-denied/stream.m3u8",
+                "error": "Origin http://127.0.0.1:4371 is not allowed by Access-Control-Allow-Origin. Status code: 200"
+              }
+            ],
+            "message": "Playback Error\nNetwork error. networkError manifestLoadError hls.js\nPlatform: browser\nReason: network\nMedia code: 2 network\nHTTP status: unavailable\nRuntime error: networkError manifestLoadError hls.js\nHLS error: manifestLoadError\nVideo readyState: 0\nVideo networkState: 3\nCurrent source: [redacted]\nPlayback engine: hls.js\nSource: Legal Fixture / Original 2160p MP4 fixture / Legal Fixture-0-[redacted]\nSource endpoint: 127.0.0.1 \u2022 .m3u8\nGo Back"
+          }
+        }
+      ],
+      "errors": []
+    },
+    {
+      "engine": "firefox",
+      "title": "bundled quality-1080 preserves original dimensions and supports seek",
+      "status": "passed",
+      "durationMs": 3576,
+      "attachments": [
+        {
+          "name": "actual-quality-observation",
+          "observations": {
+            "scenario": "quality-1080",
+            "outcome": "ORIGINAL_DECODE_AND_SEEK",
+            "engine": "firefox",
+            "predictionType": "video/mp4; codecs=\"avc1.42c02a\"",
+            "nativePrediction": "probably",
+            "originalEncodedSourceSha256": "6ca4ff483d09902b23c305d028aed66c34e759ad30c28c83e6aecc341486ba12",
+            "servedSourceSha256": "d13b088925f4db1fb9d81870f504fde8f5b149d03d250663c88ae2b091a5b4ed",
+            "containerNormalization": "Lossless canonical test container; exact original encoded packets retained",
+            "expectedDuration": 3.845867,
+            "postSeek": {
+              "seeked": true,
+              "playRejection": null,
+              "frames": [
+                {
+                  "mediaTime": 0.600966,
+                  "presentedFrames": 14,
+                  "width": 1920,
+                  "height": 1080
+                },
+                {
+                  "mediaTime": 0.8033,
+                  "presentedFrames": 15,
+                  "width": 1920,
+                  "height": 1080
+                }
+              ],
+              "frameDeadline": false
+            },
+            "initial": {
+              "width": 1920,
+              "height": 1080,
+              "src": "http://127.0.0.1:4373/media/quality/native-1080p.mp4",
+              "duration": 4.005,
+              "error": null
+            },
+            "media": [
+              {
+                "path": "/media/quality/native-1080p.mp4",
+                "status": 206
+              }
+            ],
+            "engineEvents": []
+          }
+        }
+      ],
+      "errors": []
+    },
+    {
+      "engine": "firefox",
+      "title": "bundled quality-2160 preserves original dimensions and supports seek",
+      "status": "passed",
+      "durationMs": 4273,
+      "attachments": [
+        {
+          "name": "actual-quality-observation",
+          "observations": {
+            "scenario": "quality-2160",
+            "outcome": "ORIGINAL_DECODE_AND_SEEK",
+            "engine": "firefox",
+            "predictionType": "video/mp4; codecs=\"avc1.640c34\"",
+            "nativePrediction": "probably",
+            "originalEncodedSourceSha256": "53b22203016da937bf4ed24af102fe8bd941c940f2869895a936b0076ca5e06a",
+            "servedSourceSha256": "d7d27ffaaa7309df81be593ee75cf30aa8b66f6d9042cf41145e689127be464f",
+            "containerNormalization": "Lossless canonical test container; exact original encoded packets retained",
+            "expectedDuration": 3.633967,
+            "postSeek": {
+              "seeked": true,
+              "playRejection": null,
+              "frames": [
+                {
+                  "mediaTime": 0.590166,
+                  "presentedFrames": 15,
+                  "width": 3840,
+                  "height": 2160
+                },
+                {
+                  "mediaTime": 0.7904,
+                  "presentedFrames": 16,
+                  "width": 3840,
+                  "height": 2160
+                }
+              ],
+              "frameDeadline": false
+            },
+            "initial": {
+              "width": 3840,
+              "height": 2160,
+              "src": "http://127.0.0.1:4373/media/quality/native-2160p.mp4",
+              "duration": 3.792,
+              "error": null
+            },
+            "media": [
+              {
+                "path": "/media/quality/native-2160p.mp4",
+                "status": 206
+              }
+            ],
+            "engineEvents": []
+          }
+        }
+      ],
+      "errors": []
+    },
+    {
+      "engine": "firefox",
+      "title": "bundled quality-hls preserves original dimensions and supports seek",
+      "status": "passed",
+      "durationMs": 3529,
+      "attachments": [
+        {
+          "name": "actual-quality-observation",
+          "observations": {
+            "scenario": "quality-hls",
+            "outcome": "ORIGINAL_DECODE_AND_SEEK",
+            "engine": "firefox",
+            "predictionType": "video/mp4; codecs=\"avc1.640c34\"",
+            "nativePrediction": "probably",
+            "originalEncodedSourceSha256": "53b22203016da937bf4ed24af102fe8bd941c940f2869895a936b0076ca5e06a",
+            "servedSourceSha256": "7d25d4c2b18be4b6513b17095d5ff0817524a3f3f5b343a783cef7e6f0017476",
+            "containerNormalization": "Lossless canonical test container; exact original encoded packets retained",
+            "expectedDuration": 3.791933,
+            "postSeek": {
+              "seeked": true,
+              "playRejection": null,
+              "frames": [
+                {
+                  "mediaTime": 0.4,
+                  "presentedFrames": 13,
+                  "width": 3840,
+                  "height": 2160
+                },
+                {
+                  "mediaTime": 0.590166,
+                  "presentedFrames": 14,
+                  "width": 3840,
+                  "height": 2160
+                }
+              ],
+              "frameDeadline": false
+            },
+            "initial": {
+              "width": 3840,
+              "height": 2160,
+              "src": "blob:http://127.0.0.1:4371/c5384023-b005-4ccb-9f02-b2742121dab9",
+              "duration": 3.791933,
+              "error": null
+            },
+            "media": [
+              {
+                "path": "/media/quality/canonical2160p/stream.m3u8",
+                "status": 200
+              },
+              {
+                "path": "/media/quality/canonical2160p/stream.m3u8",
+                "status": 200
+              },
+              {
+                "path": "/media/quality/canonical2160p/init.mp4",
+                "status": 200
+              },
+              {
+                "path": "/media/quality/canonical2160p/segment.m4s",
+                "status": 200
+              },
+              {
+                "path": "/media/quality/canonical2160p/stream.m3u8",
+                "status": 200
+              }
+            ],
+            "engineEvents": []
+          }
+        }
+      ],
+      "errors": []
+    },
+    {
+      "engine": "firefox",
+      "title": "bundled quality-dash preserves original dimensions and supports seek",
+      "status": "passed",
+      "durationMs": 3787,
+      "attachments": [
+        {
+          "name": "actual-quality-observation",
+          "observations": {
+            "scenario": "quality-dash",
+            "outcome": "ORIGINAL_DECODE_AND_SEEK",
+            "engine": "firefox",
+            "predictionType": "video/mp4; codecs=\"avc1.640c34\"",
+            "nativePrediction": "probably",
+            "originalEncodedSourceSha256": "53b22203016da937bf4ed24af102fe8bd941c940f2869895a936b0076ca5e06a",
+            "servedSourceSha256": "61c3cf4b9af90ef9d7decf5ecec5efe6af77d93703ea552074d56c556605f98e",
+            "containerNormalization": "Lossless canonical test container; exact original encoded packets retained",
+            "expectedDuration": 3.791933,
+            "postSeek": {
+              "seeked": true,
+              "playRejection": null,
+              "frames": [
+                {
+                  "mediaTime": 0.4,
+                  "presentedFrames": 13,
+                  "width": 3840,
+                  "height": 2160
+                },
+                {
+                  "mediaTime": 0.590166,
+                  "presentedFrames": 14,
+                  "width": 3840,
+                  "height": 2160
+                }
+              ],
+              "frameDeadline": false
+            },
+            "initial": {
+              "width": 3840,
+              "height": 2160,
+              "src": "blob:http://127.0.0.1:4371/e3d01164-4bbc-4aa5-8f5e-59d02075d432",
+              "duration": 3.791933,
+              "error": null
+            },
+            "media": [
+              {
+                "path": "/media/quality/canonical2160p/manifest.mpd",
+                "status": 200
+              },
+              {
+                "path": "/media/quality/canonical2160p/manifest.mpd",
+                "status": 200
+              },
+              {
+                "path": "/media/quality/canonical2160p/init.mp4",
+                "status": 200
+              },
+              {
+                "path": "/media/quality/canonical2160p/manifest.mpd",
+                "status": 200
+              },
+              {
+                "path": "/media/quality/canonical2160p/segment.m4s",
+                "status": 200
+              }
+            ],
+            "engineEvents": [
+              "dash.js",
+              "dash.js",
+              "dash.js",
+              "dash.js",
+              "dash.js"
+            ]
+          }
+        }
+      ],
+      "errors": []
+    },
+    {
+      "engine": "firefox",
+      "title": "bundled quality-expired surfaces playback failure and allows return",
+      "status": "passed",
+      "durationMs": 2655,
+      "attachments": [
+        {
+          "name": "actual-source-failure",
+          "observations": {
+            "scenario": "quality-expired",
+            "failed": [
+              {
+                "path": "/media/quality/expired.mp4",
+                "status": 410
+              }
+            ],
+            "rejected": [
+              {
+                "path": "/media/quality/expired.mp4",
+                "error": "NS_ERROR_DOM_NETWORK_ERR"
+              }
+            ],
+            "message": "Playback Error\nThe browser could not load this source. The link, access, network or format may be responsible. Refresh sources or choose another source.\nPlatform: browser\nReason: startup-source-error\nHTTP status: unavailable\nVideo readyState: 0\nVideo networkState: 3\nCurrent source: 127.0.0.1 \u2022 .mp4\nPlayback engine: native-file\nSource: Legal Fixture / Original 2160p MP4 fixture / Legal Fixture-0-[redacted]\nSource endpoint: 127.0.0.1 \u2022 .mp4\nGo Back"
+          }
+        }
+      ],
+      "errors": []
+    },
+    {
+      "engine": "firefox",
+      "title": "bundled quality-restricted surfaces playback failure and allows return",
+      "status": "passed",
+      "durationMs": 2580,
+      "attachments": [
+        {
+          "name": "actual-source-failure",
+          "observations": {
+            "scenario": "quality-restricted",
+            "failed": [
+              {
+                "path": "/media/quality/restricted.mp4",
+                "status": 403
+              }
+            ],
+            "rejected": [
+              {
+                "path": "/media/quality/restricted.mp4",
+                "error": "NS_ERROR_DOM_NETWORK_ERR"
+              }
+            ],
+            "message": "Playback Error\nThe browser could not load this source. The link, access, network or format may be responsible. Refresh sources or choose another source.\nPlatform: browser\nReason: startup-source-error\nHTTP status: unavailable\nVideo readyState: 0\nVideo networkState: 3\nCurrent source: 127.0.0.1 \u2022 .mp4\nPlayback engine: native-file\nSource: Legal Fixture / Original 2160p MP4 fixture / Legal Fixture-0-[redacted]\nSource endpoint: 127.0.0.1 \u2022 .mp4\nGo Back"
+          }
+        }
+      ],
+      "errors": []
+    },
+    {
+      "engine": "firefox",
+      "title": "bundled quality-hls-cors surfaces playback failure and allows return",
+      "status": "passed",
+      "durationMs": 2798,
+      "attachments": [
+        {
+          "name": "actual-source-failure",
+          "observations": {
+            "scenario": "quality-hls-cors",
+            "failed": [
+              {
+                "path": "/media/quality/cors-denied/stream.m3u8",
+                "status": 200
+              },
+              {
+                "path": "/media/quality/cors-denied/stream.m3u8",
+                "status": 200
+              },
+              {
+                "path": "/media/quality/cors-denied/stream.m3u8",
+                "status": 200
+              }
+            ],
+            "rejected": [],
+            "message": "Playback Error\nNetwork error. networkError manifestLoadError hls.js\nPlatform: browser\nReason: network\nMedia code: 2 network\nHTTP status: unavailable\nRuntime error: networkError manifestLoadError hls.js\nHLS error: manifestLoadError\nVideo readyState: 0\nVideo networkState: 3\nCurrent source: [redacted]\nPlayback engine: hls.js\nSource: Legal Fixture / Original 2160p MP4 fixture / Legal Fixture-0-[redacted]\nSource endpoint: 127.0.0.1 \u2022 .m3u8\nGo Back"
+          }
+        }
+      ],
+      "errors": []
+    }
+  ]
+}

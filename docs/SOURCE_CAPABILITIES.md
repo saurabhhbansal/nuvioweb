@@ -2,6 +2,12 @@
 
 This is the first implementation unit for [#10](https://github.com/saurabhhbansal/nuvioweb/issues/10), following verified [legal fixture journeys](ADDON_INTEROPERABILITY.md). The ticket remains open. No realistic4K/HDR/adaptive/cross-browser claim follows from this unit. [Plan and remaining gates](plans/issues/issue-10.md).
 
+## Current owner engine scope — 2026-10-20
+
+The [engine capability matrix](ENGINE_CAPABILITY_MATRIX.md) supersedes historical brand-by-brand remaining gates below: test Chromium once (Chrome/Edge/Brave/Opera), WebKit once (Safari), Gecko once (Firefox). It records actual native4K codec/seek/frame evidence separately from API predictions, bundled adaptive journeys and physical output. Strict sustained4K60 and HDR display output remain uncertified. No broader closure, preview refresh or paid fallback follows.
+
+Contradictory MIME codec versus explicit video codec now produces unknown rather than mutually inconsistent native/MediaCapabilities answers. The shared guard runs before ordering/card MIME caches, preventing clean/conflicting same-MIME cross-contamination. It also prevents unsupported-codec/container blame from contradictory declarations while retaining header/network precedence. No guessed codec aliases, source hiding, source-byte/URL change, fetch/retry behavior or automatic media processing is introduced. The existing original640×360 source remains selectable and actually plays in the bundled regression.
+
 ## Contract
 
 `core/streams/sourceCapabilities.js` produces a version1 descriptor from explicit optional provider fields: `mimeType`, `video.{codec,width,height,bitrate,framerate,hdr}`, `audioTracks`, `subtitles`, ISO `expiresAt` and existing `behaviorHints.proxyHeaders.request`. These extensions are optional internal projection inputs, not mandatory Stremio fields. Missing/invalid metadata is null; empty track lists mean no track metadata was supplied, not proof that media has no tracks. Only finite positive numeric declarations are accepted. Text is bounded, codec/language/format tokens restricted, arrays capped at32 and header-count output capped at256. Provider declarations remain unverified.

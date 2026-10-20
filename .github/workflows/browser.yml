@@ -42,8 +42,13 @@ jobs:
       # workstation can install WebKit.
       - name: Install WebKit for engine coverage
         run: npx playwright install --with-deps webkit
-      - name: WebKit engine coverage
+      - name: WebKit engine playback and diagnostics
         run: NUVIO_PLAYWRIGHT_WEBKIT=1 npx playwright test --project=webkit
+      - name: Install Gecko for engine coverage
+        run: npx playwright install --with-deps firefox
+      - name: Gecko engine playback and diagnostics
+        run: NUVIO_PLAYWRIGHT_FIREFOX=1 npx playwright test --project=firefox
+      - run: npm run test:engine-media
       - name: Audio-fixture generation gate
         # Records whether browser-native AAC encoding exists. A BLOCKED result is
         # a gate outcome, not a failure: the AAC fixture chain stays blocked and

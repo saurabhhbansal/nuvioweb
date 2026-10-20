@@ -1,0 +1,2095 @@
+{
+  "schemaVersion": 1,
+  "scope": "Synthetic local diagnosis, not whole-run acceptance; red and green layers retained",
+  "sanitization": "Workspace/home prefixes replaced; no credentials used; observations unchanged",
+  "records": [
+    {
+      "id": "webkit-h264-debug-receipt",
+      "rawSha256": "14dbca8ab68f5ad65a1aac05f3e741ba4e315cbc6582fdeffa39c8fd144fa08f",
+      "observations": {
+        "observedAt": "2026-10-20T15:18:45.095Z",
+        "origin": "http://127.0.0.1:41875",
+        "fixture": "media-final/h264-2160.mp4",
+        "requests": [
+          {
+            "method": "GET",
+            "path": "/h264.mp4",
+            "range": null,
+            "status": 200,
+            "bytes": 9977018
+          }
+        ],
+        "launch": {
+          "executablePath": "<workspace>/.pw-browsers/webkit-2370/minibrowser-wpe/bin/MiniBrowser",
+          "env": {
+            "LD_LIBRARY_PATH": "<workspace>/.pw-browsers/webkit-2370/minibrowser-wpe/lib:<workspace>/.pw-browsers/webkit-2370/minibrowser-wpe/sys/lib:<workspace>/.tmp/issue10/sysroot/usr/lib/aarch64-linux-gnu:<workspace>/.tmp/issue10/sysroot/usr/lib/aarch64-linux-gnu/blas:<workspace>/.tmp/issue10/sysroot/usr/lib/aarch64-linux-gnu/lapack:<workspace>/.tmp/issue10/sysroot/usr/lib/aarch64-linux-gnu/pulseaudio",
+            "GST_PLUGIN_PATH": "<workspace>/.tmp/issue10/sysroot/usr/lib/aarch64-linux-gnu/gstreamer-1.0",
+            "GST_PLUGIN_SYSTEM_PATH": "<workspace>/.tmp/issue10/sysroot/usr/lib/aarch64-linux-gnu/gstreamer-1.0:/usr/lib/aarch64-linux-gnu/gstreamer-1.0",
+            "GST_REGISTRY": "<workspace>/.tmp/issue10/probes/webkit-h264-debug-registry-1792509525096.bin",
+            "GST_PLUGIN_SCANNER": "/usr/lib/aarch64-linux-gnu/gstreamer1.0/gstreamer-1.0/gst-plugin-scanner",
+            "GST_DEBUG": "2",
+            "GST_DEBUG_FILE": "<workspace>/.tmp/issue10/probes/webkit-h264-gst-debug.log"
+          }
+        },
+        "version": "27.2",
+        "observation": {
+          "reason": "error",
+          "events": [
+            {
+              "type": "loadstart",
+              "readyState": 0,
+              "networkState": 2
+            },
+            {
+              "type": "error",
+              "readyState": 0,
+              "networkState": 3
+            }
+          ],
+          "width": 0,
+          "height": 0,
+          "readyState": 0,
+          "networkState": 3,
+          "error": {
+            "code": 4,
+            "message": "Could not create temp file \"/var/tmp/WebKit-Media-XXXXXX\"."
+          },
+          "canPlay": "probably"
+        }
+      }
+    },
+    {
+      "id": "webkit-h264-private-cache-receipt",
+      "rawSha256": "6ea5124ef128dd7c2b324870f2dd355475556b48364e94c80610ccc8e610593e",
+      "observations": {
+        "observedAt": "2026-10-20T15:21:47.747Z",
+        "origin": "http://127.0.0.1:35195",
+        "fixture": "media-final/h264-2160.mp4",
+        "requests": [
+          {
+            "method": "GET",
+            "path": "/h264.mp4",
+            "range": null,
+            "status": 200,
+            "bytes": 9977018
+          }
+        ],
+        "launch": {
+          "executablePath": "<workspace>/.pw-browsers/webkit-2370/minibrowser-wpe/bin/MiniBrowser",
+          "env": {
+            "LD_LIBRARY_PATH": "<workspace>/.pw-browsers/webkit-2370/minibrowser-wpe/lib:<workspace>/.pw-browsers/webkit-2370/minibrowser-wpe/sys/lib:<workspace>/.tmp/issue10/sysroot/usr/lib/aarch64-linux-gnu:<workspace>/.tmp/issue10/sysroot/usr/lib/aarch64-linux-gnu/blas:<workspace>/.tmp/issue10/sysroot/usr/lib/aarch64-linux-gnu/lapack:<workspace>/.tmp/issue10/sysroot/usr/lib/aarch64-linux-gnu/pulseaudio",
+            "GST_PLUGIN_PATH": "<workspace>/.tmp/issue10/sysroot/usr/lib/aarch64-linux-gnu/gstreamer-1.0",
+            "GST_PLUGIN_SYSTEM_PATH": "<workspace>/.tmp/issue10/sysroot/usr/lib/aarch64-linux-gnu/gstreamer-1.0:/usr/lib/aarch64-linux-gnu/gstreamer-1.0",
+            "GST_REGISTRY": "<workspace>/.tmp/issue10/probes/webkit-h264-debug-registry-1792509707748.bin",
+            "GST_PLUGIN_SCANNER": "/usr/lib/aarch64-linux-gnu/gstreamer1.0/gstreamer-1.0/gst-plugin-scanner",
+            "GST_DEBUG": "2",
+            "GST_DEBUG_FILE": "<workspace>/.tmp/issue10/probes/webkit-h264-gst-private-cache.log"
+          }
+        },
+        "version": "27.2",
+        "observation": {
+          "reason": "loadeddata",
+          "events": [
+            {
+              "type": "loadstart",
+              "readyState": 0,
+              "networkState": 2
+            },
+            {
+              "type": "suspend",
+              "readyState": 4,
+              "networkState": 1
+            },
+            {
+              "type": "loadedmetadata",
+              "readyState": 4,
+              "networkState": 1
+            },
+            {
+              "type": "loadeddata",
+              "readyState": 4,
+              "networkState": 1
+            }
+          ],
+          "width": 3840,
+          "height": 2160,
+          "readyState": 4,
+          "networkState": 1,
+          "error": null,
+          "canPlay": "probably"
+        }
+      }
+    },
+    {
+      "id": "raw-mse-legacy",
+      "rawSha256": "dcf0414a0d67fc28a046f71f6b078c2491e6d0b193bba38e6cc098c3b6bfdd1f",
+      "observations": {
+        "buffered": [
+          [
+            0,
+            0.016666
+          ],
+          [
+            0.189733,
+            0.206399
+          ],
+          [
+            0.389933,
+            0.406599
+          ],
+          [
+            0.590166,
+            0.606832
+          ],
+          [
+            0.7904,
+            0.807066
+          ],
+          [
+            0.990633,
+            1.007299
+          ],
+          [
+            1.191633,
+            1.208299
+          ],
+          [
+            1.392866,
+            1.409532
+          ],
+          [
+            1.593266,
+            1.609932
+          ],
+          [
+            1.793466,
+            1.810132
+          ],
+          [
+            1.993666,
+            2.010332
+          ],
+          [
+            2.193933,
+            2.210599
+          ],
+          [
+            2.394233,
+            2.410899
+          ],
+          [
+            2.5944,
+            2.611066
+          ],
+          [
+            2.7947,
+            2.811366
+          ],
+          [
+            2.996766,
+            3.013432
+          ],
+          [
+            3.197166,
+            3.213832
+          ],
+          [
+            3.3997,
+            3.416366
+          ],
+          [
+            3.600666,
+            3.617332
+          ]
+        ],
+        "state": {
+          "t": 0,
+          "d": 3.617332,
+          "ready": 1,
+          "seeking": false,
+          "playStatus": "pending"
+        },
+        "timeline": [
+          {
+            "at": 67,
+            "e": "loadedmetadata",
+            "t": 0,
+            "d": 3.634,
+            "seeking": false,
+            "ready": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "raw-mse-remux",
+      "rawSha256": "173130b05122455177c0ec7473dd6ed1e7e9c0d8ffcc80a2b0b211229f7224f3",
+      "observations": {
+        "buffered": [
+          [
+            0,
+            3.800866
+          ]
+        ],
+        "state": {
+          "t": 1.59155345,
+          "d": 3.800866,
+          "ready": 4,
+          "seeking": false,
+          "playStatus": "resolved"
+        },
+        "timeline": [
+          {
+            "at": 71,
+            "e": "loadedmetadata",
+            "t": 0,
+            "d": null,
+            "seeking": false,
+            "ready": 1
+          },
+          {
+            "at": 293,
+            "e": "loadeddata",
+            "t": 0.000935842,
+            "d": 3.800866,
+            "seeking": false,
+            "ready": 4
+          },
+          {
+            "at": 293,
+            "e": "canplay",
+            "t": 0.000935842,
+            "d": 3.800866,
+            "seeking": false,
+            "ready": 4
+          },
+          {
+            "at": 293,
+            "e": "playing",
+            "t": 0.000935842,
+            "d": 3.800866,
+            "seeking": false,
+            "ready": 4
+          },
+          {
+            "at": 542,
+            "e": "timeupdate",
+            "t": 0.250502551,
+            "d": 3.800866,
+            "seeking": false,
+            "ready": 4
+          },
+          {
+            "at": 792,
+            "e": "timeupdate",
+            "t": 0.500530621,
+            "d": 3.800866,
+            "seeking": false,
+            "ready": 4
+          },
+          {
+            "at": 1043,
+            "e": "timeupdate",
+            "t": 0.750869732,
+            "d": 3.800866,
+            "seeking": false,
+            "ready": 4
+          },
+          {
+            "at": 1294,
+            "e": "timeupdate",
+            "t": 1.002208125,
+            "d": 3.800866,
+            "seeking": false,
+            "ready": 4
+          },
+          {
+            "at": 1544,
+            "e": "timeupdate",
+            "t": 1.252235195,
+            "d": 3.800866,
+            "seeking": false,
+            "ready": 4
+          },
+          {
+            "at": 1794,
+            "e": "timeupdate",
+            "t": 1.502317305,
+            "d": 3.800866,
+            "seeking": false,
+            "ready": 4
+          }
+        ]
+      }
+    },
+    {
+      "id": "adaptive-remux-packet-proof",
+      "rawSha256": "f228a21f9f080ed947a8fa06458f5146710682930b536b24823a5e72df464fdc",
+      "observations": {
+        "encodedPacketHashesIdentical": true,
+        "files": [
+          {
+            "file": "tests/fixtures/media/quality/original-2160p.mp4",
+            "packets": [
+              {
+                "pts_time": "0.000000",
+                "dts_time": "0.000000",
+                "flags": "K__",
+                "data_hash": "SHA256:1bc2faf9ce1303f1e59bce05a533ba73a3aa6fd2a4b3e12443460308e463f9e6"
+              },
+              {
+                "pts_time": "0.189733",
+                "dts_time": "0.189733",
+                "flags": "___",
+                "data_hash": "SHA256:a2158110623979f834255da7eaffac4911af3547302e9cfe6eca24cfe7203d6d"
+              },
+              {
+                "pts_time": "0.389933",
+                "dts_time": "0.389933",
+                "flags": "___",
+                "data_hash": "SHA256:96d64880ccadeb08a88d2f1b41a0a245769afdb0344dbbdf76c369d555b36dc0"
+              },
+              {
+                "pts_time": "0.590167",
+                "dts_time": "0.590167",
+                "flags": "___",
+                "data_hash": "SHA256:b9b59dda102bbc3ba6c7f9ef85b1bd2577e5ddf6f4ee82dcd05252a426d13b5c"
+              },
+              {
+                "pts_time": "0.790400",
+                "dts_time": "0.790400",
+                "flags": "___",
+                "data_hash": "SHA256:ea62bb35156245adbd8e3c541981476e53b193670fce80ef4e49ea029e36e465"
+              },
+              {
+                "pts_time": "0.990633",
+                "dts_time": "0.990633",
+                "flags": "___",
+                "data_hash": "SHA256:2a164d50896e16e574b19f45fe0908fcc5c7e70d94c22d0ef49c68f884e30e23"
+              },
+              {
+                "pts_time": "1.191633",
+                "dts_time": "1.191633",
+                "flags": "___",
+                "data_hash": "SHA256:6c572ce1a9acc8be0c1b48777e33dfba4eb34b2b6d08cfead0906134e227dcb9"
+              },
+              {
+                "pts_time": "1.392867",
+                "dts_time": "1.392867",
+                "flags": "___",
+                "data_hash": "SHA256:0365929599450568c26a67c6f959f5c60980b4f26f418aa22db74e2af6fabaf7"
+              },
+              {
+                "pts_time": "1.593267",
+                "dts_time": "1.593267",
+                "flags": "___",
+                "data_hash": "SHA256:4c44b007d49acaffb05baa8a8920f07240b8c1cfee0f5c1c2db6a1c3af6996a9"
+              },
+              {
+                "pts_time": "1.793467",
+                "dts_time": "1.793467",
+                "flags": "___",
+                "data_hash": "SHA256:230dd420dcf5b4aa068223ead9c13788d3557fa01e885fbb399816f49b30baa0"
+              },
+              {
+                "pts_time": "1.993667",
+                "dts_time": "1.993667",
+                "flags": "___",
+                "data_hash": "SHA256:053c4b8cd6e6e85f2afbdcb205c18f5f77e9832b7d5b58ad588c4495b6b23f1d"
+              },
+              {
+                "pts_time": "2.193933",
+                "dts_time": "2.193933",
+                "flags": "___",
+                "data_hash": "SHA256:9883e11d2828fbca83b801c86867d4f019d6c61698cb456e04f9b1bc07abe3ac"
+              },
+              {
+                "pts_time": "2.394233",
+                "dts_time": "2.394233",
+                "flags": "___",
+                "data_hash": "SHA256:8074bb87088c82104a7de52fbb70866cb53339c97326e3f5fc8c8b0f280b71db"
+              },
+              {
+                "pts_time": "2.594400",
+                "dts_time": "2.594400",
+                "flags": "___",
+                "data_hash": "SHA256:bed4cdfce60d3c2d62106b1831994428a15d6d4ec4048cc187b3301ccc9de925"
+              },
+              {
+                "pts_time": "2.794700",
+                "dts_time": "2.794700",
+                "flags": "___",
+                "data_hash": "SHA256:8f44f1df10a28bdb89bd8bd3fff5968d147e74206c9f2fda3ffaf6b12ab5988d"
+              },
+              {
+                "pts_time": "2.996767",
+                "dts_time": "2.996767",
+                "flags": "___",
+                "data_hash": "SHA256:c0d139ccd07e6bdfdde31d22d84486a5e0cf2906ada31fb7417157f8aabb9849"
+              },
+              {
+                "pts_time": "3.197167",
+                "dts_time": "3.197167",
+                "flags": "___",
+                "data_hash": "SHA256:95763d7831a862b7f649f56a6939bd4d47d30b139958b9d70168fb4b727947f9"
+              },
+              {
+                "pts_time": "3.399700",
+                "dts_time": "3.399700",
+                "flags": "___",
+                "data_hash": "SHA256:cd5a7e6dfab3d458b5e5f07813b90cd6f0ed38bb29aa5131c7b69ac312d713e6"
+              },
+              {
+                "pts_time": "3.600667",
+                "dts_time": "3.600667",
+                "flags": "___",
+                "data_hash": "SHA256:6c57c46f9a0f4539eba857831a77712d266afaa8232e0523acbdd529bf0d49e1"
+              }
+            ]
+          },
+          {
+            "file": ".tmp/issue10/adaptive-remux/remux.mp4",
+            "packets": [
+              {
+                "pts_time": "0.000000",
+                "dts_time": "0.000000",
+                "flags": "K__",
+                "data_hash": "SHA256:1bc2faf9ce1303f1e59bce05a533ba73a3aa6fd2a4b3e12443460308e463f9e6"
+              },
+              {
+                "pts_time": "0.189733",
+                "dts_time": "0.189733",
+                "flags": "___",
+                "data_hash": "SHA256:a2158110623979f834255da7eaffac4911af3547302e9cfe6eca24cfe7203d6d"
+              },
+              {
+                "pts_time": "0.389933",
+                "dts_time": "0.389933",
+                "flags": "___",
+                "data_hash": "SHA256:96d64880ccadeb08a88d2f1b41a0a245769afdb0344dbbdf76c369d555b36dc0"
+              },
+              {
+                "pts_time": "0.590167",
+                "dts_time": "0.590167",
+                "flags": "___",
+                "data_hash": "SHA256:b9b59dda102bbc3ba6c7f9ef85b1bd2577e5ddf6f4ee82dcd05252a426d13b5c"
+              },
+              {
+                "pts_time": "0.790400",
+                "dts_time": "0.790400",
+                "flags": "___",
+                "data_hash": "SHA256:ea62bb35156245adbd8e3c541981476e53b193670fce80ef4e49ea029e36e465"
+              },
+              {
+                "pts_time": "0.990633",
+                "dts_time": "0.990633",
+                "flags": "___",
+                "data_hash": "SHA256:2a164d50896e16e574b19f45fe0908fcc5c7e70d94c22d0ef49c68f884e30e23"
+              },
+              {
+                "pts_time": "1.191633",
+                "dts_time": "1.191633",
+                "flags": "___",
+                "data_hash": "SHA256:6c572ce1a9acc8be0c1b48777e33dfba4eb34b2b6d08cfead0906134e227dcb9"
+              },
+              {
+                "pts_time": "1.392867",
+                "dts_time": "1.392867",
+                "flags": "___",
+                "data_hash": "SHA256:0365929599450568c26a67c6f959f5c60980b4f26f418aa22db74e2af6fabaf7"
+              },
+              {
+                "pts_time": "1.593267",
+                "dts_time": "1.593267",
+                "flags": "___",
+                "data_hash": "SHA256:4c44b007d49acaffb05baa8a8920f07240b8c1cfee0f5c1c2db6a1c3af6996a9"
+              },
+              {
+                "pts_time": "1.793467",
+                "dts_time": "1.793467",
+                "flags": "___",
+                "data_hash": "SHA256:230dd420dcf5b4aa068223ead9c13788d3557fa01e885fbb399816f49b30baa0"
+              },
+              {
+                "pts_time": "1.993667",
+                "dts_time": "1.993667",
+                "flags": "___",
+                "data_hash": "SHA256:053c4b8cd6e6e85f2afbdcb205c18f5f77e9832b7d5b58ad588c4495b6b23f1d"
+              },
+              {
+                "pts_time": "2.193933",
+                "dts_time": "2.193933",
+                "flags": "___",
+                "data_hash": "SHA256:9883e11d2828fbca83b801c86867d4f019d6c61698cb456e04f9b1bc07abe3ac"
+              },
+              {
+                "pts_time": "2.394233",
+                "dts_time": "2.394233",
+                "flags": "___",
+                "data_hash": "SHA256:8074bb87088c82104a7de52fbb70866cb53339c97326e3f5fc8c8b0f280b71db"
+              },
+              {
+                "pts_time": "2.594400",
+                "dts_time": "2.594400",
+                "flags": "___",
+                "data_hash": "SHA256:bed4cdfce60d3c2d62106b1831994428a15d6d4ec4048cc187b3301ccc9de925"
+              },
+              {
+                "pts_time": "2.794700",
+                "dts_time": "2.794700",
+                "flags": "___",
+                "data_hash": "SHA256:8f44f1df10a28bdb89bd8bd3fff5968d147e74206c9f2fda3ffaf6b12ab5988d"
+              },
+              {
+                "pts_time": "2.996767",
+                "dts_time": "2.996767",
+                "flags": "___",
+                "data_hash": "SHA256:c0d139ccd07e6bdfdde31d22d84486a5e0cf2906ada31fb7417157f8aabb9849"
+              },
+              {
+                "pts_time": "3.197167",
+                "dts_time": "3.197167",
+                "flags": "___",
+                "data_hash": "SHA256:95763d7831a862b7f649f56a6939bd4d47d30b139958b9d70168fb4b727947f9"
+              },
+              {
+                "pts_time": "3.399700",
+                "dts_time": "3.399700",
+                "flags": "___",
+                "data_hash": "SHA256:cd5a7e6dfab3d458b5e5f07813b90cd6f0ed38bb29aa5131c7b69ac312d713e6"
+              },
+              {
+                "pts_time": "3.600667",
+                "dts_time": "3.600667",
+                "flags": "___",
+                "data_hash": "SHA256:6c57c46f9a0f4539eba857831a77712d266afaa8232e0523acbdd529bf0d49e1"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "frame-diff-quality-1080-none",
+      "rawSha256": "06c04792077fe9b24705483cc9636a965fc38bbaff5cb3c5adda346d9a9747ba",
+      "observations": {
+        "scenario": "quality-1080",
+        "mode": "none",
+        "initial": {
+          "type": "initial",
+          "t": 0.18430383,
+          "d": 4.005,
+          "paused": false,
+          "ended": false,
+          "ready": 4,
+          "seeking": false,
+          "route": "player",
+          "display": "block",
+          "visibility": "visible",
+          "opacity": "1",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 1280,
+            "height": 720,
+            "top": 0,
+            "right": 1280,
+            "bottom": 720,
+            "left": 0
+          },
+          "documentVisibility": "visible",
+          "quality": {}
+        },
+        "snapshots": [
+          {
+            "type": "afterDelay",
+            "t": 0.674960181,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 2,
+            "seeking": false,
+            "route": "player",
+            "display": "block",
+            "visibility": "visible",
+            "opacity": "1",
+            "rect": {
+              "x": 0,
+              "y": 0,
+              "width": 1280,
+              "height": 720,
+              "top": 0,
+              "right": 1280,
+              "bottom": 720,
+              "left": 0
+            },
+            "documentVisibility": "visible",
+            "quality": {},
+            "frames": [],
+            "playStatus": "resolved",
+            "obs": {
+              "seeked": true
+            }
+          },
+          {
+            "type": "afterDelay",
+            "t": 1.338934713,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 2,
+            "seeking": false,
+            "route": "player",
+            "display": "block",
+            "visibility": "visible",
+            "opacity": "1",
+            "rect": {
+              "x": 0,
+              "y": 0,
+              "width": 1280,
+              "height": 720,
+              "top": 0,
+              "right": 1280,
+              "bottom": 720,
+              "left": 0
+            },
+            "documentVisibility": "visible",
+            "quality": {},
+            "frames": [],
+            "playStatus": "resolved",
+            "obs": {
+              "seeked": true
+            }
+          },
+          {
+            "type": "afterDelay",
+            "t": 2.429824972,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 2,
+            "seeking": false,
+            "route": "player",
+            "display": "block",
+            "visibility": "visible",
+            "opacity": "1",
+            "rect": {
+              "x": 0,
+              "y": 0,
+              "width": 1280,
+              "height": 720,
+              "top": 0,
+              "right": 1280,
+              "bottom": 720,
+              "left": 0
+            },
+            "documentVisibility": "visible",
+            "quality": {},
+            "frames": [],
+            "playStatus": "resolved",
+            "obs": {
+              "seeked": true
+            }
+          },
+          {
+            "type": "afterDelay",
+            "t": 0,
+            "d": null,
+            "paused": true,
+            "ended": false,
+            "ready": 0,
+            "seeking": false,
+            "route": "detail",
+            "display": "block",
+            "visibility": "visible",
+            "opacity": "1",
+            "rect": {
+              "x": 0,
+              "y": 0,
+              "width": 0,
+              "height": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0,
+              "left": 0
+            },
+            "documentVisibility": "visible",
+            "quality": {},
+            "frames": [],
+            "playStatus": "resolved",
+            "obs": {
+              "seeked": true
+            }
+          }
+        ],
+        "frames": [],
+        "timeline": [
+          {
+            "at": 4326,
+            "type": "CALL-pause",
+            "t": 0,
+            "d": null,
+            "paused": true,
+            "ended": false,
+            "ready": 0,
+            "seeking": false,
+            "route": "player",
+            "stack": "@web-inspector://bootstrap.js:620:29\nplay@http://127.0.0.1:4371/app.bundle.js:454:69855"
+          },
+          {
+            "at": 4328,
+            "type": "CALL-play",
+            "t": 0,
+            "d": null,
+            "paused": true,
+            "ended": false,
+            "ready": 0,
+            "seeking": false,
+            "route": "player",
+            "stack": "@web-inspector://bootstrap.js:620:29\nattemptBrowserVideoPlay@http://127.0.0.1:4371/app.bundle.js:454:45974\nplay@http://127.0.0.1:4371/app.bundle.js:454:71023"
+          },
+          {
+            "at": 4794,
+            "type": "emptied",
+            "t": 0,
+            "d": null,
+            "paused": false,
+            "ended": false,
+            "ready": 0,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 5277,
+            "type": "loadedmetadata",
+            "t": 0.002200246,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 4,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 5326,
+            "type": "loadeddata",
+            "t": 0.056162544,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 4,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 5331,
+            "type": "canplay",
+            "t": 0.056162544,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 4,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 5337,
+            "type": "playing",
+            "t": 0.056162544,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 4,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 5343,
+            "type": "CALL-pause",
+            "t": 0.056162544,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 4,
+            "seeking": false,
+            "route": "player",
+            "stack": "@web-inspector://bootstrap.js:620:29\npausePlaybackForStartupGate@http://127.0.0.1:4371/app.bundle.js:454:44881\n@http://127.0.0.1:4371/app.bundle.js:454:45452"
+          },
+          {
+            "at": 5345,
+            "type": "timeupdate",
+            "t": 0.056162544,
+            "d": 4.005,
+            "paused": true,
+            "ended": false,
+            "ready": 4,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 5346,
+            "type": "CALL-play",
+            "t": 0.056162544,
+            "d": 4.005,
+            "paused": true,
+            "ended": false,
+            "ready": 4,
+            "seeking": false,
+            "route": "player",
+            "stack": "@web-inspector://bootstrap.js:620:29\nresumePlaybackAfterStartupGate@http://127.0.0.1:4371/app.bundle.js:454:44986\nsetStartupAudioGate@http://127.0.0.1:4371/app.bundle.js:454:46440\nreleaseStartupAudioGate@http://127.0.0.1:4371/app.bundle.js:702:9705\nmarkPlaybackPresentedAfterAdvance@http://127.0.0.1:4371/app.bundle.js:702:10706\nr@http://127.0.0.1:4371/app.bundle.js:673:38584"
+          },
+          {
+            "at": 5350,
+            "type": "pause",
+            "t": 0.072629466,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 4,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 5378,
+            "type": "playing",
+            "t": 0.080372526,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 4,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 5478,
+            "type": "initial",
+            "t": 0.18430383,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 4,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 5570,
+            "type": "beforePauseSeek",
+            "t": 0.277110347,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 4,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 5571,
+            "type": "CALL-pause",
+            "t": 0.277110347,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 4,
+            "seeking": false,
+            "route": "player",
+            "stack": "@web-inspector://bootstrap.js:620:29\n@\nevaluate@\n@"
+          },
+          {
+            "at": 5571,
+            "type": "setCurrentTime",
+            "t": 0.277110347,
+            "d": 4.005,
+            "paused": true,
+            "ended": false,
+            "ready": 4,
+            "seeking": false,
+            "route": "player",
+            "value": 0.4,
+            "stack": "set@web-inspector://bootstrap.js:611:29\n@\nevaluate@\n@"
+          },
+          {
+            "at": 5571,
+            "type": "CALL-play",
+            "t": 0.4,
+            "d": 4.005,
+            "paused": true,
+            "ended": false,
+            "ready": 4,
+            "seeking": true,
+            "route": "player",
+            "stack": "@web-inspector://bootstrap.js:620:29\n@\nevaluate@\n@"
+          },
+          {
+            "at": 5572,
+            "type": "timeupdate",
+            "t": 0.4,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 4,
+            "seeking": true,
+            "route": "player"
+          },
+          {
+            "at": 5579,
+            "type": "pause",
+            "t": 0.4,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 4,
+            "seeking": true,
+            "route": "player"
+          },
+          {
+            "at": 5630,
+            "type": "playing",
+            "t": 0.4,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 4,
+            "seeking": true,
+            "route": "player"
+          },
+          {
+            "at": 5682,
+            "type": "seeking",
+            "t": 0.404268051,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 2,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 5693,
+            "type": "timeupdate",
+            "t": 0.404268051,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 2,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 5694,
+            "type": "seeked",
+            "t": 0.404268051,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 2,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 5823,
+            "type": "timeupdate",
+            "t": 0.546646614,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 2,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 5952,
+            "type": "afterDelay",
+            "t": 0.674960181,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 2,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 6073,
+            "type": "timeupdate",
+            "t": 0.796653251,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 2,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 6608,
+            "type": "timeupdate",
+            "t": 1.331457414,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 2,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 6616,
+            "type": "afterDelay",
+            "t": 1.338934713,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 2,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 6834,
+            "type": "timeupdate",
+            "t": 1.557094428,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 2,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 7084,
+            "type": "timeupdate",
+            "t": 1.807612587,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 2,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 7335,
+            "type": "timeupdate",
+            "t": 2.058601786,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 2,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 7585,
+            "type": "timeupdate",
+            "t": 2.308527703,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 2,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 7706,
+            "type": "afterDelay",
+            "t": 2.429824972,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 2,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 7869,
+            "type": "timeupdate",
+            "t": 2.592708387,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 2,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 8119,
+            "type": "timeupdate",
+            "t": 2.842288583,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 2,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 8408,
+            "type": "timeupdate",
+            "t": 3.131394079,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 2,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 8658,
+            "type": "timeupdate",
+            "t": 3.381084475,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 2,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 8910,
+            "type": "timeupdate",
+            "t": 3.633748199,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 2,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 9110,
+            "type": "canplay",
+            "t": 4.005,
+            "d": 4.005,
+            "paused": true,
+            "ended": true,
+            "ready": 4,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 9139,
+            "type": "playing",
+            "t": 4.005,
+            "d": 4.005,
+            "paused": true,
+            "ended": true,
+            "ready": 4,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 9146,
+            "type": "timeupdate",
+            "t": 4.005,
+            "d": 4.005,
+            "paused": true,
+            "ended": true,
+            "ready": 4,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 9146,
+            "type": "pause",
+            "t": 4.005,
+            "d": 4.005,
+            "paused": true,
+            "ended": true,
+            "ready": 4,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 9146,
+            "type": "ended",
+            "t": 4.005,
+            "d": 4.005,
+            "paused": true,
+            "ended": true,
+            "ready": 4,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 9163,
+            "type": "CALL-pause",
+            "t": 4.005,
+            "d": 4.005,
+            "paused": true,
+            "ended": true,
+            "ready": 4,
+            "seeking": false,
+            "route": "player",
+            "stack": "@web-inspector://bootstrap.js:620:29\nstop@http://127.0.0.1:4371/app.bundle.js:454:72463\ncleanup@http://127.0.0.1:4371/app.bundle.js:976:36907\nnavigate@http://127.0.0.1:4371/app.bundle.js:4708:30302\nhandlePlaybackEnded@http://127.0.0.1:4371/app.bundle.js:976:32999\n@http://127.0.0.1:4371/app.bundle.js:673:43701"
+          },
+          {
+            "at": 9170,
+            "type": "emptied",
+            "t": 0,
+            "d": null,
+            "paused": true,
+            "ended": false,
+            "ready": 0,
+            "seeking": false,
+            "route": "detail"
+          },
+          {
+            "at": 9170,
+            "type": "timeupdate",
+            "t": 0,
+            "d": null,
+            "paused": true,
+            "ended": false,
+            "ready": 0,
+            "seeking": false,
+            "route": "detail"
+          },
+          {
+            "at": 9981,
+            "type": "afterDelay",
+            "t": 0,
+            "d": null,
+            "paused": true,
+            "ended": false,
+            "ready": 0,
+            "seeking": false,
+            "route": "detail"
+          }
+        ]
+      }
+    },
+    {
+      "id": "frame-diff-quality-1080-postseek",
+      "rawSha256": "ec8ccce60715883b96d4fc387a72d4cad3ffde9543eba7884126188383d84496",
+      "observations": {
+        "scenario": "quality-1080",
+        "mode": "postseek",
+        "initial": {
+          "type": "initial",
+          "t": 0.180935181,
+          "d": 4.005,
+          "paused": false,
+          "ended": false,
+          "ready": 4,
+          "seeking": false,
+          "route": "player",
+          "display": "block",
+          "visibility": "visible",
+          "opacity": "1",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 1280,
+            "height": 720,
+            "top": 0,
+            "right": 1280,
+            "bottom": 720,
+            "left": 0
+          },
+          "documentVisibility": "visible",
+          "quality": {}
+        },
+        "snapshots": [
+          {
+            "type": "afterDelay",
+            "t": 0.704974537,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 2,
+            "seeking": false,
+            "route": "player",
+            "display": "block",
+            "visibility": "visible",
+            "opacity": "1",
+            "rect": {
+              "x": 0,
+              "y": 0,
+              "width": 1280,
+              "height": 720,
+              "top": 0,
+              "right": 1280,
+              "bottom": 720,
+              "left": 0
+            },
+            "documentVisibility": "visible",
+            "quality": {},
+            "frames": [],
+            "playStatus": "resolved",
+            "obs": {
+              "seeked": true
+            }
+          },
+          {
+            "type": "afterDelay",
+            "t": 1.245171994,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 2,
+            "seeking": false,
+            "route": "player",
+            "display": "block",
+            "visibility": "visible",
+            "opacity": "1",
+            "rect": {
+              "x": 0,
+              "y": 0,
+              "width": 1280,
+              "height": 720,
+              "top": 0,
+              "right": 1280,
+              "bottom": 720,
+              "left": 0
+            },
+            "documentVisibility": "visible",
+            "quality": {},
+            "frames": [
+              {
+                "at": 5758,
+                "now": 5757,
+                "mediaTime": 0.600966,
+                "width": 1920,
+                "height": 1080,
+                "presentedFrames": 5,
+                "t": 0.751114055,
+                "paused": false,
+                "seeking": false
+              }
+            ],
+            "playStatus": "resolved",
+            "obs": {
+              "seeked": true
+            }
+          },
+          {
+            "type": "afterDelay",
+            "t": 2.28022815,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 2,
+            "seeking": false,
+            "route": "player",
+            "display": "block",
+            "visibility": "visible",
+            "opacity": "1",
+            "rect": {
+              "x": 0,
+              "y": 0,
+              "width": 1280,
+              "height": 720,
+              "top": 0,
+              "right": 1280,
+              "bottom": 720,
+              "left": 0
+            },
+            "documentVisibility": "visible",
+            "quality": {},
+            "frames": [
+              {
+                "at": 5758,
+                "now": 5757,
+                "mediaTime": 0.600966,
+                "width": 1920,
+                "height": 1080,
+                "presentedFrames": 5,
+                "t": 0.751114055,
+                "paused": false,
+                "seeking": false
+              },
+              {
+                "at": 6999,
+                "now": 6999,
+                "mediaTime": 1.807266,
+                "width": 1920,
+                "height": 1080,
+                "presentedFrames": 11,
+                "t": 1.992548657,
+                "paused": false,
+                "seeking": false
+              }
+            ],
+            "playStatus": "resolved",
+            "obs": {
+              "seeked": true
+            }
+          },
+          {
+            "type": "afterDelay",
+            "t": 0,
+            "d": null,
+            "paused": true,
+            "ended": false,
+            "ready": 0,
+            "seeking": false,
+            "route": "detail",
+            "display": "block",
+            "visibility": "visible",
+            "opacity": "1",
+            "rect": {
+              "x": 0,
+              "y": 0,
+              "width": 0,
+              "height": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0,
+              "left": 0
+            },
+            "documentVisibility": "visible",
+            "quality": {},
+            "frames": [
+              {
+                "at": 5758,
+                "now": 5757,
+                "mediaTime": 0.600966,
+                "width": 1920,
+                "height": 1080,
+                "presentedFrames": 5,
+                "t": 0.751114055,
+                "paused": false,
+                "seeking": false
+              },
+              {
+                "at": 6999,
+                "now": 6999,
+                "mediaTime": 1.807266,
+                "width": 1920,
+                "height": 1080,
+                "presentedFrames": 11,
+                "t": 1.992548657,
+                "paused": false,
+                "seeking": false
+              },
+              {
+                "at": 7916,
+                "now": 7915,
+                "mediaTime": 2.8104,
+                "width": 1920,
+                "height": 1080,
+                "presentedFrames": 16,
+                "t": 2.908896992,
+                "paused": false,
+                "seeking": false
+              },
+              {
+                "at": 8720,
+                "now": 8720,
+                "mediaTime": 3.612766,
+                "width": 1920,
+                "height": 1080,
+                "presentedFrames": 20,
+                "t": 3.713366241,
+                "paused": false,
+                "seeking": false
+              }
+            ],
+            "playStatus": "resolved",
+            "obs": {
+              "seeked": true
+            }
+          }
+        ],
+        "frames": [
+          {
+            "at": 5758,
+            "now": 5757,
+            "mediaTime": 0.600966,
+            "width": 1920,
+            "height": 1080,
+            "presentedFrames": 5,
+            "t": 0.751114055,
+            "paused": false,
+            "seeking": false
+          },
+          {
+            "at": 6999,
+            "now": 6999,
+            "mediaTime": 1.807266,
+            "width": 1920,
+            "height": 1080,
+            "presentedFrames": 11,
+            "t": 1.992548657,
+            "paused": false,
+            "seeking": false
+          },
+          {
+            "at": 7916,
+            "now": 7915,
+            "mediaTime": 2.8104,
+            "width": 1920,
+            "height": 1080,
+            "presentedFrames": 16,
+            "t": 2.908896992,
+            "paused": false,
+            "seeking": false
+          },
+          {
+            "at": 8720,
+            "now": 8720,
+            "mediaTime": 3.612766,
+            "width": 1920,
+            "height": 1080,
+            "presentedFrames": 20,
+            "t": 3.713366241,
+            "paused": false,
+            "seeking": false
+          }
+        ],
+        "failure": "\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: >= \u001b[32m2\u001b[39m\nReceived:    \u001b[31m1\u001b[39m",
+        "timeline": [
+          {
+            "at": 4417,
+            "type": "CALL-pause",
+            "t": 0,
+            "d": null,
+            "paused": true,
+            "ended": false,
+            "ready": 0,
+            "seeking": false,
+            "route": "player",
+            "stack": "@web-inspector://bootstrap.js:620:29\nplay@http://127.0.0.1:4371/app.bundle.js:454:69855"
+          },
+          {
+            "at": 4420,
+            "type": "CALL-play",
+            "t": 0,
+            "d": null,
+            "paused": true,
+            "ended": false,
+            "ready": 0,
+            "seeking": false,
+            "route": "player",
+            "stack": "@web-inspector://bootstrap.js:620:29\nattemptBrowserVideoPlay@http://127.0.0.1:4371/app.bundle.js:454:45974\nplay@http://127.0.0.1:4371/app.bundle.js:454:71023"
+          },
+          {
+            "at": 4785,
+            "type": "emptied",
+            "t": 0,
+            "d": null,
+            "paused": false,
+            "ended": false,
+            "ready": 0,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 5124,
+            "type": "loadedmetadata",
+            "t": 0.001842964,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 4,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 5193,
+            "type": "loadeddata",
+            "t": 0.075019991,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 4,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 5203,
+            "type": "canplay",
+            "t": 0.075019991,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 4,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 5208,
+            "type": "playing",
+            "t": 0.075019991,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 4,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 5211,
+            "type": "CALL-pause",
+            "t": 0.075019991,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 4,
+            "seeking": false,
+            "route": "player",
+            "stack": "@web-inspector://bootstrap.js:620:29\npausePlaybackForStartupGate@http://127.0.0.1:4371/app.bundle.js:454:44881\n@http://127.0.0.1:4371/app.bundle.js:454:45452"
+          },
+          {
+            "at": 5213,
+            "type": "timeupdate",
+            "t": 0.075019991,
+            "d": 4.005,
+            "paused": true,
+            "ended": false,
+            "ready": 4,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 5214,
+            "type": "CALL-play",
+            "t": 0.075019991,
+            "d": 4.005,
+            "paused": true,
+            "ended": false,
+            "ready": 4,
+            "seeking": false,
+            "route": "player",
+            "stack": "@web-inspector://bootstrap.js:620:29\nresumePlaybackAfterStartupGate@http://127.0.0.1:4371/app.bundle.js:454:44986\nsetStartupAudioGate@http://127.0.0.1:4371/app.bundle.js:454:46440\nreleaseStartupAudioGate@http://127.0.0.1:4371/app.bundle.js:702:9705\nmarkPlaybackPresentedAfterAdvance@http://127.0.0.1:4371/app.bundle.js:702:10706\nr@http://127.0.0.1:4371/app.bundle.js:673:38584"
+          },
+          {
+            "at": 5216,
+            "type": "pause",
+            "t": 0.093238837,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 4,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 5233,
+            "type": "playing",
+            "t": 0.094860082,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 4,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 5319,
+            "type": "initial",
+            "t": 0.180935181,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 4,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 5365,
+            "type": "beforePauseSeek",
+            "t": 0.226387817,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 4,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 5365,
+            "type": "CALL-pause",
+            "t": 0.226387817,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 4,
+            "seeking": false,
+            "route": "player",
+            "stack": "@web-inspector://bootstrap.js:620:29\n@\nevaluate@\n@"
+          },
+          {
+            "at": 5366,
+            "type": "setCurrentTime",
+            "t": 0.226387817,
+            "d": 4.005,
+            "paused": true,
+            "ended": false,
+            "ready": 4,
+            "seeking": false,
+            "route": "player",
+            "value": 0.4,
+            "stack": "set@web-inspector://bootstrap.js:611:29\n@\nevaluate@\n@"
+          },
+          {
+            "at": 5366,
+            "type": "CALL-play",
+            "t": 0.4,
+            "d": 4.005,
+            "paused": true,
+            "ended": false,
+            "ready": 4,
+            "seeking": true,
+            "route": "player",
+            "stack": "@web-inspector://bootstrap.js:620:29\n@\nevaluate@\n@"
+          },
+          {
+            "at": 5366,
+            "type": "timeupdate",
+            "t": 0.4,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 4,
+            "seeking": true,
+            "route": "player"
+          },
+          {
+            "at": 5368,
+            "type": "pause",
+            "t": 0.4,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 4,
+            "seeking": true,
+            "route": "player"
+          },
+          {
+            "at": 5397,
+            "type": "playing",
+            "t": 0.4,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 2,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 5405,
+            "type": "seeking",
+            "t": 0.4,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 2,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 5405,
+            "type": "timeupdate",
+            "t": 0.4,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 2,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 5405,
+            "type": "seeked",
+            "t": 0.4,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 2,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 5616,
+            "type": "timeupdate",
+            "t": 0.609477574,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 2,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 5712,
+            "type": "afterDelay",
+            "t": 0.704974537,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 2,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 5945,
+            "type": "timeupdate",
+            "t": 0.938082691,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 2,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 6195,
+            "type": "timeupdate",
+            "t": 1.188013488,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 2,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 6252,
+            "type": "afterDelay",
+            "t": 1.245171994,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 2,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 6445,
+            "type": "timeupdate",
+            "t": 1.438066365,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 2,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 6695,
+            "type": "timeupdate",
+            "t": 1.688149602,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 2,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 6945,
+            "type": "timeupdate",
+            "t": 1.938302999,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 2,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 7195,
+            "type": "timeupdate",
+            "t": 2.188296796,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 2,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 7287,
+            "type": "afterDelay",
+            "t": 2.28022815,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 2,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 7445,
+            "type": "timeupdate",
+            "t": 2.438422553,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 2,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 7695,
+            "type": "timeupdate",
+            "t": 2.68849683,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 2,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 8025,
+            "type": "timeupdate",
+            "t": 3.018396551,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 2,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 8275,
+            "type": "timeupdate",
+            "t": 3.268058947,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 2,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 8525,
+            "type": "timeupdate",
+            "t": 3.518106024,
+            "d": 4.005,
+            "paused": false,
+            "ended": false,
+            "ready": 2,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 8856,
+            "type": "canplay",
+            "t": 4.005,
+            "d": 4.005,
+            "paused": true,
+            "ended": true,
+            "ready": 4,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 8862,
+            "type": "playing",
+            "t": 4.005,
+            "d": 4.005,
+            "paused": true,
+            "ended": true,
+            "ready": 4,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 8868,
+            "type": "timeupdate",
+            "t": 4.005,
+            "d": 4.005,
+            "paused": true,
+            "ended": true,
+            "ready": 4,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 8868,
+            "type": "pause",
+            "t": 4.005,
+            "d": 4.005,
+            "paused": true,
+            "ended": true,
+            "ready": 4,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 8868,
+            "type": "ended",
+            "t": 4.005,
+            "d": 4.005,
+            "paused": true,
+            "ended": true,
+            "ready": 4,
+            "seeking": false,
+            "route": "player"
+          },
+          {
+            "at": 8885,
+            "type": "CALL-pause",
+            "t": 4.005,
+            "d": 4.005,
+            "paused": true,
+            "ended": true,
+            "ready": 4,
+            "seeking": false,
+            "route": "player",
+            "stack": "@web-inspector://bootstrap.js:620:29\nstop@http://127.0.0.1:4371/app.bundle.js:454:72463\ncleanup@http://127.0.0.1:4371/app.bundle.js:976:36907\nnavigate@http://127.0.0.1:4371/app.bundle.js:4708:30302\nhandlePlaybackEnded@http://127.0.0.1:4371/app.bundle.js:976:32999\n@http://127.0.0.1:4371/app.bundle.js:673:43701"
+          },
+          {
+            "at": 8892,
+            "type": "emptied",
+            "t": 0,
+            "d": null,
+            "paused": true,
+            "ended": false,
+            "ready": 0,
+            "seeking": false,
+            "route": "detail"
+          },
+          {
+            "at": 8892,
+            "type": "timeupdate",
+            "t": 0,
+            "d": null,
+            "paused": true,
+            "ended": false,
+            "ready": 0,
+            "seeking": false,
+            "route": "detail"
+          },
+          {
+            "at": 9533,
+            "type": "afterDelay",
+            "t": 0,
+            "d": null,
+            "paused": true,
+            "ended": false,
+            "ready": 0,
+            "seeking": false,
+            "route": "detail"
+          }
+        ]
+      }
+    },
+    {
+      "id": "bundled-engines-v2.json",
+      "description": "Historical13pass5fail before canonical adaptive timing and WebKit HTTP-observation corrections",
+      "rawSha256": "5569d9d96bef6b205fd8028b94b61dfabe0b3c094000c6be9426d986b491909f",
+      "stats": {
+        "startTime": "2026-10-20T15:26:55.173Z",
+        "duration": 142410.14599999998,
+        "expected": 13,
+        "skipped": 0,
+        "unexpected": 5,
+        "flaky": 0
+      },
+      "errors": []
+    },
+    {
+      "id": "bundled-final.json",
+      "description": "Historical23pass4fail when two best-effort callbacks were incorrectly required inside one narrow seek window",
+      "rawSha256": "65dc416f5b5a91c3b3d2219ebfe1aa1fee4af398d04c38f4523e2885bb583ead",
+      "stats": {
+        "startTime": "2026-10-20T16:44:17.805Z",
+        "duration": 139745.893,
+        "expected": 23,
+        "skipped": 0,
+        "unexpected": 4,
+        "flaky": 0
+      },
+      "errors": []
+    }
+  ]
+}
