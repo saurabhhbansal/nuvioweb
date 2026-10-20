@@ -3,7 +3,7 @@
   "issue": 7,
   "repository": "saurabhbansal/nuvioweb",
   "as_of": "2026-10-20",
-  "source_commit": "6dd2c33581fb75540a9a955b3009ca1e9d54d1ab",
+  "source_commit": "f9464ad55ebccbfacba042f6629c9bb3a664bfe2",
   "original_criteria": [
     {
       "id": "O1",
@@ -269,24 +269,36 @@
       "required_kinds": [
         "synthetic"
       ],
-      "status": "unverified",
+      "status": "blocked",
       "gate_owner": "CH3 executor design/characterization; owner if a backend contract is needed",
-      "result": "Failed and legacy pending edits are preserved locally, but there is no retry/resolution UI and no established safe contract for the 1000-item snapshot limit or same-account concurrent writers.",
+      "result": "The 1001-item truncation is now a safe refusal, legacy caches are conservatively pending and stale acknowledgements are refused. Two independent full-snapshot writers still lose the earlier edit; repair needs a server conflict/version contract or an owner decision.",
       "linked_children": [
         "CH3"
       ],
       "observations": [
         {
           "kind": "synthetic",
-          "status": "unverified",
-          "commit": "ecef56026d5c55ae205917405ac51fe41ac0bd38",
+          "status": "pass",
+          "commit": "f9464ad55ebccbfacba042f6629c9bb3a664bfe2",
           "deployment": null,
-          "command_or_observation": "Existing savedLibrary state/repository/service tests reviewed; CH3 characterization pending.",
-          "assertion": "A failed mutation must survive reload, a reconnect must not falsely report acknowledgement, and item 1001 or a competing newer edit must not be silently discarded.",
-          "result": "Existing tests cover pending preservation and clean-snapshot reconciliation, but the 1001-item limit and two-writer lost-update cases are not yet characterized.",
-          "artifact": "docs/IDENTITY_VERIFICATION.md",
-          "limitations": "Current behavior is not presented as acceptance; broader offline/concurrent durability remains unsupported pending CH3.",
-          "observed_at": "2026-10-20T00:55:00Z"
+          "observed_at": "2026-10-20T02:40:00Z",
+          "command_or_observation": "node --test app/alpha/js/core/profile/savedLibrarySyncService.test.mjs app/alpha/js/data/repository/savedLibraryRepository.test.mjs app/alpha/js/data/local/savedLibrarySyncState.test.mjs",
+          "assertion": "A failed edit survives reload and a competing pull; a legacy nonempty cache is pending; a stale acknowledgement cannot clear a newer edit; a local set over 1000 items is refused before sync_push_library.",
+          "result": "43 focused tests pass. The 1001-item push refusal sends no request and leaves pending intact.",
+          "artifact": "docs/evidence/issue7-library-policy-2026-10-20.json",
+          "limitations": "Synthetic characterization only; no live Library write or server conflict observation."
+        },
+        {
+          "kind": "synthetic",
+          "status": "blocked",
+          "commit": "f9464ad55ebccbfacba042f6629c9bb3a664bfe2",
+          "deployment": null,
+          "observed_at": "2026-10-20T02:40:00Z",
+          "command_or_observation": "Two independent full-snapshot writers characterized against the existing sync_push_library contract.",
+          "assertion": "Two clients saving from independent snapshots must not silently lose an earlier edit.",
+          "result": "The second full snapshot replaces the first and the earlier edit is lost (last-writer-wins). No server version/ETag/conflict contract is exposed by the checked client.",
+          "artifact": "docs/LIBRARY_SYNC_POLICY.md",
+          "limitations": "Requires server protocol evidence or an owner decision; no client-only merge is claimed safe."
         }
       ]
     },

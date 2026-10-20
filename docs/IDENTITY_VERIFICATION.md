@@ -219,3 +219,11 @@ What changed:
 The threat model and destination policy are recorded in [NUVIO_IDENTITY_CONTRACT.md](NUVIO_IDENTITY_CONTRACT.md). Limits: all synthetic; no live QR consent/expiry/nonce/device claim. Tokens remain same-origin localStorage values, so same-origin XSS can still read them; local cleanup is not remote revocation. Live QR stays under #120.
 
 Evidence: [issue7-qr-ownership-2026-10-20.json](evidence/issue7-qr-ownership-2026-10-20.json).
+
+## Saved Library pending, snapshot-limit and concurrent-writer policy — 2026-10-20 (synthetic, CH3 #119)
+
+**Status: bounded characterization + safe refusal; concurrent-writer repair remains BLOCKED.** Evidence: [issue7-library-policy-2026-10-20.json](evidence/issue7-library-policy-2026-10-20.json); policy: [LIBRARY_SYNC_POLICY.md](LIBRARY_SYNC_POLICY.md); plan: [issue-119.md](plans/issues/issue-119.md).
+
+The existing full-replacement Library API reads at most 1000 local items. A local set over 1000 would have sent a truncated snapshot and silently removed item 1001 remotely. The service now reads up to 1001, refuses to call `sync_push_library` when the set exceeds 1000, sends no request and leaves the pending revision intact. Characterization tests also preserve a failed mutation across reload/competing pull, treat an authenticated nonempty legacy cache as pending, refuse a stale revision acknowledgement, and record the 1001-item case. Focused result: 43/43 synthetic tests.
+
+Two independent same-account writers remain unsupported: each sends a full snapshot and the later one wins, losing the earlier edit. The checked client contract exposes no server version/ETag/conflict token, so no client-only merge is called safe. There is still no automatic retry/outbox/resolution UI, no multi-tab atomicity, and an already-issued push cannot be undone. Broader offline/concurrent durability therefore stays visibly unsupported and #119 remains open pending a server protocol/owner decision; #7 stays open.

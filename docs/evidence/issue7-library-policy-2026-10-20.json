@@ -4,19 +4,31 @@
   "child": 119,
   "date": "2026-10-20",
   "kind": "synthetic",
-  "source_commit": "PENDING",
+  "source_commit": "f9464ad55ebccbfacba042f6629c9bb3a664bfe2",
   "environment": "pinned Node 22.23.1; repository/service/state modules bundled with synthetic dependency boundaries; no live account, network or Library write",
   "commands": [
     {
-      "command": ["node", "--test", "app/alpha/js/core/profile/savedLibrarySyncService.test.mjs"],
+      "command": [
+        "node",
+        "--test",
+        "app/alpha/js/core/profile/savedLibrarySyncService.test.mjs"
+      ],
       "result": "25 passed, 0 failed, 0 skipped"
     },
     {
-      "command": ["node", "--test", "app/alpha/js/data/repository/savedLibraryRepository.test.mjs"],
+      "command": [
+        "node",
+        "--test",
+        "app/alpha/js/data/repository/savedLibraryRepository.test.mjs"
+      ],
       "result": "14 passed, 0 failed, 0 skipped"
     },
     {
-      "command": ["node", "--test", "app/alpha/js/data/local/savedLibrarySyncState.test.mjs"],
+      "command": [
+        "node",
+        "--test",
+        "app/alpha/js/data/local/savedLibrarySyncState.test.mjs"
+      ],
       "result": "4 passed, 0 failed, 0 skipped"
     }
   ],
