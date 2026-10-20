@@ -2,7 +2,7 @@
 
 Status (2026-10-20): the owner has resumed bounded disposable-account validation under the [explicit authorization](../AGENTS.md). Sol owns execution; no routine owner approval is pending. This card preserves the criteria for [#120](https://github.com/saurabhhbansal/nuvioweb/issues/120).
 
-**Candidate gate:** the old `7dcc3717742e04745c018eccd342df0915bbe8fe` / `b6451df5` preview contains old QR defects and must not be used for QR observations. First integrate the reviewed remediation through protected CI, stage the exact merged revision in the existing `nuvioweb-preview` project, and verify served SOURCE.txt, config and inventory against it. Record that revision/deployment in a new receipt; merging a PR does not refresh the preview.
+**Candidate gate:** the old `7dcc3717742e04745c018eccd342df0915bbe8fe` / `b6451df5` preview contains old QR defects and must not be used for QR observations. The reviewed remediation is now integrated at `8eec52a7de888d156fac03edd9c523fc16964f7b` and served as development deployment `46d066cf`; SOURCE/config/inventory and hosted guest checks passed. Later Library fixes require their own verified served candidate before their app mutation checks. Record that revision/deployment in a new receipt; merging a PR does not refresh the preview.
 
 Use the purpose-built guarded driver in the durable run directory. Keep credentials, emails/IDs, account/media payloads, QR content, screenshots, storage/HAR and tokens out of outputs. Verify the credential file digest before and after. Accounts A/B are designated disposable identities. Use isolated contexts; never attach to or kill a shared browser. Mutations require original-state backup, exact attributable records, concurrent-writer/full-snapshot accounting, exact cleanup and final readback. Read-only mode must deny automatic mutating app RPCs too; denied requests limit the evidence.
 
@@ -62,3 +62,8 @@ First failing step and redacted visible error:
 ```
 
 The agent records reported observations with their environment and limits, reproduces failures, completes automated negative/race checks and seeks required auth review. Issue #7 stays open until each acceptance criterion has sufficient evidence. Use account aliases A/B only; never paste credentials or tokens into chat/issues. Remove only the disposable test data you created when finished.
+
+
+## Executed agent observations — 2026-10-20
+
+[Hosted account round trips](evidence/issue7-sol-hosted-accounts.json), [direct additive marker/cleanup](evidence/issue7-sol-live-markers.json) and [explicit refresh/scoped revocation](evidence/issue7-sol-live-lifecycle.json) are real-service observations with stated limits. [QR observation](evidence/issue7-sol-qr-live-observation.json): anonymous signup200, start400 rejects this preview redirect, no QR ready, local anonymous session cleared. Provider support/allowlisting and actual approval/nonce semantics are the exact missing capability. [Capability inventory](evidence/issue7-sol-capabilities.json) records unavailable physical/branded-device tools; emulation is not physical proof. No owner-permission blocker remains. The unexplained historical post-removal failure remains unresolved; later round trips alone do not explain it.

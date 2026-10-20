@@ -1,0 +1,138 @@
+{
+  "date": "2026-10-20T05:16:41.010Z",
+  "mode": "markers",
+  "kind": "live",
+  "writes": "Unique reversible diagnostic keys via additive documented Library/history/progress RPCs; exact-key cleanup and final readback, no full snapshots",
+  "operations": [
+    {
+      "operation": "A:marker-writer-login",
+      "status": 200,
+      "phase": "headers",
+      "durationMs": 321
+    },
+    {
+      "operation": "A:marker-library-read",
+      "status": 200,
+      "phase": "headers",
+      "durationMs": 203
+    },
+    {
+      "operation": "A:marker-watched-read",
+      "status": 200,
+      "phase": "headers",
+      "durationMs": 225
+    },
+    {
+      "operation": "A:marker-progress-read",
+      "status": 200,
+      "phase": "headers",
+      "durationMs": 181
+    },
+    {
+      "operation": "A:additive-library-marker",
+      "status": 204,
+      "phase": "headers",
+      "durationMs": 215
+    },
+    {
+      "operation": "A:additive-watched-marker",
+      "status": 204,
+      "phase": "headers",
+      "durationMs": 249
+    },
+    {
+      "operation": "A:additive-progress-marker",
+      "status": 204,
+      "phase": "headers",
+      "durationMs": 249
+    },
+    {
+      "operation": "A:marker-independent-login",
+      "status": 200,
+      "phase": "headers",
+      "durationMs": 331
+    },
+    {
+      "operation": "A:marker-library-read",
+      "status": 200,
+      "phase": "headers",
+      "durationMs": 197
+    },
+    {
+      "operation": "A:marker-watched-read",
+      "status": 200,
+      "phase": "headers",
+      "durationMs": 208
+    },
+    {
+      "operation": "A:marker-progress-read",
+      "status": 200,
+      "phase": "headers",
+      "durationMs": 196
+    },
+    {
+      "operation": "A:exact-sync_delete_library_items",
+      "status": 204,
+      "phase": "headers",
+      "durationMs": 196
+    },
+    {
+      "operation": "A:exact-sync_delete_watched_items",
+      "status": 204,
+      "phase": "headers",
+      "durationMs": 257
+    },
+    {
+      "operation": "A:exact-sync_delete_watch_progress",
+      "status": 204,
+      "phase": "headers",
+      "durationMs": 199
+    },
+    {
+      "operation": "A:marker-library-read",
+      "status": 200,
+      "phase": "headers",
+      "durationMs": 230
+    },
+    {
+      "operation": "A:marker-watched-read",
+      "status": 200,
+      "phase": "headers",
+      "durationMs": 169
+    },
+    {
+      "operation": "A:marker-progress-read",
+      "status": 200,
+      "phase": "headers",
+      "durationMs": 193
+    }
+  ],
+  "checks": {
+    "encryptedOriginalBackup": true,
+    "libraryNewMarkerReceived": true,
+    "watchedNewMarkerReceived": true,
+    "progressNewMarkerReceived": true,
+    "libraryMarkerAbsentAfterCleanup": true,
+    "libraryOriginalKeysPreserved": true,
+    "libraryOriginalRowsUnchanged": true,
+    "watchedMarkerAbsentAfterCleanup": true,
+    "watchedOriginalKeysPreserved": true,
+    "watchedOriginalRowsUnchanged": true,
+    "progressMarkerAbsentAfterCleanup": true,
+    "progressOriginalKeysPreserved": true,
+    "progressOriginalRowsUnchanged": true,
+    "exactCleanupRequestsSucceeded": true
+  },
+  "limits": [
+    "Documented direct API additive mutation and independent-session reads; application Save/playback/profile/add-on write paths are not established by this backend setup."
+  ],
+  "preCleanupStage": "marker-independent-receiver",
+  "cleanup": {
+    "attempted": true,
+    "readback": "completed",
+    "deleteRequestsSucceeded": true,
+    "restoration": "exact-readback-observed"
+  },
+  "status": "pass",
+  "credentialsUnchanged": true
+}

@@ -1,0 +1,69 @@
+{
+  "date": "2026-10-20T04:48:26.586Z",
+  "mode": "preflight",
+  "kind": "live",
+  "writes": "none; login/refresh only",
+  "operations": [
+    {
+      "operation": "A:password",
+      "status": 200,
+      "phase": "headers",
+      "durationMs": 1430
+    },
+    {
+      "operation": "A:profiles",
+      "status": 200,
+      "phase": "headers",
+      "durationMs": 320
+    },
+    {
+      "operation": "A:library",
+      "status": 200,
+      "phase": "headers",
+      "durationMs": 278
+    },
+    {
+      "operation": "B:password",
+      "status": 200,
+      "phase": "headers",
+      "durationMs": 362
+    },
+    {
+      "operation": "B:profiles",
+      "status": 200,
+      "phase": "headers",
+      "durationMs": 254
+    },
+    {
+      "operation": "B:library",
+      "status": 200,
+      "phase": "headers",
+      "durationMs": 252
+    },
+    {
+      "operation": "A:explicit-refresh",
+      "status": 200,
+      "phase": "headers",
+      "durationMs": 269
+    }
+  ],
+  "checks": {
+    "AExistingIdentity": true,
+    "ANonemptyProfiles": true,
+    "ANonemptyLibrary": true,
+    "AHasSecondaryProfile": true,
+    "BExistingIdentity": true,
+    "BNonemptyProfiles": false,
+    "BNonemptyLibrary": true,
+    "BHasSecondaryProfile": false,
+    "distinctIdentities": true,
+    "liveExplicitRefresh": true,
+    "refreshPreservedIdentity": true
+  },
+  "limits": [
+    "Explicit refresh before natural expiry; no revocation, QR/device or mutation propagation claim. No account/media payload persisted.",
+    "One or more explicitly recorded checks unmet; completed commands do not imply acceptance."
+  ],
+  "status": "partial",
+  "credentialsUnchanged": true
+}

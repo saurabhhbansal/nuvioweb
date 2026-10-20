@@ -1,0 +1,458 @@
+{
+  "date": "2026-10-20T05:23:10.665Z",
+  "mode": "hosted",
+  "kind": "live",
+  "writes": "none; login/refresh only",
+  "operations": [],
+  "checks": {
+    "ANonemptyHostedLibrary": true,
+    "ACurrentServerControlNonempty": true,
+    "AExactCurrentServerLibrary": true,
+    "signoutClearedLocalSession": true,
+    "BNonemptyHostedLibrary": true,
+    "BCurrentServerControlNonempty": true,
+    "BExactCurrentServerLibrary": true,
+    "distinctHostedOwners": true,
+    "AReturnRestoredExactLibrary": true,
+    "BReturnRestoredExactLibrary": true
+  },
+  "limits": [
+    "The account owner marker is retained by existing reset policy as a migration sentinel; signout assertions cover token removal and private store clearing, not marker deletion.",
+    "Read-only hosted A-B-A-B existing-control round trips; no new mutation, remote revocation, natural expiry or physical-device claim. Prior historical failures cannot be explained by this result alone."
+  ],
+  "revision": "8eec52a7de888d156fac03edd9c523fc16964f7b",
+  "browser": "156.0.8078.4",
+  "os": "Linux ARM64",
+  "events": [
+    {
+      "operation": "token",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "get_sync_owner",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "register_current_device",
+      "phase": "before-response",
+      "category": "network-failed"
+    },
+    {
+      "operation": "sync_pull_profiles",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "sync_pull_home_catalog_settings",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "sync_pull_profile_settings_blob",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "sync_pull_profile_settings_blob",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "sync_pull_home_catalog_settings",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "sync_pull_home_catalog_settings",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "sync_seed_provider_credentials",
+      "phase": "before-response",
+      "category": "network-failed"
+    },
+    {
+      "operation": "sync_pull_profiles",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "sync_pull_library",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "sync_pull_watched_items",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "sync_pull_library",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "sync_pull_profile_settings_blob",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "sync_pull_profile_settings_blob",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "sync_pull_profile_settings_blob",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "sync_pull_profile_settings_blob",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "sync_pull_watch_progress",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "sync_pull_profile_settings_blob",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "sync_pull_profiles",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "token",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "get_sync_owner",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "register_current_device",
+      "phase": "before-response",
+      "category": "network-failed"
+    },
+    {
+      "operation": "sync_pull_profiles",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "sync_pull_profile_settings_blob",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "sync_pull_home_catalog_settings",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "sync_pull_home_catalog_settings",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "sync_pull_home_catalog_settings",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "sync_pull_profile_settings_blob",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "sync_pull_library",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "sync_seed_provider_credentials",
+      "phase": "before-response",
+      "category": "network-failed"
+    },
+    {
+      "operation": "sync_pull_profiles",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "sync_pull_library",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "sync_pull_watch_progress",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "sync_pull_watched_items",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "sync_pull_profiles",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "token",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "get_sync_owner",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "register_current_device",
+      "phase": "before-response",
+      "category": "network-failed"
+    },
+    {
+      "operation": "sync_pull_profiles",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "sync_pull_profile_settings_blob",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "sync_pull_home_catalog_settings",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "sync_pull_profile_settings_blob",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "sync_pull_library",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "sync_pull_home_catalog_settings",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "sync_pull_home_catalog_settings",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "sync_seed_provider_credentials",
+      "phase": "before-response",
+      "category": "network-failed"
+    },
+    {
+      "operation": "sync_pull_watched_items",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "sync_pull_profiles",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "sync_pull_watch_progress",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "sync_pull_library",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "sync_pull_profile_settings_blob",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "sync_pull_profile_settings_blob",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "sync_pull_profile_settings_blob",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "sync_pull_profile_settings_blob",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "sync_pull_profiles",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "sync_pull_profile_settings_blob",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "token",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "get_sync_owner",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "register_current_device",
+      "phase": "before-response",
+      "category": "network-failed"
+    },
+    {
+      "operation": "sync_pull_profiles",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "sync_pull_profile_settings_blob",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "sync_pull_home_catalog_settings",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "sync_pull_profile_settings_blob",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "sync_pull_home_catalog_settings",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "sync_pull_home_catalog_settings",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "sync_seed_provider_credentials",
+      "phase": "before-response",
+      "category": "network-failed"
+    },
+    {
+      "operation": "sync_pull_library",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "sync_pull_library",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "sync_pull_profiles",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "sync_pull_watched_items",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "sync_pull_watch_progress",
+      "status": 200,
+      "phase": "headers"
+    },
+    {
+      "operation": "sync_pull_profiles",
+      "phase": "before-response",
+      "category": "network-failed"
+    }
+  ],
+  "blockedMutations": [
+    {
+      "operation": "register_current_device",
+      "method": "POST"
+    },
+    {
+      "operation": "sync_push_profile_settings_blob",
+      "method": "POST"
+    },
+    {
+      "operation": "sync_seed_provider_credentials",
+      "method": "POST"
+    },
+    {
+      "operation": "sync_push_profile_settings_blob",
+      "method": "POST"
+    },
+    {
+      "operation": "register_current_device",
+      "method": "POST"
+    },
+    {
+      "operation": "sync_push_profile_settings_blob",
+      "method": "POST"
+    },
+    {
+      "operation": "sync_seed_provider_credentials",
+      "method": "POST"
+    },
+    {
+      "operation": "register_current_device",
+      "method": "POST"
+    },
+    {
+      "operation": "sync_push_profile_settings_blob",
+      "method": "POST"
+    },
+    {
+      "operation": "sync_seed_provider_credentials",
+      "method": "POST"
+    },
+    {
+      "operation": "sync_push_profile_settings_blob",
+      "method": "POST"
+    },
+    {
+      "operation": "register_current_device",
+      "method": "POST"
+    },
+    {
+      "operation": "sync_push_profile_settings_blob",
+      "method": "POST"
+    },
+    {
+      "operation": "sync_seed_provider_credentials",
+      "method": "POST"
+    }
+  ],
+  "status": "pass",
+  "credentialsUnchanged": true
+}

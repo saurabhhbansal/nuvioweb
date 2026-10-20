@@ -1,0 +1,103 @@
+{
+  "date": "2026-10-20T05:16:45.986Z",
+  "mode": "lifecycle",
+  "kind": "live",
+  "writes": "Only newly issued disposable A session locally revoked; no account/media mutation",
+  "operations": [
+    {
+      "operation": "A:password",
+      "status": 200,
+      "phase": "headers",
+      "durationMs": 286
+    },
+    {
+      "operation": "A:profiles",
+      "status": 200,
+      "phase": "headers",
+      "durationMs": 194
+    },
+    {
+      "operation": "A:library",
+      "status": 200,
+      "phase": "headers",
+      "durationMs": 179
+    },
+    {
+      "operation": "B:password",
+      "status": 200,
+      "phase": "headers",
+      "durationMs": 271
+    },
+    {
+      "operation": "B:profiles",
+      "status": 200,
+      "phase": "headers",
+      "durationMs": 200
+    },
+    {
+      "operation": "B:library",
+      "status": 200,
+      "phase": "headers",
+      "durationMs": 259
+    },
+    {
+      "operation": "A:explicit-refresh",
+      "status": 200,
+      "phase": "headers",
+      "durationMs": 204
+    },
+    {
+      "operation": "A:independent-control-login",
+      "status": 200,
+      "phase": "headers",
+      "durationMs": 256
+    },
+    {
+      "operation": "A:new-session-local-logout",
+      "status": 204,
+      "phase": "headers",
+      "durationMs": 172
+    },
+    {
+      "operation": "A:revoked-refresh",
+      "status": 400,
+      "phase": "headers",
+      "durationMs": 255
+    },
+    {
+      "operation": "A:independent-control-refresh",
+      "status": 200,
+      "phase": "headers",
+      "durationMs": 212
+    },
+    {
+      "operation": "B:independent-session-user",
+      "status": 200,
+      "phase": "headers",
+      "durationMs": 190
+    }
+  ],
+  "checks": {
+    "AExistingIdentity": true,
+    "ANonemptyProfiles": true,
+    "ANonemptyLibrary": true,
+    "AHasSecondaryProfile": true,
+    "BExistingIdentity": true,
+    "BNonemptyProfiles": false,
+    "BNonemptyLibrary": true,
+    "BHasSecondaryProfile": false,
+    "distinctIdentities": true,
+    "liveExplicitRefresh": true,
+    "refreshPreservedIdentity": true,
+    "newSessionRefreshRejected": true,
+    "independentASessionPreserved": true,
+    "independentSessionPreserved": true
+  },
+  "limits": [
+    "Observed explicit refresh, then remote revocation/rejection of only the newly issued session; no natural-expiry boundary or immediate access-JWT invalidation claim.",
+    "One or more explicitly recorded checks unmet; completed commands do not imply acceptance."
+  ],
+  "revokedRefreshCategory": "invalid-or-revoked-refresh",
+  "status": "partial",
+  "credentialsUnchanged": true
+}
