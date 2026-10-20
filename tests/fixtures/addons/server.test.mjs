@@ -63,6 +63,25 @@ test("quality media routes preserve hashes, MIME/Range and explicit error/CORS b
       assert.equal(createHash("sha256").update(Buffer.from(await result.arrayBuffer())).digest("hex"),packaged.sha256);
     }
   }
+  const canonical = JSON.parse(await readFile(new URL("../media/quality/adaptive-provenance.json", import.meta.url)));
+  for (const source of canonical.files) {
+    for (const packaged of source.packaged) {
+      const result = await fetch(`${origin}/media/quality/${packaged.file}`);
+      assert.equal(result.status, 200);
+      assert.equal(createHash("sha256").update(Buffer.from(await result.arrayBuffer())).digest("hex"), packaged.sha256);
+    }
+    assert.equal((await fetch(`${origin}/media/quality/${source.canonicalFile}`)).status, 404);
+    const range = await fetch(`${origin}/media/quality/${source.directory}/segment.m4s`, { headers: { Range: "bytes=0-31" } });
+    assert.equal(range.status, 206);
+    assert.equal((await range.arrayBuffer()).byteLength, 32);
+  }
+  for (const [scenario, file] of [["quality-hls", "stream.m3u8"], ["quality-dash", "manifest.mpd"]]) {
+    const { streams } = await (await fetch(`${origin}/${scenario}/stream/movie/fixture:original.json`)).json();
+    assert.equal(streams[0].url, `${origin}/media/quality/canonical2160p/${file}`);
+    assert.equal(streams[0].video.width, 3840);
+    assert.equal(streams[0].video.height, 2160);
+  }
+  assert.equal((await fetch(`${origin}/media/quality/adaptive-provenance.json`)).status, 404);
   assert.equal((await fetch(`${origin}/media/quality/expired.mp4`)).status,410);
   assert.equal((await fetch(`${origin}/media/quality/restricted.mp4`)).status,403);
   const denied=await fetch(`${origin}/media/quality/cors-denied/stream.m3u8`);

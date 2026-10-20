@@ -32,6 +32,8 @@ test("matrix exit distinguishes positive-probe failure and performance gap from 
   assert.equal(matrixExitCode(receipt([{ ...entry, id: "h264-2160-60", result: "DECODE_AND_SEEK_OBSERVED", delivery: { sustained60Observed: false } }])), 3);
   assert.equal(matrixExitCode({ ...receipt([entry]), credentialLeakObserved: true }), 2);
   assert.equal(matrixExitCode(receipt([])), 4);
+  assert.equal(matrixExitCode({ requiredCaseIds: [entry.id], engines: [] }), 4);
+  assert.equal(matrixExitCode({ ...receipt([]), engines: [{ status: "ENGINE_LAUNCH_FAILED", cases: [] }] }), 2);
   assert.equal(matrixExitCode({ ...receipt([entry]), requiredCaseIds: [entry.id, "h264-2160-60"] }), 4);
   assert.equal(matrixExitCode(receipt([{ ...entry, result: "NOT_MEASURED" }])), 4);
 });

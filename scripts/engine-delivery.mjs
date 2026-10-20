@@ -32,7 +32,8 @@ export function decodedAndSeeked(observed) {
 }
 
 export function matrixExitCode(receipt) {
-  if (!receipt.requiredCaseIds?.length || receipt.engines.some(engine => receipt.requiredCaseIds.some(id => !engine.cases.some(entry => entry.id === id && entry.result !== "NOT_MEASURED")))) return 4;
+  if (receipt.credentialLeakObserved || receipt.engines.some(engine => engine.status !== "LAUNCHED")) return 2;
+  if (!receipt.engines.length || !receipt.requiredCaseIds?.length || receipt.engines.some(engine => receipt.requiredCaseIds.some(id => !engine.cases.some(entry => entry.id === id && entry.result !== "NOT_MEASURED")))) return 4;
   if (receipt.credentialLeakObserved || receipt.engines.some(engine => engine.status !== "LAUNCHED" || engine.cases.some(entry => entry.prediction?.native !== "not-reported" && entry.result !== "DECODE_AND_SEEK_OBSERVED"))) return 2;
   // 3 means completed measurement with a failed performance criterion, not pass.
   if (receipt.engines.some(engine => engine.cases.some(entry => entry.id.endsWith("-60") && !entry.delivery?.sustained60Observed))) return 3;
