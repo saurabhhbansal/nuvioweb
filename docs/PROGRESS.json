@@ -315,7 +315,7 @@
             "offlineFinding": "Only callback frequency fails the recorded60fps predicate in all3 engines; other clauses meet thresholds. Original receipt/test/exit3 unchanged",
             "sourceFinding": "Conditional Chromium HEVC and documented platform HDR paths exist; exact tested executable/backend and real output remain unverified",
             "scope": "No app/test/fixture/CI or acceptance-checkbox change; interrupted HDR research completed; CURRENT/observers/runtime/deployment untouched",
-            "integration": "Proposed until this research/evidence correction passes separate automated review and all4 own exact-head/actual-merge protected contexts"
+            "integration": "Research/evidence correction is carried by PR136, whose linked record is authoritative for exact-head/actual-merge checks. Separate automated Standards/Spec actual-diff reviews report0 actionable findings; not independent human approval. Normal all4 protected contexts remain mandatory, no deployment or acceptance completion"
           },
           "remainingHostGaps": [
             "4K60 measurement limitation: only callback-frequency clause failed in all3 historical runs; best-effort notifications are not video frame rate. Keep exit3; neither inadequate host decoding throughput nor physical60fps output established",
