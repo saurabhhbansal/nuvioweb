@@ -27,7 +27,9 @@ async function fixture(t, { guest = false } = {}) {
     failedKeys: new Set(),
     failedReads: new Set(),
     failReadAfterWrite: new Set(),
-    LocalStore: { get: (key, fallback) => { if (dependencies.failedReads.has(key)) throw new Error("Synthetic read denied"); return values.has(key) ? values.get(key) : fallback; }, set: (key, value) => { if (!dependencies.failedKeys.has(key)) { values.set(key, value); if (dependencies.failReadAfterWrite.has(key)) dependencies.failedReads.add(key); } } },
+    failAfterReadback: false,
+    readsAfterWrite: -1,
+    LocalStore: { get: (key, fallback) => { if (key === "savedLibraryItems" && dependencies.failAfterReadback && dependencies.readsAfterWrite >= 0 && ++dependencies.readsAfterWrite > 1) throw new Error("Synthetic later read denied"); if (dependencies.failedReads.has(key)) throw new Error("Synthetic read denied"); return values.has(key) ? values.get(key) : fallback; }, set: (key, value) => { if (!dependencies.failedKeys.has(key)) { values.set(key, value); if (key === "savedLibraryItems") dependencies.readsAfterWrite = 0; if (dependencies.failReadAfterWrite.has(key)) dependencies.failedReads.add(key); } } },
     SavedLibrarySyncService: { push: async (profileId) => { calls.push({ profileId, generation }); return true; } }
   };
   globalThis.__savedLibraryRepoDeps__ = dependencies;
@@ -37,7 +39,7 @@ async function fixture(t, { guest = false } = {}) {
     bundle: true, format: "esm", platform: "node", write: false,
     plugins: [{ name: "saved-library-repository-boundaries", setup(buildApi) {
       buildApi.onResolve({ filter: /accountLocalDataReset\.js$/ }, () => ({ path: "reset", namespace: "fixture" }));
-      for (const name of Object.keys(dependencies).filter(name => !["failedKeys", "failedReads", "failReadAfterWrite"].includes(name))) {
+      for (const name of Object.keys(dependencies).filter(name => !["failedKeys", "failedReads", "failReadAfterWrite", "failAfterReadback", "readsAfterWrite"].includes(name))) {
         buildApi.onResolve({ filter: new RegExp(`${name}\\.js$`, "i") }, () => ({ path: name, namespace: "fixture" }));
       }
       buildApi.onLoad({ filter: /.*/, namespace: "fixture" }, ({ path }) => ({
@@ -441,4 +443,28 @@ test("an unqueued committed edit cannot be acknowledged by later edits in the sa
   await f.runTimers();
   assert.deepEqual(f.calls, [["queued-a", "queued-c"]]);
   assert.equal(f.repository.getSyncState().pending, true);
+});
+
+test("save uses the verified stored item without a fallible post-commit lookup", async (t) => {
+  const f = await fixture(t);
+  f.dependencies.SavedLibrarySyncService.push = async (profileId, changes, options) => {
+    f.calls.push(changes.map(change => change.item.contentId));
+    if (options.acknowledge) f.repository.acknowledgeSync(profileId, options.revision);
+    return true;
+  };
+  await f.repository.save({contentId: "queued-a"});
+  f.dependencies.failAfterReadback = true;
+  await f.repository.save({contentId: "verified-b"});
+  f.dependencies.failAfterReadback = false;
+  await f.runTimers();
+  assert.deepEqual(f.calls, [["queued-a", "verified-b"]]);
+});
+
+test("unreadable item store refuses removal instead of reporting an absent item", async (t) => {
+  const f = await fixture(t);
+  await f.repository.replaceAll([{contentId: "existing"}]);
+  f.dependencies.failedReads.add("savedLibraryItems");
+  await assert.rejects(f.repository.remove("existing"), {code: "LIBRARY_STORAGE_UNAVAILABLE"});
+  await f.runTimers();
+  assert.deepEqual(f.calls, []);
 });

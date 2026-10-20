@@ -81,9 +81,9 @@ export const SavedLibraryStore = {
     return this.listAll();
   },
 
-  listForProfile(profileId) {
+  listForProfile(profileId, strict = false) {
     const pid = String(profileId || "1");
-    return this.listAll().filter((item) => String(item.profileId || "1") === pid);
+    return this.listAll(strict).filter((item) => String(item.profileId || "1") === pid);
   },
 
   upsert(item, profileId) {
@@ -105,15 +105,16 @@ export const SavedLibraryStore = {
     const next = [normalized, ...items.filter((entry) => savedLibraryItemKey(entry) !== key)];
     const nextItems = dedupeAndSort(next);
     if (itemsSignature(items) === itemsSignature(nextItems)) {
-      return;
+      return normalized;
     }
     writeLibraryStorage(SAVED_LIBRARY_KEY, nextItems);
     notifyChange(pid, "upsert");
+    return normalized;
   },
 
-  findByContentId(contentId, profileId) {
+  findByContentId(contentId, profileId, strict = false) {
     const wanted = String(contentId || "").trim();
-    return this.listForProfile(profileId).find((item) => item.contentId === wanted) || null;
+    return this.listForProfile(profileId, strict).find((item) => item.contentId === wanted) || null;
   },
 
   remove(contentId, profileId) {

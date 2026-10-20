@@ -616,7 +616,7 @@
       ],
       "progress": {
         "branch": "fix/issue-119-storage-failures",
-        "pr": 126,
+        "pr": 127,
         "documents": [
           "docs/LIBRARY_SYNC_POLICY.md",
           "docs/plans/issues/issue-7-sol-remediation.md",
@@ -625,7 +625,8 @@
         ],
         "verification": [
           "Actual stale snapshots reproduced loss, explicit-key regression preserves both writers/baseline; 57 focused tests and 1432 application tests passed at runtime083eb89. Separate review findings repaired; final exact-head CI/review required. No broad A5 completion.",
-          "Owner accepted bounded recovery; durable outbox/atomic same-key ordering are follow-up scope. Storage failure/unqueued acknowledgement regressions reproduced red;67 focused tests pass and4 targeted browser cases pass. Protected exact-head review/CI/integration remain required; no A5 completion claim yet."
+          "Owner accepted bounded recovery; durable outbox/atomic same-key ordering are follow-up scope. Storage failure/unqueued acknowledgement regressions reproduced red;67 focused tests pass and4 targeted browser cases pass. Protected exact-head review/CI/integration remain required; no A5 completion claim yet.",
+          "Review edge cases reproduced red and fixed: item write succeeded/readback failed, later batch acknowledgement, fallible post-save lookup, unreadable remove.69 focused regressions pass. Stronger guarantees tracked in #128; no provider blocker for bounded policy."
         ]
       }
     },
@@ -649,7 +650,8 @@
         ],
         "verification": [
           "Authorized guarded direct and actual hosted tests executed. Hosted A-B-A-B Library controls exact/restored, additive marker receiver/cleanup/original rows unchanged, explicit refresh and local-session revocation observed; credential integrity unchanged. No natural expiry/new profile/add-on mutation/physical QR claim.",
-          "Owner explicitly deferred QR/device verification with unsupported labels and follow-up tracking. Actual app propagation, historical failure disposition, offline/rejected refresh and natural expiry remain required. Provider issues604800-second sessions; finite memory-only observer targets2026-10-27T08:41:40.775Z; elapsed expiry observation is not complete."
+          "Owner explicitly deferred QR/device verification with unsupported labels and follow-up tracking. Actual app propagation, historical failure disposition, offline/rejected refresh and natural expiry remain required. Provider issues604800-second sessions; finite memory-only observer targets2026-10-27T08:41:40.775Z; elapsed expiry observation is not complete.",
+          "Deferred provider QR and physical-device work tracked separately as #129/#130; these are unsupported capability labels, not pass receipts."
         ]
       }
     }

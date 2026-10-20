@@ -17,6 +17,7 @@ function sessionProfileKey(profileId) {
 
 function queueSavedLibraryCloudSync(profileId, change, edit, delayMs = 500) {
   if (!AuthManager.isAuthenticated) return;
+  const item = { ...change.item, genres: Array.isArray(change.item.genres) ? [...change.item.genres] : [] };
   const { previousState, state } = edit;
   const sessionGeneration = AuthManager.getSessionGeneration();
   const isCurrent = () => AuthManager.isSessionCurrent(sessionGeneration);
@@ -29,7 +30,6 @@ function queueSavedLibraryCloudSync(profileId, change, edit, delayMs = 500) {
   batch.revision = state.revision;
   // Only explicit operations are replayable. Distinct keys survive debounce;
   // repeated same-key actions retain the last local intent.
-  const item = { ...change.item, genres: Array.isArray(change.item.genres) ? [...change.item.genres] : [] };
   batch.changes.set(JSON.stringify([item.contentType, item.contentId]), { kind: change.kind, item });
   clearTimeout(savedLibrarySyncTimers.get(profileKey));
   const timerId = setTimeout(() => {
@@ -73,14 +73,15 @@ function beginLocalEdit(profileId) {
 
 function commitLocalEdit(profileId, mutation) {
   const edit = beginLocalEdit(profileId);
-  try { mutation(); }
+  let value;
+  try { value = mutation(); }
   catch (error) {
     if (edit) unconfirmedProfiles.add(sessionProfileKey(profileId));
     // A write may have committed before its readback failed. Retain pending;
     // clearing it here would let the next pull silently discard that edit.
     throw error;
   }
-  return edit;
+  return { edit, value };
 }
 
 class SavedLibraryRepository {
@@ -111,15 +112,15 @@ class SavedLibraryRepository {
       return;
     }
     this.getSyncState(profileId);
-    const edit = commitLocalEdit(profileId, () => SavedLibraryStore.upsert(item, profileId));
-    queueSavedLibraryCloudSync(profileId, { kind: "save", item: SavedLibraryStore.listForProfile(profileId).find(saved => saved.contentId === item.contentId && saved.contentType === String(item.contentType || item.itemType || item.type || "movie")) }, edit);
+    const { edit, value } = commitLocalEdit(profileId, () => SavedLibraryStore.upsert(item, profileId));
+    queueSavedLibraryCloudSync(profileId, { kind: "save", item: value }, edit);
   }
 
   async remove(contentId, profileId = activeProfileId()) {
     this.getSyncState(profileId);
-    const items = SavedLibraryStore.listForProfile(profileId).filter(item => item.contentId === contentId);
+    const items = SavedLibraryStore.listForProfile(profileId, true).filter(item => item.contentId === contentId);
     if (!items.length) return;
-    const edit = commitLocalEdit(profileId, () => SavedLibraryStore.remove(contentId, profileId));
+    const { edit } = commitLocalEdit(profileId, () => SavedLibraryStore.remove(contentId, profileId));
     for (const item of items) queueSavedLibraryCloudSync(profileId, { kind: "remove", item }, edit);
   }
 
@@ -128,13 +129,13 @@ class SavedLibraryRepository {
       return false;
     }
     this.getSyncState(profileId);
-    const exists = SavedLibraryStore.findByContentId(item.contentId, profileId);
+    const exists = SavedLibraryStore.findByContentId(item.contentId, profileId, true);
     if (exists) {
       await this.remove(item.contentId, profileId);
       return false;
     }
-    const edit = commitLocalEdit(profileId, () => SavedLibraryStore.upsert(item, profileId));
-    queueSavedLibraryCloudSync(profileId, { kind: "save", item: SavedLibraryStore.listForProfile(profileId).find(saved => saved.contentId === item.contentId && saved.contentType === String(item.contentType || item.itemType || item.type || "movie")) }, edit);
+    const { edit, value } = commitLocalEdit(profileId, () => SavedLibraryStore.upsert(item, profileId));
+    queueSavedLibraryCloudSync(profileId, { kind: "save", item: value }, edit);
     return true;
   }
 
