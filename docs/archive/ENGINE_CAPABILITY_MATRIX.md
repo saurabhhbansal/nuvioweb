@@ -6,11 +6,11 @@ The owner's actual installed-provider acceptance instruction supersedes fixture-
 
 | Actual returned selection / engine | Observed outcome | Acceptance boundary |
 | --- | --- | --- |
-| AIOStreams AVC/AAC1080p MKV / Chromium156 | Actual1920×1080 frames for30.0003s wall /29.9841s media;720 total frames,2 dropped; pause, seek, new post-seek1920×1080 frame, resume and Back observed | Explicit1080p alternative, not a4K pass or silent downscale; no audible/multitrack or physical pacing claim |
-| AIOStreams HEVC/AC3 HDR10/HFR-labelled4K MKV / Chromium156 | `startup-source-error`, no first frame | No actual4K delivery; no isolated container/audio/video/backend cause |
-| Actual AIOStreams4K MKV and AVC/AAC control / WPE WebKit27.2 | `startup-stall`, readyState0, no frames; Back observed | Neither actual source passed; generic stall guidance remains insufficiently actionable |
-| Actual AIOStreams4K MKV / Gecko157 | Metadata3840×2076 and requested resume clock only;30.028s with zero media advancement and zero total frames; isolated callback sample is not advancing playback; observer exit2 at controls | No decode/delivery/seek pass; metadata and resume position do not prove playback |
-| Actual PenguPlay/2Peckle4K MP4 offer / WPE and Gecko | Both `startup-source-error`, zero dimensions/no first frame; Back observed | No4K pass;10bit SDR filename is not HDR evidence |
+| [provider] AVC/AAC1080p MKV / Chromium156 | Actual1920×1080 frames for30.0003s wall /29.9841s media;720 total frames,2 dropped; pause, seek, new post-seek1920×1080 frame, resume and Back observed | Explicit1080p alternative, not a4K pass or silent downscale; no audible/multitrack or physical pacing claim |
+| [provider] HEVC/AC3 HDR10/HFR-labelled4K MKV / Chromium156 | `startup-source-error`, no first frame | No actual4K delivery; no isolated container/audio/video/backend cause |
+| Actual [provider] MKV and AVC/AAC control / WPE WebKit27.2 | `startup-stall`, readyState0, no frames; Back observed | Neither actual source passed; generic stall guidance remains insufficiently actionable |
+| Actual [provider] MKV / Gecko157 | Metadata3840×2076 and requested resume clock only;30.028s with zero media advancement and zero total frames; isolated callback sample is not advancing playback; observer exit2 at controls | No decode/delivery/seek pass; metadata and resume position do not prove playback |
+| Actual [provider]/[provider] MP4 offer / WPE and Gecko | Both `startup-source-error`, zero dimensions/no first frame; Back observed | No4K pass;10bit SDR filename is not HDR evidence |
 | Actual header-required HLS / Chromium | Actionable special-request-header guidance and Back | No bypass and no HLS decoding certification |
 
 **No actual4K frame-delivery case passed.** [#137](https://github.com/saurabhhbansal/nuvioweb/issues/137) owns the exact real-source delivery/startup-stall diagnostics; [#138](https://github.com/saurabhhbansal/nuvioweb/issues/138) owns physical HDR output. No universal engine limitation, inadequate-host-throughput diagnosis or hardware purchase requirement follows from these opaque failures. Retained audio/device/DRM and optional-recovery scopes are not certified here.

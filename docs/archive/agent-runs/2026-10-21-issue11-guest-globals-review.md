@@ -29,11 +29,11 @@ node --test app/alpha/scripts/pluginGetStreamsPrototype.test.mjs app/alpha/scrip
 
 Reviewer **cf348072-09a8-4339-a398-7f2fbfc71f86**: **0 actionable defects,0 scope creep**. Three informational overall acceptance/parity limits:
 
-1. Representative actual scripts still yield0 normalized streams; xprime/vixsrc/PenguPlay stop at request-option refusal, hdhub4u cannot load the named parser. Evidence correctly refuses stream/playback acceptance.
+1. Representative actual scripts still yield0 normalized streams; [provider]/[provider]/[provider] stop at request-option refusal, [provider] cannot load the named parser. Evidence correctly refuses stream/playback acceptance.
 2. Quotas/escape negatives establish the bounded guest/synthetic-broker seam, not live streamed/DNS/persistent budgets or universal isolation. No proxy/deploy was added.
 3. Upstream console/fetch/timers/Promise parity is incomplete: timers absent and fetch restricted. The owner amendment follows the demonstrated chain rather than speculative polyfills; no tested path reached timers. That is explicitly disclosed, not hidden or replaced by fake timers/parser.
 
-All three requested Tapframe files were attempted unchanged at the exact pin despite manifest25-versus28/only-vixsrc declaration discrepancy. Required-header rows need an authorized header-capable proxy/compute/native rung, torrents a debrid/compute rung; neither was implemented. [#142 comment](https://github.com/saurabhhbansal/nuvioweb/issues/142#issuecomment-6309232028) is the expressly requested evidence-only cross-ticket note. **Keep #11 OPEN/in_progress.** Spec reviewer read only; no tests or network/account reruns.
+All three requested Tapframe files were attempted unchanged at the exact pin despite manifest25-versus28/[provider] declaration discrepancy. Required-header rows need an authorized header-capable proxy/compute/native rung, torrents a debrid/compute rung; neither was implemented. [#142 comment](https://github.com/saurabhhbansal/nuvioweb/issues/142#issuecomment-6309232028) is the expressly requested evidence-only cross-ticket note. **Keep #11 OPEN/in_progress.** Spec reviewer read only; no tests or network/account reruns.
 
 ## Security, privacy, regression and integration checkpoint
 

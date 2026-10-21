@@ -12,7 +12,7 @@
 
 Actual installed providers, existing authorized test account/profile, normal HTTPS UI; no own addon, custom URL-template source, media packaging or response replacement. Six configured providers, zero custom template sources. Dune's captured30-row response was complete per response but not asserted settled across all providers; Gemini's settled lists reconcile exactly to canonical source cards, with zero pending requests. Full public lists retain informational/non-media rows.
 
-**Working actual source:** AIOStreams AVC/AAC1080p MKV in Chromium156.0.8078.4:1920×1080,30.0003s wall/29.9841s media,720 total/2 dropped, about24.02 composition-counter fps, pause, seek, post-seek frame and Back. This is not4K/60/HDR/audible-output proof and not a silent downscale of a selected4K source.
+**Working actual source:** [provider] AVC/AAC1080p MKV in Chromium156.0.8078.4:1920×1080,30.0003s wall/29.9841s media,720 total/2 dropped, about24.02 composition-counter fps, pause, seek, post-seek frame and Back. This is not4K/60/HDR/audible-output proof and not a silent downscale of a selected4K source.
 
 **Unverified actual4K:** Chromium's returned HEVC/AC3 HDR10/HFR MKV did not start. WebKit27.2 WPE stalled on this MKV and the AVC/AAC control. Gecko157 exposed3840×2076 metadata/resume clock but zero media advancement/total frames in30.028s; one isolated callback sample does not establish advancing playback. Its observer failed at controls, exit2. The actual returned4K MP4 failed in WebKit and Gecko; filename explicitly says10bit **SDR**, not HDR. No inherent engine ban, host-speed ceiling or mandatory hardware purchase follows. Real header-required HLS guidance and source-error/Back were observed; generic WebKit startup-stall remains insufficiently actionable.
 

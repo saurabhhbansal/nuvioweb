@@ -25,7 +25,7 @@
   },
   "providers": [
     {
-      "provider": "PenguPlay",
+      "provider": "[provider]",
       "installationKind": "HTTP_STREMIO_ADDON",
       "manifest": {
         "status": 200,
@@ -58,7 +58,7 @@
         "layer": "existing app UI and configured provider HTTP"
       },
       "hostOnlyNormalization": {
-        "provider": "PenguPlay",
+        "provider": "[provider]",
         "originalRows": 24,
         "normalizedRows": 23,
         "droppedRows": 1,
@@ -79,7 +79,7 @@
       }
     },
     {
-      "provider": "AIOMetadata",
+      "provider": "[provider]",
       "installationKind": "HTTP_STREMIO_ADDON",
       "manifest": {
         "status": 200,
@@ -113,7 +113,7 @@
       "hostOnlyNormalization": null
     },
     {
-      "provider": "Xperience",
+      "provider": "[provider]",
       "installationKind": "HTTP_STREMIO_ADDON",
       "manifest": {
         "status": 200,
@@ -145,7 +145,7 @@
       "hostOnlyNormalization": null
     },
     {
-      "provider": "AIOStreams",
+      "provider": "[provider]",
       "installationKind": "HTTP_STREMIO_ADDON",
       "manifest": {
         "status": 200,
@@ -178,7 +178,7 @@
         "layer": "existing app UI and configured provider HTTP"
       },
       "hostOnlyNormalization": {
-        "provider": "AIOStreams",
+        "provider": "[provider]",
         "originalRows": 20,
         "normalizedRows": 20,
         "droppedRows": 0,
@@ -246,7 +246,7 @@
       }
     },
     {
-      "provider": "NexoTV",
+      "provider": "[provider]",
       "installationKind": "HTTP_STREMIO_ADDON",
       "manifest": {
         "status": 200,
@@ -276,7 +276,7 @@
         "layer": "configured TV catalog then stream HTTP"
       },
       "hostOnlyNormalization": {
-        "provider": "NexoTV",
+        "provider": "[provider]",
         "originalRows": 1,
         "normalizedRows": 1,
         "droppedRows": 0,
@@ -309,9 +309,9 @@
   },
   "uninstalledPublicJsCandidate": {
     "layer": "actual QuickJS/WASM execution of unchanged public third-party JS, NOT confirmed installed source; no real transport/playback",
-    "repository": "https://github.com/G2nOOn/Nuvio-Plugin",
+    "repository": "https://github.com/[provider]/Nuvio-Plugin",
     "revision": "58c3708a491914f5c1439f6f3ddb3269b8b0ca8e",
-    "path": "providers/2peckle.js",
+    "path": "providers/[provider]",
     "sourceBytes": 13046,
     "sourceSha256": "08fc26eaf2d375b86549de848bea0a289cae12c64c689f33c452e005c5dc28b0",
     "sourceChanged": false,
@@ -395,7 +395,7 @@
   },
   "limits": [
     "HTTP addon responses and host normalization are not execution of addon server JS",
-    "Public PenguPlay wrapper provenance does not match an installed JS source",
+    "Public [provider] wrapper provenance does not match an installed JS source",
     "Pure normalizer strips behaviorHints; header-required rows are not certified playable",
     "Synthetic loops/output/SSRF/cancel probes do not establish real plugin compatibility",
     "Guest heap caps do not bound all host/WASM allocations; broker byte checks are post-materialization",
