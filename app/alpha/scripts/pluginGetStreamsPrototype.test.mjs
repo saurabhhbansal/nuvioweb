@@ -16,6 +16,40 @@ test("CommonJS positional getStreams maps flat results into normalized groups", 
   assert.equal(result.logs, undefined);
 });
 
+test("console-using getStreams listener runs in the guest without serializing logs or escaping", async () => {
+  const marker = "__issue11ConsoleHostSentinel";
+  assert.equal(Object.hasOwn(globalThis, marker), false);
+  globalThis[marker] = true;
+  try {
+    const result = await run(`module.exports.getStreams = async function() {
+      var argument = { toString() { throw new Error("must-not-stringify"); }, toJSON() { throw new Error("must-not-serialize"); } };
+      [argument].forEach(function listener(value) { console.log(value); });
+      console.info(argument); console.warn(argument); console.error("private-log-canary", argument); console.debug(argument);
+      var ambient = console.log.constructor("return typeof process + ':' + typeof require + ':' + typeof ${marker}")();
+      return [{ url: "https://media.example/s", description: typeof console + ":" + typeof console.log + ":" + ambient }];
+    };`);
+    assert.equal(result.ok, true);
+    assert.equal(result.groups[0].streams[0].description, "object:function:undefined:undefined:undefined");
+    assert.equal(result.logs, undefined);
+    assert.doesNotMatch(JSON.stringify(result), /private-log-canary|must-not-stringify|must-not-serialize/);
+    assert.equal(globalThis[marker], true);
+  } finally {
+    delete globalThis[marker];
+  }
+});
+
+test("console flooding stays deadline-bounded with no retained log output", async () => {
+  const flooded = await run(`module.exports.getStreams = function() {
+    var payload = { toString() { throw new Error("must-not-stringify"); } };
+    while (true) console.log(payload);
+  };`, { limits: { timeMs: 50 } });
+  assert.deepEqual(flooded, { ok: false, error: "timeout" });
+  const after = await run('module.exports.getStreams = function() { console.log("discarded"); return [{ url: "https://media.example/s", description: "fresh" }]; };');
+  assert.equal(after.ok, true);
+  assert.equal(after.groups[0].streams[0].description, "fresh");
+  assert.equal(after.logs, undefined);
+});
+
 test("global getStreams fallback and GET response text/json/status use the broker", async () => {
   let calls = 0;
   const result = await run(`async function getStreams() {

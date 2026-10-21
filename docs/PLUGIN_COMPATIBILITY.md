@@ -2,9 +2,19 @@
 
 Status: **internal synthetic contract plus a test-only engine prototype; execution is not shipped and no actual Nuvio JS plugin is supported yet.** Last updated 2026-10-21.
 
-This document defines our experimental policy envelope, **not an upstream Nuvio API-v1 contract**. The QuickJS prototype executes original regression code with an injected in-memory transport. A pinned public third-party PenguPlay wrapper now loads but fails invocation without network dispatch; it is not matched to an installed JS source. Real configured HTTP rows were observed and projected separately, not executed as plugin code. See the [real-provider evidence](evidence/issue11-real-plugins-2026-10-21.md). The inherited `pluginRuntime.js` remains a URL-template feature and is unchanged. [Pinned upstream/API/license comparison](agent-runs/2026-10-21-issue11-upstream-review.md).
+This document defines our experimental policy envelope, **not an upstream Nuvio API-v1 contract**. The QuickJS prototype executes original regression code with an injected in-memory transport. A pinned public PenguPlay wrapper now loads/invokes after a guest-only no-op console fix, but catches refused fetch headers/redirect options and returns0 rows. Three immutable owner-selected Tapframe artifacts were also executed: xprime/vixsrc resolve empty after GET-header refusal; hdhub4u cannot load its cheerio-without-node-native dependency. All transports are synthetic and unused before these boundaries; successful stream lookup is not proved. Real configured HTTP rows were observed and projected separately, not executed as plugin code. See the [real-provider evidence](evidence/issue11-real-plugins-2026-10-21.md). The inherited `pluginRuntime.js` remains a URL-template feature and is unchanged. [Pinned upstream/API/license comparison](agent-runs/2026-10-21-issue11-upstream-review.md).
 
-## Why execution is not implemented yet
+## Distinct provider classes and native contract
+
+- **HTTP-manifest add-ons:** the original six expose HTTP resources and no `scrapers` array. Keep their existing pipeline; the JS sandbox is not load-bearing for their server backend.
+- **Local JS Scrapers:** Settings → Local Scrapers adds a repository manifest with `scrapers:[{id,name,filename,enabled,formats,supportedTypes}]`. Owner reports adding Tapframe to accountA; the earlier zero-local-repo snapshot is historical. The sandbox is load-bearing for this separate class. At pinned6f88d1c6 the manifest measures25 entries (not reported28); all three selected source files exist even though only vixsrc's exact filename is listed.
+- **Loaded native provider contract:** Promise-returning `getStreams(tmdbId,mediaType,seasonNum,episodeNum)` with `{name,title,url,quality,size,headers,provider,format}`; owner-verified Hermes dynamic code uses Promise/.then, not async/await. No Node built-ins. Our engine is QuickJS, not tested Hermes emulation. Console is guest-only no-op; Promise is native; fetch is a restricted brokered subset. Timers/parser modules remain unavailable, not silently simulated; none of the tested sources reached a timer before the measured header/import boundary.
+- **Required custom playback headers:** an ordinary browser video element cannot supply an arbitrary required Referer/Origin/User-Agent map. Refusing unsupported header-bearing rows is correct for direct-video delivery, but is not scraper completeness. Preserve/classify the requirement and show the authorized header-capable proxy/compute/native rung. No such rung or unrestricted proxy is implemented. [#142 handoff](https://github.com/saurabhhbansal/nuvioweb/issues/142#issuecomment-6309232028).
+- **Raw-infohash/torrent class:** outside browser direct playback; requires an authorized debrid-to-direct-HTTPS or separately bounded compute rung. Do not drop torrent semantics or label a magnet as a playable URL.
+
+[Exact-source/API/row/header evidence](evidence/issue11-real-plugins-2026-10-21.md) · [four-artifact receipt](evidence/issue11-guest-globals-2026-10-21.json). No source patch, parser shim, request privilege or bound expansion.77 focused/1493 app/local Chromium16 pass at their stated layers; no actual playable source row returned.
+
+## Why execution is not shipped yet
 
 - [SECURITY_PRIVACY.md](SECURITY_PRIVACY.md) states that a browser Worker alone is insufficient for arbitrary trusted isolation. A Worker can still reach worker-global `fetch`, and same-origin storage or message channels create escape paths that static code review cannot reliably close.
 - The credible options are an engine-level sandbox (QuickJS compiled to WASM with only injected bindings) or a cross-origin isolated container. Both need a dependency/licensing review, a bundle-size decision, a network broker design and a cancellation model before any untrusted code runs.
@@ -141,7 +151,7 @@ The [continuation evidence](evidence/issue11-bounded-lifecycle-2026-10-21.md) re
 
 | Provider | Real HTTP result | Sandbox compatibility |
 | --- | --- | --- |
-| PenguPlay (priority) |24 movie rows;23 normalize to direct URLs,1 informational row dropped;10 rows require headers that pure projection loses | No matching installed JS artifact. Public third-party wrapper13,046B loads in QuickJS but getStreams fails at absent console, zero dispatch; no installed-code pass |
+| PenguPlay (priority) |24 movie rows;23 normalize to direct URLs,1 informational row dropped;10 rows require headers that pure projection loses | HTTP installation declares no JS artifact. Public13,046B wrapper now invokes with guest console but resolves0 after refused headers/redirect options, zero dispatch; no stream compatibility pass |
 | AIOMetadata | Metadata/catalog/subtitles only; no stream resource | No installed JS artifact; no invented stream response |
 | Xperience | Metadata/catalog only; no stream resource | No installed JS artifact |
 | AIOStreams |20 movie rows;20 host-normalized URL rows | No installed JS artifact; HTTP rows are not server-source execution |

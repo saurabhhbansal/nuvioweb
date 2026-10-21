@@ -18,9 +18,14 @@ export async function executeGetStreamsPrototype({ descriptor, approvedHosts = [
   const plugin = checked.descriptor;
   const approved = new Set((Array.isArray(approvedHosts) ? approvedHosts : []).map(normalizePluginHost).filter(Boolean));
   if (plugin.allowedHosts.some((host) => !approved.has(host))) return { ok: false, error: "host-policy" };
-  // Guest-only compatibility shims. No browser/Node globals are provided; every
-  // fetch still crosses the existing bounded broker with no headers or secrets.
+  // Guest-only compatibility shims, not copies of browser/Node host objects.
+  // Console is a no-op: no serialization, host writes, log buffer or new binding.
+  // Every fetch still crosses the bounded broker with no headers or secrets.
   const code = `
+var console = Object.freeze({
+  log: function() {}, info: function() {}, warn: function() {},
+  error: function() {}, debug: function() {}
+});
 var fetch = async function(url, options) {
   options = options === undefined ? {} : options;
   if (!options || typeof options !== "object" || Array.isArray(options) ||

@@ -253,15 +253,16 @@ test("nonfinite budgets and multi-byte output fail closed in browser", async ({ 
   expect(networkViolations).toEqual([]);
 });
 
-test("restricted CommonJS getStreams and response-like fetch normalize flat streams", async ({ page }) => {
+test("restricted CommonJS console listener and response-like fetch normalize flat streams", async ({ page }) => {
   const pageErrors = await openEngine(page);
   const result = await page.evaluate(() => globalThis.__nuvioPluginEngine.runGetStreams({
     descriptor: { id: "api-regression", name: "api-regression", allowedHosts: ["allowed.example"],
-      code: 'module.exports.getStreams = async function(id, type) { var response = await fetch("https://allowed.example/data"); var body = await response.json(); return [{ url: body.url, description: id + ":" + type + ":" + response.status }]; };' },
+      code: 'module.exports.getStreams = async function(id, type) { [id].forEach(function listener(value) { console.log("synthetic-private-log", value); }); var ambient = console.log.constructor("return typeof process + typeof require")(); var response = await fetch("https://allowed.example/data"); var body = await response.json(); return [{ url: body.url, description: id + ":" + type + ":" + response.status + ":" + typeof console.log + ":" + ambient }]; };' },
     input: { tmdbId: 603, mediaType: "movie" }
   }));
   expect(result.ok).toBe(true);
-  expect(result.groups[0].streams[0].description).toBe("603:movie:200");
+  expect(result.groups[0].streams[0].description).toBe("603:movie:200:function:undefinedundefined");
+  expect(JSON.stringify(result)).not.toContain("synthetic-private-log");
   expect(result.transportCalls).toBe(1);
   expect(pageErrors).toEqual([]);
   expect(networkViolations).toEqual([]);

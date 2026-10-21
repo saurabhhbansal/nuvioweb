@@ -1,10 +1,10 @@
 # Issue #11 — actual installed-provider verification, 2026-10-21 UTC
 
-**Disposition: PARTIAL / not feature-complete; [#11](https://github.com/saurabhhbansal/nuvioweb/issues/11) remains OPEN / in_progress.** [Structured sanitized receipt](issue11-real-plugins-2026-10-21.json) · [plan written before changes](../plans/issues/issue-11.md). Only #11 was worked. No deployment or changes to other issues, sessions, elapsed observers, pinned preview, CI requirements or branch protection.
+**Disposition: PARTIAL / not feature-complete; [#11](https://github.com/saurabhhbansal/nuvioweb/issues/11) remains OPEN / in_progress.** [Structured sanitized receipt](issue11-real-plugins-2026-10-21.json) · [plan written before changes](../plans/issues/issue-11.md). Only #11 implementation was worked; the consolidated owner brief additionally requested the linked #142 header-evidence comment. No other ticket implementation/status change, deployment, operator session/observer interaction, pinned-preview update, CI requirement or branch-protection change.
 
 ## Product-first decision and assumption for morning review
 
-The owner authorizes this personal installation's own providers; no licence/ToS question or routine permission request was used as a blocker. **Use these six installations as the HTTP add-ons they actually expose, rather than manufacture a JS wrapper and call it installed-plugin execution.** Fresh authorized account state has six configured HTTP add-ons and **zero custom/plugin sources**. All six configured manifests returned200 and none declares a scraper array, JS filename or inline code under the supported descriptor schemas. This establishes what the installation delivers, **not** absence of private server-side source anywhere.
+The owner authorizes this personal installation's own providers; no licence/ToS question or routine permission request was used as a blocker. **Use these six installations as the HTTP add-ons they actually expose, rather than manufacture a JS wrapper and call it installed-plugin execution.** The initial authorized account snapshot had six configured HTTP add-ons and **zero custom/plugin sources**. The owner subsequently added a Local Scrapers repository; the pinned-artifact continuation below supersedes that earlier zero-local-source account assumption without a new login. All six configured manifests returned200 and none declares a scraper array, JS filename or inline code under the supported descriptor schemas. This establishes what the installation delivers, **not** absence of private server-side source anywhere.
 
 Assumption: ordinary bounded provider reads and fresh normal-UI login/onboarding are authorized; provider cache/request side effects may occur and cannot be undone. No provider setting, installation, entitlement or playback configuration was rewritten. The old #10 media-transfer allowance was not reused for another playback campaign; this run selected **no media**. No paid operation, new compute service or new credential recipient was introduced. A missing installed JS artifact defers that sub-task only; HTTP observations, real-row normalization, actual public-code failure diagnosis, adversarial sandbox tests, correction, review and protected integration continue.
 
@@ -52,6 +52,82 @@ Public source discovery found a real self-contained Nuvio JS scraper, [G2nOOn/Nu
 | Static follow-on requirements | Wrapper also requests fetch headers, which remain unsupported | Not reached by the failed unmodified invocation; no invented second runtime failure |
 
 The source includes embedded third-party credential constants. **Privacy limitation:** the initial raw-file inspection emitted encoded upstream constants in the session's tool transcript before they were recognized; therefore a claim of zero credential material in every session log would be false. No owner credentials were involved. The constants are not repeated in these public repository artifacts, the source was removed during cleanup, and no embedded credentials were dispatched or rotated. **No owner credentials were injected, no raw source/exceptions are included in the evidence commits, and no console/header/host-policy widening was made to force green.** Public search also found unrelated provisioning/server code; that is not a Nuvio scraper or installed plugin and was not relabelled as one. The other five installations likewise provide HTTP manifests, not executable source artifacts. Their private backend implementations were not acquired or ported. No legal question or missing routine owner decision caused this deferral.
+
+## Owner-directed console/global continuation — 05:47Z
+
+**The absent-console gap is fixed independently of installation provenance.** The historical PR143 table above records the pre-fix outcome, not the current one. The [restricted adapter](../../app/alpha/scripts/pluginGetStreamsPrototype.mjs) now supplies guest-defined, frozen `console.log/info/warn/error/debug` no-ops. No host console/object/function is copied; arguments are not stringified or serialized, nothing is buffered, no host write occurs and adapter log retention stays zero. No speculative timers/TextDecoder/URL/base64 polyfills were added: none surfaced as a missing global before the actual next boundary.
+
+The [reproducible manual probe](../../app/alpha/scripts/pluginPenguPlayProbe.mjs) downloads the pinned public source into memory under a256KiB acquisition cap/20s timeout, verifies13,046B/full SHA256 and UTF-8 round-trip equality, then passes the identical code string to the existing executor. No candidate source or raw error/URL/log is dumped. [New strict receipt](issue11-guest-globals-2026-10-21.json).
+
+| Layer | Actual observed result |
+| --- | --- |
+| Unchanged real wrapper through actual adapter, movie453405 | **Executes and resolves to `[]`**, adapter `ok:true`,0 normalized streams,0 broker transport dispatches |
+| Normalized row serialization | `[]`; SHA256 **4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945** |
+| Separate actual-VM diagnostic caller, unchanged source plus observation outside it |2 guest fetch attempts, both rejected as **`unsupported-request`**; observed option names **`headers` and `redirect`**; zero transport dispatches; wrapper catches/reduces the failures to an empty array |
+| Missing-global classification | No additional missing global surfaced before the request-option boundary; this does not establish that later unvisited paths need none |
+| Transport | Synthetic empty-JSON stub, **unused**. No replayed/live provider response reached the wrapper;0 live provider requests and no credential forwarding |
+
+The specific remaining surface gaps are **`fetch(options.headers)` and `fetch(options.redirect)`**, not absent console or installation provenance. The fetch shim still accepts only absent options or `method:"GET"`; it rejects these options before calling the broker. Header values/URLs were neither recorded nor forwarded. A successful function return with zero rows is **not a successful stream lookup**, proof of empty real provider inventory, or end-to-end compatibility. No request-option, destination, verb or quota gate was relaxed to force rows. No new credential recipient or hosted transport was introduced.
+
+The actual source SHA256 remains **08fc26eaf2d375b86549de848bea0a289cae12c64c689f33c452e005c5dc28b0**. Defaults remain250ms guest deadline,16MiB guest memory,64KiB stack,64KiB output,256KiB source; broker4 dispatches,256KiB/body,1MiB total and2 redirects. Source-acquisition timeout/cap are a distinct trusted manual-tool layer, not guest budgets or a live broker transport guarantee.
+
+### Regression and verification layers
+
+The requested console-listener regression ran **red0/1**, then **green1/1**. It logs an argument with throwing `toString`/`toJSON`, invokes a listener, probes the console function constructor for host process/require/sentinel access, and asserts no log export. Console flooding hits the unchanged50ms test deadline; a fresh execution succeeds. The constructor-chain boundary corpus now includes `console.log.constructor`. The existing browser CommonJS/fetch journey also uses a console listener and checks guest-only construction/no log export; no additional journey.
+
+One extra assertion attempt was **15/16**, not a runtime failure: the flood timed out correctly, but its fresh-empty-result control expected `dropped:0`; the existing normalizer counts a discarded empty group as1. The control now returns a valid known row to test recovery without coupling to unrelated empty-group accounting; no normalizer or bound changed.
+
+```sh
+node --test --test-name-pattern='console-using getStreams listener' app/alpha/scripts/pluginGetStreamsPrototype.test.mjs
+node app/alpha/scripts/pluginPenguPlayProbe.mjs
+node --test app/alpha/js/core/plugins/pluginBroker.test.mjs app/alpha/scripts/pluginSandbox*.test.mjs app/alpha/scripts/pluginPrototypeSession.test.mjs app/alpha/scripts/pluginGetStreamsPrototype.test.mjs
+NUVIO_LOCAL_PROPERTIES="$PWD/tests/fixtures/build.properties" npm run build --prefix app/alpha
+node scripts/check-alpha-build.mjs
+npm test --prefix app/alpha
+npm run lint --prefix app/alpha
+npm audit --audit-level=low
+npm audit --prefix app/alpha --audit-level=low
+PLAYWRIGHT_BROWSERS_PATH=/home/saurabh/.cache/ms-playwright npx playwright test tests/browser/plugin-engine.spec.mjs --project=chromium
+```
+
+Node22.23.1: focused **73/73**, full app **1489/1489**, local Chromium **16/16** (6.7s),0 failures/skips. Inert12-asset build/check and lint pass; both audits0 vulnerabilities. Focused tests use actual QuickJS with synthetic transport; browser assertions use actual bundled WASM with synthetic transport; the pinned-source observation is actual third-party code but returns no stream rows. A successful observation command is not provider acceptance. Separate review/final-head/actual-merge integration for this continuation is still pending at this checkpoint; local success does not stand in for those gates.
+
+### HTTP add-ons, scraper sandbox and torrent rung
+
+All six observed installations are **HTTP-manifest add-ons with zero declared scraper/JS source**. Their HTTP resource calls remain on the existing add-on pipeline. The sandbox is load-bearing **only for scraper-style JS plugins**, not required to reinterpret these HTTP installations or to execute their private server backends. Public-wrapper host-surface testing is still useful and proceeds independently of whether it matches one installation.
+
+**Raw-infohash/torrent-class results are outside the browser playback scope.** Do not turn an infohash/magnet into a supposedly playable browser URL or drop its required semantics. An owner-authorized debrid service yielding direct HTTPS, or a separately bounded user-owned/authorized compute rung, is needed; neither debrid integration, torrent transport nor compute is implemented here. The existing adapter's `infoHash`/required metadata refusals stay intact. No owner permission question or licence blocker is used to avoid this technical distinction.
+
+## Owner-added Tapframe Local Scrapers — consolidated continuation
+
+Owner reports adding **phisher98/nuvio-providers** to accountA through **Settings → Local Scrapers**. This is a real JS scraper-repository class, not a seventh HTTP add-on. No account reauthentication/reconfiguration was performed here. The [manual batch caller](../../app/alpha/scripts/pluginLocalScrapersProbe.mjs) and [shared strict probe](../../app/alpha/scripts/pluginSourceProbe.mjs) acquire source in memory with two concurrent public downloads, verify immutable source digests/byte identity, then run VMs sequentially under the unchanged limits. No Node built-in/parser is provided to the guest; the trusted diagnostic caller's own file/hash operations are outside it.
+
+Pinned revision **6f88d1c6bddabf30d0768d76224d600ac32bab7c**. The actual manifest is **12,847B**, SHA256 **88cfd5c484e5f3c641863e28ad88a72bf5a49331e2953a0e1187fb66fb13984f**, with **25** scraper entries, not the28 reported in the brief. Only the exact vixsrc filename among these three is declared there. All three requested files nevertheless exist at this exact pin (independent Git-tree blob/size readback); all were executed as requested, without moving to HEAD or treating the metadata discrepancy as a blocker. Initial all-three-declared assertion failed before executing source and was corrected to report declaration independently of file existence. Repository metadata declares GPL-3.0; provider source was executed only in memory, not redistributed/imported into this repository, and existing notices/history are untouched.
+
+| Exact pinned real artifact | Bytes / SHA256 | Actual execution / next boundary | Raw rows / normalized / samples |
+| --- | --- | --- | --- |
+| [xprime](https://github.com/phisher98/nuvio-providers/blob/6f88d1c6bddabf30d0768d76224d600ac32bab7c/providers/xprime.js) |36,936 / `279882bcb321cde7e57722251ae2b96fda8e9549b0cb17e78cc8d44866e1e150` | Loads and invokes;1 GET attempt carrying `headers`, rejected as `unsupported-request` before transport; source catches it and resolves empty |0 /0 /none; no returned header map observed |
+| [hdhub4u](https://github.com/phisher98/nuvio-providers/blob/6f88d1c6bddabf30d0768d76224d600ac32bab7c/providers/hdhub4u.js) |59,747 / `eb859d79ac773aabe62c720c6890cd32e17669995675ff34c16ae0db7cf70256` | Actual evaluation attempted, fails load with adapter `runtime`; getStreams not reached. A separate **throw-only**, guest diagnostic import observer identifies **cheerio-without-node-native**; no parser/module is loaded or shimmed |Not produced /0 /none; no returned headers observed |
+| [vixsrc](https://github.com/phisher98/nuvio-providers/blob/6f88d1c6bddabf30d0768d76224d600ac32bab7c/providers/vixsrc.js) |12,214 / `f3a4107c2a43d3e239b571a0068ba053c457872fef7b76cff3f94affa4005a6c` | Loads and invokes;1 GET attempt carrying `headers`, rejected before transport; source catches it and resolves empty |0 /0 /none; no returned header map observed |
+
+**Every transport was synthetic**, an empty-JSON stub, unused because all paths stopped before dispatch.0 live provider/media requests; no captured live replay responses or actual playback. Each normalized output serializes to `[]` with SHA256 **4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945**. All source files mention a headers field statically; that does **not** mean any required-header output row was observed. The fixture regression independently proves diagnostic raw-header-row presence/count can be reported without exporting values. Source `async`/`await` word scans are labelled lexical mentions, not executable-syntax or Hermes certification; hdhub4u mentions `async` but not `await`.
+
+Upstream contract supplied by the owner: a scraper manifest has `scrapers:[{id,name,filename,enabled,formats,supportedTypes}]`; `getStreams(tmdbId,mediaType,seasonNum,episodeNum)` returns a Promise of rows with `{name,title,url,quality,size,headers,provider,format}`. Dynamically loaded Hermes code is Promise/.then-oriented (no async/await), with fetch/console/timers and no Node fs/path/crypto. **This test engine is QuickJS/WASM, not Hermes.** Guest Promise and console are present; fetch remains the documented brokered subset; timers remain unavailable, and no actual timer access surfaced before the measured header/import boundaries. No fake timer/parser or speculative host-object copies were added and full upstream host-surface parity is not claimed.
+
+**Required playback headers are a delivery-rung consequence, not a claim of adapter completeness.** The ordinary browser video element cannot apply an arbitrary required Referer/Origin/User-Agent map; browser JS also cannot freely override forbidden headers. Preserving/refusing such unsupported rows is correct for the direct-video rung. Dropping headers and declaring the URL playable would be wrong. A provider needing them must be labelled as requiring an authorized header-capable proxy/compute/native rung rather than blamed as broken. No such rung, silent relay or charge is implemented here. [Explicitly requested #142 evidence handoff](https://github.com/saurabhhbansal/nuvioweb/issues/142#issuecomment-6309232028); no #142 implementation, status or acceptance change.
+
+Latest source/helper regressions: **77/77** focused and **1493/1493** app tests,0 failures/skips, lint pass; the earlier73/1489 counts precede the four new strict-probe tests. Local Chromium remains16/16 because no browser/adapter change followed that run. Four diagnostic tests cover parser import distinction, raw header-presence projection without values, exact missing-global naming, and rejection of injected diagnostic secret fields. Commands additionally executed:
+
+```sh
+node app/alpha/scripts/pluginLocalScrapersProbe.mjs
+node app/alpha/scripts/pluginPenguPlayProbe.mjs
+node --test app/alpha/scripts/pluginSourceProbe.test.mjs
+node --test app/alpha/js/core/plugins/pluginBroker.test.mjs app/alpha/scripts/pluginSandbox*.test.mjs app/alpha/scripts/pluginPrototypeSession.test.mjs app/alpha/scripts/pluginGetStreamsPrototype.test.mjs app/alpha/scripts/pluginSourceProbe.test.mjs
+npm test --prefix app/alpha
+npm run lint --prefix app/alpha
+```
+
+The [combined sanitized receipt](issue11-guest-globals-2026-10-21.json) records all four immutable artifacts, header/import observations, exact counts/limits and synthetic-versus-live labels. No permission/ToS/provenance question defers these actual source executions. Still unproved: successful stream retrieval/normalization from these scripts, later APIs/HTML parsing, actual returned required-header rows, Hermes execution, live transport/DNS/streaming guarantees and playback. Parent #11 remains open. Separate automated review and four exact-head/actual-merge gates for this continuation are pending at this checkpoint, not inferred from local passes.
 
 ## Security proof at its actual layer
 
@@ -113,11 +189,11 @@ PLAYWRIGHT_BROWSERS_PATH=/home/saurabh/.cache/ms-playwright npx playwright test 
 
 | Original criterion | Proven now | Still deferred / parent disposition |
 | --- | --- | --- |
-| Representative supported JS plugin fixtures return normalized streams | Real third-party source loads; its invocation fails honestly.45 real HTTP rows and44 normalized projections measured separately | **Not met for actual installed JS.** Six installations expose no JS scraper artifact; public wrapper is not matched to installation and returns no rows in the restricted VM. Keep unchecked |
+| Representative supported JS plugin fixtures return normalized streams | Real third-party source now loads and invokes after console correction, but catches unsupported fetch options and returns0 rows;45 real HTTP rows and44 host projections remain separate | **Not met for actual streams from this JS wrapper or installed JS.** Public source host-surface testing is independent of installation provenance; the current blocker is fetch options, not console. Keep unchecked |
 | Execution time, memory/network/output quotas enforced | **Verified for the bounded test-only guest/injected-broker seam:** focused71 and actual browser regression evidence, including real infinite loops/allocation/serialization and cancellation | Not a claim of live-download/DNS/host-allocation or persistent account/global quotas. Full product criterion remains unchecked rather than transfer test-layer success to unsupported real transport |
 | No open hosted fetch proxy or worker host escape | No proxy/app deployment added; tested constructor/import/prototype escape attempts blocked; direct/redirect denied targets never reach transport | **Partial**, not universal engine-escape or live SSRF proof. Future transport streaming/DNS pinning/private-address filtering and concrete rollout review remain; keep unchecked |
 
-**Exact next implementation step:** keep the six working installations on the existing HTTP provider pipeline. For #11, acquire a *matching actual JS scraper bundle/manifest* from provider publication or a future installed-plugin export, pin its digest and required APIs/destinations, then rerun unchanged bytes through the restricted adapter before considering any safe guest-only API additions. Until that artifact exists, do not write a substitute wrapper, run a server application as a scraper, export account settings/credentials to guests, weaken quotas or claim real-plugin acceptance. A real sandbox transport separately needs bounded streamed responses, manual per-hop redirects, approved public DNS/connection pinning and abort; no hosted launch is authorized here.
+**Exact next implementation step:** keep the six HTTP installations on their existing pipeline. For this independently useful pinned JS wrapper, assess the narrow `fetch(options.headers)`/`fetch(options.redirect)` compatibility contract against credential filtering and the existing broker's mandatory per-hop validation; do not ignore required headers, forward embedded credentials, auto-follow unchecked redirects or widen policy just to manufacture rows. Rerun the same digest with explicitly synthetic/replay transport after any separately reviewed safe addition. Matching an installed scraper artifact remains necessary only for an installed-JS claim, not a reason to defer nonprivileged public-wrapper host-surface fixes. Live sandbox transport separately needs bounded streamed responses, manual per-hop redirects, approved public DNS/connection pinning and abort; no hosted launch is authorized here.
 
 ## Completion / protected integration record
 
