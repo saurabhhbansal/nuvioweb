@@ -55,9 +55,20 @@ export function validateRecoveryRequest(input = {}) {
     if (!input || typeof input !== "object") {
       return { ok: false, reason: RECOVERY_REQUEST_REASONS.INVALID_REQUEST, headers: null };
     }
-    const url = input.url;
-    const headers = input.headers;
-    if (typeof url !== "string" || !url.trim()) {
+    const urlField = Object.getOwnPropertyDescriptor(input, "url");
+    const headerField = Object.getOwnPropertyDescriptor(input, "headers");
+    if (!urlField || !("value" in urlField) ||
+        (headerField && !("value" in headerField)) ||
+        (!headerField && "headers" in input)) {
+      return { ok: false, reason: RECOVERY_REQUEST_REASONS.INVALID_REQUEST, headers: null };
+    }
+    const url = urlField.value;
+    const headers = headerField?.value;
+    if (typeof url !== "string" || !url.trim() || url.length > 8192) {
+      return { ok: false, reason: RECOVERY_REQUEST_REASONS.INVALID_REQUEST, headers: null };
+    }
+    const parsed = new URL(url);
+    if (!["http:", "https:"].includes(parsed.protocol) || parsed.username || parsed.password) {
       return { ok: false, reason: RECOVERY_REQUEST_REASONS.INVALID_REQUEST, headers: null };
     }
     if (headersPresent(headers)) {
@@ -67,7 +78,7 @@ export function validateRecoveryRequest(input = {}) {
         headers: null
       };
     }
-    return { ok: true, reason: RECOVERY_REQUEST_REASONS.OK, headers: null };
+    return { ok: true, reason: RECOVERY_REQUEST_REASONS.OK, headers: null, url: parsed.href };
   } catch (_) {
     return { ok: false, reason: RECOVERY_REQUEST_REASONS.INVALID_REQUEST, headers: null };
   }

@@ -466,7 +466,11 @@
           "docs/agent-runs/2026-10-19-recovery-operation-review.md",
           "app/alpha/js/core/player/recoveryCoordinator.js",
           "app/alpha/js/core/player/recoveryCoordinator.test.mjs",
-          "docs/agent-runs/2026-10-19-recovery-coordinator-review.md"
+          "docs/agent-runs/2026-10-19-recovery-coordinator-review.md",
+          "app/alpha/js/core/player/boundedRecoveryLoader.js",
+          "app/alpha/js/core/player/boundedRecoveryLoader.test.mjs",
+          "app/alpha/js/core/player/boundedRecoveryLoader.http.test.mjs",
+          "docs/evidence/issue12-bounded-loader-2026-10-21.md"
         ],
         "verifiedLocally": [
           "Unit0 (documentation only): scope, dependency and licence decisions recorded; no acceptance evidence",
@@ -478,23 +482,23 @@
           "Recovery operation state after review: fixed one-alternate/one-restore limits, safe-integer generation validation without coercion, not-started guard, failed-track exclusion for both kinds, canOffer parity, enum-normalized close reasons, stale-caller refusal in every action and deep-copy snapshots; 14/14 tests and 1321 app tests pass; not wired",
           "Recovery coordinator after review: unstarted plans return not-started, cross-kind replays are refused by the operation with already-attempted, planner counts are asserted through alternate-tried/restore-tried, and every invalid generation shape is covered across all four methods; 13/13 tests and 1334 app tests pass; not wired"
         ],
-        "integrationGate": "Unit0 is a documentation PR; AC1-AC3 stay unproven and the issue stays in progress",
+        "integrationGate": "2026-10-21 isolated loader foundation only; automated actual-diff review and four exact-head/actual-merge protected checks required. AC1-AC3 remain unproven; no completion record or issue closure.",
         "currentUnit": {
-          "scope": "Unit1a: probe native browser AAC encoding before any fixture work, parse the real sample entry and record an exact blocked result",
-          "result": "BLOCKED, recorded in the plan and receipt; the gate now runs in the required browser job"
+          "scope": "Unit3 rebuild: boundedRecoveryLoader, explicitly constructed and not imported by playback; pinned SDK interface, anonymous streamed transport, negative unit and actual loopback HTTP tests",
+          "result": "Implemented isolated foundation; focused45/45, pinned Node22 application1507/1507; native AAC still blocked on Chromium156/151, alternate Chrome-for-Testing candidate launch failed. Full verification and protected integration recorded in the scoped evidence, not media acceptance."
         },
         "remaining": [
           "Resolve the AAC fixture blocker (environment, approved encoder/fixture source, or evidenced Opus re-scope)",
           "Unit1b fixtures (blocked until the above)",
           "Unit2 remaining: async selection confirmation, honest presentation copy and browser spec (needs fixtures)",
-          "Unit3 remaining: rebuild the recovery loader from the 16 review findings, then wire a recovery session behind an explicit switch; fixture-server budget scenarios and the audio-recovery browser spec",
+          "Unit3 remaining: integrate isolated loader only after finite-VOD/encryption/media validation, SDK retries, all-loader ownership, source/profile cancellation and exact installed-provider browser acceptance; no playback import yet",
           "Unit4: wire planAudioRecovery into the player with presentation copy (needs the loader and fixtures for browser evidence)",
           "Unit5 bounded MPEG-TS container recovery (blocked)",
           "Unit6 named-environment evidence and closure review"
         ],
         "blocker": {
-          "kind": "environment-and-decision",
-          "detail": "Native AAC encoding is unavailable in the pinned Playwright Chromium: WebCodecs AudioEncoder is not exposed and MediaRecorder audio/mp4 emits Opus. The AAC fixture chain (units 1b-5) and therefore AC1/AC2 cannot proceed until one of: a native-AAC environment generates fixtures, the owner approves a permissive AAC encoder or CC0 AAC fixture source, or the prototype is re-scoped to Opus renditions with MSE/engine evidence.",
+          "kind": "environment-and-acceptance",
+          "detail": "2026-10-21 Chromium156/151 probes still emit Opus, not AAC; alternate Chrome-for-Testing candidate fails launch. This blocks only the native AAC synthetic fixture chain, not independent loader work. Real installed-provider recovery with lawful media provenance and decoded audio/video continuity, TS sample preservation, embedded text, mobile memory and HDR remain unverified. No owner question is pending and synthetic HTTP fixtures do not replace acceptance.",
           "receipt": "docs/evidence/audio-fixture-gate-2026-10-19.json"
         }
       }

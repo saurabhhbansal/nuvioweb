@@ -1,17 +1,9 @@
 // Recovery budgets for the local audio/container recovery prototype (#12 unit 3).
 //
-// This module is the pure policy layer: limits, resource classification and a
-// session that owns concurrency and byte accounting. It performs no network
-// access and is not wired into playback.
-//
-// The hls.js loader implementation was reviewed read-only and held back: that
-// review found credential forwarding, URL leakage in diagnostics, unaccounted
-// rejected bytes, wrong init classification, slot ownership bugs, unsafe
-// destroy/cancel ordering, lost stats identity, unbounded buffering, unchecked
-// HTTP status, overlapping-load leaks, missing onAbort, ignored byte ranges,
-// non-monotonic timing and a non-existent default base loader. A loader will be
-// written against those findings in a dedicated unit; see
-// docs/agent-runs/2026-10-19-recovery-loader-review.md.
+// Pure policy layer: limits, resource classification, concurrency and observed
+// byte accounting. No network access and not wired into playback. The isolated
+// loader rebuild lives in boundedRecoveryLoader.js; its original held-back
+// findings remain in docs/agent-runs/2026-10-19-recovery-loader-review.md.
 
 export const RECOVERY_LIMITS = Object.freeze({
   maxConcurrentRequests: 4,
@@ -95,6 +87,12 @@ export function remainingBudget(kind, usedBytes, limits = RECOVERY_LIMITS) {
 // successful acquisition, so destroying an unused or rejected loader cannot
 // release somebody else's slot.
 export function createRecoverySession({ limits = RECOVERY_LIMITS } = {}) {
+  limits = Object.freeze({ ...limits });
+  for (const [name, maximum] of Object.entries(RECOVERY_LIMITS)) {
+    if (!Number.isSafeInteger(limits[name]) || limits[name] <= 0 || limits[name] > maximum) {
+      throw new Error("recovery-invalid-limits");
+    }
+  }
   let active = 0;
   let sessionBytes = 0;
   let exhausted = false;
@@ -132,12 +130,16 @@ export function createRecoverySession({ limits = RECOVERY_LIMITS } = {}) {
       const count = Number(bytes);
       if (!Number.isFinite(count) || count <= 0) return { ok: true };
       sessionBytes += count;
-      if (count > resourceLimit(kind, limits) || sessionBytes > limits.sessionBytes) {
+      if (exhausted || count > resourceLimit(kind, limits) || sessionBytes > limits.sessionBytes) {
         exhausted = true;
         counters.rejected += 1;
         return { ok: false, reason: RECOVERY_ERROR.BUDGET };
       }
       return { ok: true };
+    },
+    // A stream may overflow its resource cap cumulatively across small chunks.
+    exhaust() {
+      exhausted = true;
     },
     get activeRequests() {
       return active;

@@ -123,3 +123,7 @@ Recorded before any recovery code, so later evidence is judged against a publish
 - **What stays unproven meanwhile:** multitrack selection, HDR preservation, surround/Atmos/lossless output, and every Safari/Edge/mobile row. Chromium coverage and the Playwright WebKit CI job are engine-family evidence only.
 
 No support claim changes in this unit; #10's open gates and #12's acceptance remain outstanding.
+
+### #12 isolated transport continuation — 2026-10-21
+
+The [bounded loader evidence](evidence/issue12-bounded-loader-2026-10-21.md) covers a new, **unwired** anonymous streaming transport and unit/loopback HTTP negatives only. It does not recover audio/container playback. The owner requires installed plugins/providers returning real streams for acceptance; no hand-made stream or HTTP payload in these regressions is substituted for that. Native AAC probes remain blocked on Chromium156/151. Original #12 media criteria, embedded-text continuity, seek/resume through recovery, sample-level video/HDR preservation and physical mobile memory/output remain unverified. No new decoder, remuxer, production/development deployment or other issue change.

@@ -39,7 +39,8 @@ test("a header-free request is accepted with no headers", () => {
 });
 
 test("missing or malformed requests are refused", () => {
-  for (const url of [undefined, null, "", "   ", 42, {}]) {
+  for (const url of [undefined, null, "", "   ", 42, {}, "relative.m3u8", "javascript:alert(1)",
+    "data:text/plain,x", "file:///tmp/x", "https://user:private@fixture.invalid/a", "https://" + "x".repeat(8192)]) {
     const result = validateRecoveryRequest({ url });
     assert.equal(result.ok, false, String(url));
     assert.equal(result.reason, RECOVERY_REQUEST_REASONS.INVALID_REQUEST);
@@ -131,6 +132,14 @@ test("accessor-backed and revoked inputs fail closed instead of throwing", () =>
   };
   assert.doesNotThrow(() => validateRecoveryRequest(throwing));
   assert.equal(validateRecoveryRequest(throwing).reason, RECOVERY_REQUEST_REASONS.INVALID_REQUEST);
+  let accessorCalls = 0;
+  const changing = { get url() { accessorCalls++; throw new Error("URL getter executed"); } };
+  assert.equal(validateRecoveryRequest(changing).ok, false);
+  const changingHeaders = { url: "https://fixture.invalid/a", get headers() { accessorCalls++; throw new Error("header getter executed"); } };
+  assert.equal(validateRecoveryRequest(changingHeaders).ok, false);
+  assert.equal(accessorCalls, 0);
+  const valid = validateRecoveryRequest({ url: "https://fixture.invalid/a" });
+  assert.equal(valid.url, "https://fixture.invalid/a");
 
   const { proxy, revoke } = Proxy.revocable({}, {});
   revoke();
