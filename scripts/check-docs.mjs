@@ -4,17 +4,24 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const ENTRYPOINTS = [
-  "README.md", "TRACKER.md", "AGENTS.md", "CLAUDE.md", "docs",
+  "README.md", "AGENTS.md", "CLAUDE.md", "docs",
   ".github/ISSUE_TEMPLATE", ".github/PULL_REQUEST_TEMPLATE.md"
 ];
 
-export function collectMarkdownFiles(location) {
-  if (!existsSync(location)) return [];
+// Archived process docs are kept for history only; their links are not maintained.
+const SKIPPED_DIRECTORIES = new Set(["node_modules", ".git"]);
+export function isArchived(repoRoot, location) {
+  const inside = relative(resolve(repoRoot), resolve(location)).split(sep).join("/");
+  return inside === "docs/archive" || inside.startsWith("docs/archive/");
+}
+
+export function collectMarkdownFiles(location, repoRoot = ROOT) {
+  if (!existsSync(location) || isArchived(repoRoot, location)) return [];
   if (!statSync(location).isDirectory()) return location.endsWith(".md") ? [location] : [];
   return readdirSync(location, { withFileTypes: true }).flatMap((item) => {
-    if (item.name === "node_modules" || item.name === ".git") return [];
+    if (SKIPPED_DIRECTORIES.has(item.name)) return [];
     const full = join(location, item.name);
-    return item.isDirectory() ? collectMarkdownFiles(full)
+    return item.isDirectory() ? collectMarkdownFiles(full, repoRoot)
       : item.isFile() && full.endsWith(".md") ? [full] : [];
   });
 }
@@ -41,7 +48,7 @@ export function findBrokenLinks(repoRoot, entrypoints = ENTRYPOINTS) {
   const absoluteRoot = resolve(repoRoot);
   const failures = [];
   for (const entry of entrypoints) {
-    for (const file of collectMarkdownFiles(resolve(absoluteRoot, entry))) {
+    for (const file of collectMarkdownFiles(resolve(absoluteRoot, entry), absoluteRoot)) {
       for (const link of extractLocalLinks(readFileSync(file, "utf8"))) {
         const targetPart = link.split(/[?#]/, 1)[0];
         let decoded;
