@@ -93,6 +93,20 @@ test("serializer and late getters cannot hide required playback metadata", async
   }
 });
 
+test("nested addon behaviorHints cannot silently lose required playback headers", async () => {
+  const expressions = [
+    '[{ url: "https://media.example/s", behaviorHints: { proxyHeaders: { request: { Referer: "https://required.example/" } } } }]',
+    '[{ url: "https://media.example/s", behaviorHints: { headers: { Referer: "https://required.example/" } } }]',
+    '[{ toJSON() { return { url: "https://media.example/s", behaviorHints: { proxyHeaders: { request: { Referer: "https://required.example/" } } } }; } }]',
+    '[{ url: "https://media.example/s", get behaviorHints() { return undefined; }, toJSON() { return { url: "https://media.example/s", behaviorHints: { notWebReady: true } }; } }]'
+  ];
+  for (const expression of expressions) {
+    const result = await run(`module.exports.getStreams = function() { return ${expression}; };`);
+    assert.equal(result.ok, false);
+    assert.doesNotMatch(JSON.stringify(result), /Referer|required\.example|proxyHeaders/);
+  }
+});
+
 test("adapter keeps cancellation, normalization and VM resource limits", async () => {
   const controller = new AbortController(); controller.abort();
   assert.equal((await run("module.exports.getStreams = function() { return []; };", { signal: controller.signal })).error, "cancelled");

@@ -8,7 +8,7 @@ function allowedSerializedResult(raw) {
   return Array.isArray(raw) && raw.length === 1 && raw.every((group) =>
     group && typeof group === "object" && Array.isArray(group.streams) && group.streams.every((stream) =>
       stream && typeof stream === "object" && !Array.isArray(stream) &&
-      !["headers", "subtitles", "infoHash"].some((key) => Object.hasOwn(stream, key)) &&
+      !["headers", "subtitles", "infoHash", "behaviorHints"].some((key) => Object.hasOwn(stream, key)) &&
       (!Object.hasOwn(stream, "url") || typeof stream.url === "string")));
 }
 
@@ -47,7 +47,7 @@ async function resolve(api, input) {
   var streams = await __entry(String(input.tmdbId || ""), input.mediaType, input.season, input.episode);
   if (!Array.isArray(streams)) throw new Error("unsupported-output");
   if (streams.some(function(stream) {
-    return stream && (stream.headers !== undefined || stream.subtitles !== undefined || stream.infoHash !== undefined ||
+    return stream && (stream.headers !== undefined || stream.subtitles !== undefined || stream.infoHash !== undefined || stream.behaviorHints !== undefined ||
       (stream.url !== undefined && typeof stream.url !== "string"));
   })) throw new Error("unsupported-output");
   return [{ sourceId: ${JSON.stringify(plugin.id)}, sourceName: ${JSON.stringify(plugin.name)}, streams: streams }];

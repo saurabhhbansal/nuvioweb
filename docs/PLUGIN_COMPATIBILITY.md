@@ -2,7 +2,7 @@
 
 Status: **internal synthetic contract plus a test-only engine prototype; execution is not shipped and no actual Nuvio JS plugin is supported yet.** Last updated 2026-10-21.
 
-This document defines our experimental policy envelope, **not an upstream Nuvio API-v1 contract**. The QuickJS prototype executes original regression code with an injected in-memory transport, not installed third-party plugins or real provider streams. The inherited `pluginRuntime.js` remains a URL-template feature and is unchanged. [Pinned upstream/API/license comparison](agent-runs/2026-10-21-issue11-upstream-review.md).
+This document defines our experimental policy envelope, **not an upstream Nuvio API-v1 contract**. The QuickJS prototype executes original regression code with an injected in-memory transport. A pinned public third-party PenguPlay wrapper now loads but fails invocation without network dispatch; it is not matched to an installed JS source. Real configured HTTP rows were observed and projected separately, not executed as plugin code. See the [real-provider evidence](evidence/issue11-real-plugins-2026-10-21.md). The inherited `pluginRuntime.js` remains a URL-template feature and is unchanged. [Pinned upstream/API/license comparison](agent-runs/2026-10-21-issue11-upstream-review.md).
 
 ## Why execution is not implemented yet
 
@@ -131,6 +131,21 @@ The network prototype validates execution budgets, bounds serialized input/outpu
 
 `pluginPrototypeSession.mjs` is an **unshipped, test-only** lifecycle seam: only literal `enabled:true` opts in, lazy load follows descriptor/host/quota gates, descriptor hosts must be approved by trusted host policy, one active run, session-lifetime execution/failure ceilings, terminal disable, no raw logs returned, and only allowlisted media-identity input fields. It has no account/session credentials, app setting, persistent per-account/global budget, real fetch, or UI. Recreating a session resets its counters; this is not a persistent abuse boundary.
 
-`pluginGetStreamsPrototype.mjs` adds a **test-only restricted adapter** for CommonJS `module.exports.getStreams` / global fallback, positional media identity, flat stream arrays and GET response-like `ok/status/url/text()/json()`. It still uses the same broker. No headers/statusText API, request headers/body/POST/credentials/guest signals, require/HTML/crypto/settings/TMDB key injection, subtitles/infoHash or object-valued URLs. Requests with unsupported options and results requiring unsupported metadata fail rather than silently dropping needed playback controls. This is original upstream-shaped regression code, not a real installed plugin or a general compatibility claim.
+`pluginGetStreamsPrototype.mjs` adds a **test-only restricted adapter** for CommonJS `module.exports.getStreams` / global fallback, positional media identity, flat stream arrays and GET response-like `ok/status/url/text()/json()`. It still uses the same broker. No headers/statusText API, request headers/body/POST/credentials/guest signals, require/HTML/crypto/settings/TMDB key injection, subtitles/infoHash or object-valued URLs. Requests with unsupported options and results requiring unsupported metadata fail rather than silently dropping needed playback controls. This is original upstream-shaped regression code, not a real installed plugin or a general compatibility claim. Required `behaviorHints` are also unsupported and now rejected before and after serialization, rather than silently dropping nested playback headers discovered in real PenguPlay HTTP rows.
 
 The [continuation evidence](evidence/issue11-bounded-lifecycle-2026-10-21.md) records exact commands, failures/corrections and layers. Synthetic normalized URLs are not real playable/provider acceptance. Actual installed-JS-plugin availability, getStreams/flat-result/global-fetch compatibility, reviewed real transport and application rollout remain unverified; #11 must remain open.
+
+## Real configured provider matrix — 2026-10-21
+
+[Actual observations and decisions](evidence/issue11-real-plugins-2026-10-21.md) · [sanitized receipt](evidence/issue11-real-plugins-2026-10-21.json). All six fresh configured manifests returned200 and declare HTTP add-on resources, not JS scraper code; custom/plugin sources remain zero. These providers stay on the existing HTTP pipeline, not a fabricated sandbox wrapper.
+
+| Provider | Real HTTP result | Sandbox compatibility |
+| --- | --- | --- |
+| PenguPlay (priority) |24 movie rows;23 normalize to direct URLs,1 informational row dropped;10 rows require headers that pure projection loses | No matching installed JS artifact. Public third-party wrapper13,046B loads in QuickJS but getStreams fails at absent console, zero dispatch; no installed-code pass |
+| AIOMetadata | Metadata/catalog/subtitles only; no stream resource | No installed JS artifact; no invented stream response |
+| Xperience | Metadata/catalog only; no stream resource | No installed JS artifact |
+| AIOStreams |20 movie rows;20 host-normalized URL rows | No installed JS artifact; HTTP rows are not server-source execution |
+| Telegram | HTTP200,0 movie rows | Empty HTTP result; no installed JS artifact |
+| NexoTV | tv-only; real catalog then stream returns1 row,1 host-normalized URL row | No installed JS artifact; not tested with a wrong movie ID |
+
+Normalized URL shape is accepted by the existing repository mapper but is **not lossless playback compatibility**, sandbox execution or playback. The adapter now refuses unsupported behaviorHints entirely, including serializer injection. Actual QuickJS negative constructor/import/direct-binding/redirect/cancellation probes pass; they are synthetic hostile guests, not real installed plugins or general host-escape/live-DNS proof. Fresh focused71/71, full1487/1487 and local Chromium16/16 pass after documented clean-worktree build-order corrections. No app execution enablement, network privilege, proxy, dependency, deployment or other issue change.
