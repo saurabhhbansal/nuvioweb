@@ -1,6 +1,6 @@
 # Feature support
 
-Updated 2026-10-21. "Tested" means covered by automated tests in CI, mostly Chromium on Linux. Anything else is **unverified**. Real phones, Safari, Edge, HDR output and audible multitrack audio are unverified unless a line says otherwise.
+Updated 2026-10-22. "Tested" means covered by automated tests in CI, mostly Chromium on Linux. Anything else is **unverified**. Real phones, Safari, Edge, HDR output and audible multitrack audio are unverified unless a line says otherwise.
 
 ## Status
 
@@ -10,13 +10,13 @@ Updated 2026-10-21. "Tested" means covered by automated tests in CI, mostly Chro
 | Profiles, library, watch progress sync | Works; Library changes queue in a saved outbox and retry on startup, reconnect and the sync cycle | Same-item edits on two devices: last write wins. No cross-tab coordination. See [sync policy](LIBRARY_SYNC_POLICY.md) |
 | Guest mode | Works; tested | Data stays on this device |
 | HTTP/Stremio add-ons | Install by URL, catalogs, details, sources, subtitles; tested with a fixture add-on | Each add-on must allow browser CORS |
-| Source ranking | Default order puts likely-playable sources first, then external-player candidates, unknown, header-required and blocked. Provider order is one toggle away. Every source stays selectable | Based on browser predictions and declared metadata, never on file names or "4K" labels |
+| Source list | Keeps add-on order. A card shows at most one hint: "Needs headers" or "Link expired", from declared metadata. Every source stays selectable | No per-card playback prediction |
 | Native video, HLS, DASH | Plays in Chromium; legal fixtures tested for play, pause, seek, resume and subtitles | Firefox/WebKit run on demand only. 4K, HDR and high-frame-rate output unverified |
-| Failure explanations | Shown on playback failure with a likely cause and next step | Unknown causes are labelled unknown. Optional diagnostics export contains no URLs or tokens |
+| Failure explanations | Shown on playback failure; names the real cause when known (debrid, headers, HTTP status, format) | Unknown causes are labelled unknown. Optional details and diagnostics export contain no URLs or tokens |
 | External player hand-off | Desktop hand-off works; mobile in #164 | Sources that need request headers cannot be handed off by URL |
 | PWA install and offline shell | Service worker, update and offline shell tested in Chromium | Mobile fixes in #165 |
 | JS plugins | Original URL-template plugins only | Running Nuvio JS plugins in the browser is #166 |
-| Sidecar features (Trakt sign-in, debrid bridges, external-player return) | Off on the public preview; Settings explains why | Need a server; not planned for the MVP |
+| Sidecar features (Trakt sign-in, debrid bridges, external-player return) | Off on the public preview; Settings explains why and hides external-player progress options | Need a server; not planned for the MVP |
 
 ## Browser limits users may hit
 

@@ -82,16 +82,15 @@ test("static bundled settings explain unavailable integrations without sidecar r
   await page.getByRole("button", { name: "Settings", exact: true }).click();
   await page.locator('#settings [data-focus-key="nav:playback"]').click();
   await page.locator('[data-focus-key="playback:toggle:general"]').click();
-  const progress = page.locator(
-    '[data-focus-key="playback:externalPlayerProgress"]',
-  );
-  await expect(progress).toContainText("Always ask manually");
-  await expect(progress).toContainText(
-    "Automatic progress and return notifications",
-  );
-  await progress.click();
+  // Progress and return settings do nothing without the bridge, so they are hidden.
   await expect(
-    page.getByText("Automatic when supported", { exact: true }),
+    page.locator('[data-focus-key="playback:toggle:general"]'),
+  ).toBeVisible();
+  await expect(
+    page.locator('[data-focus-key="playback:externalPlayerProgress"]'),
+  ).toHaveCount(0);
+  await expect(
+    page.locator('[data-focus-key="playback:returnMethod"]'),
   ).toHaveCount(0);
   expect(sidecarRequests).toEqual([]);
 });

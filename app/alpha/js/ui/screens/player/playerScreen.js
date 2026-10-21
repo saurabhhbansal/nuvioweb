@@ -13,10 +13,6 @@ import {
 } from "../../../core/player/startupAudioGatePolicy.js";
 import { isTerminalHlsHttpStatus } from "../../../core/player/hlsNetworkErrorPolicy.js";
 import {
-  classifyStartupFailure,
-  STARTUP_FAILURE_REASONS
-} from "../../../core/player/startupFailure.js";
-import {
   describeSource,
   normalizeSourceDescriptor,
   probeNativeSource,
@@ -1245,28 +1241,6 @@ function escapeAttribute(value) {
   return escapeHtml(value);
 }
 
-function cleanPlaybackDiagnosticValue(value, maxLength = 320) {
-  const text = String(value ?? "")
-    .replace(/(?:https?|wss?|file|blob|magnet):[^\s"'<>]+/gi, "[redacted]")
-    .replace(/\b(?:authorization|cookie)\s*:\s*[^\s,;]+/gi, (match) =>
-      match.replace(/(:\s*)[^\s,;]+$/, "$1[redacted]")
-    )
-    .replace(/\bbearer\s+[^\s,;]+/gi, "Bearer [redacted]")
-    .replace(/\b(?:access[_-]?token|refresh[_-]?token|api[_-]?key)\s*[:=]\s*[^\s,;]+/gi, (match) =>
-      match.replace(/([:=]\s*)[^\s,;]+$/, "$1[redacted]")
-    )
-    .replace(
-      /([?&](?:token|access_token|refresh_token|apikey|api_key|key)=)[^&\s]+/gi,
-      "$1[redacted]"
-    )
-    .replace(/\s+/g, " ")
-    .trim();
-  if (!text) {
-    return "";
-  }
-  return text.length > maxLength ? `${text.slice(0, maxLength - 1)}…` : text;
-}
-
 function describeSafePlaybackEndpoint(value = "") {
   const raw = String(value || "").trim();
   if (!raw) {
@@ -1280,17 +1254,6 @@ function describeSafePlaybackEndpoint(value = "") {
     return extension ? `${parsed.hostname} • .${extension}` : parsed.hostname || "[redacted]";
   } catch (_) {
     return "[redacted]";
-  }
-}
-
-function _pushPlaybackDiagnosticLine(lines, label, value, maxLength = 320) {
-  const text = cleanPlaybackDiagnosticValue(value, maxLength);
-  if (!text) {
-    return;
-  }
-  const line = `${label}: ${text}`;
-  if (!lines.includes(line)) {
-    lines.push(line);
   }
 }
 
@@ -3584,28 +3547,8 @@ export const PlayerScreen = {
     return normalizedSourceType === "video/x-matroska";
   },
 
-  getAudioTrackAvailability() {
-    return typeof PlayerController.getAudioTrackAvailabilityCopy === "function"
-      ? PlayerController.getAudioTrackAvailabilityCopy()
-      : null;
-  },
-
-  getAudioSwitchBlocked(copy = null) {
-    const availability = copy || this.getAudioTrackAvailability();
-    return availability?.tone === "warning";
-  },
-
-  getUnavailableTrackMessage(kind = "audio", copy = null) {
-    if (kind === "subtitle") {
-      return "No subtitle tracks available.";
-    }
-    // Audio copy comes from the reviewed availability contract so the dialog
-    // cannot claim an action the engine cannot perform.
-    const availability = copy || this.getAudioTrackAvailability();
-    if (!availability) {
-      return t("player_audio_no_tracks", {}, "No audio tracks are available for this source.");
-    }
-    return t(availability.key, {}, availability.fallback);
+  getUnavailableTrackMessage(kind = "audio") {
+    return kind === "subtitle" ? "No subtitle tracks available." : "No audio tracks available.";
   },
 
   getVideoTextTrackList() {
@@ -5868,13 +5811,16 @@ export const PlayerScreen = {
     ];
   },
 
-  formatPlaybackErrorForSources(_message = "", options = {}) {
+  formatPlaybackErrorForSources(message = "", options = {}) {
+    // The caller's message names the real cause (debrid, headers, HTTP, codec);
+    // the diagnostic explanation is only a fallback when none was given.
     const report = diagnosePlaybackFailure(this.getFailureDiagnosticInput(options));
-    return `${report.explanation}\n\nDetails\n${this.getPlaybackErrorDetailLines(options).join("\n")}`;
+    const baseMessage = String(message || "").trim() || report.explanation;
+    return `${baseMessage}\n\nDetails\n${this.getPlaybackErrorDetailLines(options).join("\n")}`;
   },
 
   showStartupError(
-    _message = "",
+    message = "",
     {
       mediaErrorCode = 0,
       detail = "",
@@ -5891,10 +5837,10 @@ export const PlayerScreen = {
       eventDetail, streamCandidate, playbackUrl, reason });
     this.startupFailureDiagnostic = diagnosePlaybackFailure(diagnosticInput);
     this.startupFailureExport = exportPlaybackDiagnostic(diagnosticInput);
-    // Keep explicit missing-link/resolver guidance; never append raw engine text.
-    this.startupErrorMessage = reason === "missing-url"
-      ? t("player_error_no_stream_url", {}, "No stream URL provided")
-      : this.startupFailureDiagnostic.explanation;
+    // Show the cause the caller named (debrid, headers, HTTP, codec). The
+    // diagnostic report is a fallback and an optional details/export block.
+    this.startupErrorMessage =
+      String(message || "").trim() || this.startupFailureDiagnostic.explanation;
     this.startupErrorMediaCode = Number(mediaErrorCode || 0);
     this.startupErrorDetails = this.getPlaybackErrorDetailLines({
           mediaErrorCode,
@@ -5975,19 +5921,13 @@ export const PlayerScreen = {
         this.getCurrentStreamCandidate();
       this.markPlaybackSourceFailed(playbackUrl);
       if (!this.hasPresentedPlaybackFrame) {
-        const startupFailure = this.resolveStartupFailure({
-          mediaErrorCode,
-          detail,
-          streamCandidate: candidate,
-          playbackUrl
-        });
-        this.showStartupError(startupFailure.message, {
+        this.showStartupError(this.getStartupErrorMessage(mediaErrorCode, detail, candidate), {
           mediaErrorCode,
           detail,
           error,
           streamCandidate: candidate,
           playbackUrl,
-          reason: startupFailure.reason
+          reason: "play-start"
         });
         console.warn("Playback failed to start", {
           url: playbackUrl,
@@ -6080,95 +6020,19 @@ export const PlayerScreen = {
     }
   },
 
-  classifyStartupFailureForSource({
-    mediaErrorCode = 0,
-    detail = "",
-    streamCandidate = null,
-    playbackUrl = "",
-    timedOut = false,
-    sourceElementError = false
-  } = {}) {
-    const candidate =
-      streamCandidate ||
-      this.getStreamCandidateByUrl(playbackUrl || this.activePlaybackUrl) ||
-      this.getCurrentStreamCandidate();
-    const descriptor = this.getStartupSourceDescriptor(candidate);
-    return classifyStartupFailure({
-      descriptor,
-      nativePrediction: this.getStartupNativePrediction(descriptor),
-      engine: PlayerController.playbackEngine || "none",
-      mediaErrorCode,
-      detail,
-      httpStatus: extractPlaybackHttpStatus(detail),
-      headerRequired: Boolean(this.getWebHeaderRestrictedStreamMessage(candidate)),
-      timedOut,
-      sourceElementError
-    });
-  },
-
-  resolveStartupFailure({
-    mediaErrorCode = 0,
-    detail = "",
-    streamCandidate = null,
-    playbackUrl = "",
-    timedOut = false,
-    sourceElementError = false
-  } = {}) {
-    const candidate =
-      streamCandidate ||
-      this.getStreamCandidateByUrl(playbackUrl || this.activePlaybackUrl) ||
-      this.getCurrentStreamCandidate();
-    const classification = this.classifyStartupFailureForSource({
-      mediaErrorCode,
-      detail,
-      streamCandidate: candidate,
-      playbackUrl,
-      timedOut,
-      sourceElementError
-    });
-    return {
-      classification,
-      reason: classification.reason,
-      message: this.getStartupErrorMessage(
-        mediaErrorCode,
-        detail,
-        candidate,
-        classification
-      )
-    };
-  },
-
   getStartupErrorMessage(
     mediaErrorCode = 0,
     detail = "",
-    streamCandidate = this.getCurrentStreamCandidate(),
-    classification = null
+    streamCandidate = this.getCurrentStreamCandidate()
   ) {
     const code = Number(mediaErrorCode || 0);
-    const resolved =
-      classification ||
-      this.classifyStartupFailureForSource({
-        mediaErrorCode: code,
-        detail,
-        streamCandidate
-      });
-    const reason = String(resolved?.reason || "");
-    if (reason === STARTUP_FAILURE_REASONS.STARTUP_SOURCE_ERROR) {
-      return t(
-        "player_error_source_load_unknown",
-        {},
-        "The browser could not load this source. The link, access, network or format may be responsible. Refresh sources or choose another source."
-      );
+    const compatibilityMessage = this.getWebHeaderRestrictedStreamMessage(streamCandidate);
+    if (compatibilityMessage && (code === 0 || code === 2 || code === 4)) {
+      return compatibilityMessage;
     }
-    const baseMessage = this.mediaErrorMessage(code, detail, streamCandidate, resolved);
+    const baseMessage = this.mediaErrorMessage(code, detail, streamCandidate);
     const extra = String(detail || "").trim();
-    const classifiedReason = [
-      STARTUP_FAILURE_REASONS.HEADER_REQUIRED,
-      STARTUP_FAILURE_REASONS.UNSUPPORTED_CONTAINER,
-      STARTUP_FAILURE_REASONS.UNSUPPORTED_CODEC,
-      STARTUP_FAILURE_REASONS.INVALID_CONTENT
-    ].includes(reason);
-    if (!extra || classifiedReason || (code === 4 && this.isDebridPlaybackCandidate(streamCandidate))) {
+    if (!extra || (code === 4 && this.isDebridPlaybackCandidate(streamCandidate))) {
       return ensureSentenceEnding(baseMessage);
     }
     const normalizedExtra = extra.replace(/\s+/g, " ");
@@ -8709,22 +8573,20 @@ export const PlayerScreen = {
           return;
         }
         this.markPlaybackSourceFailed(this.activePlaybackUrl);
-        const startupFailure = this.resolveStartupFailure({
+        const startupErrorMessage = this.getStartupErrorMessage(
           mediaErrorCode,
-          detail: playbackErrorDetail,
-          streamCandidate: currentSourceCandidate,
-          playbackUrl: this.activePlaybackUrl,
-          sourceElementError
-        });
+          playbackErrorDetail,
+          currentSourceCandidate
+        );
         this.clearPlaybackStallGuard();
         this.releaseStartupAudioGate({ resume: false });
-        this.showStartupError(startupFailure.message, {
+        this.showStartupError(startupErrorMessage, {
           mediaErrorCode,
           detail: playbackErrorDetail,
           eventDetail,
           streamCandidate: currentSourceCandidate,
           playbackUrl: this.activePlaybackUrl,
-          reason: startupFailure.reason
+          reason: "startup-media-error"
         });
         console.warn("Playback failed during startup", {
           endpoint: describeSafePlaybackEndpoint(this.activePlaybackUrl),
@@ -10863,53 +10725,17 @@ export const PlayerScreen = {
   mediaErrorMessage(
     errorCode = 0,
     detail = "",
-    streamCandidate = this.getCurrentStreamCandidate(),
-    classification = null
+    streamCandidate = this.getCurrentStreamCandidate()
   ) {
     const code = Number(errorCode || 0);
     const text = String(detail || "").toLowerCase();
-    const compatibilityMessage = this.getWebHeaderRestrictedStreamMessage(streamCandidate);
-    const reason = String(classification?.reason || "");
-    // A source that could never be requested correctly is not an HTTP verdict,
-    // so the header guidance outranks the status message when it is classified.
-    if (reason === STARTUP_FAILURE_REASONS.HEADER_REQUIRED) {
-      return (
-        compatibilityMessage ||
-        t(
-          "player_error_web_headers_unsupported",
-          {},
-          "This source is not compatible with this device's player because it requires special request headers. Try a different source or contact the add-on provider."
-        )
-      );
-    }
     const httpStatus = extractPlaybackHttpStatus(detail);
     const httpMessage = this.getHttpPlaybackErrorMessage(httpStatus);
     if (httpMessage) {
       return httpMessage;
     }
-    if (classification) {
-      if (reason === STARTUP_FAILURE_REASONS.UNSUPPORTED_CONTAINER) {
-        return t(
-          "player_error_container_unsupported",
-          [String(classification.container || "unknown").slice(0, 64)],
-          "This device's browser cannot play this video container (%1$s). Try a different source, or open this item on a device that supports it."
-        );
-      }
-      if (reason === STARTUP_FAILURE_REASONS.UNSUPPORTED_CODEC) {
-        return t(
-          "player_error_codec_unsupported",
-          [String(classification.codec || "unknown").slice(0, 64)],
-          "This device's browser cannot play this video format (%1$s). Try a different source, or open this item on a device that supports it."
-        );
-      }
-      if (reason === STARTUP_FAILURE_REASONS.INVALID_CONTENT) {
-        return t(
-          "player_error_source_invalid_content",
-          [this.getPlaybackErrorCodeLabel(code) || "source"],
-          "Source error: The stream source returned invalid or unplayable content. The link may have expired or the server returned an error page instead of video.\n\nTry a different source. [%1$s]"
-        );
-      }
-    } else if (compatibilityMessage && (code === 0 || code === 2 || code === 4)) {
+    const compatibilityMessage = this.getWebHeaderRestrictedStreamMessage(streamCandidate);
+    if (compatibilityMessage && (code === 0 || code === 2 || code === 4)) {
       return compatibilityMessage;
     }
     if (code === 1) return "Playback aborted";
@@ -11061,17 +10887,11 @@ export const PlayerScreen = {
       this.releaseStartupAudioGate({ resume: false });
       if (startup) {
         this.markPlaybackSourceFailed(this.activePlaybackUrl);
-        const startupFailure = this.resolveStartupFailure({
+        this.showStartupError(this.getStartupErrorMessage(mediaErrorCode, "", sourceCandidate), {
           mediaErrorCode,
           streamCandidate: sourceCandidate,
           playbackUrl: this.activePlaybackUrl,
-          timedOut: true
-        });
-        this.showStartupError(startupFailure.message, {
-          mediaErrorCode,
-          streamCandidate: sourceCandidate,
-          playbackUrl: this.activePlaybackUrl,
-          reason: startupFailure.reason
+          reason: "startup-stall"
         });
         return;
       }
@@ -14031,13 +13851,6 @@ export const PlayerScreen = {
   },
 
   applyAudioTrack(index, { automaticFallback = false, rememberSelection = false } = {}) {
-    // The activation boundary enforces the same decision the dialog renders:
-    // an engine that cannot switch, or an ambiguous list, must not switch.
-    if (this.getAudioSwitchBlocked()) {
-      this.invalidateTrackDialogCaches();
-      this.renderAudioDialog();
-      return;
-    }
     const entries = this.getAudioEntries();
     const selectedEntry = entries[index] || null;
     if (!selectedEntry) {
@@ -14093,17 +13906,6 @@ export const PlayerScreen = {
 
     const entries = this.getAudioEntries();
     const hasSupportedEntries = entries.some((entry) => entry?.supported !== false);
-    // The engine may be unable to switch tracks at all (no setter) or the list
-    // may be ambiguous. In those cases the dialog must not offer a selection
-    // that would silently fail; the reviewed copy contract decides.
-    const audioAvailability = this.getAudioTrackAvailability();
-    const audioSwitchBlocked = this.getAudioSwitchBlocked(audioAvailability);
-    // Show the reviewed note whenever it says something the rows cannot: a
-    // blocked engine, unknown compatibility, or a prediction that is not proof.
-    const showAudioAvailabilityNote =
-      Boolean(audioAvailability) &&
-      audioAvailability.key !== "player_audio_available" &&
-      audioAvailability.key !== "player_audio_no_tracks";
     const audioControls = [
       {
         id: "amplification",
@@ -14143,7 +13945,7 @@ export const PlayerScreen = {
         (this.manifestLoading || this.trackDiscoveryInProgress);
       const emptyMessage = loading
         ? "Loading audio tracks..."
-        : this.getUnavailableTrackMessage("audio", audioAvailability);
+        : this.getUnavailableTrackMessage("audio");
       dialog.innerHTML = `
         <div class="player-dialog-title">${escapeHtml(t("audio_dialog_title", {}, "Audio"))}</div>
         <div class="player-dialog-empty${loading ? " player-dialog-loading" : ""}">
@@ -14160,13 +13962,7 @@ export const PlayerScreen = {
     this.audioDialogIndex = clamp(this.audioDialogIndex, 0, entries.length - 1);
     dialog.innerHTML = `
       <div class="player-dialog-title">${escapeHtml(t("audio_dialog_title", {}, "Audio"))}</div>
-      ${
-        showAudioAvailabilityNote
-          ? `<div class="player-audio-support-message">${escapeHtml(audioAvailability.fallback)}</div>`
-          : hasSupportedEntries
-            ? ""
-            : `<div class="player-audio-support-message">${escapeHtml(t("player.audio.noSupportedTracks", {}, "No supported audio tracks available"))}</div>`
-      }
+      ${hasSupportedEntries ? "" : `<div class="player-audio-support-message">${escapeHtml(t("player.audio.noSupportedTracks", {}, "No supported audio tracks available"))}</div>`}
       <div class="player-audio-overlay-grid">
         <div class="player-dialog-list player-audio-track-list">
           ${entries
@@ -14174,12 +13970,11 @@ export const PlayerScreen = {
               const selected = entry.selected;
               const focused =
                 this.audioFocusedColumn === "tracks" && index === this.audioDialogIndex;
-              const codecDisabled = entry.supported === false;
-              const disabled = codecDisabled || audioSwitchBlocked;
-              const label = codecDisabled
+              const disabled = entry.supported === false;
+              const label = disabled
                 ? `${entry.label || ""} · ${t("player.audio.unsupported", {}, "Unsupported")}`
                 : entry.label || "";
-              const secondary = codecDisabled
+              const secondary = disabled
                 ? [
                     entry.secondary,
                     t("player.audio.unsupportedCodec", {}, "Codec not supported by this device")
@@ -14188,7 +13983,7 @@ export const PlayerScreen = {
                     .join(" · ")
                 : entry.secondary || "";
               return `
-              <div class="player-dialog-item${disabled ? "" : " focusable"}${selected ? " selected" : ""}${!disabled && focused ? " focused" : ""}${disabled ? " disabled" : ""}" data-audio-column="tracks" data-audio-index="${index}" tabindex="${disabled ? "-1" : "0"}" aria-disabled="${disabled ? "true" : "false"}">
+              <div class="player-dialog-item focusable${selected ? " selected" : ""}${focused ? " focused" : ""}${disabled ? " disabled" : ""}" data-audio-column="tracks" data-audio-index="${index}" aria-disabled="${disabled ? "true" : "false"}">
                 <div class="player-dialog-item-main">${escapeHtml(label)}</div>
                 <div class="player-dialog-item-sub">${escapeHtml(secondary)}</div>
                 <div class="player-dialog-item-check">${selected ? "&#10003;" : ""}</div>

@@ -1,10 +1,13 @@
 import { createExternalPlaybackCallbacks, createOutplayerReturnCallbacks } from "./browserExternalPlaybackHandoff.js";
 import { getSidecarCapabilities } from "../../core/platform/sidecarCapabilities.js";
+import { assessBrowserExternalHandoff, isTransferableExternalMediaUrl } from "../../core/player/externalHandoff.js";
 import {
   beginExternalPlaybackHandoff,
   clearExternalPlaybackHandoff
 } from "./browserExternalPlaybackHandoff.js";
 import { ProfileManager } from "../../core/profile/profileManager.js";
+
+export { assessBrowserExternalHandoff, isTransferableExternalMediaUrl };
 
 const EXTERNAL_PLAYER_IDS = Object.freeze({
   DISABLED: "disabled",
@@ -71,16 +74,6 @@ export function getBrowserExternalPlayerOptions(runtime = globalThis) {
   return [EXTERNAL_PLAYER_IDS.DISABLED];
 }
 
-export function isTransferableExternalMediaUrl(value) {
-  try {
-    const parsed = new URL(String(value || ""));
-    return (parsed.protocol === "https:" || parsed.protocol === "http:") &&
-      !parsed.username && !parsed.password && !Array.from(String(value)).some((character) =>
-        character.charCodeAt(0) <= 32 || character.charCodeAt(0) === 127);
-  } catch (_) {
-    return false;
-  }
-}
 
 export function buildInfuseLaunchUrl({ mediaUrl, title = "", subtitleUrl = "", resumePositionSeconds = 0, externalReturnToken, externalReturnOrigin, externalReturnMethod = "" } = {}) {
   if (!isTransferableExternalMediaUrl(mediaUrl)) return "";
@@ -175,26 +168,6 @@ export function buildOutplayerLaunchUrl({ mediaUrl, externalReturnToken, externa
     query.set("position", String(Math.max(0, safeResumePosition)));
   }
   return `outplayer://x-callback-url/play?${query.toString()}`;
-}
-
-// All shipped hand-off routes are URL-only. Treat every declared request map as
-// required, including unknown names/empty values; never silently strip a map.
-export function assessBrowserExternalHandoff({ mediaUrl, source, subtitle, subtitleUrl = "", requestHeaders } = {}) {
-  const descriptors = [source, source?.raw, subtitle, subtitle?.raw];
-  const maps = [requestHeaders, ...descriptors.flatMap((entry) => [
-    entry?.headers, entry?.requestHeaders, entry?.proxyHeaders?.request,
-    entry?.behaviorHints?.proxyHeaders?.request
-  ])];
-  const declared = descriptors.some((entry) => Number(entry?.requiredHeaderCount || entry?.sourceDescriptor?.requiredHeaderCount) > 0) ||
-    maps.some((map) => map != null && (typeof map !== "object" || Object.keys(map).length > 0));
-  if (declared) return { allowed: false, code: "headers-required", reason: "This source or subtitle requires request headers. These URL-only hand-offs cannot deliver them. Choose another source or ask the provider for a self-authorizing URL." };
-  if (descriptors.some((entry) => entry?.behaviorHints?.notWebReady === true || entry?.behaviorHints?.notWebReady === "true")) {
-    return { allowed: false, code: "not-web-ready", reason: "The provider marks this source as not web-ready. Its request requirements are unverified; choose another source for URL-only hand-off." };
-  }
-  if (!isTransferableExternalMediaUrl(mediaUrl) || (subtitleUrl && !isTransferableExternalMediaUrl(subtitleUrl))) {
-    return { allowed: false, code: "invalid-url", reason: "Only HTTP(S) stream and subtitle links without embedded login credentials can leave this browser. Choose another source." };
-  }
-  return { allowed: true, reason: "URL only: browser cookies and request headers are not transferred." };
 }
 
 export function buildBrowserExternalPlayerLaunch({ player, platform, mediaUrl, title, subtitleUrl, source, subtitle, requestHeaders, externalReturnToken, externalReturnOrigin, externalReturnMethod = "", resumePositionSeconds = 0, knownDurationMs = 0 } = {}) {
