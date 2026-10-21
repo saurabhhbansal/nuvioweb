@@ -6222,12 +6222,12 @@ export const PlayerScreen = {
           <button class="player-startup-error-button focusable focused" type="button" tabindex="0" data-player-error-action="back">
             ${escapeHtml(t("player_go_back", {}, "Go Back"))}
           </button>
-          ${this.startupFailureExport ? `<a class="player-startup-error-button focusable" download="nuvio-playback-diagnostic.json" href="data:application/json;charset=utf-8,${encodeURIComponent(this.startupFailureExport)}" data-diagnostic-export>Export redacted diagnostics</a>` : ""}
           ${this.canOpenInExternalPlayer() ? `
             <button class="player-startup-error-button focusable" type="button" tabindex="0" data-player-error-action="external-player">
               Open in another player
             </button>
           ` : ""}
+          ${this.startupFailureExport ? `<a class="player-startup-error-button focusable" download="nuvio-playback-diagnostic.json" href="data:application/json;charset=utf-8,${encodeURIComponent(this.startupFailureExport)}" data-diagnostic-export>Export redacted diagnostics</a>` : ""}
         </div>
       </div>
     `;
@@ -16808,6 +16808,9 @@ export const PlayerScreen = {
 
     if (this.isStartupErrorVisible()) {
       if (keyCode === 9) return false; // Keep the error actions keyboard reachable.
+      // The capture-phase screen router must not turn a focused native export
+      // link's activation into Back. The link owns Enter/Space only when focused.
+      if (activeTarget?.matches?.("[data-diagnostic-export]")) return false;
       event?.preventDefault?.();
       event?.stopPropagation?.();
       if ((isSelectKeyCode(keyCode) || keyCode === 32) && activeTarget?.matches?.('[data-player-error-action="external-player"]')) {

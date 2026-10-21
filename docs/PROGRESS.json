@@ -832,7 +832,7 @@
           "docs/evidence/issue150-diagnostics.json"
         ],
         "verification": [
-          "Focused45/45 and local Chromium20/20; build/lint/artifact12, docs/governance15 pass. Full local1571/1572 has unrelated Node24 subprocess-reporter assertion; remote pinned Node22 full suite and all four exact-head contexts required. Proposed until protected PR159 merges. Same-agent direct automated review, no device/provider/native/output or deployment claim."
+          "Focused45/45 and final affected local Chromium30/30; original #148 tests unchanged, full-app dialog/diagnostic/native-export coexistence added; build/lint/artifact12, docs/governance15 pass. Full local1571/1572 has unrelated Node24 subprocess-reporter assertion; remote pinned Node22 full suite and all four exact-head contexts required. Proposed until protected PR159 merges. Same-agent direct automated review, no device/provider/native/output or deployment claim."
         ]
       }
     }
