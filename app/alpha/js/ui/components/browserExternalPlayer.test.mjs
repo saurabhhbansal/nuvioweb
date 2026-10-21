@@ -39,8 +39,8 @@ function createHandoffRuntime() {
 
 test("external player options are platform-aware", () => {
   assert.equal(getBrowserExternalPlayerPlatform(ios), "ios");
-  assert.deepEqual(getBrowserExternalPlayerOptions(ios), ["lenna", "outplayer", "infuse", "vlc", "disabled"]);
-  assert.deepEqual(getManualBrowserExternalPlayerOptions(ios), ["lenna", "outplayer", "infuse", "vlc"]);
+  assert.deepEqual(getBrowserExternalPlayerOptions(ios), ["disabled", "infuse", "vlc"]);
+  assert.deepEqual(getManualBrowserExternalPlayerOptions(ios), ["infuse", "vlc"]);
   assert.equal(getBrowserExternalPlayerStoreUrl({ player: "outplayer", platform: "ios" }), "https://apps.apple.com/app/outplayer/id1449923287");
   assert.equal(getBrowserExternalPlayerPlatform(android), "android");
   assert.deepEqual(getBrowserExternalPlayerOptions(android), ["disabled", "vlc"]);
@@ -81,7 +81,7 @@ test("Lenna uses an x-callback URL with the media URL encoded exactly once", () 
   assert.equal(launch.includes(encodeURIComponent(mediaUrl)), true);
 });
 
-test("Infuse and VLC launch URLs preserve encoded source and optional subtitle", () => {
+test("Infuse preserves source/subtitle/resume; VLC carries only its documented video URL", () => {
   const mediaUrl = "https://media.example/video.mp4?token=private&quality=1080";
   const subtitleUrl = "https://media.example/subtitle.vtt?token=private";
   const infuse = new URL(buildInfuseLaunchUrl({ mediaUrl, title: "A title", subtitleUrl, resumePositionSeconds: 2525.625 }));
@@ -93,7 +93,8 @@ test("Infuse and VLC launch URLs preserve encoded source and optional subtitle",
   const vlc = new URL(buildIosVlcLaunchUrl({ mediaUrl, subtitleUrl }));
   assert.equal(vlc.protocol, "vlc-x-callback:");
   assert.equal(vlc.searchParams.get("url"), mediaUrl);
-  assert.equal(vlc.searchParams.get("sub"), subtitleUrl);
+  assert.equal(vlc.searchParams.has("sub"), false);
+  assert.equal(vlc.searchParams.has("position"), false);
 });
 
 test("Android VLC handoff uses a package-targeted Chrome intent URI", () => {

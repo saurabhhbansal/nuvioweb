@@ -61,13 +61,9 @@ export function normalizeBrowserExternalPlayer(value) {
 export function getBrowserExternalPlayerOptions(runtime = globalThis) {
   const platform = getBrowserExternalPlayerPlatform(runtime);
   if (platform === "ios") {
-    return [
-      EXTERNAL_PLAYER_IDS.LENNA,
-      EXTERNAL_PLAYER_IDS.OUTPLAYER,
-      EXTERNAL_PLAYER_IDS.INFUSE,
-      EXTERNAL_PLAYER_IDS.VLC,
-      EXTERNAL_PLAYER_IDS.DISABLED
-    ];
+    // Keep inherited Lenna/Outplayer builders for compatibility, but do not
+    // advertise contracts we could not establish from player-owned documentation.
+    return [EXTERNAL_PLAYER_IDS.DISABLED, EXTERNAL_PLAYER_IDS.INFUSE, EXTERNAL_PLAYER_IDS.VLC];
   }
   if (platform === "android") {
     return [EXTERNAL_PLAYER_IDS.DISABLED, EXTERNAL_PLAYER_IDS.VLC];
@@ -78,7 +74,9 @@ export function getBrowserExternalPlayerOptions(runtime = globalThis) {
 export function isTransferableExternalMediaUrl(value) {
   try {
     const parsed = new URL(String(value || ""));
-    return parsed.protocol === "https:" || parsed.protocol === "http:";
+    return (parsed.protocol === "https:" || parsed.protocol === "http:") &&
+      !parsed.username && !parsed.password && !Array.from(String(value)).some((character) =>
+        character.charCodeAt(0) <= 32 || character.charCodeAt(0) === 127);
   } catch (_) {
     return false;
   }
@@ -128,10 +126,10 @@ export function buildLennaLaunchUrl({ mediaUrl, subtitleUrl = "", resumePosition
   return `lenna://x-callback-url/play?${query.toString()}`;
 }
 
-export function buildIosVlcLaunchUrl({ mediaUrl, subtitleUrl = "" } = {}) {
+export function buildIosVlcLaunchUrl({ mediaUrl } = {}) {
   if (!isTransferableExternalMediaUrl(mediaUrl)) return "";
   const query = new URLSearchParams({ url: String(mediaUrl) });
-  if (isTransferableExternalMediaUrl(subtitleUrl)) query.set("sub", String(subtitleUrl));
+  // Unlike Infuse, VLC's published callback API does not document sub/position.
   return `vlc-x-callback://x-callback-url/stream?${query.toString()}`;
 }
 
@@ -150,12 +148,15 @@ function buildIosVlcReturnLaunchUrl({ mediaUrl, subtitleUrl = "", externalReturn
 }
 
 export function buildAndroidVlcLaunchUrl({ mediaUrl } = {}) {
-  if (!isTransferableExternalMediaUrl(mediaUrl)) return "";
+  if (!isTransferableExternalMediaUrl(mediaUrl) || String(mediaUrl).includes("#")) return "";
   const parsed = new URL(String(mediaUrl));
   // Chrome's documented intent syntax keeps the source URL as ACTION_VIEW data
   // while restricting resolution to VLC's official Android package.
-  const path = `${parsed.hostname}${parsed.pathname}${parsed.search}${parsed.hash ? `%23${encodeURIComponent(parsed.hash.slice(1))}` : ""}`;
-  return `intent://${path}#Intent;scheme=${parsed.protocol.slice(0, -1)};package=org.videolan.vlc;action=android.intent.action.VIEW;S.browser_fallback_url=${encodeURIComponent(ANDROID_VLC_STORE_URL)};end`;
+  // Preserve authority (including port), encoded paths and signed query bytes.
+  // Reject raw fragments: encoding them would change the HTTP request, while
+  // embedding them would make the Intent delimiter contract ambiguous.
+  const data = String(mediaUrl).slice(parsed.protocol.length);
+  return `intent:${data}#Intent;scheme=${parsed.protocol.slice(0, -1)};package=org.videolan.vlc;action=android.intent.action.VIEW;type=video/*;S.browser_fallback_url=${encodeURIComponent(ANDROID_VLC_STORE_URL)};end`;
 }
 
 // Outplayer's scheme carries no duration, so the shared launch options bring one
@@ -176,9 +177,29 @@ export function buildOutplayerLaunchUrl({ mediaUrl, externalReturnToken, externa
   return `outplayer://x-callback-url/play?${query.toString()}`;
 }
 
-export function buildBrowserExternalPlayerLaunch({ player, platform, mediaUrl, title, subtitleUrl, externalReturnToken, externalReturnOrigin, externalReturnMethod = "", resumePositionSeconds = 0, knownDurationMs = 0 } = {}) {
+// All shipped hand-off routes are URL-only. Treat every declared request map as
+// required, including unknown names/empty values; never silently strip a map.
+export function assessBrowserExternalHandoff({ mediaUrl, source, subtitle, subtitleUrl = "", requestHeaders } = {}) {
+  const descriptors = [source, source?.raw, subtitle, subtitle?.raw];
+  const maps = [requestHeaders, ...descriptors.flatMap((entry) => [
+    entry?.headers, entry?.requestHeaders, entry?.proxyHeaders?.request,
+    entry?.behaviorHints?.proxyHeaders?.request
+  ])];
+  const declared = descriptors.some((entry) => Number(entry?.requiredHeaderCount || entry?.sourceDescriptor?.requiredHeaderCount) > 0) ||
+    maps.some((map) => map != null && (typeof map !== "object" || Object.keys(map).length > 0));
+  if (declared) return { allowed: false, reason: "This source or subtitle requires request headers. These URL-only hand-offs cannot deliver them. Choose another source or ask the provider for a self-authorizing URL." };
+  if (descriptors.some((entry) => entry?.behaviorHints?.notWebReady === true || entry?.behaviorHints?.notWebReady === "true")) {
+    return { allowed: false, reason: "The provider marks this source as not web-ready. Its request requirements are unverified; choose another source for URL-only hand-off." };
+  }
+  if (!isTransferableExternalMediaUrl(mediaUrl) || (subtitleUrl && !isTransferableExternalMediaUrl(subtitleUrl))) {
+    return { allowed: false, reason: "Only HTTP(S) stream and subtitle links without embedded login credentials can leave this browser. Choose another source." };
+  }
+  return { allowed: true, reason: "URL only: browser cookies and request headers are not transferred." };
+}
+
+export function buildBrowserExternalPlayerLaunch({ player, platform, mediaUrl, title, subtitleUrl, source, subtitle, requestHeaders, externalReturnToken, externalReturnOrigin, externalReturnMethod = "", resumePositionSeconds = 0, knownDurationMs = 0 } = {}) {
   const selectedPlayer = normalizeBrowserExternalPlayer(player);
-  if (!isTransferableExternalMediaUrl(mediaUrl) || selectedPlayer === EXTERNAL_PLAYER_IDS.DISABLED) {
+  if (!assessBrowserExternalHandoff({ mediaUrl, source, subtitle, subtitleUrl, requestHeaders }).allowed || selectedPlayer === EXTERNAL_PLAYER_IDS.DISABLED) {
     return null;
   }
   if (platform === "ios" && selectedPlayer === EXTERNAL_PLAYER_IDS.LENNA) {
@@ -195,7 +216,8 @@ export function buildBrowserExternalPlayerLaunch({ player, platform, mediaUrl, t
     return href ? { href, storeUrl: IOS_APP_STORE_URLS.outplayer } : null;
   }
   if (platform === "android" && selectedPlayer === EXTERNAL_PLAYER_IDS.VLC) {
-    return { href: buildAndroidVlcLaunchUrl({ mediaUrl }), storeUrl: ANDROID_VLC_STORE_URL };
+    const href = buildAndroidVlcLaunchUrl({ mediaUrl });
+    return href ? { href, storeUrl: ANDROID_VLC_STORE_URL } : null;
   }
   return null;
 }
@@ -215,6 +237,9 @@ export function prepareBrowserExternalPlaybackLaunch({
   mediaUrl,
   title = "",
   subtitleUrl = "",
+  source = null,
+  subtitle = null,
+  requestHeaders = null,
   resumePositionSeconds = 0,
   knownDurationMs = 0,
   progressContext = null,
@@ -223,6 +248,8 @@ export function prepareBrowserExternalPlaybackLaunch({
   profileId = null,
   runtime = globalThis
 } = {}) {
+  if (!assessBrowserExternalHandoff({ mediaUrl, source, subtitle, subtitleUrl, requestHeaders }).allowed) return null;
+  if (platform === "android" && String(mediaUrl).includes("#")) return null;
   const normalizedPlayer = normalizeBrowserExternalPlayer(player);
   const capabilities = getBrowserExternalPlayerCapabilities(normalizedPlayer);
   const observationCallback = capabilities.callbackMode === "return-only";
@@ -274,14 +301,47 @@ export function launchBrowserExternalPlayer({
   href = ""
 } = {}) {
   if (!href || typeof runtime?.location?.assign !== "function") return false;
-  runtime.location.assign(href);
-  return true;
+  try {
+    runtime.location.assign(href);
+    return true; // Navigation requested, not evidence of installation or playback.
+  } catch (_) {
+    return false;
+  }
 }
 
-export async function copyBrowserExternalStreamLink({ runtime = globalThis, mediaUrl = "" } = {}) {
-  if (!isTransferableExternalMediaUrl(mediaUrl)) return false;
+export function buildBrowserExternalPlaylist(context = {}) {
+  if (!assessBrowserExternalHandoff(context).allowed) return "";
+  // No EXTVLCOPT directives, titles, credentials or user-controlled filenames.
+  return `#EXTM3U\n${context.mediaUrl}\n`;
+}
+
+export function downloadBrowserExternalPlaylist({ runtime = globalThis, ...context } = {}) {
+  const playlist = buildBrowserExternalPlaylist(context);
+  if (!playlist || !runtime?.document?.body || !runtime?.URL?.createObjectURL) return false;
+  let href;
+  let anchor;
   try {
-    await runtime?.navigator?.clipboard?.writeText?.(String(mediaUrl));
+    href = runtime.URL.createObjectURL(new runtime.Blob([playlist], { type: "audio/x-mpegurl" }));
+    anchor = runtime.document.createElement("a");
+    anchor.href = href;
+    anchor.download = "nuvio-stream.m3u";
+    runtime.document.body.appendChild(anchor);
+    anchor.click();
+    return true; // File delivery requested, not evidence a native player opened it.
+  } catch (_) {
+    return false;
+  } finally {
+    anchor?.remove();
+    if (href) runtime.setTimeout(() => runtime.URL.revokeObjectURL(href), 1000);
+  }
+}
+
+export async function copyBrowserExternalStreamLink({ runtime = globalThis, ...context } = {}) {
+  if (!assessBrowserExternalHandoff(context).allowed) return false;
+  const mediaUrl = context.mediaUrl;
+  try {
+    if (typeof runtime?.navigator?.clipboard?.writeText !== "function") throw new Error("Clipboard unavailable");
+    await runtime.navigator.clipboard.writeText(String(mediaUrl));
     return true;
   } catch (_) {
     const document = runtime?.document;

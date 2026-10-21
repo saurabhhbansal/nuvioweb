@@ -785,6 +785,18 @@
           "Required actual app propagation/Save->independentreceiver->finaldelete->reloadempty phases completed in V12; all25 checks and exactcleanup true. Preserve raw overall incomplete status from final foreign background denials; automated evidence review approves only bounded required phases. Actual rate1 playback beyond37s, qualifying cloud position32–45s/duration119–121s and receiver store+Home UI pass; hosted fixture seeking remains unclaimed. Only actual elapsed natural expiry/application revoked-refresh remains required under agreed scope."
         ]
       }
+    },
+    {
+      "number": 148,
+      "title": "First-class external-player hand-off on iOS, Android and desktop",
+      "status": "in_progress",
+      "dependencies": [],
+      "progress": {
+        "documents": ["docs/plans/M2-ADDONS-PLAYBACK.md", "docs/evidence/issue148-external-player.json"],
+        "verification": [
+          "URL-only increment: explicit mobile confirmation plus desktop playlist/copy; required source/subtitle headers fail closed. Primary-source contracts, local tests and exact limits are consolidated in the linked plan/receipt. Not merged or deployed; no installed-player/device/codec/output verification. Issue148 remains open."
+        ]
+      }
     }
   ],
   "integrationPolicy": "Only default-branch records are authoritative; entries in an unmerged PR are proposed until their evidence PR merges."
