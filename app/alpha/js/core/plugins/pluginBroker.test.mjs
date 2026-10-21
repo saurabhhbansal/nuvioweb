@@ -92,6 +92,70 @@ test("transport failures are reported as a bounded code without raw text", async
   assert.doesNotMatch(JSON.stringify(result), /secret|token/i);
 });
 
+test("redirect dispatches consume the same request budget", async () => {
+  let calls = 0;
+  const broker = brokerWith(async () => {
+    calls += 1;
+    return { status: 302, headers: { location: "/again" }, body: "" };
+  }, { maxRequests: 2, maxRedirects: 5 });
+  assert.deepEqual(await broker.request("https://media.example.com/a"), { ok: false, error: "requests" });
+  assert.equal(calls, 2);
+  assert.equal(broker.requestCount, 2);
+});
+
+test("invalid, nonfinite and oversized budgets fail closed", () => {
+  for (const key of ["maxRequests", "maxResponseBytes", "maxTotalResponseBytes", "maxRedirects"]) {
+    for (const value of [NaN, Infinity, -1, 1.5, "2", 2 ** 40]) {
+      assert.throws(() => brokerWith(async () => ({}), { [key]: value }), /invalid broker limits/);
+    }
+  }
+});
+
+test("aggregate UTF-8 response budget includes redirect bodies", async () => {
+  const broker = brokerWith(async (url) => url.endsWith("/a")
+    ? { status: 302, headers: { location: "/b" }, body: "éé" }
+    : { status: 200, body: "éé" }, { maxTotalResponseBytes: 7 });
+  assert.deepEqual(await broker.request("https://media.example.com/a"), { ok: false, error: "response-total" });
+  assert.equal(broker.responseBytes, 8);
+  assert.deepEqual(await broker.request("https://media.example.com/b"), { ok: false, error: "response-total" });
+  assert.equal(broker.requestCount, 2);
+});
+
+test("cancellation propagates signal, settles ignored abort and ignores late response", async () => {
+  const controller = new AbortController();
+  let complete;
+  let dispatched;
+  const started = new Promise((resolve) => { dispatched = resolve; });
+  const broker = brokerWith((url, options) => {
+    assert.deepEqual(Object.keys(options).sort(), ["method", "signal"]);
+    assert.equal(options.signal, controller.signal);
+    dispatched();
+    return new Promise((resolve) => { complete = resolve; });
+  }, { signal: controller.signal });
+  const pending = broker.request("https://media.example.com/a");
+  await started;
+  controller.abort("private reason must not escape");
+  assert.deepEqual(await pending, { ok: false, error: "cancelled" });
+  complete({ status: 302, headers: { location: "/late" }, body: "secret" });
+  await Promise.resolve();
+  assert.equal(broker.requestCount, 1);
+  assert.equal(broker.responseBytes, 0);
+  assert.deepEqual(await broker.request("https://media.example.com/b"), { ok: false, error: "cancelled" });
+});
+
+test("already aborted requests dispatch nothing and concurrent requests cannot oversubscribe", async () => {
+  const controller = new AbortController();
+  controller.abort();
+  let calls = 0;
+  const transport = async () => { calls += 1; return { status: 200, body: "" }; };
+  const aborted = brokerWith(transport, { signal: controller.signal });
+  assert.deepEqual(await aborted.request("https://media.example.com/a"), { ok: false, error: "cancelled" });
+  const broker = brokerWith(transport, { maxRequests: 1 });
+  const results = await Promise.all(Array.from({ length: 12 }, () => broker.request("https://media.example.com/a")));
+  assert.equal(results.filter((result) => result.ok).length, 1);
+  assert.equal(calls, 1);
+});
+
 test("allowlist entries are defensively normalized and invalid entries ignored", () => {
   const broker = createPluginNetworkBroker({
     allowedHosts: ["MEDIA.Example.com", "https://bad.example.com", "127.0.0.1", "*.example.com"],

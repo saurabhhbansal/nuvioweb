@@ -94,7 +94,7 @@ test("manifest matches the served bytes and declares explicit opt-in", () => {
   expect(manifest.files.find((file) => file.name === ENGINE_ASSET_NAMES.wasm).sha256).toBe(createHash("sha256").update(assetBytes.wasm).digest("hex"));
 });
 
-test("the representative fixture executes in Chromium and normalizes its output", async ({ page }) => {
+test("the representative fixture executes in the selected browser and normalizes its output", async ({ page }) => {
   const requestedPaths = [];
   page.on("request", (request) => {
     const url = new URL(request.url());
@@ -191,6 +191,104 @@ test("an oversized result is rejected by the output budget", async ({ page }) =>
   });
   expect(result.ok).toBe(false);
   expect(result.error).toBe("output-size");
+  expect(pageErrors).toEqual([]);
+  expect(networkViolations).toEqual([]);
+});
+
+test("cancellation aborts suspended transport and the next VM still works", async ({ page }) => {
+  const pageErrors = await openEngine(page);
+  const result = await runEngine(page, {
+    code: 'async function resolve(api) { try { await api.fetch("https://allowed.example/slow"); } catch {} return []; }',
+    allowedHosts: ["allowed.example"], cancelOnDispatch: true, limits: { timeMs: 2000 }
+  });
+  expect(result.ok).toBe(false);
+  expect(result.error).toBe("cancelled");
+  expect(result.transportCalls).toBe(1);
+  expect(result.transportAborted).toBe(true);
+  expect((await runEngine(page, { code: "async function resolve() { return []; }" })).ok).toBe(true);
+  expect(pageErrors).toEqual([]);
+  expect(networkViolations).toEqual([]);
+});
+
+test("a host deadline propagates abort even when transport ignores cancellation", async ({ page }) => {
+  const pageErrors = await openEngine(page);
+  const result = await runEngine(page, {
+    code: 'async function resolve(api) { await api.fetch("https://allowed.example/slow"); return []; }',
+    allowedHosts: ["allowed.example"], limits: { timeMs: 100 }
+  });
+  expect(result.ok).toBe(false);
+  expect(result.error).toBe("timeout");
+  expect(result.transportAborted).toBe(true);
+  expect(pageErrors).toEqual([]);
+  expect(networkViolations).toEqual([]);
+});
+
+test("test-only session is default-off, opt-in executes once and strips arbitrary input", async ({ page }) => {
+  const pageErrors = await openEngine(page);
+  const descriptor = {
+    id: "session", name: "session", allowedHosts: ["allowed.example"],
+    code: 'async function resolve(api, input) { return [{ sourceId: "session", sourceName: "session", streams: [{ url: "https://media.example/s", description: Object.keys(input).sort().join(",") }] }]; }'
+  };
+  const disabled = await page.evaluate((descriptor) => globalThis.__nuvioPluginEngine.runSession({ descriptor }), descriptor);
+  expect(disabled.first).toEqual({ ok: false, error: "disabled" });
+  expect(disabled.status.executions).toBe(0);
+  const enabled = await page.evaluate((descriptor) => globalThis.__nuvioPluginEngine.runSession({
+    enabled: true, descriptor, input: { tmdbId: 603, accessToken: "synthetic-must-not-cross" }
+  }), descriptor);
+  expect(enabled.first.ok).toBe(true);
+  expect(enabled.first.groups[0].streams[0].description).toBe("episode,mediaType,season,tmdbId");
+  expect(enabled.first.logs).toBeUndefined();
+  expect(enabled.second).toEqual({ ok: false, error: "session-quota" });
+  expect(pageErrors).toEqual([]);
+  expect(networkViolations).toEqual([]);
+});
+
+test("nonfinite budgets and multi-byte output fail closed in browser", async ({ page }) => {
+  const pageErrors = await openEngine(page);
+  const invalid = await runEngine(page, { code: "async function resolve(){ return []; }", limits: { timeMs: Infinity } });
+  expect(invalid.error).toBe("limits");
+  const oversized = await runEngine(page, { code: 'async function resolve(){ return "é".repeat(80); }', limits: { outputBytes: 100 } });
+  expect(oversized.error).toBe("output-size");
+  expect(pageErrors).toEqual([]);
+  expect(networkViolations).toEqual([]);
+});
+
+test("restricted CommonJS getStreams and response-like fetch normalize flat streams", async ({ page }) => {
+  const pageErrors = await openEngine(page);
+  const result = await page.evaluate(() => globalThis.__nuvioPluginEngine.runGetStreams({
+    descriptor: { id: "api-regression", name: "api-regression", allowedHosts: ["allowed.example"],
+      code: 'module.exports.getStreams = async function(id, type) { var response = await fetch("https://allowed.example/data"); var body = await response.json(); return [{ url: body.url, description: id + ":" + type + ":" + response.status }]; };' },
+    input: { tmdbId: 603, mediaType: "movie" }
+  }));
+  expect(result.ok).toBe(true);
+  expect(result.groups[0].streams[0].description).toBe("603:movie:200");
+  expect(result.transportCalls).toBe(1);
+  expect(pageErrors).toEqual([]);
+  expect(networkViolations).toEqual([]);
+});
+
+test("restricted API refuses credential headers before dispatch", async ({ page }) => {
+  const pageErrors = await openEngine(page);
+  const result = await page.evaluate(() => globalThis.__nuvioPluginEngine.runGetStreams({
+    descriptor: { id: "api-regression", name: "api-regression", allowedHosts: ["allowed.example"],
+      code: 'module.exports.getStreams = async function() { await fetch("https://allowed.example/data", { headers: { Authorization: "synthetic-must-not-cross" } }); return []; };' }
+  }));
+  expect(result.ok).toBe(false);
+  expect(result.transportCalls).toBe(0);
+  expect(JSON.stringify(result)).not.toContain("synthetic-must-not-cross");
+  expect(pageErrors).toEqual([]);
+  expect(networkViolations).toEqual([]);
+});
+
+test("guest serializers cannot introduce required playback headers after validation", async ({ page }) => {
+  const pageErrors = await openEngine(page);
+  const result = await page.evaluate(() => globalThis.__nuvioPluginEngine.runGetStreams({
+    descriptor: { id: "serializer-regression", name: "serializer-regression", allowedHosts: ["allowed.example"],
+      code: 'module.exports.getStreams = function() { return [{ toJSON() { return { url: "https://media.example/s", headers: { Authorization: "synthetic-required" } }; } }]; };' }
+  }));
+  expect(result.ok).toBe(false);
+  expect(result.error).toBe("output-policy");
+  expect(JSON.stringify(result)).not.toContain("synthetic-required");
   expect(pageErrors).toEqual([]);
   expect(networkViolations).toEqual([]);
 });

@@ -1,6 +1,6 @@
 # Plugin engine browser-bundle evaluation — 2026-10-19
 
-Status: **measurement and decision only; no engine is bundled, served or wired into the application.** Related: [plugin compatibility contract](PLUGIN_COMPATIBILITY.md), [security model](SECURITY_PRIVACY.md).
+Status: **test-only measurement/engine assets; no engine is wired into the application or deployed by this work.** Normal builds omit it; explicit opt-in asset emission is inert plumbing, not execution rollout. Related: [plugin compatibility contract](PLUGIN_COMPATIBILITY.md), [security model](SECURITY_PRIVACY.md).
 
 ## Method
 
@@ -25,7 +25,7 @@ Inlining the WASM as base64 instead of shipping an asset: sync 670,848 B (292,21
 
 ## Decision
 
-1. **Async variant only.** The sandbox's `api.fetch` is an asyncified host function; the sync variant cannot await a brokered host request, which the plugin API requires. The extra ~500 KiB of WASM is the cost of that capability.
+1. **Async variant for the current prototype binding.** Our `api.fetch` uses an asyncified host function, accounting for the extra ~500KiB of measured WASM. This is an implementation choice, not an API requirement: [pinned GYK inspection](agent-runs/2026-10-21-issue11-upstream-review.md) confirms sync QuickJS with deferred guest promises and worker messaging also supports asynchronous I/O. No dependency/engine swap or saving is claimed without new implementation, teardown tests and measurement.
 2. **External WASM asset, not base64.** The external asset is smaller compressed (≈378 KiB vs ≈465 KiB for async) and supports streaming instantiation and normal caching. Base64 would also inflate the main bundle and defeat cache separation.
 3. **Lazy, explicit opt-in only.** The engine must not be part of the initial browser bundle or first paint. It is fetched only when a user explicitly enables JavaScript plugins (default off), so the preview's baseline remains 12 assets. The current measurement shows the incremental opt-in cost honestly rather than hiding it in the main payload.
 4. **No shipping yet.** Unit 6a now proves in-browser execution of the built async engine (Chromium156) with the broker, contract and quota failures asserted; Node tests still exercise the package directly elsewhere. Emission into the staged app under the default-off seam, a CSP decision, broader browser coverage and independent security/dependency review are required first.
@@ -67,3 +67,7 @@ Chromium `156.0.8078.4` on Linux ARM64: `npx playwright test tests/browser/plugi
 The browser run surfaced one classifier gap: an in-VM allocation overshoot arrives as a catchable plugin rejection, which was reported as `plugin`. `pluginSandboxNetworkPrototype.mjs` now applies the same word-bounded OOM classification to rejections, with a retained control that a plain `"boom"` error stays `plugin`. Focused Node prototype/abuse suites: 18/18 and 12/12 pass.
 
 A read-only Codex review found two P1s (symlink output escape, missing cross-origin test guard) and three P2s; all were fixed, with symlink-escape and external-request regressions added and the recorded JS hash refreshed (see [the review record](agent-runs/2026-10-19-unit6a-review.md)). Full verification: `npm test --prefix app/alpha` 1237/1237 pass (0 skipped, 15.1s); `npm run lint --prefix app/alpha` pass; inert build + `node scripts/check-alpha-build.mjs` pass with **12 assets and no engine files**; full `npx playwright test` 51/51 pass (1.6min). These are test-only assets: no application import, feature flag exposure, stager emission or preview change. Shipping still requires the unit 6b seam, CSP decision, independent security/dependency review and owner-gated rollout.
+
+## Continuation fixture asset — 2026-10-21
+
+Corrected test-only source `2dbe2da`, Node22.23.1: explicit browser fixture builder emits JS **73,000B**, SHA-256 `a7e95c6f50c5f94cf61ef8f4a739c506641fbf8d616bf7f854b0909a5c1fb132`; unchanged external WASM **1,027,523B**, SHA-256 `b790f3842eef48d154984cea48d35303b5c3c3696fedab4dc79f314bde005dba`; total **1,100,523B raw**. New session, restricted getStreams adapter and lifecycle fixture are included only in this opt-in entry, not the default bundle. This is a new fixture-bundle measurement, not a change to the historical engine-only table or a measured transfer/gzip claim. Chromium156 on LinuxARM64 executes16/16 fixture tests; no real provider/media/device claim. [Evidence](evidence/issue11-bounded-lifecycle-2026-10-21.md). Default inert build still12 assets, no upload.

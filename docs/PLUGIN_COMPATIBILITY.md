@@ -1,14 +1,14 @@
 # Nuvio JavaScript plugin compatibility — contract and status
 
-Status: **bounded contract plus a test-only engine prototype; execution is not shipped and no plugin is supported yet.** Last updated 2026-10-19.
+Status: **internal synthetic contract plus a test-only engine prototype; execution is not shipped and no actual Nuvio JS plugin is supported yet.** Last updated 2026-10-21.
 
-This document defines the bounded shapes that a future sandboxed plugin runtime must accept and return. It is deliberately narrower than "Nuvio JS plugin compatibility": nothing here executes third-party code, performs network requests, reads storage or touches the DOM. The inherited `pluginRuntime.js` remains a URL-template feature and is unchanged.
+This document defines our experimental policy envelope, **not an upstream Nuvio API-v1 contract**. The QuickJS prototype executes original regression code with an injected in-memory transport, not installed third-party plugins or real provider streams. The inherited `pluginRuntime.js` remains a URL-template feature and is unchanged. [Pinned upstream/API/license comparison](agent-runs/2026-10-21-issue11-upstream-review.md).
 
 ## Why execution is not implemented yet
 
 - [SECURITY_PRIVACY.md](SECURITY_PRIVACY.md) states that a browser Worker alone is insufficient for arbitrary trusted isolation. A Worker can still reach worker-global `fetch`, and same-origin storage or message channels create escape paths that static code review cannot reliably close.
 - The credible options are an engine-level sandbox (QuickJS compiled to WASM with only injected bindings) or a cross-origin isolated container. Both need a dependency/licensing review, a bundle-size decision, a network broker design and a cancellation model before any untrusted code runs.
-- The repository has no reviewed GYK/QuickJS integration, dependency or license today. Adding one is a separate, security-sensitive unit.
+- QuickJS0.32.0 is pinned as a devDependency and its installed MIT notices were inspected; no GYK source was imported. The test-only prototype and separately opt-in asset builder are not a reviewed shipped integration. Actual GYK uses CommonJS/global `getStreams(...)`, flat results and response-like global fetch, unlike this internal resolve/api.fetch contract.
 
 ## Descriptor contract
 
@@ -105,7 +105,7 @@ This corpus caught a real classifier bug: `/oom/` matched inside the word "boom"
 
 ## Engine bundle cost (measured 2026-10-19)
 
-The asyncified QuickJS variant — required because `api.fetch` must await a brokered host call — measures **1,083,888 B raw / ≈377,955 B gzip** as JavaScript plus its `emscripten-module.wasm` asset; inlining the WASM as base64 would cost ≈464,960 B gzip. The sync variant is smaller (554,608 B raw) but cannot await host requests. Decision: async variant, external WASM asset, lazy-loaded only when the default-off plugin feature is explicitly enabled, never in the initial bundle. Full numbers, method and shipping requirements: [engine evaluation](PLUGIN_ENGINE_EVALUATION.md).
+The asyncified QuickJS variant — used by our current asyncified binding, **not inherently required for asynchronous plugin I/O** (GYK instead uses sync QuickJS plus deferred guest promises) — historically measures **1,083,888 B raw / ≈377,955 B gzip** as JavaScript plus its `emscripten-module.wasm` asset; inlining the WASM as base64 would cost ≈464,960 B gzip. The sync variant is smaller (554,608 B raw) but cannot await host requests. Decision: async variant, external WASM asset, lazy-loaded only when the default-off plugin feature is explicitly enabled, never in the initial bundle. Full numbers, method and shipping requirements: [engine evaluation](PLUGIN_ENGINE_EVALUATION.md).
 
 ## Guarantees and limits
 
@@ -121,4 +121,16 @@ Revert the contract module, tests, fixture and this document through a protected
 
 The opt-in asset builder and `tests/browser/plugin-engine.spec.mjs` execute the real broker-bound QuickJS prototype from bundled JS + external WASM in Chromium156.0.8078.4 on Linux ARM64. 9/9 browser scenarios pass: the representative fixture normalizes one group/one stream and drops its `javascript:` URL; host globals are absent; an allowed synthetic fetch works through the broker; a denied host dispatches nothing; timeout, memory and output-size budgets fail closed; an unexpected external request is blocked and recorded; no page errors. The builder rejects output paths that escape through a symlink, and the representative test asserts the browser's actual `application/wasm` response. Asset hashes, MIME types and sizes are recorded in [the engine evaluation](PLUGIN_ENGINE_EVALUATION.md).
 
-This remains test-only: the engine is not imported by the application, not exposed behind a feature flag, not emitted by the normal build or stager, and not part of the preview. No plugin is shipped, compatible or supported; a future default-off seam and independent security review are still required.
+This remains test-only: the engine is not imported by the application or part of the preview. Later unit6b-1 permits **explicit opt-in** build/stager emission of inert, hash-validated assets; the normal build emits none. No plugin is shipped, compatible or supported.
+
+## Bounded lifecycle continuation — 2026-10-21
+
+The broker now validates finite integer ceiling-bounded budgets, charges each redirect-hop dispatch, accounts aggregate UTF-8 response bytes (including redirects), and propagates AbortSignal to the injected transport. Abort races also settle an uncooperative transport; late completion cannot re-enter the disposed VM. These caps are **after transport materialization**, not streamed-download/host-allocation/DNS-rebinding guarantees. No real transport is supplied.
+
+The network prototype validates execution budgets, bounds serialized input/output in UTF-8 bytes, aborts transport at deadline/cancellation, and removes timers/listeners on teardown. A catchable guest denial cannot turn cancellation into success. Deadline applies after WASM startup; same-thread AbortSignal cannot preempt synchronous guest work until the event loop runs, so QuickJS's deadline remains the synchronous-loop bound. Already-dispatched remote work cannot be undone by abort.
+
+`pluginPrototypeSession.mjs` is an **unshipped, test-only** lifecycle seam: only literal `enabled:true` opts in, lazy load follows descriptor/host/quota gates, descriptor hosts must be approved by trusted host policy, one active run, session-lifetime execution/failure ceilings, terminal disable, no raw logs returned, and only allowlisted media-identity input fields. It has no account/session credentials, app setting, persistent per-account/global budget, real fetch, or UI. Recreating a session resets its counters; this is not a persistent abuse boundary.
+
+`pluginGetStreamsPrototype.mjs` adds a **test-only restricted adapter** for CommonJS `module.exports.getStreams` / global fallback, positional media identity, flat stream arrays and GET response-like `ok/status/url/text()/json()`. It still uses the same broker. No headers/statusText API, request headers/body/POST/credentials/guest signals, require/HTML/crypto/settings/TMDB key injection, subtitles/infoHash or object-valued URLs. Requests with unsupported options and results requiring unsupported metadata fail rather than silently dropping needed playback controls. This is original upstream-shaped regression code, not a real installed plugin or a general compatibility claim.
+
+The [continuation evidence](evidence/issue11-bounded-lifecycle-2026-10-21.md) records exact commands, failures/corrections and layers. Synthetic normalized URLs are not real playable/provider acceptance. Actual installed-JS-plugin availability, getStreams/flat-result/global-fetch compatibility, reviewed real transport and application rollout remain unverified; #11 must remain open.
