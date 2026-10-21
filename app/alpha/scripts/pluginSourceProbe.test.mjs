@@ -37,6 +37,13 @@ test("source probe reports actual missing API name without raw error/log output"
   assert.doesNotMatch(JSON.stringify(result), /private-canary|is not defined/);
 });
 
+test("source probe classifies caught missing API in a prefixed provider log without exporting it", async () => {
+  const result = await run('module.exports.getStreams=function(){try {new URLSearchParams();} catch(e) {console.error("private-canary: "+e.message);}return [];};');
+  assert.equal(result.actual.ok,true);
+  assert.equal(result.diagnostic.observation.missingApi,"URLSearchParams");
+  assert.doesNotMatch(JSON.stringify(result),/private-canary|is not defined/);
+});
+
 test("source probe rejects injected diagnostic secret fields before export", async () => {
   const result = await run('__probe.missingApi="private-canary"; module.exports.getStreams = function() { return []; };');
   assert.equal(result.diagnostic.ok, false);

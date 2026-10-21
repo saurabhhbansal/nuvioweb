@@ -71,7 +71,7 @@ test("global getStreams fallback and GET response text/json/status use the broke
 test("approved guest headers and follow mode cross bounded JSON bridge and redirects", async () => {
   const calls = [];
   const result = await run(`module.exports.getStreams = async function() {
-    var response = await fetch("https://allowed.example/start", { headers: { Accept: "application/json" }, redirect: "follow" });
+    var response = await fetch("https://allowed.example/start", { headers: { Accept: "application/json", Connection:"keep-alive", "Keep-Alive":"timeout=5", "Proxy-Connection":"keep-alive" }, redirect: "follow" });
     return [{ url: (await response.json()).url }];
   };`, {
     headerPolicy: { "allowed.example": ["Accept"] }, resolveHost: async () => ["93.184.216.34"],

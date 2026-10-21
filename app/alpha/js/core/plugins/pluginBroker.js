@@ -87,7 +87,7 @@ export function createPluginNetworkBroker({
       if (requestCount >= maxRequests) return { ok: false, error: "requests" };
       const validatedHeaders = pluginRequestHeaders(options.headers, current.hostname, headersAllowed, authorize);
       if (validatedHeaders.error) return { ok: false, error: validatedHeaders.error };
-      if ((Object.keys(validatedHeaders.headers).length || options.redirect !== undefined) && !resolveHost) return { ok: false, error: "dns-policy" };
+      if ((Object.keys(validatedHeaders.headers).length || (options.headers && Object.keys(options.headers).length) || options.redirect !== undefined) && !resolveHost) return { ok: false, error: "dns-policy" };
       // Every authorized dispatch, including redirects and failures, consumes
       // budget. Reserve synchronously so concurrent calls cannot oversubscribe.
       requestCount += 1;

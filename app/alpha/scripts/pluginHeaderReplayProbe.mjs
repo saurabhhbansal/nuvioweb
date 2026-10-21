@@ -1,6 +1,7 @@
 // Manual-only, deterministic synthetic replay. No live provider transport.
 import assert from "node:assert/strict";
 import { acquirePublicSource, probePluginSource } from "./pluginSourceProbe.mjs";
+import { approvePinnedProviderDestinations } from "./pluginProviderDestinations.mjs";
 const tap = "https://raw.githubusercontent.com/phisher98/nuvio-providers/6f88d1c6bddabf30d0768d76224d600ac32bab7c/providers/";
 const pins = [
   ["xprime", tap + "xprime.js", 36936, "279882bcb321cde7e57722251ae2b96fda8e9549b0cb17e78cc8d44866e1e150", ["xprime.tv", "api.themoviedb.org"]],
@@ -25,7 +26,10 @@ const streams = JSON.stringify({ streams: ["1080p", "2160p"].map(quality => ({
 const sources = [];
 for (let i = 0; i < pins.length; i += 2) sources.push(...await Promise.all(pins.slice(i, i + 2).map(async ([id, url, bytes, sha256, hosts]) => ({ id, hosts, source: await acquirePublicSource(url, { bytes, sha256 }) }))));
 const providers = [];
-for (const { id, hosts, source } of sources) {
+for (const { id, hosts: initialHosts, source } of sources) {
+  const approval = id === "xprime" ? approvePinnedProviderDestinations({ id, source }) : { ok:true, hosts:initialHosts };
+  assert.equal(approval.ok, true, "verified provider declaration");
+  const hosts = approval.hosts;
   const dispatches = [], lookups = [];
   const resolveHost = async host => { assert.ok(hosts.includes(host)); lookups.push(host); return ["93.184.216.34"]; };
   const transport = async (raw, options) => {
@@ -40,6 +44,16 @@ for (const { id, hosts, source } of sources) {
     }
     if (url.hostname === "api.themoviedb.org" && url.pathname === "/__fixture/metadata.json") {
       event.route = "metadata"; event.status = 200; return { status: 200, body: metadata };
+    }
+    if (id === "xprime" && url.hostname === "raw.githubusercontent.com" && url.pathname === "/phisher98/TVVVV/refs/heads/main/domains.json") {
+      event.route = "declared-domain-catalog"; event.status = 200; return { status:200, body:"{}" };
+    }
+    if (id === "xprime" && url.hostname === "enc-dec.app" && url.pathname === "/api/enc-xprime") {
+      event.route = "synthetic-service-result"; event.status = 200; return { status:200, body:JSON.stringify({result:"synthetic-not-a-real-challenge-token"}) };
+    }
+    if (id === "vixsrc" && url.hostname === "vixsrc.to" && url.pathname === "/movie/453405") {
+      event.route = "synthetic-player-page"; event.status = 200;
+      return { status:200, body:"<html><script>window.masterPlaylist={url:'https://vixsrc.to/__fixture/master.m3u8',token:'synthetic',expires:'1900000000'};</script></html>" };
     }
     if (url.hostname === "pengu.uk" && /\/stream\/movie\/(?:tt1386697|453405|tmdb:453405)\.json$/.test(url.pathname)) {
       event.route = "stream-list"; event.status = 200; return { status: 200, body: streams };
@@ -58,15 +72,24 @@ for (const { id, hosts, source } of sources) {
     assert.equal(result.actual.error, "playback-headers");
   }
   if (id === "hdhub4u") { assert.equal(observed.bootstrapOk, false); assert.equal(observed.observedImport, "cheerio-without-node-native"); }
-  if (id === "vixsrc") { assert.deepEqual(observed.networkRefusals, ["header-policy"]); assert.ok(observed.observedHeaderNames.includes("connection")); }
-  if (id === "xprime") assert.deepEqual(observed.networkRefusals, ["host"]);
+  if (id === "vixsrc") {
+    assert.equal(observed.rows, 1); assert.equal(observed.rowsWithHeaders, 1);
+    assert.equal(result.actual.error, "playback-headers");
+    assert.deepEqual(observed.networkRefusals, ["host"]); // Optional subtitle lookup, not the removed Connection gate.
+    assert.ok(observed.observedHeaderNames.includes("connection"));
+    assert.ok(dispatches.every(event => !event.headers.includes("connection")));
+  }
+  if (id === "xprime") { assert.equal(observed.rows, 0); assert.deepEqual(observed.networkRefusals, []); assert.equal(observed.missingApi, "URLSearchParams"); }
   const actualEvents = dispatches.slice(0, result.actual.transportDispatches);
   providers.push({
     id, sourceBytes: source.bytes, sourceSha256: source.sha256, sourceChanged: false,
     getStreamsInvoked: observed.entryFunction, rawRowsFromSeparateDiagnosticVm: observed.rows,
     rawRowsWithPlaybackHeaders: observed.rowsWithHeaders, adapterAcceptedRows: result.actual.normalizedRows,
     adapterError: result.actual.error, diagnosticRefusals: observed.networkRefusals,
-    importRefused: observed.observedImport, observedHeaderNames: observed.observedHeaderNames,
+    importRefused: observed.observedImport, missingApi: observed.missingApi,
+    unsupportedRequestRejections: observed.unsupportedRequestRejections,
+    destinationApproval: id === "xprime" ? "reviewed-provider-declaration-bound-to-source-sha256" : "existing-trusted-policy",
+    approvedHosts: hosts, observedHeaderNames: observed.observedHeaderNames,
     usedHeaderNames: [...new Set(actualEvents.flatMap(e => e.headers))].sort(),
     usedHosts: [...new Set(actualEvents.map(e => e.host))].sort(),
     dispatches: { adapter: result.actual.transportDispatches, diagnostic: result.diagnostic.transportDispatches },
