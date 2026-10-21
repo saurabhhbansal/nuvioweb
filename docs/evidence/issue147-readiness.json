@@ -29,9 +29,31 @@
     "actual selected-source capability",
     "other Dolby Vision profiles/layers",
     "executable job-specific optional-processing consent",
-    "owner host /hdrprobe unavailable in this workspace"
+    "owner host /hdrprobe unavailable in this workspace",
+    "global nonblocking acceptance failed; overlay intercepts source-retry clicks"
   ],
-  "integration": "pending exact-head required checks",
+  "integration": {
+    "pr": 157,
+    "sourceHead": "7acdfd02827a620cb207e2ee0b45183b37f25dd1",
+    "state": "draft, unmerged",
+    "requiredChecksAtSourceHead": {
+      "docs": "pass",
+      "baseline": "pass",
+      "governance": "pass",
+      "smoke": "fail"
+    },
+    "smoke": {
+      "passed": 94,
+      "failed": 5,
+      "causes": [
+        "three unscoped status-locator collisions",
+        "two source-retry click interceptions by readiness overlay"
+      ],
+      "laterEngines": "skipped"
+    },
+    "rerun": "none requested; documentation-head automatic CI not verified",
+    "protection": "unchanged; no bypass"
+  },
   "localGates": {
     "build": "inert fixture pass",
     "lint": "pass",
