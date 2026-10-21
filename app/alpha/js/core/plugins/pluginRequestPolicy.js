@@ -17,15 +17,31 @@ export function pluginRequestHeaders(raw, host, policy, authorize) {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return { error: "header-shape" };
   const entries = Object.entries(raw);
   if (entries.length > 16) return { error: "header-size" };
-  const headers = {};
+  const headers = {}, normalized = new Map();
+  const token = /^[!#$%&'*+.^_`|~0-9a-z-]+$/i;
+  const discarded = new Set(["connection", "keep-alive", "transfer-encoding", "upgrade", "te", "trailer"]);
   let bytes = 0;
+  // Validate even discarded entries: dropping metadata must not bypass budgets,
+  // credential refusal, duplicate or injection checks.
   for (const [key, value] of entries) {
     const name = key.toLowerCase();
-    if (!HEADER_NAMES.has(name) || !policy.get(host)?.has(name)) return { error: "header-policy" };
-    if (Object.hasOwn(headers, name)) return { error: "header-duplicate" };
+    if (!token.test(name) || ["cookie", "authorization", "proxy-authorization"].includes(name)) return { error: "header-policy" };
+    if (normalized.has(name)) return { error: "header-duplicate" };
     if (typeof value !== "string" || /[^\x20-\x7e]/.test(value)) return { error: "header-value" };
     bytes += key.length + value.length + 4;
     if (value.length > 1024 || bytes > 8192) return { error: "header-size" };
+    normalized.set(name, value);
+  }
+  if (normalized.has("connection")) {
+    for (const item of normalized.get("connection").split(",")) {
+      const name = item.trim().toLowerCase();
+      if (!token.test(name)) return { error: "header-value" };
+      discarded.add(name);
+    }
+  }
+  for (const [name, value] of normalized) {
+    if (discarded.has(name) || name.startsWith("proxy-")) continue;
+    if (!HEADER_NAMES.has(name) || !policy.get(host)?.has(name)) return { error: "header-policy" };
     if (name === "origin" || name === "referer") {
       const checked = authorize(value);
       if (checked.error || checked.url.search || checked.url.hash || (name === "origin" && value !== checked.url.origin)) return { error: "header-origin" };

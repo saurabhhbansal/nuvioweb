@@ -31,6 +31,34 @@ test("trusted per-host header policy forwards only validated guest headers", asy
   assert.deepEqual(sent.addresses, ["93.184.216.34"]);
 });
 
+test("hop-by-hop metadata is discarded without authorizing nominated credentials", async () => {
+  const sent = [];
+  const broker = brokerWith(async (_url, options) => { sent.push(options); return {status:200,body:"ok"}; }, {
+    headerPolicy: {"media.example.com":["Accept","User-Agent"]}, resolveHost:async()=>["93.184.216.34"]
+  });
+  const headers = {Accept:"application/json","User-Agent":"Fixture/1",Connection:"Keep-Alive, X-Hop, Accept", "Keep-Alive":"timeout=5", "Transfer-Encoding":"chunked", Upgrade:"websocket", TE:"trailers", Trailer:"X-Checksum", "Proxy-Connection":"keep-alive", "X-Hop":"discard me"};
+  assert.equal((await broker.request("https://media.example.com/a",{headers})).ok,true);
+  assert.deepEqual(sent[0].headers,{"user-agent":"Fixture/1"});
+  for (const name of ["Authorization","Cookie","Proxy-Authorization"]) {
+    assert.equal((await broker.request("https://media.example.com/a",{headers:{Connection:name,[name]:"private"}})).error,"header-policy");
+  }
+  assert.equal(sent.length,1);
+  assert.equal((await brokerWith(async()=>({status:200,body:""})).request("https://media.example.com/a",{headers:{Connection:"keep-alive"}})).error,"dns-policy");
+});
+
+test("discarded transport metadata still obeys syntax duplicate count and byte limits", async () => {
+  let calls = 0;
+  const broker = brokerWith(async()=>{calls++;return {status:200,body:""};}, {resolveHost:async()=>["93.184.216.34"]});
+  for (const [headers,error] of [
+    [{Connection:"keep-alive\r\nX: bad"},"header-value"], [{Connection:"keep-alive",connection:"upgrade"},"header-duplicate"],
+    [{Connection:"Accept, bad token"},"header-value"], [{"Keep-Alive":"x".repeat(1025)},"header-size"],
+    [Object.fromEntries(Array.from({length:17},(_,i)=>[`Proxy-${i}`,"x"])),"header-size"],
+    [Object.fromEntries(Array.from({length:9},(_,i)=>[`Proxy-${i}`,"x".repeat(1000)])),"header-size"],
+    [{"Proxy-Authorization":"secret"},"header-policy"]
+  ]) assert.equal((await broker.request("https://media.example.com/a",{headers})).error,error);
+  assert.equal(calls,0);
+});
+
 test("header credential, syntax, duplicate, value, size and policy violations dispatch nothing", async () => {
   let calls = 0;
   const broker = brokerWith(async () => { calls++; return { status: 200, body: "" }; }, {

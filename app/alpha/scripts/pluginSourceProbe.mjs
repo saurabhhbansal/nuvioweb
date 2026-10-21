@@ -64,7 +64,8 @@ function __classify(e) {
   var network = /plugin-network:([a-z-]+)/.exec(message);
   if (network && ${JSON.stringify(refusalNames)}.indexOf(network[1]) !== -1 && __probe.networkRefusals.indexOf(network[1]) === -1) __probe.networkRefusals.push(network[1]);
   ${JSON.stringify(apis)}.forEach(function(name) {
-    if (message === name + ' is not defined' || message === "'" + name + "' is not defined" || message === 'ReferenceError: ' + name + ' is not defined') {
+    var forms = [name + ' is not defined', "'" + name + "' is not defined"];
+    if (forms.some(function(form) { return message === form || message.endsWith(': ' + form); })) {
       __probe.missingApi = name;
       if (__probe.missingGlobals.indexOf(name) === -1) __probe.missingGlobals.push(name);
     }
