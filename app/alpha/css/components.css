@@ -21691,3 +21691,28 @@ html[data-card-depth="true"][data-card-depth-trailers="true"] .detail-trailer-ca
   outline: 2px solid rgba(255, 255, 255, 0.9);
   outline-offset: 2px;
 }
+
+/* Device prediction corrections are sibling actions, never nested play targets. */
+.stream-route-source-correction {
+  min-height: 44px;
+  padding: 8px 16px;
+  margin: 4px 0 12px;
+  max-width: 100%;
+  border: 1px solid var(--text-secondary);
+  border-radius: 8px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 16px;
+  white-space: normal;
+  cursor: pointer;
+}
+.stream-route-source-correction:hover { text-decoration: underline; }
+.stream-route-source-correction:focus-visible { outline: 2px solid var(--text-primary); outline-offset: 3px; }
+.source-device-ranking { font-weight: 600; }
+
+.stream-route-card-row:has(> .stream-route-source-correction) {
+  flex-direction: column;
+  align-items: stretch;
+}
+.stream-route-source-correction { align-self: flex-start; flex: 0 0 auto; }

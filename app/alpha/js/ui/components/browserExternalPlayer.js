@@ -187,12 +187,12 @@ export function assessBrowserExternalHandoff({ mediaUrl, source, subtitle, subti
   ])];
   const declared = descriptors.some((entry) => Number(entry?.requiredHeaderCount || entry?.sourceDescriptor?.requiredHeaderCount) > 0) ||
     maps.some((map) => map != null && (typeof map !== "object" || Object.keys(map).length > 0));
-  if (declared) return { allowed: false, reason: "This source or subtitle requires request headers. These URL-only hand-offs cannot deliver them. Choose another source or ask the provider for a self-authorizing URL." };
+  if (declared) return { allowed: false, code: "headers-required", reason: "This source or subtitle requires request headers. These URL-only hand-offs cannot deliver them. Choose another source or ask the provider for a self-authorizing URL." };
   if (descriptors.some((entry) => entry?.behaviorHints?.notWebReady === true || entry?.behaviorHints?.notWebReady === "true")) {
-    return { allowed: false, reason: "The provider marks this source as not web-ready. Its request requirements are unverified; choose another source for URL-only hand-off." };
+    return { allowed: false, code: "not-web-ready", reason: "The provider marks this source as not web-ready. Its request requirements are unverified; choose another source for URL-only hand-off." };
   }
   if (!isTransferableExternalMediaUrl(mediaUrl) || (subtitleUrl && !isTransferableExternalMediaUrl(subtitleUrl))) {
-    return { allowed: false, reason: "Only HTTP(S) stream and subtitle links without embedded login credentials can leave this browser. Choose another source." };
+    return { allowed: false, code: "invalid-url", reason: "Only HTTP(S) stream and subtitle links without embedded login credentials can leave this browser. Choose another source." };
   }
   return { allowed: true, reason: "URL only: browser cookies and request headers are not transferred." };
 }

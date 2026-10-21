@@ -10,6 +10,8 @@ Issue [#148](https://github.com/saurabhhbansal/nuvioweb/issues/148) (2026-10-21)
 
 Issue [#147](https://github.com/saurabhhbansal/nuvioweb/issues/147) is separately **in progress**: nonblocking readiness notice, exact sample/API predictions and purpose-specific optional storage request; [single plan/evidence](docs/plans/issues/issue-147.md), [receipt](docs/evidence/issue147-readiness.json). No device/output certification or deployment; executable processing-purpose consent remains outstanding. Historical source-head smoke failure94/99 retained. PR157 correction uses a static trailing footer/inert slot and exact scoped statuses; local affected journeys17/17 pass, including unchanged control geometry and present/dismissed retries/playback at desktop/narrow widths. Exact-head/merge results are authoritative in PR157. Earlier counts are historical.
 
+Issue [#149](https://github.com/saurabhhbansal/nuvioweb/issues/149): device-aware default ranking, honest route/reason lines and reversible memory-only failure corrections; every original source remains selectable. [Single plan/evidence](docs/plans/issues/issue-149.md), [receipt](docs/evidence/issue149-ranking.json). Verification/integration pending; no deployment or real-device certification.
+
 | Ticket | State | Dependencies | Evidence or precise limitation |
 | --- | --- | --- | --- |
 | [#1](https://github.com/saurabhhbansal/nuvioweb/issues/1) [M0][P0] Validate upstream licenses, provenance, and import strategy | verified | None | PR #27; acceptance/verification in linked ledger documents |

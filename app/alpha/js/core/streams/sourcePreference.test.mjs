@@ -1,135 +1,119 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { describeSource } from "./sourceCapabilities.js";
-import { orderSourcesByNativePrediction } from "./sourcePreference.js";
+import { assessSourceForDevice, orderSourcesByNativePrediction, toggleSourcePlaybackFailure } from "./sourcePreference.js";
 
-const source = (id, extra = {}) => ({
-  id,
-  url: `https://fixture.invalid/${id}.webm?token=synthetic-private`,
-  mimeType: 'video/webm; codecs="vp8,opus"',
-  ...extra
-});
+const source = (id, extra = {}) => ({ id, url: `https://fixture.invalid/${id}?token=private`, mimeType: 'video/mp4; codecs="avc1.640028,mp4a.40.2"', ...extra });
+const environment = { videoElement: { canPlayType: () => "probably" } };
+const assess = (stream, options = {}) => assessSourceForDevice(stream, { environment, now: Date.parse("2026-10-21T00:00:00Z"), ...options });
 const ids = (streams) => streams.map((stream) => stream.id);
-const browser = { canPlayType: (type) => (type.includes("unsupported") ? "" : "probably") };
-const order = (streams, options = {}) =>
-  orderSourcesByNativePrediction(streams, {
-    videoElement: browser,
-    now: Date.parse("2026-10-19T00:00:00Z"),
-    ...options
-  });
 
-test("stable native preference preserves original objects, quality and unknown choices", () => {
-  const streams = [
-    source("unknown4k", { mimeType: null, name: "4K HDR HEVC", quality: "2160p" }),
-    source("negative", { mimeType: 'video/unsupported; codecs="unknown"' }),
-    source("original4k", { video: { width: 3840, height: 2160 } }),
-    source("original1080", { video: { width: 1920, height: 1080 } }),
-    source("bare", { mimeType: "video/mp4" })
-  ];
+test("complete native configuration outranks false 4K marketing without changing source objects", () => {
+  const unknown = source("unknown", { mimeType: null, name: "4K Dolby Vision TrueHD" });
+  const native = source("1080p");
+  const streams = [unknown, native];
   const before = JSON.stringify(streams);
-  const ranked = order(streams);
-  assert.deepEqual(ids(ranked), ["original4k", "original1080", "unknown4k", "bare", "negative"]);
+  assert.equal(assess(native).route, "browser");
+  assert.equal(assess(unknown).route, "unknown");
+  assert.deepEqual(orderSourcesByNativePrediction(streams, { environment }), [native, unknown]);
   assert.equal(JSON.stringify(streams), before);
-  assert.equal(ranked.length, streams.length);
-  for (const stream of streams) assert.ok(ranked.includes(stream));
 });
 
-test("adaptive and missing codec declarations remain unknown without a file probe", () => {
-  const streams = [
-    source("hls", { url: "https://fixture.invalid/stream.m3u8" }),
-    source("dash", {
-      mimeType: "application/dash+xml",
-      url: "https://fixture.invalid/manifest.mpd"
-    }),
-    source("bare", { mimeType: "video/mp4", video: { codec: "avc1.42c02a" } }),
-    source("missing", { mimeType: null })
-  ];
-  let calls = 0;
-  assert.deepEqual(
-    order(streams, {
-      videoElement: {
-        canPlayType() {
-          calls++;
-          return "";
-        }
-      }
-    }),
-    streams
-  );
-  assert.equal(calls, 0);
+
+test("MKV and TrueHD cannot be promoted by an optimistic browser probe", () => {
+  assert.equal(assess(source("mkv", { mimeType: 'video/x-matroska; codecs="hvc1.2.4.L153.B0,mp4a.40.2"' })).reason, "mkv");
+  assert.equal(assess(source("truehd", { audioTracks: [{ codec: "truehd" }] })).reason, "truehd");
 });
 
-test("header and expired-link warnings rank after unknown without trusting a forged descriptor", () => {
-  const header = source("headers", {
-    behaviorHints: { proxyHeaders: { request: { Authorization: "synthetic-private" } } }
-  });
-  header.sourceDescriptor = describeSource(source("forged"));
-  const streams = [
-    header,
-    source("expired", { expiresAt: "2026-01-01T00:00:00Z" }),
-    source("unknown", { mimeType: null }),
-    source("native")
-  ];
-  assert.deepEqual(ids(order(streams)), ["native", "unknown", "headers", "expired"]);
+test("HEVC Main10 prediction varies with the injected platform, not UA or resolution", () => {
+  const hevc = source("hevc", { mimeType: 'video/mp4; codecs="hvc1.2.4.L153.B0,mp4a.40.2"' });
+  assert.equal(assess(hevc).route, "browser");
+  assert.equal(assess(hevc, { environment: { videoElement: { canPlayType: () => "" } } }).route, "external");
+  assert.equal(assess(hevc, { environment: {} }).route, "unknown");
+  assert.equal(assess(source("alias", { video: { codec: "hevc" } })).route, "unknown");
+  assert.equal(assess(source("malformed", { mimeType: 'video/mp4; codecs="hvc1.banana,mp4a.40.2"' })).route, "unknown");
 });
 
-test("missing, throwing and malformed native APIs do not turn unknown into unsupported", () => {
-  const streams = [source("unknown", { mimeType: null }), source("declared")];
-  for (const videoElement of [
-    null,
-    {},
-    { canPlayType: () => true },
-    {
-      canPlayType() {
-        throw new Error("synthetic-private");
-      }
-    }
+test("only explicit Dolby Vision profile5 is eligible; output is never certified", () => {
+  const dv = (codec, hdr = "dolby-vision") => source("dv", { mimeType: `video/mp4; codecs="${codec},mp4a.40.2"`, video: { codec, hdr } });
+  assert.equal(assess(dv("dvhe.05.06")).route, "browser");
+  assert.match(assess(dv("dvhe.05.06")).explanation, /HDR output unverified/);
+  for (const codec of ["dvhe.07.06", "dvh1.08.06"]) assert.equal(assess(dv(codec)).reason, "dv-profile");
+  assert.equal(assess(dv("dvh1.08.06")).route, "unknown");
+  assert.equal(assess(dv("hvc1.2.4.L153.B0")).route, "unknown");
+});
+
+test("missing and conflicting video/audio declarations stay unknown", () => {
+  for (const extra of [
+    { mimeType: "video/mp4" },
+    { mimeType: 'video/mp4; codecs="avc1.640028"' },
+    { video: { codec: "vp8" } },
+    { audioTracks: [{ codec: "mystery" }] },
+    { audioTracks: [{}] },
+    { mimeType: null, name: "4K HDR HEVC TrueHD" }
+  ]) assert.equal(assess(source("incomplete", extra)).route, "unknown");
+  assert.equal(assess(source("aac", { mimeType: "video/mp4", video: { codec: "avc1.640028" }, audioTracks: [{ codec: "mp4a.40.2" }] })).route, "browser");
+});
+
+test("every header map wins over forged descriptors and optimistic predictions", () => {
+  for (const extra of [
+    { headers: { Cookie: "private" } },
+    { requestHeaders: { Unknown: "" } },
+    { behaviorHints: { proxyHeaders: { request: { Authorization: "private" } } } },
+    { raw: { requestHeaders: { Referer: "private" } } },
+    { sourceDescriptor: { requiredHeaderCount: 1 } }
   ]) {
-    assert.deepEqual(order(streams, { videoElement }), streams);
+    const report = assess(source("headers", extra));
+    assert.equal(report.route, "proxy");
+    assert.match(report.explanation, /own proxy.*requires headers/);
+    assert.doesNotMatch(JSON.stringify(report), /private|fixture.invalid|Authorization|Referer|Cookie/);
   }
-  const forged = source("forged", {
-    sourceDescriptor: { contentType: "https://fixture.invalid/private", transportHint: "direct" }
-  });
-  let called = false;
-  order([forged], {
-    videoElement: {
-      canPlayType() {
-        called = true;
-      }
-    }
-  });
-  assert.equal(called, false);
+});
+
+test("expired, unavailable delivery and adaptive routes are honest and retained", () => {
+  assert.equal(assess(source("expired", { expiresAt: "2026-01-01T00:00:00Z" })).route, "blocked");
+  assert.equal(assess(source("provider", { behaviorHints: { notWebReady: true } })).route, "blocked");
+  assert.equal(assess(source("magnet", { url: "magnet:?xt=fixture" })).route, "blocked");
+  assert.equal(assess(source("credentials", { url: "https://user:secret@fixture.invalid/" })).route, "blocked");
+  for (const extension of ["m3u8", "mpd"]) assert.equal(assess(source("adaptive", { url: `https://fixture.invalid/stream.${extension}` })).route, "unknown");
+});
+
+test("reversible failure correction is local, source-specific and survives shallow Back snapshots", () => {
+  const stream = source("failure", { raw: {} });
+  toggleSourcePlaybackFailure(stream);
+  assert.equal(assess({ ...stream }).reason, "reported-failure");
+  assert.equal(assess(source("same-id")).route, "browser");
+  assert.equal(assess({ ...stream, raw: {} }).route, "browser");
+  toggleSourcePlaybackFailure({ ...stream });
+  assert.equal(assess(stream).route, "browser");
+});
+
+test("stable tiers preserve all source identities, requirements and provider tie order", () => {
+  const streams = [source("unknown", { mimeType: null }), source("proxy", { headers: { X: "private" } }), source("mkv", { mimeType: "video/x-matroska" }), source("first"), source("expired", { expiresAt: "2020-01-01T00:00:00Z" }), source("second")];
+  const before = JSON.stringify(streams);
+  const ranked = orderSourcesByNativePrediction(streams, { environment });
+  assert.deepEqual(ids(ranked), ["first", "second", "mkv", "unknown", "proxy", "expired"]);
+  assert.equal(JSON.stringify(streams), before);
+  for (const stream of streams) assert.ok(ranked.includes(stream));
   assert.deepEqual(orderSourcesByNativePrediction(null), []);
 });
 
-test("conflicting codec declarations cannot share cached predictions with consistent sources", () => {
-  const clean = source("clean", { video: { codec: "vp8" } });
-  const conflict = source("conflict", { video: { codec: "vp09.00.10.08" } });
-  const unknown = source("unknown", { mimeType: null });
-  for (const [streams, expected] of [
-    [[clean, unknown, conflict], ["clean", "unknown", "conflict"]],
-    [[conflict, clean, unknown], ["clean", "conflict", "unknown"]]
-  ]) {
-    let calls = 0;
-    const ranked = order(streams, {
-      videoElement: { canPlayType() { calls++; return "probably"; } }
-    });
-    assert.deepEqual(ids(ranked), expected);
-    assert.equal(calls, 1);
+test("probe failures and platform changes never reuse a global positive cache", () => {
+  const streams = [source("a"), source("b")];
+  let calls = 0;
+  const changing = { videoElement: { canPlayType: () => { calls++; return calls === 1 ? "probably" : ""; } } };
+  orderSourcesByNativePrediction(streams, { environment: changing });
+  assert.equal(calls, 1);
+  orderSourcesByNativePrediction(streams, { environment: changing });
+  assert.equal(calls, 2);
+  for (const videoElement of [{}, { canPlayType: () => true }, { canPlayType() { throw new Error("private"); } }]) {
+    assert.equal(assess(streams[0], { environment: { videoElement } }).route, "unknown");
   }
 });
 
-test("each declared MIME is probed once per call and predictions are not cached across calls", () => {
-  const streams = [source("first"), source("second")];
-  let calls = 0;
-  const videoElement = {
-    canPlayType() {
-      calls++;
-      return calls === 1 ? "maybe" : "";
-    }
-  };
-  assert.deepEqual(order(streams, { videoElement }), streams);
-  assert.equal(calls, 1);
-  order(streams, { videoElement });
-  assert.equal(calls, 2);
+
+test("a supplied descriptor cannot erase contradictory raw media declarations", () => {
+  const sourceDescriptor = { contentType: 'video/mp4; codecs="avc1.640028,mp4a.40.2"', transportHint: "direct", video: {}, audioTracks: [] };
+  for (const raw of [{ video: { codec: "hvc1.2.4.L153.B0" } }, { video: { hdr: "dolby-vision" } }, { audioTracks: [{ codec: "ec-3" }] }]) {
+    assert.equal(assess(source("forged", { ...raw, sourceDescriptor })).reason, "descriptor-conflict");
+  }
 });

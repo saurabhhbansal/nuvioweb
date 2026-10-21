@@ -807,6 +807,16 @@
           "URL-only increment: explicit mobile confirmation plus desktop playlist/copy; required source/subtitle headers fail closed. Primary-source contracts, local tests and exact limits are consolidated in the linked plan/receipt. Not merged or deployed; no installed-player/device/codec/output verification. Issue148 remains open."
         ]
       }
+    },
+    {
+      "number": 149,
+      "title": "Device-aware, explainable source ranking",
+      "status": "in_progress",
+      "dependencies": [],
+      "progress": {
+        "documents": ["docs/plans/issues/issue-149.md", "docs/evidence/issue149-ranking.json"],
+        "verification": ["Default stable browser/external/unknown/proxy/blocked tiers; complete native video/audio declarations and existing capability/header assessments. Every original source preserved; reversible memory-only failed-prediction correction. Local verification and exact-head integration pending; no deployment or physical-device claim."]
+      }
     }
   ],
   "integrationPolicy": "Only default-branch records are authoritative; entries in an unmerged PR are proposed until their evidence PR merges."

@@ -1,0 +1,70 @@
+{
+  "issue": 149,
+  "date": "2026-10-21",
+  "base": "c10e75f",
+  "evidence": "docs/plans/issues/issue-149.md",
+  "rule": [
+    "complete-native-prediction",
+    "external-candidate",
+    "unknown",
+    "headers-own-proxy",
+    "blocked-delivery"
+  ],
+  "tieBreak": "stable existing provider order; no resolution/title inference",
+  "correction": "reversible weak in-memory source reference; no URL/credential persistence; reset on fresh response/reload",
+  "local": {
+    "initialRed": "missing assessSourceForDevice export",
+    "ruleRed": "malformed HEVC profile incorrectly accepted; tightened exact grammar",
+    "focusedInitial": {
+      "passed": 49,
+      "failed": 0,
+      "skipped": 0
+    },
+    "finalRankingUnit": {
+      "passed": 11,
+      "failed": 0,
+      "skipped": 0
+    },
+    "initialBrowser": {
+      "passed": 22,
+      "failed": 2,
+      "causes": [
+        "correction Enter also reached legacy navigation",
+        "synthetic URLs contained raw spaces"
+      ]
+    },
+    "browserFinal": {
+      "passed": 24,
+      "failed": 0,
+      "skipped": 0,
+      "scope": "local Chromium; includes synthetic injected format predictions"
+    },
+    "buildLintArtifact": "passed, 12 inert artifacts",
+    "designDetector": "exit2: inherited CSS bounce/layout-animation warnings only; no changed-line warning",
+    "focusedFinal": {
+      "passed": 50,
+      "failed": 0,
+      "skipped": 0
+    },
+    "docsGovernance": {
+      "passed": 50,
+      "failed": 0,
+      "skipped": 0
+    },
+    "visual": "1280x800 and390x844 inspected once; correction action originally stretched beside card, corrected to sibling below full-width card; final source3 rerun pending"
+  },
+  "review": "direct separate automated diff/security/spec pass; no reviewer agents or independent-human claim; corrections documented in single evidence",
+  "protectedIntegration": {
+    "requiredChecks": 4,
+    "strict": true,
+    "adminEnforced": true,
+    "status": "pending"
+  },
+  "unverified": [
+    "physical devices/HDR/audio output",
+    "installed external-player success",
+    "live provider delivery",
+    "adaptive-engine support ranking"
+  ],
+  "deployment": "none; pinned previews and elapsed observers untouched"
+}

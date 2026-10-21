@@ -12,27 +12,9 @@ const original = [
   "declared-expired",
 ];
 const preferred = [
-  "Original declared 4K",
-  "original-vp8",
-  "Provider claims 4K HDR HEVC",
-  "Adaptive HLS",
-  "Adaptive DASH",
-  "native-not-reported",
-  "headers-required",
-  "declared-expired",
-];
-
-// An engine without H.264 predicts the declared 4K MP4 as not natively
-// playable, so it sorts into the unknown/incomplete bucket behind the VP8 source.
-const preferredWithoutH264 = [
-  "original-vp8",
-  "Provider claims 4K HDR HEVC",
-  "Adaptive HLS",
-  "Adaptive DASH",
-  "native-not-reported",
-  "Original declared 4K",
-  "headers-required",
-  "declared-expired",
+  "original-vp8", "Provider claims 4K HDR HEVC", "native-not-reported",
+  "Original declared 4K", "Adaptive HLS", "Adaptive DASH",
+  "headers-required", "declared-expired",
 ];
 
 test.beforeEach(async ({ context, request }) => {
@@ -48,7 +30,7 @@ test.beforeEach(async ({ context, request }) => {
   });
 });
 
-test("bundled native preference is opt-in, keyboard accessible and keeps original4K selectable", async ({
+test("bundled device ranking defaults on, is keyboard accessible and keeps original4K selectable", async ({
   page,
   context,
   request,
@@ -75,7 +57,7 @@ test("bundled native preference is opt-in, keyboard accessible and keeps origina
         .createElement("video")
         .canPlayType('video/mp4; codecs="avc1.42c02a"') !== "",
   );
-  const expectedPreferred = supportsH264 ? preferred : preferredWithoutH264;
+  const expectedPreferred = preferred;
   await page.locator('[data-action="continueGuest"]').click();
   await page
     .locator('#home .home-poster-card[data-item-id="fixture:original"]')
@@ -90,32 +72,38 @@ test("bundled native preference is opt-in, keyboard accessible and keeps origina
           source.querySelector(".stream-route-card-heading").textContent,
       ),
     );
-  await expect.poll(ids).toEqual(original);
+  await expect.poll(ids).toEqual(expectedPreferred);
   const originalIds = await sources.evaluateAll((sources) =>
     sources.map((source) => source.dataset.streamId),
   );
-  await expect(sources.first()).toContainText("Format and codec unknown");
+  await expect(sources.first()).toContainText("Plays here (browser prediction)");
+  await expect(sources.filter({ hasText: "headers-required" })).toContainText("Needs your own proxy because it requires headers");
+  await expect(sources.filter({ hasText: "Original declared 4K" })).toContainText("audio codec metadata missing");
   const control = page.getByRole("button", {
-    name: "Native predictions first",
+    name: "Device-aware order",
     exact: true,
   });
-  await expect(control).toHaveAttribute("aria-pressed", "false");
-  const requestsBefore = await (
-    await request.get(`${provider}/__fixture/requests`)
-  ).json();
+  await expect(control).toHaveAttribute("aria-pressed", "true");
+  const requestsBefore = await (await request.get(`${provider}/__fixture/requests`)).json();
   await control.focus();
   await page.keyboard.press("Enter");
-  await expect(control).toHaveAttribute("aria-pressed", "true");
-  await expect.poll(ids).toEqual(expectedPreferred);
+  await expect(control).toHaveAttribute("aria-pressed", "false");
+  await expect.poll(ids).toEqual(original);
   await expect(control).toBeFocused();
   await page.keyboard.press("Tab");
   await expect(control).not.toBeFocused();
   await page.keyboard.press("Shift+Tab");
   await expect(control).toBeFocused();
   await page.keyboard.press("Space");
-  await expect(control).toHaveAttribute("aria-pressed", "false");
-  await expect.poll(ids).toEqual(original);
-  await control.click();
+  await expect(control).toHaveAttribute("aria-pressed", "true");
+  await expect.poll(ids).toEqual(expectedPreferred);
+  const correction = page.getByRole("button", { name: "Didn't play here: original-vp8", exact: true });
+  await correction.focus();
+  await page.keyboard.press("Enter");
+  await expect(sources.filter({ hasText: "original-vp8" })).toContainText("you reported playback failed");
+  const clear = page.getByRole("button", { name: "Clear playback correction for original-vp8", exact: true });
+  await expect(clear).toBeFocused();
+  await page.keyboard.press("Space");
   await expect.poll(ids).toEqual(expectedPreferred);
   await expect(sources).toHaveCount(8);
   expect(
@@ -153,6 +141,13 @@ test("bundled native preference is opt-in, keyboard accessible and keeps origina
     expect(metrics.height).toBeGreaterThanOrEqual(44);
     expect(metrics.top).toBeGreaterThanOrEqual(metrics.filterBottom + 8);
     expect(metrics.fontSize).toBe("16px");
+    const correctionLayout = await page.locator(".stream-route-source-correction").first().evaluate((button) => ({
+      top: button.getBoundingClientRect().top,
+      cardBottom: button.previousElementSibling.getBoundingClientRect().bottom,
+      height: button.getBoundingClientRect().height
+    }));
+    expect(correctionLayout.top).toBeGreaterThanOrEqual(correctionLayout.cardBottom);
+    expect(correctionLayout.height).toBeLessThan(100);
     await page.screenshot({
       path: testInfo.outputPath(`source-order-${viewport.width}.png`),
     });
@@ -258,8 +253,50 @@ test("actual screen keeps automatic selection in provider order despite display 
     };
   }, provider);
   expect(result.visible).toEqual(
-    result.supportsH264 ? preferred : preferredWithoutH264,
+    preferred,
   );
   expect(result.selected).toBe(result.originalFirstId);
   expect(result.canonical).toEqual(original);
+});
+
+
+test("injected format predictions render browser, external, unknown, proxy and blocked tiers without hiding rows", async ({ page, context }) => {
+  await context.addInitScript((provider) => {
+    localStorage.setItem("installedAddonUrls", JSON.stringify({ __profileScoped: true, version: 1, profiles: { 1: [`${provider}/source-order`] } }));
+    // Synthetic capability fixture, NOT a real HEVC/DV/device playback result.
+    HTMLMediaElement.prototype.canPlayType = function(type) { return type.includes("vp8") ? "probably" : ""; };
+  }, provider);
+  await page.route("**/source-order/stream/**", async (route) => {
+    const row = (name, extra = {}) => ({ name, url: `${provider}/media/procedural-vp8-opus.webm?case=${encodeURIComponent(name)}`, mimeType: 'video/webm; codecs="vp8,opus"', ...extra });
+    await route.fulfill({ json: { streams: [
+      row("False 4K", { mimeType: null }),
+      row("MKV", { mimeType: 'video/x-matroska; codecs="hvc1.2.4.L153.B0,mp4a.40.2"' }),
+      row("TrueHD", { audioTracks: [{ codec: "truehd" }] }),
+      row("Main10", { mimeType: 'video/mp4; codecs="hvc1.2.4.L153.B0,mp4a.40.2"' }),
+      row("DV7", { mimeType: 'video/mp4; codecs="dvhe.07.06,mp4a.40.2"' }),
+      row("Headers", { behaviorHints: { proxyHeaders: { request: { Authorization: "fixture-private" } } } }),
+      row("Expired", { expiresAt: "2020-01-01T00:00:00Z" }),
+      row("Browser 1080p")
+    ] } });
+  });
+  await page.goto("/");
+  await page.locator('[data-action="continueGuest"]').click();
+  await page.locator('#home .home-poster-card[data-item-id="fixture:original"]').first().click();
+  await page.locator('button[data-action="playDefault"]').click();
+  const sources = page.locator('[data-action="playStream"]');
+  await expect.poll(() => sources.locator(".stream-route-card-heading").allTextContents()).toEqual([
+    "Browser 1080p", "MKV", "TrueHD", "Main10", "DV7", "False 4K", "Headers", "Expired"
+  ]);
+  await expect(sources).toHaveCount(8);
+  await expect(sources.filter({ hasText: "MKV" })).toContainText("MKV demux is unavailable");
+  await expect(sources.filter({ hasText: "TrueHD" })).toContainText("TrueHD audio cannot be decoded");
+  await expect(sources.filter({ hasText: "Main10" })).toContainText("this HEVC profile");
+  await expect(sources.filter({ hasText: "DV7" })).toContainText("Dolby Vision profile 7");
+  await expect(sources.filter({ hasText: "False 4K" })).toContainText("Unknown here");
+  await expect(sources.filter({ hasText: "Headers" })).toContainText("requires headers");
+  await expect(sources.filter({ hasText: "Expired" })).toContainText("Blocked");
+  expect(await page.locator("#stream").textContent()).not.toContain("fixture-private");
+  await page.getByRole("button", { name: "Device-aware order", exact: true }).click();
+  await expect(sources.first()).toContainText("False 4K");
+  await expect(sources).toHaveCount(8);
 });

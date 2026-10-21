@@ -7,21 +7,17 @@ import {
 } from "../../core/media/addonLogoCache.js";
 import { matchStreamBadges, normalizeStreamBadgeChipColor } from "../../core/streams/streamBadgeRules.js";
 import { I18n } from "../../i18n/index.js";
+import { assessSourceForDevice } from "../../core/streams/sourcePreference.js";
 import { describeSource, hasSourceCodecConflict, normalizeSourceDescriptor, probeNativeSource } from "../../core/streams/sourceCapabilities.js";
 
 const STREAM_BADGE_LIMIT = 9;
-const nativeReports = new Map();
 
 function sourceEvidenceLines(source) {
   const descriptor = source.sourceDescriptor
     ? normalizeSourceDescriptor(source.sourceDescriptor) : describeSource(source);
   let native = "unknown";
   if (descriptor.contentType && !hasSourceCodecConflict(descriptor) && typeof document !== "undefined") {
-    if (!nativeReports.has(descriptor.contentType)) {
-      if (nativeReports.size >= 64) nativeReports.clear();
-      nativeReports.set(descriptor.contentType, probeNativeSource(descriptor, document.createElement("video")));
-    }
-    native = nativeReports.get(descriptor.contentType);
+    native = probeNativeSource(descriptor, document.createElement("video"));
   }
   const knownVideo = descriptor.video || {};
   const format = [descriptor.container, knownVideo.codec].filter(Boolean).join(" / ");
@@ -205,6 +201,9 @@ export function normalizeSourceForDisplay(
   const displayAddonLogoUrl = getCachedAddonLogoDisplayUrl(addonLogoUrl) || addonLogoUrl;
   const descriptionLines = getSourceDescriptionLines(source);
   const evidenceLines = sourceEvidenceLines(source);
+  const deviceRanking = assessSourceForDevice(stream);
+  // Do not place an optimistic type-only line beneath an incompatible route.
+  if (["external", "proxy", "blocked"].includes(deviceRanking.route)) evidenceLines.splice(2, 1);
   const filename = String(source.behaviorHints?.filename || "").trim();
   return {
     source,
@@ -215,11 +214,12 @@ export function normalizeSourceForDisplay(
     bottomBadges: resolveBadgePlacement(badgeSettings) === "BOTTOM" ? badges : "",
     descriptionLines,
     evidenceLines,
+    deviceRanking,
     addonName,
     addonLogoUrl: displayAddonLogoUrl,
     addonBadgeLabel: getAddonBadgeLabel(addonName),
     showAddonLogo: badgeSettings?.showAddonLogo === true,
-    accessibleLabel: [headline, quality, ...evidenceLines, addonName, filename].filter(Boolean).join(" · ")
+    accessibleLabel: [headline, quality, deviceRanking.explanation, ...evidenceLines, addonName, filename].filter(Boolean).join(" · ")
   };
 }
 
@@ -229,5 +229,5 @@ export function renderBrowserSourceCardContent(model = {}) {
   const addonIdentity = model.showAddonLogo
     ? `<div class="stream-route-card-side"><div class="stream-route-addon-badge">${model.addonLogoUrl ? `<img src="${escapeHtml(model.addonLogoUrl)}" alt="${escapeHtml(model.addonName || "Addon")}" decoding="async" loading="lazy" referrerpolicy="no-referrer" /><span hidden>${escapeHtml(model.addonBadgeLabel || "A")}</span>` : `<span>${escapeHtml(model.addonBadgeLabel || "A")}</span>`}</div><div class="stream-route-addon-name" title="${escapeHtml(model.addonName || "Addon")}">${escapeHtml(model.addonName || "Addon")}</div></div>`
     : "";
-  return `<div class="stream-route-card-copy"><div class="stream-route-card-heading">${escapeHtml(model.headline || "Unknown source")}</div>${model.topBadges || ""}${!badges ? `<div class="stream-route-card-quality">${escapeHtml(t("source_provider_label", [model.quality || "Auto"], "Provider label: %1$s"))}</div>` : ""}${(model.evidenceLines || []).map((line) => `<div class="stream-route-card-line secondary source-capability-evidence">${escapeHtml(line)}</div>`).join("")}${(model.descriptionLines || []).map((line, index) => `<div class="stream-route-card-line${index > 0 ? " secondary" : ""}" title="${escapeHtml(line)}">${escapeHtml(line)}</div>`).join("")}${model.bottomBadges || ""}</div>${addonIdentity}`;
+  return `<div class="stream-route-card-copy"><div class="stream-route-card-heading">${escapeHtml(model.headline || "Unknown source")}</div>${model.deviceRanking ? `<div class="stream-route-card-line source-capability-evidence source-device-ranking" data-source-route="${escapeHtml(model.deviceRanking.route)}">${escapeHtml(model.deviceRanking.explanation)}</div>` : ""}${model.topBadges || ""}${!badges ? `<div class="stream-route-card-quality">${escapeHtml(t("source_provider_label", [model.quality || "Auto"], "Provider label: %1$s"))}</div>` : ""}${(model.evidenceLines || []).map((line) => `<div class="stream-route-card-line secondary source-capability-evidence">${escapeHtml(line)}</div>`).join("")}${(model.descriptionLines || []).map((line, index) => `<div class="stream-route-card-line${index > 0 ? " secondary" : ""}" title="${escapeHtml(line)}">${escapeHtml(line)}</div>`).join("")}${model.bottomBadges || ""}</div>${addonIdentity}`;
 }
