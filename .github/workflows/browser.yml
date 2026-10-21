@@ -44,6 +44,9 @@ jobs:
         run: npx playwright install --with-deps webkit
       - name: WebKit engine playback and diagnostics
         run: NUVIO_PLAYWRIGHT_WEBKIT=1 npx playwright test --project=webkit
+        env:
+          DEBUG: pw:browser
+          GST_DEBUG: "2"
       - name: Install Gecko for engine coverage
         run: npx playwright install --with-deps firefox
       - name: Gecko engine playback and diagnostics
