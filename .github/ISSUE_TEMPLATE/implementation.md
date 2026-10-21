@@ -1,25 +1,16 @@
 ---
 name: Implementation issue
-about: Scoped feature, infrastructure, compatibility or security work
-title: "[M#][P#] "
+about: Feature, fix or cleanup work
+title: ""
 labels: []
 assignees: []
 ---
 
 ## Goal
 
-## Source / evidence
-
-## Dependencies
-
-## Issue-specific plan
-Link docs/plans/issue-N.md
-
-## Acceptance criteria
+## What should change
 - [ ]
 
-## Verification and legal fixtures
+## How we will test it
 
-## Security / cost / Nuvio auth / license considerations
-
-## Failure handling / rollback
+## Limits and non-goals
