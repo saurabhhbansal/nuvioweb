@@ -12,7 +12,7 @@ function allowedSerializedResult(raw) {
       (!Object.hasOwn(stream, "url") || typeof stream.url === "string")));
 }
 
-export async function executeGetStreamsPrototype({ descriptor, approvedHosts = [], input = {}, transport, signal, limits, brokerLimits } = {}) {
+export async function executeGetStreamsPrototype({ descriptor, approvedHosts = [], input = {}, transport, signal, limits, brokerLimits, headerPolicy, resolveHost } = {}) {
   const checked = normalizePluginDescriptor(descriptor);
   if (!checked.ok) return { ok: false, error: "descriptor" };
   const plugin = checked.descriptor;
@@ -20,7 +20,7 @@ export async function executeGetStreamsPrototype({ descriptor, approvedHosts = [
   if (plugin.allowedHosts.some((host) => !approved.has(host))) return { ok: false, error: "host-policy" };
   // Guest-only compatibility shims, not copies of browser/Node host objects.
   // Console is a no-op: no serialization, host writes, log buffer or new binding.
-  // Every fetch still crosses the bounded broker with no headers or secrets.
+  // Every fetch crosses the broker; only trusted-policy guest headers, no secrets.
   const code = `
 var console = Object.freeze({
   log: function() {}, info: function() {}, warn: function() {},
@@ -29,9 +29,9 @@ var console = Object.freeze({
 var fetch = async function(url, options) {
   options = options === undefined ? {} : options;
   if (!options || typeof options !== "object" || Array.isArray(options) ||
-      Object.keys(options).some(function(key) { return key !== "method"; }) ||
+      Object.keys(options).some(function(key) { return ["method", "headers", "redirect"].indexOf(key) === -1; }) ||
       (options.method !== undefined && options.method !== "GET")) throw new Error("unsupported-request");
-  var response = api.fetch(String(url));
+  var response = await api.fetchAsync(String(url), options);
   if (typeof response.body !== "string") throw new Error("unsupported-response");
   return {
     ok: response.status >= 200 && response.status < 300,
@@ -51,6 +51,7 @@ async function resolve(api, input) {
   if (!__entry) throw new Error("unsupported-entry");
   var streams = await __entry(String(input.tmdbId || ""), input.mediaType, input.season, input.episode);
   if (!Array.isArray(streams)) throw new Error("unsupported-output");
+  if (streams.some(function(stream) { return stream && typeof stream === "object" && stream.headers !== undefined; })) throw new Error("plugin-output:playback-headers");
   if (streams.some(function(stream) {
     return stream && (stream.headers !== undefined || stream.subtitles !== undefined || stream.infoHash !== undefined || stream.behaviorHints !== undefined ||
       (stream.url !== undefined && typeof stream.url !== "string"));
@@ -60,7 +61,7 @@ async function resolve(api, input) {
   // Only media identity enters the guest; no settings/API keys/tokens are copied.
   const safeInput = pluginMediaInput(input);
   const result = await executePluginWithNetworkPrototype({
-    code, input: safeInput, allowedHosts: plugin.allowedHosts, transport, signal,
+    code, input: safeInput, allowedHosts: plugin.allowedHosts, transport, signal, headerPolicy, resolveHost,
     limits: { ...limits, logs: 0 }, brokerLimits, validateResult: allowedSerializedResult
   });
   // No plugin logs, source, raw exceptions or extra host diagnostics leave here.

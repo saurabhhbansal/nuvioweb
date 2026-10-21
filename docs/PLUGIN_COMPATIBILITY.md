@@ -2,7 +2,7 @@
 
 Status: **internal synthetic contract plus a test-only engine prototype; execution is not shipped and no actual Nuvio JS plugin is supported yet.** Last updated 2026-10-21.
 
-This document defines our experimental policy envelope, **not an upstream Nuvio API-v1 contract**. The QuickJS prototype executes original regression code with an injected in-memory transport. A pinned public PenguPlay wrapper now loads/invokes after a guest-only no-op console fix, but catches refused fetch headers/redirect options and returns0 rows. Three immutable owner-selected Tapframe artifacts were also executed: xprime/vixsrc resolve empty after GET-header refusal; hdhub4u cannot load its cheerio-without-node-native dependency. All transports are synthetic and unused before these boundaries; successful stream lookup is not proved. Real configured HTTP rows were observed and projected separately, not executed as plugin code. See the [real-provider evidence](evidence/issue11-real-plugins-2026-10-21.md). The inherited `pluginRuntime.js` remains a URL-template feature and is unchanged. [Pinned upstream/API/license comparison](agent-runs/2026-10-21-issue11-upstream-review.md).
+This document defines our experimental policy envelope, **not an upstream Nuvio API-v1 contract**. Trusted per-provider/per-host guest-header names and explicit redirect modes now cross a bounded Promise/broker bridge. Credential/hop-by-hop headers remain forbidden; each header-enabled or explicit-redirect call requires trusted per-hop address validation. Limits/defaults are unchanged. Four unchanged pinned-source synthetic replays now extract **2 PenguPlay rows in a separate diagnostic VM**, both with required playback headers: adapter acceptance remains0 with typed `playback-headers` refusal. xprime reaches an unapproved host (one actual run also timed out); vixsrc is refused for `Connection`; hdhub4u fails before invocation on its unavailable parser. No live provider read, socket-pinning/streamed-I/O proof, browser forbidden-header parity or application playback claim. See the [single evidence section](evidence/issue11-real-plugins-2026-10-21.md#bounded-headers--per-hop-replay-slice--plan-before-implementation). The inherited `pluginRuntime.js` remains unchanged. [Pinned upstream/API/license comparison](agent-runs/2026-10-21-issue11-upstream-review.md).
 
 ## Distinct provider classes and native contract
 
@@ -12,7 +12,7 @@ This document defines our experimental policy envelope, **not an upstream Nuvio 
 - **Required custom playback headers:** an ordinary browser video element cannot supply an arbitrary required Referer/Origin/User-Agent map. Refusing unsupported header-bearing rows is correct for direct-video delivery, but is not scraper completeness. Preserve/classify the requirement and show the authorized header-capable proxy/compute/native rung. No such rung or unrestricted proxy is implemented. [#142 handoff](https://github.com/saurabhhbansal/nuvioweb/issues/142#issuecomment-6309232028).
 - **Raw-infohash/torrent class:** outside browser direct playback; requires an authorized debrid-to-direct-HTTPS or separately bounded compute rung. Do not drop torrent semantics or label a magnet as a playable URL.
 
-[Exact-source/API/row/header evidence](evidence/issue11-real-plugins-2026-10-21.md) · [four-artifact receipt](evidence/issue11-guest-globals-2026-10-21.json). No source patch, parser shim, request privilege or bound expansion.77 focused/1493 app/local Chromium16 pass at their stated layers; no actual playable source row returned.
+[Exact-source/API/row/header evidence](evidence/issue11-real-plugins-2026-10-21.md) · [compact four-artifact receipt](evidence/issue11-guest-globals-2026-10-21.json). No source patch, parser shim, host privilege or bound expansion. App1508/local Chromium16 pass at their stated layers; two synthetic raw rows are not playable-provider acceptance. User-visible app capability changed: **none**.
 
 ## Why execution is not shipped yet
 
@@ -72,11 +72,11 @@ Observed with pinned Node 22.23.1 (`node --test app/alpha/scripts/pluginSandboxP
 
 ## Network broker policy (test-only, 2026-10-19)
 
-`app/alpha/js/core/plugins/pluginBroker.js` is the only network primitive the sandbox will receive; it is not wired to the app yet. `createPluginNetworkBroker({allowedHosts, transport, maxRequests, maxResponseBytes, maxRedirects})` enforces:
+`app/alpha/js/core/plugins/pluginBroker.js` remains test-only. `createPluginNetworkBroker({allowedHosts, transport, headerPolicy, resolveHost, maxRequests, maxResponseBytes, maxRedirects})` enforces the following current policy (updated2026-10-21):
 
 - HTTPS only, exact allowlisted hostnames (no subdomain widening), default port only, no embedded credentials, no IP literals, bounded URL length.
-- Only `GET`; the injected transport receives **only** the URL and method — never headers, cookies or tokens.
-- Redirects are re-authorized per hop against the same allowlist with a hard hop limit, so an allowlisted host cannot bounce to another destination.
+- Only `GET`, `redirect:manual`, `credentials:omit`. Default header policy empty. Trusted per-provider/per-host policy can allow bounded guest metadata names only (16/1KiB each/8KiB total); Cookie/Authorization/Connection and unknown options always refused. Origin/Referer must also satisfy approved HTTPS host policy with no userinfo/query/fragment.
+- Redirect options follow/error/manual are bounded by independent request and hop quotas (default2 hops, ceiling5, adapter4 total dispatches). Every hop repeats URL/header checks; header-enabled or explicit-redirect calls require a trusted resolver, all returned addresses public, including repeated-host lookups. Vetted addresses are handed to the trusted transport, **not proof of real socket pinning**; legacy headerless injected fixtures have no DNS guarantee. All transports here are replay-only; no live streamed-I/O safety claim.
 - Authorized dispatches are counted against `maxRequests`; oversized or non-text/binary responses beyond `maxResponseBytes` fail closed.
 - Failures are bounded codes (`url`, `scheme`, `credentials`, `ip`, `port`, `host`, `method`, `requests`, `redirect-limit`, `redirect-url`, `response-size`, `response-body`, `transport`) with no raw exception text.
 
@@ -84,7 +84,7 @@ Focused tests (`node --test app/alpha/js/core/plugins/pluginBroker.test.mjs`, 10
 
 ## Broker-bound sandbox prototype (test-only, 2026-10-19)
 
-`app/alpha/scripts/pluginSandboxNetworkPrototype.mjs` binds the broker to QuickJS: `api.fetch` is an asyncified host function that calls `createPluginNetworkBroker` and returns a bounded envelope. The VM has no global `fetch`; headers, credentials and destination selection never cross the boundary. A host-side deadline races every broker call so a slow exchange cannot outlive the budget, and the context is not disposed while a host call is suspended.
+`app/alpha/scripts/pluginSandboxNetworkPrototype.mjs` binds the same broker to QuickJS. Legacy `api.fetch` remains synchronous/Asyncify and refuses calls from the synchronous Promise-job pump with `async-fetch-required` rather than corrupting WASM. `api.fetchAsync` uses bounded genuine guest-Promise replies; the getStreams facade awaits it. No guest host fetch, secrets or self-authorized hosts: request JSON<=12KiB is validated on the host. Completion handles settle outside suspended frames, all in-flight work is aborted/settled before teardown, and the existing deadline/heap/stack/output/request limits remain. This is engine plumbing, not application or native-Hermes enablement.
 
 Observed with `node --test app/alpha/scripts/pluginSandboxNetworkPrototype.test.mjs` (7/7):
 

@@ -28,7 +28,7 @@ async function resolve(api, input) {
   assert.equal(result.groups[0].streams[0].description, '{"hello":"world"}');
   assert.equal(result.requests, 1);
   assert.equal(calls[0][0], "https://media.example.com/catalog.json");
-  assert.deepEqual(Object.keys(calls[0][1]).sort(), ["method", "signal"]);
+  assert.deepEqual(Object.keys(calls[0][1]).sort(), ["credentials", "method", "redirect", "signal"]);
   assert.equal(calls[0][1].method, "GET");
   assert.equal(calls[0][1].signal instanceof AbortSignal, true);
   assert.equal(calls[0][1].signal.aborted, true); // teardown, no live transport left
@@ -108,6 +108,15 @@ async function resolve(api) {
   assert.equal(result.ok, true, JSON.stringify(result));
   assert.deepEqual(result.groups, []);
   assert.deepEqual(result.logs, ["caught host"]);
+});
+
+test("legacy synchronous fetch in a Promise continuation fails closed rather than suspending job pump", async () => {
+  let calls = 0;
+  const result = await executePluginWithNetworkPrototype({ allowedHosts: hosts, transport: async () => { calls++; return {status:200,body:""}; },
+    code: 'async function resolve(api){await Promise.resolve();api.fetch("https://media.example.com/late");return [];}' });
+  assert.equal(result.ok, false);
+  assert.equal(result.error, "async-fetch-required");
+  assert.equal(calls, 0);
 });
 
 test("the VM still has no global fetch; only the brokered api.fetch exists", async () => {

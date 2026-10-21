@@ -1,6 +1,6 @@
 # Issue #11: [M2][P1] Prototype sandboxed Nuvio JavaScript plugin compatibility
 
-**Plan status:** In progress — test-only QuickJS/broker and opt-in asset emission implemented; acceptance remains unverified, application execution disabled. Current bounded-runtime continuation below.  
+**Plan status:** In progress — test-only QuickJS/broker and opt-in asset emission implemented; acceptance remains unverified, application execution disabled. Current header/redirect continuation's plan-before-code contract, minimized continuation-crash amendment, commands and inline review are consolidated in the [single evidence section](../../evidence/issue11-real-plugins-2026-10-21.md#bounded-headers--per-hop-replay-slice--plan-before-implementation). Targets: `pluginRequestPolicy.js`, broker/QuickJS/getStreams/probe scripts and associated tests; no additional app wiring, live transport, parser or deployment. Historical continuation below.
 **Milestone:** M2 · **Priority:** P1  
 **GitHub issue:** https://github.com/saurabhhbansal/nuvioweb/issues/11  
 **Workstream:** [M2 roadmap](https://github.com/saurabhhbansal/nuvioweb/blob/main/docs/ROADMAP.md) · **Agent rules:** [AGENTS.md](https://github.com/saurabhhbansal/nuvioweb/blob/main/AGENTS.md)

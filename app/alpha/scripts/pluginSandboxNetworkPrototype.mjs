@@ -1,9 +1,9 @@
 // Test-only broker-bound sandbox prototype.
 //
 // Extends the QuickJS prototype with the bounded network broker as the VM's
-// ONLY network primitive: `api.fetch` is an asyncified host function backed by
-// `createPluginNetworkBroker`, so the VM never sees global fetch, headers,
-// credentials or an arbitrary destination. Still not shipped and not wired to
+// ONLY network primitive: sync/Promise guest facades share
+// `createPluginNetworkBroker`; trusted policy bounds guest metadata headers.
+// No global host fetch, credentials or arbitrary destination. Not wired to
 // the application; independent security review is required before that.
 import { newAsyncContext } from "quickjs-emscripten";
 import { createPluginNetworkBroker } from "../js/core/plugins/pluginBroker.js";
@@ -12,8 +12,9 @@ import { pluginSandboxBudget } from "./pluginSandboxLimits.mjs";
 export { PLUGIN_SANDBOX_CEILINGS } from "./pluginSandboxLimits.mjs";
 
 function networkErrorCode(message) {
+  if (message === "plugin-output:playback-headers") return "playback-headers";
   const match = /plugin-network:([a-z-]+)/.exec(String(message || ""));
-  const codes = new Set(["url", "scheme", "credentials", "host", "port", "ip", "method", "requests", "redirect-limit", "redirect-url", "response-size", "response-total", "response-body", "transport", "cancelled", "timeout"]);
+  const codes = new Set(["url", "scheme", "credentials", "host", "port", "ip", "method", "requests", "redirect-limit", "redirect-url", "response-size", "response-total", "response-body", "transport", "cancelled", "timeout", "header-shape", "header-policy", "header-duplicate", "header-value", "header-size", "header-origin", "request-options", "request-size", "dns-policy", "dns", "private-address", "redirect-mode", "redirect-disallowed", "redirect-unvalidated", "async-fetch-required"]);
   return match && codes.has(match[1]) ? match[1] : null;
 }
 
@@ -25,7 +26,7 @@ export async function executePluginWithNetworkPrototype({
   limits = {},
   brokerLimits = {},
   signal,
-  validateResult
+  validateResult, headerPolicy, resolveHost
 } = {}) {
   if (typeof code !== "string" || !code.trim()) return { ok: false, error: "code" };
   if (new TextEncoder().encode(code).length > PLUGIN_CONTRACT_LIMITS.codeBytes) return { ok: false, error: "code-size" };
@@ -39,12 +40,15 @@ export async function executePluginWithNetworkPrototype({
   const startedAt = Date.now();
   const logs = [];
   let inflightHostCalls = 0;
+  let pumpingJobs = false;
+  const pendingReplies = new Set();
+  const completedReplies = [];
   const controller = new AbortController();
   const cancel = () => controller.abort();
   let broker;
   try {
     broker = createPluginNetworkBroker({
-      allowedHosts, transport, signal: controller.signal,
+      allowedHosts, transport, signal: controller.signal, headerPolicy, resolveHost,
       maxRequests: brokerLimits.maxRequests ?? 4,
       maxResponseBytes: brokerLimits.maxResponseBytes ?? 256 * 1024,
       maxTotalResponseBytes: brokerLimits.maxTotalResponseBytes ?? 1024 * 1024,
@@ -89,27 +93,60 @@ export async function executePluginWithNetworkPrototype({
     context.setProp(context.global, "inputJson", inputHandle);
     inputHandle.dispose();
 
-    const hostFetch = context.newAsyncifiedFunction("__hostFetch", async (urlHandle) => {
-      inflightHostCalls += 1;
-      try {
-        const url = context.getString(urlHandle);
-        const result = await broker.request(url);
-        return context.newString(JSON.stringify(result));
-      } finally {
-        inflightHostCalls -= 1;
-      }
+    function readRequest(urlHandle, optionsHandle) {
+      const url = context.getString(urlHandle);
+      const kind = optionsHandle ? context.typeof(optionsHandle) : "undefined";
+      if (!["string", "undefined"].includes(kind)) return { error: "request-options" };
+      const rawOptions = kind === "string" ? context.getString(optionsHandle) : "{}";
+      if (new TextEncoder().encode(rawOptions).length > 12288) return { error: "request-size" };
+      try { return { url, options: JSON.parse(rawOptions) }; } catch { return { error: "request-options" }; }
+    }
+    async function perform(request) {
+      if (request.error) return { ok: false, error: request.error };
+      try { return await broker.request(request.url, request.options); }
+      catch { return { ok: false, error: "transport" }; }
+    }
+    const hostFetch = context.newAsyncifiedFunction("__hostFetch", (urlHandle, optionsHandle) => {
+      // Asyncify cannot suspend the synchronous job pump. Legacy synchronous
+      // callers fail closed here; the async facade uses a guest Promise below.
+      if (pumpingJobs) return context.newString('{"ok":false,"error":"async-fetch-required"}');
+      const request = readRequest(urlHandle, optionsHandle);
+      inflightHostCalls++;
+      return perform(request).then(result => context.newString(JSON.stringify(result))).finally(() => { inflightHostCalls--; });
     });
     context.setProp(context.global, "__hostFetch", hostFetch);
     hostFetch.dispose();
+    const hostFetchAsync = context.newFunction("__hostFetchAsync", (urlHandle, optionsHandle) => {
+      if (pendingReplies.size >= broker.limits.maxRequests) return context.newString('{"ok":false,"error":"requests"}');
+      const request = readRequest(urlHandle, optionsHandle);
+      const reply = context.newPromise();
+      pendingReplies.add(reply);
+      inflightHostCalls++;
+      // Never enter the VM from a transport continuation (including while a
+      // legacy Asyncify frame is suspended). Drain completions at the job pump.
+      void perform(request).then(result => { completedReplies.push({ reply, result }); }).finally(() => { inflightHostCalls--; });
+      return reply.handle.dup();
+    });
+    context.setProp(context.global, "__hostFetchAsync", hostFetchAsync);
+    hostFetchAsync.dispose();
 
     const prelude = context.evalCode(`
-api.fetch = function (url) {
-  var result = JSON.parse(__hostFetch(String(url)));
+api.fetch = function (url, options) {
+  var encoded = JSON.stringify(options === undefined ? {} : options);
+  if (typeof encoded !== "string" || encoded.length > 12288) throw new Error("plugin-network:request-size");
+  var result = JSON.parse(__hostFetch(String(url), encoded));
   if (!result.ok) {
     var failure = new Error("plugin-network:" + result.error);
     failure.code = result.error;
     throw failure;
   }
+  return result;
+};
+api.fetchAsync = async function (url, options) {
+  var encoded = JSON.stringify(options === undefined ? {} : options);
+  if (typeof encoded !== "string" || encoded.length > 12288) throw new Error("plugin-network:request-size");
+  var result = JSON.parse(await __hostFetchAsync(String(url), encoded));
+  if (!result.ok) throw new Error("plugin-network:" + result.error);
   return result;
 };`);
     if (prelude.error) {
@@ -151,7 +188,13 @@ resolve(api, JSON.parse(inputJson)).then(
 
     let serialized;
     for (;;) {
-      const jobs = context.runtime.executePendingJobs(50);
+      for (const { reply, result } of completedReplies.splice(0)) {
+        const value = context.newString(JSON.stringify(result));
+        try { reply.resolve(value); } finally { value.dispose(); reply.dispose(); pendingReplies.delete(reply); }
+      }
+      let jobs;
+      pumpingJobs = true;
+      try { jobs = context.runtime.executePendingJobs(50); } finally { pumpingJobs = false; }
       if (jobs.error) {
         let detail;
         try {
@@ -213,11 +256,10 @@ resolve(api, JSON.parse(inputJson)).then(
         }
         return { ok: false, error: "timeout", elapsedMs: Date.now() - startedAt };
       }
-      if (jobs.value === 0) {
-        // The VM may be suspended waiting for a host promise; yield so it can
-        // settle instead of reporting a false timeout.
-        await new Promise((resolve) => setTimeout(resolve, 2));
-      }
+      // Let already-ready broker promises settle before a timer hop. Bound the
+      // microtask drain, then yield to I/O/timers so abort/deadline cannot starve.
+      for (let turn = 0; turn < 32 && inflightHostCalls > 0 && !completedReplies.length; turn++) await Promise.resolve();
+      if (jobs.value === 0 && !completedReplies.length) await new Promise((resolve) => setTimeout(resolve, 2));
     }
 
     if (stopped()) return { ok: false, error: stopped(), elapsedMs: Date.now() - startedAt };
@@ -256,6 +298,9 @@ resolve(api, JSON.parse(inputJson)).then(
     // The broker settles ignored aborts before the asyncified host function
     // unwinds; late transport responses have no reference to this context.
     while (inflightHostCalls > 0) await new Promise((resolve) => setTimeout(resolve, 0));
+    for (const reply of pendingReplies) reply.dispose();
+    pendingReplies.clear();
+    completedReplies.length = 0;
     try { context?.dispose(); } catch {}
   }
 }
