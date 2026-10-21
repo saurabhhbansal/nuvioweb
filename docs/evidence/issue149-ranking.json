@@ -56,6 +56,12 @@
       "passed": 3,
       "failed": 0,
       "skipped": 0
+    },
+    "fullApplication": {
+      "pass": 1549,
+      "fail": 0,
+      "skip": 0,
+      "command": "npm --prefix app/alpha test"
     }
   },
   "review": "direct separate automated diff/security/spec pass; no reviewer agents or independent-human claim; corrections documented in single evidence",
@@ -65,7 +71,19 @@
     "strict": true,
     "adminEnforced": true,
     "authority": "https://github.com/saurabhhbansal/nuvioweb/pull/158",
-    "rule": "Merge only with all four green on exact final head; head, run IDs, flake disposition and merge recorded in PR integration receipt. No bypass."
+    "rule": "Merge only with all four green on exact final head; head, run IDs, flake disposition and merge recorded in PR integration receipt. No bypass.",
+    "initialHead": "827824392b1dae9d4a4bdf8924b81f0773db7c18",
+    "initialApplication": {
+      "run": 39626046547,
+      "pass": 1547,
+      "fail": 2,
+      "correction": "add default strings; replace obsolete aggregate probe count with per-conflict zero-probe/route assertions"
+    },
+    "initialSmoke": {
+      "run": 39626046843,
+      "status": "passed",
+      "rerun": false
+    }
   },
   "unverified": [
     "physical devices/HDR/audio output",

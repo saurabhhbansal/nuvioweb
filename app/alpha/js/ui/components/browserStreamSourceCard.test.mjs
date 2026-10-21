@@ -4,7 +4,7 @@ import { normalizeSourceForDisplay } from "./browserStreamSourceCard.js";
 
 const options = { badgeSettings: { showAddonLogo: false }, streamBadgesEnabled: false };
 
-test("source cards isolate conflicting declarations from MIME prediction caches in either order", () => {
+test("source cards isolate conflicting declarations from native predictions in either order", () => {
   const previousDocument = globalThis.document;
   let calls = 0;
   globalThis.document = {
@@ -23,13 +23,20 @@ test("source cards isolate conflicting declarations from MIME prediction caches 
       const clean = make("vp8");
       const conflict = make("vp09.00.10.08");
       for (const source of conflictFirst ? [conflict, clean] : [clean, conflict]) {
+        const callsBefore = calls;
         const model = normalizeSourceForDisplay(source, options);
+        if (source === conflict) {
+          assert.equal(calls, callsBefore, "conflicting metadata must never be probed");
+          assert.equal(model.deviceRanking.route, "unknown");
+        } else {
+          assert.equal(model.deviceRanking.route, mimeType.includes("opus") ? "browser" : "unknown");
+        }
         assert.ok(model.evidenceLines.includes(source === conflict
           ? "Browser support unknown"
           : "Browser predicts native support; playback unverified"));
       }
     }
-    assert.equal(calls, 2);
+
   } finally {
     if (previousDocument === undefined) delete globalThis.document;
     else globalThis.document = previousDocument;

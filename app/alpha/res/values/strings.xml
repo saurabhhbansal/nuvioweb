@@ -2962,6 +2962,10 @@
     <string name="source_expiry_declared">Provider-declared link expiry has passed; refresh sources</string>
     <string name="source_provider_label">Provider label: %1$s</string>
     <string name="player_error_source_load_unknown">The browser could not load this source. The link, access, network or format may be responsible. Refresh sources or choose another source.</string>
+    <string name="source_order_device_first">Device-aware order</string>
+    <string name="source_order_device_hint">Browser predictions first, then other-player candidates, unknown and blocked routes. All sources stay available. Corrections last until reload or refresh.</string>
+    <string name="source_correction_clear">Clear correction</string>
+    <string name="source_correction_fail">Didn't play here</string>
     <string name="source_order_native_first">Native predictions first</string>
     <string name="source_order_prediction_hint">Predictions do not verify playback. All sources stay available.</string>
     <string name="sidecar_trakt_unavailable">Trakt sign-in and refresh are unavailable on this site. Continue without Trakt, or use a site with a configured Trakt integration.</string>

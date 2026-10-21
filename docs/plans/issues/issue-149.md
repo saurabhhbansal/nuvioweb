@@ -37,8 +37,11 @@ node scripts/check-docs.mjs
 node scripts/check-progress.mjs
 node scripts/check-issue7-acceptance.mjs docs/evidence/issue7-acceptance.json --validate
 git diff --check
+npm --prefix app/alpha test
 ```
-Full clean-install/audit/application/engine regression is required remotely, not claimed locally. No physical device, installed player, real-provider delivery, HDR/audio output or adaptive-engine ranking certification; no deploy.
+Full clean-install/audit/engine regression is required remotely; complete local application suite additionally passes1549/1549, zero failures/skips, after the integration correction; lint/build/artifact12 and links/progress/whitespace also pass again. No physical device, installed player, real-provider delivery, HDR/audio output or adaptive-engine ranking certification; no deploy.
+
+- Protected head8278243 application run [39626046547](https://github.com/saurabhhbansal/nuvioweb/actions/runs/39626046547) failed1547/1549: four newly requested translation keys lacked default strings; old card test assumed exactly two native probes before complete video/audio assessment existed. Added real default strings (no gap whitelist), replaced obsolete total-count assertion with stronger per-conflict zero-probe and route assertions. This is a real integration correction, not the permitted WebKit flake. Browser smoke [39626046843](https://github.com/saurabhhbansal/nuvioweb/actions/runs/39626046843) passed all its engine/fixture gates; no rerun used. Same-agent review confirms only localized copy/test seam alignment, no ranking/guard relaxation.
 
 ## Integration
 [PR158](https://github.com/saurabhhbansal/nuvioweb/pull/158) is the protected integration authority. All four unchanged required contexts must be green at its exact final head before merge; final head, run URLs, any known-flake attempt and merge commit are recorded in its integration conversation (avoids a self-referential documentation-head hash). This ledger completion is proposed until that evidence PR merges, not permission to skip CI. Strict/up-to-date checks and admin enforcement remain enabled; zero independent approvals is a documented repository limitation.
