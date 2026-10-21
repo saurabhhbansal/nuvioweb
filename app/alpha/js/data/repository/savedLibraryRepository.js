@@ -25,7 +25,7 @@ function scheduleFlush(profileId) {
   clearTimeout(flushTimers.get(pid));
   flushTimers.set(pid, setTimeout(() => {
     flushTimers.delete(pid);
-    void savedLibraryRepository.flush(pid);
+    void savedLibraryRepository.flush(pid).catch(() => {});
   }, FLUSH_DELAY_MS));
 }
 

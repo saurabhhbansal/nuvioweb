@@ -229,6 +229,9 @@ class AuthManagerClass {
   }
 
   beginAuthenticationAttempt() {
+    // A new sign-in or startup owns the session now; a pending retry must not
+    // start a competing attempt in the middle of it.
+    this.clearSessionRetry();
     this.authAttemptSequence += 1;
     return this.authAttemptSequence;
   }
@@ -317,13 +320,17 @@ class AuthManagerClass {
       return true;
     }
 
+    const ownerAtStart = getStoredAccountOwnerMarker();
     const tokensUnchanged = () =>
       SessionStore.accessToken === accessToken && SessionStore.refreshToken === refreshToken;
     // Another tab or the installed app shares this session and may rotate the
     // token pair first. Its new pair is then the session: a rejection of the
-    // old refresh token is expected and must not sign this device out.
+    // old refresh token is expected and must not sign this device out. A pair
+    // for a different account (the other tab signed in as someone else) is
+    // never adopted.
     const adoptStoredTokens = () => {
       this.lastRefreshFailureKind = null;
+      if (getStoredAccountOwnerMarker() !== ownerAtStart) return false;
       return Boolean(SessionStore.accessToken) && !isJwtExpired(SessionStore.accessToken, 0);
     };
 
