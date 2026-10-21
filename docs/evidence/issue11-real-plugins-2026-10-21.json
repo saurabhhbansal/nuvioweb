@@ -380,7 +380,9 @@
     "closeIssue": false
   },
   "privacy": {
-    "credentialsPublished": false,
+    "credentialsPublishedInRepositoryEvidence": false,
+    "ownerCredentialsPublishedInSession": false,
+    "upstreamEncodedCredentialConstantsAppearedInInitialToolInspection": true,
     "accountIdentifiersPublished": false,
     "configuredUrlsPublished": false,
     "streamUrlsPublished": false,
