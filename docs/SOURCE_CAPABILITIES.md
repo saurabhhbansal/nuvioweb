@@ -49,6 +49,10 @@ Final first-unit local verification: `npm run test:browser` **20/20 passed**,0fa
 
 The second #10 unit records original1080p/4K and HLS/DASH/failure evidence in the [quality matrix](PLAYBACK_QUALITY_MATRIX.md); it remains unmerged pending required checks and human review of fatal manifest recovery. First-unit unknown/descriptor evidence remains unchanged.
 
+## Device readiness — issue #147, 2026-10-21
+
+The browser startup notice offers Check, Continue without checking and keyboard-native Details. It is advisory, disappears during playback and never changes source order or authorizes processing. The [single plan/evidence](plans/issues/issue-147.md) and [receipt](evidence/issue147-readiness.json) distinguish injected fixtures from observed local browser behavior. Fixed diagnostic configurations predict native MP4/HEVC Main10/MKV/Dolby Vision profile5, MSE/MMS and video/audio WebCodecs separately; other DV profiles, actual streams, audio/output fidelity and physical HDR remain unknown. API availability is not configuration support. No capability profile is uploaded, logged or persisted. Only the optional storage-purpose button requests persistence; denial retains ordinary playback. No notification/file/share permission or media activation is requested. No codec/CORS/header/blocker bypass is implied; no new local processing engine or deployment is included. Executable job-specific optional-processing consent remains outstanding; issue147 stays open.
+
 ## Optional native-prediction ordering — third unit, 2026-10-19
 
 The owner approved PR39's explained HLS recovery behavior and it merged through protected checks at0cf8876; its player fixes and dated quality evidence are now integrated. This supersedes its historical pending-review notes. No public preview upload followed.

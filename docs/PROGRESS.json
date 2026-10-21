@@ -787,6 +787,16 @@
       }
     },
     {
+      "number": 147,
+      "title": "Device capability probe and consent banner",
+      "status": "in_progress",
+      "dependencies": [10],
+      "progress": {
+        "documents": ["docs/plans/issues/issue-147.md", "docs/evidence/issue147-readiness.json"],
+        "verification": ["Advisory exact-sample predictions and accessible dismissible startup notice; optional persistent storage purpose only. No deployment or physical-device/output certification. Executable job-specific optional-processing consent remains outstanding; issue stays open. Exact-head protected checks required before integration."]
+      }
+    },
+    {
       "number": 148,
       "title": "First-class external-player hand-off on iOS, Android and desktop",
       "status": "in_progress",

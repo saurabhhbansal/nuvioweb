@@ -1,0 +1,49 @@
+{
+  "issue": 147,
+  "date": "2026-10-21",
+  "status": "in_progress",
+  "base": "87fb2fd86e39366bbef3c15f79f53063f8218507",
+  "capability": "Nonblocking browser readiness notice with exact sample predictions and optional storage-purpose request",
+  "evidenceDocument": "docs/plans/issues/issue-147.md",
+  "unitFixtures": {
+    "kind": "injected, not real devices",
+    "passed": 11,
+    "failed": 0
+  },
+  "initialBrowser": {
+    "engine": "local Playwright Chromium",
+    "passed": 3,
+    "failed": 1,
+    "failure": "Escape consumed by document-capture FocusEngine; scoped native-keyboard exclusion added"
+  },
+  "correctedBrowser": {
+    "passed": 4,
+    "failed": 0,
+    "seconds": 6.1,
+    "layer": "local Chromium DOM, keyboard, denial and original VP8 fixture; not physical device"
+  },
+  "review": "inline automated self-review; no reviewer agents or independent human approval",
+  "deployment": "none; pinned previews and auth observers untouched",
+  "unverified": [
+    "physical devices and output",
+    "actual selected-source capability",
+    "other Dolby Vision profiles/layers",
+    "executable job-specific optional-processing consent",
+    "owner host /hdrprobe unavailable in this workspace"
+  ],
+  "integration": "pending exact-head required checks",
+  "localGates": {
+    "build": "inert fixture pass",
+    "lint": "pass",
+    "artifactChecks": 12,
+    "docsGovernanceTests": 15,
+    "docsLinks": "pass",
+    "progressSchema": "pass",
+    "fullApplication": {
+      "passed": 1543,
+      "failed": 1,
+      "skipped": 0,
+      "failure": "Existing sandbox lifecycle wrapper expected TAP # tests 1 but received pretty reporter \u2139 tests 1; child recursion test passed; no test modified"
+    }
+  }
+}
