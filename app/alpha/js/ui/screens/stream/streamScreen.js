@@ -17,7 +17,7 @@ import {
   orderSourceNames,
   orderStreamsByAddonOrder
 } from "../../../core/streams/streamOrdering.js";
-import { orderSourcesByNativePrediction } from "../../../core/streams/sourcePreference.js";
+import { orderSourcesByNativePrediction, toggleSourcePlaybackFailure } from "../../../core/streams/sourcePreference.js";
 import { buildStreamResumeIdentity } from "../../../core/streams/streamResumeIdentity.js";
 import {
   flattenStreams,
@@ -697,7 +697,7 @@ export const StreamScreen = {
     this.sourceChips = [];
     this.addonLogoLookup = {};
     this.addonFilter = "all";
-    this.nativePredictionOrder = false;
+    this.nativePredictionOrder = true;
     this.hasRenderedStreamRouteShell = false;
     // Returning here from the player is a back navigation, not a fresh open, so
     // do not auto-resume or auto-play again. Otherwise exiting the player drops
@@ -1832,8 +1832,8 @@ export const StreamScreen = {
     });
   },
   renderSourceOrderControl() {
-    const label = t("source_order_native_first", {}, "Native predictions first");
-    const hint = t("source_order_prediction_hint", {}, "Predictions do not verify playback. All sources stay available.");
+    const label = t("source_order_device_first", {}, "Device-aware order");
+    const hint = t("source_order_device_hint", {}, "Browser predictions first, then other-player candidates, unknown and blocked routes. All sources stay available. Corrections last until reload or refresh.");
     return `<div class="stream-route-order-row">
       <button type="button" class="stream-route-source-order" data-action="toggleSourceOrder"
               aria-pressed="${this.nativePredictionOrder === true}" aria-describedby="streamSourceOrderHint">${escapeHtml(label)}</button>
@@ -2208,6 +2208,7 @@ export const StreamScreen = {
             ${renderBrowserSourceCardContent(sourceModel)}
             ${this.renderOfflineDownloadActions(stream)}
           </article>
+          ${sourceModel.deviceRanking.route === "browser" || sourceModel.deviceRanking.corrected ? `<button type="button" class="stream-route-source-correction" data-action="correctSourcePrediction" data-stream-id="${escapeHtml(stream.id)}" aria-label="${escapeHtml(sourceModel.deviceRanking.corrected ? `Clear playback correction for ${sourceModel.headline}` : `Didn't play here: ${sourceModel.headline}`)}">${escapeHtml(sourceModel.deviceRanking.corrected ? t("source_correction_clear", {}, "Clear correction") : t("source_correction_fail", {}, "Didn't play here"))}</button>` : ""}
         </div>
       `;
     }
@@ -2525,6 +2526,17 @@ export const StreamScreen = {
     this.boundStreamFilterRowHandler = (event) => {
       const target = event.target instanceof Element ? event.target : null;
       if (!target || !this.container?.contains(target)) {
+        return;
+      }
+      const correction = target.closest("[data-action='correctSourcePrediction']");
+      if (correction) {
+        event.preventDefault();
+        event.stopPropagation();
+        const stream = this.streams.find((entry) => entry.id === correction.dataset.streamId);
+        if (stream) toggleSourcePlaybackFailure(stream);
+        this.render();
+        Array.from(this.container.querySelectorAll("[data-action='correctSourcePrediction']"))
+          .find((button) => button.dataset.streamId === correction.dataset.streamId)?.focus({ preventScroll: true });
         return;
       }
       const sourceOrder = target.closest("[data-action='toggleSourceOrder']");
@@ -3171,7 +3183,7 @@ export const StreamScreen = {
 
     // Let the browser activate this native button with Enter/Space and move
     // focus with Tab; TV card navigation must not also activate another source.
-    if (Platform.isBrowser() && event?.target?.closest?.("[data-action='toggleSourceOrder']")) {
+    if (Platform.isBrowser() && event?.target?.closest?.("[data-action='toggleSourceOrder'], [data-action='correctSourcePrediction']")) {
       return;
     }
     const direction = getDpadDirection(event);

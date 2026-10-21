@@ -1,0 +1,102 @@
+{
+  "issue": 149,
+  "date": "2026-10-21",
+  "base": "c10e75f",
+  "evidence": "docs/plans/issues/issue-149.md",
+  "rule": [
+    "complete-native-prediction",
+    "external-candidate",
+    "unknown",
+    "headers-own-proxy",
+    "blocked-delivery"
+  ],
+  "tieBreak": "stable existing provider order; no resolution/title inference",
+  "correction": "reversible weak in-memory source reference; no URL/credential persistence; reset on fresh response/reload",
+  "local": {
+    "initialRed": "missing assessSourceForDevice export",
+    "ruleRed": "malformed HEVC profile incorrectly accepted; tightened exact grammar",
+    "focusedInitial": {
+      "passed": 49,
+      "failed": 0,
+      "skipped": 0
+    },
+    "finalRankingUnit": {
+      "passed": 11,
+      "failed": 0,
+      "skipped": 0
+    },
+    "initialBrowser": {
+      "passed": 22,
+      "failed": 2,
+      "causes": [
+        "correction Enter also reached legacy navigation",
+        "synthetic URLs contained raw spaces"
+      ]
+    },
+    "browserFinal": {
+      "passed": 24,
+      "failed": 0,
+      "skipped": 0,
+      "scope": "local Chromium; includes synthetic injected format predictions"
+    },
+    "buildLintArtifact": "passed, 12 inert artifacts",
+    "designDetector": "exit2: inherited CSS bounce/layout-animation warnings only; no changed-line warning",
+    "focusedFinal": {
+      "passed": 50,
+      "failed": 0,
+      "skipped": 0
+    },
+    "docsGovernance": {
+      "passed": 50,
+      "failed": 0,
+      "skipped": 0
+    },
+    "visual": "final source3/3 pass; desktop1280x800 and narrow390x844 confirmation inspected; full-width cards with sibling44px correction button; inherited icon-font fallback",
+    "sourceBrowserAfterLayout": {
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0
+    },
+    "fullApplication": {
+      "pass": 1549,
+      "fail": 0,
+      "skip": 0,
+      "command": "npm --prefix app/alpha test"
+    }
+  },
+  "review": "direct separate automated diff/security/spec pass; no reviewer agents or independent-human claim; corrections documented in single evidence",
+  "protectedIntegration": {
+    "pr": 158,
+    "requiredChecks": 4,
+    "strict": true,
+    "adminEnforced": true,
+    "authority": "https://github.com/saurabhhbansal/nuvioweb/pull/158",
+    "rule": "Merge only with all four green on exact final head; head, run IDs, flake disposition and merge recorded in PR integration receipt. No bypass.",
+    "initialHead": "827824392b1dae9d4a4bdf8924b81f0773db7c18",
+    "initialApplication": {
+      "run": 39626046547,
+      "pass": 1547,
+      "fail": 2,
+      "correction": "add default strings; replace obsolete aggregate probe count with per-conflict zero-probe/route assertions"
+    },
+    "initialSmoke": {
+      "run": 39626046843,
+      "status": "passed",
+      "rerun": false
+    }
+  },
+  "unverified": [
+    "physical devices/HDR/audio output",
+    "installed external-player success",
+    "live provider delivery",
+    "adaptive-engine support ranking"
+  ],
+  "deployment": "none; pinned previews and elapsed observers untouched",
+  "acceptance": {
+    "exactRequirementsAndPredictions": true,
+    "browserFirstUnverifiedCandidates": true,
+    "preserveOriginalSources": true,
+    "explainAndCorrectLocally": true,
+    "negativeAndPlatformFixtures": true
+  }
+}
