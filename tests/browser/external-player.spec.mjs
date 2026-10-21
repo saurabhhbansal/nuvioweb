@@ -61,6 +61,28 @@ test("bundled desktop player offers explicit playlist/copy, responsive explanati
   expect(sidecars).toEqual([]);
 });
 
+test("bundled iPhone touch More panel opens VLC chooser instead of consuming a video gesture", async ({ browser }) => {
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1" });
+  try {
+    await context.route("**/*", route => ["http://127.0.0.1:4371", provider].includes(new URL(route.request().url()).origin) ? route.continue() : route.abort());
+    await context.addInitScript(provider => localStorage.setItem("installedAddonUrls", JSON.stringify({ __profileScoped: true, version: 1, profiles: { "1": [`${provider}/basic`] } })), provider);
+    const page = await context.newPage();
+    await page.goto("/");
+    await page.locator('[data-action="continueGuest"]').tap();
+    await page.locator('#home .home-poster-card[data-item-id="fixture:original"]').first().tap();
+    await page.locator('button[data-action="playDefault"]').tap();
+    await page.locator('[data-action="playStream"]').tap();
+    await expect.poll(() => page.locator("video").evaluate(video => video.currentTime)).toBeGreaterThan(0.1);
+    await page.locator('[data-action="more"]').tap();
+    await page.getByRole("button", { name: "Open in another player", exact: true }).tap();
+    const dialog = page.getByRole("dialog");
+    await expect(dialog.getByRole("button", { name: "Open in VLC", exact: true })).toBeVisible();
+    await dialog.getByRole("button", { name: "Cancel / stay in Nuvio", exact: true }).tap();
+    await expect(dialog).toHaveCount(0);
+    expect(await page.evaluate(() => localStorage.getItem("nuvioExternalPlaybackHandoff"))).toBeNull();
+  } finally { await context.close(); }
+});
+
 for (const scenario of ["basic", "startup-header-required"]) {
   test(`bundled failed source keeps an explicit keyboard-accessible handoff: ${scenario}`, async ({ page, context }) => {
     test.setTimeout(60000);

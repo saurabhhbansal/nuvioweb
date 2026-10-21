@@ -5193,6 +5193,7 @@ export const PlayerScreen = {
       ".player-controls-bottom",
       ".player-modal",
       ".player-modal-backdrop",
+      ".player-mobile-more-panel",
       ".player-sources-panel",
       ".player-episode-panel",
       ".player-pause-overlay",
