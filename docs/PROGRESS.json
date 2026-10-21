@@ -818,7 +818,23 @@
         "documents": ["docs/plans/issues/issue-149.md", "docs/evidence/issue149-ranking.json"],
         "verification": ["Default stable browser/external/unknown/proxy/blocked tiers; complete native video/audio declarations and existing capability/header assessments. Every original source preserved; reversible memory-only failed-prediction correction. Full local application1549/1549 after CI translation/probe-test corrections; focused50/50, affected Chromium24/24 plus layout-confirmation3/3, docs/governance50/50 and inert build/lint/artifact12 pass. Proposed until protected evidence PR158 merges after four exact-head checks; no deployment or physical-device claim."]
       }
+    },
+    {
+      "number": 150,
+      "title": "Evidence-based failure diagnostics and browser-limitation ledger",
+      "status": "verified",
+      "dependencies": [],
+      "completion": {
+        "pr": 159,
+        "documents": [
+          "docs/plans/issues/issue-150.md",
+          "docs/BROWSER_LIMITATIONS.md",
+          "docs/evidence/issue150-diagnostics.json"
+        ],
+        "verification": [
+          "Focused45/45 and final affected local Chromium30/30; original #148 tests unchanged, full-app dialog/diagnostic/native-export coexistence added; build/lint/artifact12, docs/governance15 pass. Full local1571/1572 has unrelated Node24 subprocess-reporter assertion; remote pinned Node22 full suite and all four exact-head contexts required. Proposed until protected PR159 merges. Same-agent direct automated review, no device/provider/native/output or deployment claim."
+        ]
+      }
     }
-  ],
-  "integrationPolicy": "Only default-branch records are authoritative; entries in an unmerged PR are proposed until their evidence PR merges."
+  ]
 }

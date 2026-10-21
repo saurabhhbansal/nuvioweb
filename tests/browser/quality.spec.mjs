@@ -297,7 +297,7 @@ for (const [scenario, status] of [
     if (scenario !== "quality-hls-cors")
       await expect(
         overlay.locator(".player-startup-error-message"),
-      ).toContainText("The browser could not load this source");
+      ).toContainText("The browser did not expose why playback failed");
     if (scenario === "quality-hls-cors")
       // Engines report a blocked manifest as either a failed request or a
       // failed response. Either observation plus the visible overlay and the
@@ -346,7 +346,7 @@ for (const [scenario, status] of [
           expect(logs).toMatch(/"mediaErrorCode":0/);
           expect(await page.evaluate(() => globalThis.__qualitySourceErrors))
             .toContainEqual({ target: "SOURCE", videoError: null });
-          await expect(overlay).toContainText("Reason: startup-source-error");
+          await expect(overlay).toContainText("Reason: unknown-at-transport/startup");
         }
       }
       expect(JSON.stringify(await Promise.all(applicationLogs))).not.toContain(

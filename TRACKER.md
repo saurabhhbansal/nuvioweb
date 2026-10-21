@@ -12,6 +12,8 @@ Issue [#147](https://github.com/saurabhhbansal/nuvioweb/issues/147) is separatel
 
 Issue [#149](https://github.com/saurabhhbansal/nuvioweb/issues/149): device-aware default ranking, honest route/reason lines and reversible memory-only failure corrections; every original source remains selectable. [Single plan/evidence](docs/plans/issues/issue-149.md), [receipt](docs/evidence/issue149-ranking.json). Focused50/50, affected Chromium24/24 plus layout3/3 and docs/governance50/50 pass; proposed verified on protected [PR158](https://github.com/saurabhhbansal/nuvioweb/pull/158) integration only after four exact-head checks. No deployment or real-device certification.
 
+Issue [#150](https://github.com/saurabhhbansal/nuvioweb/issues/150): evidence-qualified failure reason, confidence, observed fields, next action and redacted JSON export; [ledger](docs/BROWSER_LIMITATIONS.md), [single evidence/review](docs/plans/issues/issue-150.md), [receipt](docs/evidence/issue150-diagnostics.json). Final local45/45 focused and30/30 affected Chromium pass; #148 keyboard/dialog assertions unchanged, diagnostics/native export coexistence added. Proposed until protected PR159 exact-head integration; no device/provider root-cause or deployment claim.
+
 | Ticket | State | Dependencies | Evidence or precise limitation |
 | --- | --- | --- | --- |
 | [#1](https://github.com/saurabhhbansal/nuvioweb/issues/1) [M0][P0] Validate upstream licenses, provenance, and import strategy | verified | None | PR #27; acceptance/verification in linked ledger documents |

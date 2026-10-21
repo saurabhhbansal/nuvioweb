@@ -1,0 +1,63 @@
+{
+  "issue": 150,
+  "date": "2026-10-21",
+  "base": "f42ac18",
+  "layer": "injected classifier + local browser UI; historical real-provider references only",
+  "evidence": "docs/plans/issues/issue-150.md",
+  "ledger": "docs/BROWSER_LIMITATIONS.md",
+  "verification": {
+    "focused": {
+      "pass": 45,
+      "fail": 0,
+      "skip": 0
+    },
+    "localFullApplication": {
+      "pass": 1571,
+      "fail": 1,
+      "reason": "Node24 subprocess reporter differs from inherited TAP assertion; remote pinned Node22 required"
+    },
+    "browser": {
+      "pass": 30,
+      "fail": 0,
+      "skip": 0,
+      "seconds": 55.2,
+      "layer": "local Chromium actual bundled UI, injected classifiers and local legal fixtures; no physical-device result",
+      "initial": "17/20 stale-copy failures in initial implementation; original CI102/104 and local0/2 handoff failures; correction29/30 exposed real capture-phase export activation; all corrected without weakening existing #148 assertions"
+    },
+    "build": "pass",
+    "lint": "pass",
+    "artifactChecks": 12,
+    "docsGovernance": 15,
+    "links": "pass",
+    "progress": "pass",
+    "whitespace": "pass"
+  },
+  "deviceResult": false,
+  "deployment": false,
+  "review": "same-agent distinct automated direct diff review; no independent human approval",
+  "limits": [
+    "same-source iPhone/laptop not reproduced",
+    "native player/audible/HDR not tested",
+    "opaque transport remains unknown",
+    "response headers unavailable without existing engine observation"
+  ],
+  "ci": {
+    "requiredContexts": 4,
+    "authority": "protected PR conversation at exact final head",
+    "webkitDashReruns": []
+  },
+  "pr": 159,
+  "integrationCorrection": {
+    "originalCiRun": 39632718446,
+    "originalCiJob": 119334965146,
+    "originalCiPass": 102,
+    "originalCiFail": 2,
+    "cause": "diagnostic export inserted before established external-player Tab target; real startup keyboard router also mapped focused export Enter to Back",
+    "fix": "export follows existing actions; focused native export is exempted from startup Back mapping",
+    "existing148Test": "unchanged from 2c1effa",
+    "extraRegression": "header diagnosis + accessible denied-handoff dialog + cancel + keyboard export coexist in actual bundled app",
+    "review": "distinct same-agent automated actual-diff review; not independent human approval",
+    "requiredFinalHeadAndMergeAuthority": "PR159 integration conversation",
+    "deployed": false
+  }
+}
