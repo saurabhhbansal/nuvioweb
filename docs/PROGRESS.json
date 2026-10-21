@@ -419,6 +419,10 @@
           "app/alpha/js/core/plugins/pluginContract.js",
           "app/alpha/js/core/plugins/pluginBroker.js",
           "app/alpha/scripts/pluginSandboxNetworkPrototype.mjs",
+          "app/alpha/scripts/pluginPrototypeSession.mjs",
+          "app/alpha/scripts/pluginGetStreamsPrototype.mjs",
+          "docs/evidence/issue11-bounded-lifecycle-2026-10-21.md",
+          "docs/agent-runs/2026-10-21-issue11-upstream-review.md",
           "app/alpha/scripts/pluginEngineAssets.mjs",
           "tests/browser/plugin-engine.spec.mjs"
         ],
@@ -430,7 +434,7 @@
           "Full app1237/1237 pass15.1s, lint pass, inert build/12-asset check pass, full browser suite51/51 pass1.6min; read-only Codex review found2P1+3P2, all fixed, plus a follow-up re-review P2 (clean-checkout dist) and a symlinked-dist containment edge (docs/agent-runs/2026-10-19-unit6a-review.md).",
           "Unit6b-1: opt-in NUVIO_PLUGIN_ENGINE_ASSETS build/stage emits content-versioned assets/plugins/<hash> + manifest (JS64,698B/WASM1,027,523B), default12-asset build unchanged and no engine bundle refs; artifact/stager validation rejects opt-in mismatch, orphans/siblings, tampered same-length hashes and unbound directories; MIT notices and scoped headers staged only on opt-in. No app seam/execution/upload; app1238/1238, focused12/12, Codex review5P2 all fixed."
         ],
-        "remaining": "No application seam, feature flag, stager/preview emission, CSP decision, real-network or Firefox/WebKit evidence. Plugins are not shipped, compatible or supported. Unit6b must add the default-off lazy app seam, hashed stager emission with application/wasm, CSP/wasm-unsafe-eval decision, broader browser coverage and independent security/dependency review before any owner-gated rollout; no shipping default."
+        "remaining": "2026-10-21 continuation remains OPEN/in_progress, not verified. Focused broker/lifecycle/session/restricted-getStreams tests62/62 pass; Chromium pre-adapter browser suite13/13 pass; local WebKit/Gecko launch failed (missing host libraries/executable), not guest passes. New test-only default-off lazy session, trusted-host gates, finite budgets, redirect-dispatch/aggregate-byte accounting, abort/late-result teardown and narrow CommonJS/global positional adapter. Required final CI/review evidence in linked receipt. No actual installed JS source established (public actual-provider report records zero custom sources); fixtures are regression-only. No shipped app execution/settings/UI, CSP decision, real DNS/private-IP/streaming fetch transport, persistent account/global budgets or concrete sensitive rollout review. No real-plugin/escape/device/playback claim; no deployment."
       }
     },
     {

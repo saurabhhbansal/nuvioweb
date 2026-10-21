@@ -27,7 +27,11 @@ async function resolve(api, input) {
   assert.equal(result.ok, true, JSON.stringify(result));
   assert.equal(result.groups[0].streams[0].description, '{"hello":"world"}');
   assert.equal(result.requests, 1);
-  assert.deepEqual(calls[0], ["https://media.example.com/catalog.json", { method: "GET" }]);
+  assert.equal(calls[0][0], "https://media.example.com/catalog.json");
+  assert.deepEqual(Object.keys(calls[0][1]).sort(), ["method", "signal"]);
+  assert.equal(calls[0][1].method, "GET");
+  assert.equal(calls[0][1].signal instanceof AbortSignal, true);
+  assert.equal(calls[0][1].signal.aborted, true); // teardown, no live transport left
   assert.deepEqual(result.logs, ["status 200"]);
 });
 

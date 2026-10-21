@@ -10,18 +10,21 @@ import { createPluginNetworkBroker } from "../js/core/plugins/pluginBroker.js";
 import { normalizePluginResult, PLUGIN_CONTRACT_LIMITS } from "../js/core/plugins/pluginContract.js";
 import { PLUGIN_SANDBOX_DEFAULTS } from "./pluginSandboxPrototype.mjs";
 
-function withDeadline(promise, deadline) {
-  let timer;
-  const remaining = Math.max(0, deadline - Date.now());
-  const timeout = new Promise((resolve) => {
-    timer = setTimeout(() => resolve({ ok: false, error: "timeout" }), remaining);
-  });
-  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+export const PLUGIN_SANDBOX_CEILINGS = Object.freeze({
+  timeMs: 5000, memoryBytes: 32 * 1024 * 1024, stackBytes: 1024 * 1024,
+  outputBytes: 1024 * 1024, logs: 20, logLength: 200, inputBytes: 1024 * 1024
+});
+
+function validBudget(budget) {
+  return Object.entries(budget).every(([key, value]) =>
+    Object.hasOwn(PLUGIN_SANDBOX_CEILINGS, key) && Number.isSafeInteger(value) &&
+    value >= (key === "logs" || key === "logLength" ? 0 : 1) && value <= PLUGIN_SANDBOX_CEILINGS[key]);
 }
 
 function networkErrorCode(message) {
   const match = /plugin-network:([a-z-]+)/.exec(String(message || ""));
-  return match ? match[1] : null;
+  const codes = new Set(["url", "scheme", "credentials", "host", "port", "ip", "method", "requests", "redirect-limit", "redirect-url", "response-size", "response-total", "response-body", "transport", "cancelled", "timeout"]);
+  return match && codes.has(match[1]) ? match[1] : null;
 }
 
 export async function executePluginWithNetworkPrototype({
@@ -30,36 +33,49 @@ export async function executePluginWithNetworkPrototype({
   allowedHosts = [],
   transport,
   limits = {},
-  brokerLimits = {}
+  brokerLimits = {},
+  signal
 } = {}) {
   if (typeof code !== "string" || !code.trim()) return { ok: false, error: "code" };
   if (new TextEncoder().encode(code).length > PLUGIN_CONTRACT_LIMITS.codeBytes) return { ok: false, error: "code-size" };
   if (typeof transport !== "function") return { ok: false, error: "transport-config" };
-  const budget = { ...PLUGIN_SANDBOX_DEFAULTS, ...limits };
+  const budget = { ...PLUGIN_SANDBOX_DEFAULTS, inputBytes: 1024 * 1024, ...limits };
+  if (!validBudget(budget)) return { ok: false, error: "limits" };
+  if (signal?.aborted) return { ok: false, error: "cancelled" };
+  let inputJson;
+  try { inputJson = JSON.stringify(input ?? {}); } catch { return { ok: false, error: "input" }; }
+  if (typeof inputJson !== "string" || new TextEncoder().encode(inputJson).length > budget.inputBytes) return { ok: false, error: "input-size" };
   const startedAt = Date.now();
   const logs = [];
   let inflightHostCalls = 0;
-  const broker = createPluginNetworkBroker({
-    allowedHosts,
-    transport,
-    maxRequests: brokerLimits.maxRequests ?? 4,
-    maxResponseBytes: brokerLimits.maxResponseBytes ?? 256 * 1024,
-    maxRedirects: brokerLimits.maxRedirects ?? 2
-  });
-
+  const controller = new AbortController();
+  const cancel = () => controller.abort();
+  let broker;
+  try {
+    broker = createPluginNetworkBroker({
+      allowedHosts, transport, signal: controller.signal,
+      maxRequests: brokerLimits.maxRequests ?? 4,
+      maxResponseBytes: brokerLimits.maxResponseBytes ?? 256 * 1024,
+      maxTotalResponseBytes: brokerLimits.maxTotalResponseBytes ?? 1024 * 1024,
+      maxRedirects: brokerLimits.maxRedirects ?? 2
+    });
+  } catch { return { ok: false, error: "limits" }; }
+  signal?.addEventListener("abort", cancel, { once: true });
   let context;
+  let timer;
+  let deadline = Infinity;
+  const stopped = () => signal?.aborted ? "cancelled" : Date.now() >= deadline || controller.signal.aborted ? "timeout" : null;
   try {
-    context = await newAsyncContext();
-  } catch {
-    return { ok: false, error: "engine" };
-  }
-  // The execution budget starts after engine construction so slow WASM startup
-  // cannot consume the plugin's wall-clock allowance.
-  const deadline = Date.now() + budget.timeMs;
-  try {
+    try { context = await newAsyncContext(); }
+    catch { return { ok: false, error: "engine" }; }
+    if (signal?.aborted) return { ok: false, error: "cancelled" };
+    // WASM startup is not plugin execution time. Only the running VM receives
+    // this deadline; cancellation during startup is observed before execution.
+    deadline = Date.now() + budget.timeMs;
+    timer = setTimeout(cancel, budget.timeMs);
     context.runtime.setMemoryLimit(budget.memoryBytes);
     context.runtime.setMaxStackSize(budget.stackBytes);
-    context.runtime.setInterruptHandler(() => Date.now() > deadline);
+    context.runtime.setInterruptHandler(() => Boolean(stopped()));
 
     const api = context.newObject();
     const log = context.newFunction("log", (...args) => {
@@ -78,7 +94,7 @@ export async function executePluginWithNetworkPrototype({
     context.setProp(context.global, "api", api);
     api.dispose();
 
-    const inputHandle = context.newString(JSON.stringify(input ?? {}));
+    const inputHandle = context.newString(inputJson);
     context.setProp(context.global, "inputJson", inputHandle);
     inputHandle.dispose();
 
@@ -86,7 +102,7 @@ export async function executePluginWithNetworkPrototype({
       inflightHostCalls += 1;
       try {
         const url = context.getString(urlHandle);
-        const result = await withDeadline(broker.request(url), deadline);
+        const result = await broker.request(url);
         return context.newString(JSON.stringify(result));
       } finally {
         inflightHostCalls -= 1;
@@ -122,6 +138,11 @@ resolve(api, JSON.parse(inputJson)).then(
 );`,
       "plugin.js"
     );
+    if (stopped()) {
+      setup.error?.dispose();
+      setup.value?.dispose();
+      return { ok: false, error: stopped(), elapsedMs: Date.now() - startedAt };
+    }
     if (setup.error) {
       let detail;
       try {
@@ -156,6 +177,7 @@ resolve(api, JSON.parse(inputJson)).then(
           elapsedMs: Date.now() - startedAt
         };
       }
+      if (stopped()) return { ok: false, error: stopped(), elapsedMs: Date.now() - startedAt };
       const doneProbe = context.evalCode("String(globalThis.__nuvioDone)");
       const resultProbe = context.evalCode("String(globalThis.__nuvioResult)");
       const errorProbe = context.evalCode("String(globalThis.__nuvioError)");
@@ -195,8 +217,8 @@ resolve(api, JSON.parse(inputJson)).then(
         return { ok: false, error: "output", elapsedMs: Date.now() - startedAt };
       }
       if (Date.now() > deadline) {
-        // Let a suspended host call resume (it is bounded by withDeadline)
-        // before the context is disposed; disposing mid-suspension crashes.
+        // Let a suspended host call unwind after broker cancellation before
+        // disposing the context; disposing mid-suspension crashes.
         while (inflightHostCalls > 0 && Date.now() < deadline + 100) {
           await new Promise((resolve) => setTimeout(resolve, 5));
         }
@@ -209,7 +231,8 @@ resolve(api, JSON.parse(inputJson)).then(
       }
     }
 
-    if (serialized.length > budget.outputBytes) return { ok: false, error: "output-size" };
+    if (stopped()) return { ok: false, error: stopped(), elapsedMs: Date.now() - startedAt };
+    if (new TextEncoder().encode(serialized).length > budget.outputBytes) return { ok: false, error: "output-size" };
     let parsed;
     try {
       parsed = JSON.parse(serialized);
@@ -229,12 +252,16 @@ resolve(api, JSON.parse(inputJson)).then(
     const networkCode = networkErrorCode(error?.message);
     return {
       ok: false,
-      error: networkCode || (Date.now() > deadline ? "timeout" : "runtime"),
+      error: stopped() || networkCode || "runtime",
       elapsedMs: Date.now() - startedAt
     };
   } finally {
-    try {
-      context.dispose();
-    } catch {}
+    clearTimeout(timer);
+    signal?.removeEventListener("abort", cancel);
+    controller.abort();
+    // The broker settles ignored aborts before the asyncified host function
+    // unwinds; late transport responses have no reference to this context.
+    while (inflightHostCalls > 0) await new Promise((resolve) => setTimeout(resolve, 0));
+    try { context?.dispose(); } catch {}
   }
 }

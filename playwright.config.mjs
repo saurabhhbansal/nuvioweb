@@ -3,7 +3,7 @@ import { engineLaunchOptions } from "./scripts/engine-launch-options.mjs";
 // Additional engines are opt-in: default workstation runs remain Chromium-only.
 // These presets select engine/viewport, not branded-browser/device certification.
 // CI runs the WebKit project inside the required smoke context.
-const engineSpecs = ["**/engine-capabilities.spec.mjs", "**/quality.spec.mjs"];
+const engineSpecs = ["**/engine-capabilities.spec.mjs", "**/quality.spec.mjs", "**/plugin-engine.spec.mjs"];
 const webkitProject = process.env.NUVIO_PLAYWRIGHT_WEBKIT === "1"
   ? [{ name: "webkit", testMatch: engineSpecs, use: { ...devices["Desktop Safari"], launchOptions: engineLaunchOptions("webkit") } }]
   : [];
