@@ -21,7 +21,8 @@ test("guest installs a legal add-on, saves its item, uses player controls and re
   await page.locator('[data-focus-key="contentDiscovery:addons"]').click();
   await page.locator("#desktop-addon-url").fill(`${provider}/basic/manifest.json`);
   await page.getByRole("button", { name: "Add Addon", exact: true }).click();
-  await expect(page.getByRole("status")).toHaveText("Saved locally");
+  await expect(page.locator(".settings-shell .desktop-addon-inline-status[role=status]")).toHaveCount(1);
+  await expect(page.locator(".settings-shell .desktop-addon-inline-status[role=status]")).toHaveText("Saved locally");
   await page.getByRole("button", { name: "Home", exact: true }).click();
   await page.locator('#home .home-poster-card[data-item-id="fixture:original"]').first().click();
   await expect(page.getByRole("heading", { name: "Original Legal Fixture", exact: true })).toBeVisible();

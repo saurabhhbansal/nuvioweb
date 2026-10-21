@@ -82,7 +82,8 @@ test("guest installs and toggles a legal HTTP add-on through the real bundled se
   await page.getByRole("button",{name:"Add Addon",exact:true}).click();
   const card = page.locator("[data-addon-card]").filter({has:page.getByRole("heading",{name:"Legal Fixture",exact:true})});
   await expect(card).toBeVisible();
-  await expect(page.getByRole("status")).toHaveText("Saved locally");
+  await expect(page.locator(".settings-shell .desktop-addon-inline-status[role=status]")).toHaveCount(1);
+  await expect(page.locator(".settings-shell .desktop-addon-inline-status[role=status]")).toHaveText("Saved locally");
   await card.getByText("Enabled",{exact:true}).click();
   await expect(card.locator('input[type="checkbox"]')).not.toBeChecked();
   await expect(card).toHaveClass(/is-disabled/);
@@ -124,7 +125,8 @@ test("settings visibly rejects CORS, malformed, invalid-shape and unsafe-looking
     await page.getByRole("button",{name:"Add Addon",exact:true}).click();
     await expect(page.getByRole("alert")).toContainText(message);
     await expect(page.getByRole("alert")).not.toContainText(/Failed to fetch|NetworkError|is not a function|Cannot read propert/i);
-    await expect(page.getByRole("status")).toHaveText("The addon was not added.");
+    await expect(page.locator(".settings-shell .desktop-addon-inline-status[role=status]")).toHaveCount(1);
+    await expect(page.locator(".settings-shell .desktop-addon-inline-status[role=status]")).toHaveText("The addon was not added.");
     await expect(page.getByRole("button",{name:"Add Addon",exact:true})).toBeEnabled();
     await expect(page.locator("[data-addon-card]")).toHaveCount(0);
   }

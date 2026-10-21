@@ -1,0 +1,97 @@
+{
+  "issue": 147,
+  "date": "2026-10-21",
+  "status": "in_progress",
+  "base": "87fb2fd86e39366bbef3c15f79f53063f8218507",
+  "capability": "Nonblocking browser readiness notice with exact sample predictions and optional storage-purpose request",
+  "evidenceDocument": "docs/plans/issues/issue-147.md",
+  "unitFixtures": {
+    "kind": "injected, not real devices",
+    "passed": 11,
+    "failed": 0
+  },
+  "initialBrowser": {
+    "engine": "local Playwright Chromium",
+    "passed": 3,
+    "failed": 1,
+    "failure": "Escape consumed by document-capture FocusEngine; scoped native-keyboard exclusion added"
+  },
+  "correctedBrowser": {
+    "passed": 4,
+    "failed": 0,
+    "seconds": 6.1,
+    "layer": "local Chromium DOM, keyboard, denial and original VP8 fixture; not physical device"
+  },
+  "review": "inline automated self-review; no reviewer agents or independent human approval",
+  "deployment": "none; pinned previews and auth observers untouched",
+  "unverified": [
+    "physical devices and output",
+    "actual selected-source capability",
+    "other Dolby Vision profiles/layers",
+    "executable job-specific optional-processing consent",
+    "owner host /hdrprobe unavailable in this workspace"
+  ],
+  "localGates": {
+    "build": "inert fixture pass",
+    "lint": "pass",
+    "artifactChecks": 12,
+    "docsGovernanceTests": 15,
+    "docsLinks": "pass",
+    "progressSchema": "pass",
+    "fullApplication": {
+      "passed": 1543,
+      "failed": 1,
+      "skipped": 0,
+      "failure": "Existing sandbox lifecycle wrapper expected TAP # tests 1 but received pretty reporter \u2139 tests 1; child recursion test passed; no test modified"
+    }
+  },
+  "initialIntegration": {
+    "pr": 157,
+    "sourceHead": "7acdfd02827a620cb207e2ee0b45183b37f25dd1",
+    "state": "draft, unmerged",
+    "requiredChecksAtSourceHead": {
+      "docs": "pass",
+      "baseline": "pass",
+      "governance": "pass",
+      "smoke": "fail"
+    },
+    "smoke": {
+      "passed": 94,
+      "failed": 5,
+      "causes": [
+        "three unscoped status-locator collisions",
+        "two source-retry click interceptions by readiness overlay"
+      ],
+      "laterEngines": "skipped"
+    },
+    "rerun": "none requested; documentation-head automatic CI not verified",
+    "protection": "unchanged; no bypass"
+  },
+  "correction": {
+    "layout": "Static trailing flow-root footer; inert height retained on hide/dismiss to prevent scroll clamping",
+    "statusAssertions": "Three add-on statuses scoped and count=1; original exact strings unchanged",
+    "localBrowser": {
+      "passed": 17,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 37.4
+    },
+    "coverage": [
+      "unchanged app-control geometry at 1280/390",
+      "original source retries",
+      "expanded/present and dismissed retries/playback at both widths",
+      "MVP original playback"
+    ],
+    "reportedIntermediateFailures": [
+      "hidden role locator / same-label source locator defects",
+      "strict geometry movement exposed scroll clamping; no tolerance relaxed"
+    ],
+    "localGates": "inert build, lint, docs, ledger, history, whitespace pass"
+  },
+  "integration": {
+    "pr": 157,
+    "record": "https://github.com/saurabhhbansal/nuvioweb/pull/157",
+    "gate": "four required checks at exact head, unchanged protection, merge commit verified before completion",
+    "outcome": "authoritative exact-head and merge receipt posted in PR conversation after checks; not presumed in this self-referential commit"
+  }
+}
