@@ -1,54 +1,40 @@
-# Product requirements document (PRD) — NuvioWeb
+# Product requirements — NuvioWeb
 
-Status: approved product direction, verification and prioritization pending. Date: 2026-10-18.
+Updated 2026-10-21. Scope: browser playback plus external player hand-off. Roadmap: [GitHub milestones](https://github.com/saurabhhbansal/nuvioweb/milestones).
 
 ## Problem
 
-Browser media clients often lose native-app features: add-on compatibility, high-quality codecs, synced profiles and advanced source handling. Operating a centralized streaming backend for all traffic is expensive and risky. Users with their own hardware need an effortless alternative to complex self-hosting.
+Nuvio users want to watch on any device with a browser, without installing a native app, and keep the same account, profiles and library everywhere.
 
-## User segments
+## Users
 
-1. **Free web user:** existing Nuvio account, favorite add-ons, simple playback, no hosted processing bill.
-2. **Power user:** high-resolution files, track/subtitle controls and transparent format diagnostics.
-3. **Self-hoster:** installs one processing agent, pairs account, uses own CPU/GPU/server; no extra platform compute payment.
-4. **Managed compute buyer:** opts in to bounded paid conversion, easy checkout and clear price/allowance.
+- **Nuvio user on the web:** signs in with an existing account and expects their library, add-ons and progress.
+- **Phone or tablet user:** installs the PWA and may prefer to open sources in an external player app.
 
-## Functional requirements
+## MVP scope
 
-| ID | Requirement | Priority | Acceptance target |
-| --- | --- | --- | --- |
-| FR-01 | Authenticate using existing Nuvio account | P0 | Email/other upstream-supported sign-in, refresh, sign-out and account switch work; no separate password |
-| FR-02 | Sync profiles, add-ons, library and watch progress | P0 | Cross-device behavior matches tested upstream contract |
-| FR-03 | Install and use HTTP/Stremio-compatible add-ons | P0 | Manifest/catalog/meta/stream/subtitle fixture suite passes |
-| FR-04 | Support Nuvio JS plugins safely | P1 | Sandboxed supported plugin test corpus; scope of unsupported APIs documented |
-| FR-05 | Direct play H.264/HLS/DASH and compatible 4K/HDR | P0 | Tested on named browser/device/media fixtures |
-| FR-06 | Source quality and compatibility analysis | P1 | Reject/describe unsupported codec, container, audio, CORS or header constraints |
-| FR-07 | Browser-local audio recovery/demux where feasible | P1 | Quality-preserving fixture and fallback tests |
-| FR-08 | Pair and revoke self-owned compute agent | P1 | One-time secure pairing; authorized job, cancel and revoke tests |
-| FR-09 | Cloudflare own-account deployment | P2 | Documented Worker Lite, verified optional Container path |
-| FR-10 | Optional hosted conversion | P2 | Quote, prepaid reservation, hard caps, idempotent settlement and no surprise charge |
-| FR-11 | Upstream review and parity tracking | P1 | Provenance files, change review PRs/issues and CI regression gates |
-| FR-12 | Accessibility and PWA behavior | P1 | Keyboard navigation, captions, offline shell and update test suite |
+| Area | Requirement |
+| --- | --- |
+| Account | Sign in with an existing Nuvio account. Refresh, sign out and switch profiles. Guest mode still works. No second account system. |
+| Sync | Library and watch progress sync through Nuvio. Sync failures are shown and recoverable, never silently dropped. See [sync policy](LIBRARY_SYNC_POLICY.md). |
+| Add-ons | Install HTTP/Stremio-compatible add-ons by URL. Browse catalogs, open details and list sources. |
+| Sources and play | Rank sources by what this browser can likely play. Play native video, HLS and DASH with subtitles. Explain failures in plain words. |
+| External player | Hand a source to an external player on desktop, Android and iOS when the browser cannot play it. |
+| Mobile and PWA | Usable at phone width. Installable, updates cleanly, works offline for the shell. |
+| JS plugins | Run user-installed Nuvio JS plugins in the browser, within a sandbox. |
 
-## Essential experience
+## Non-goals
 
-Nuvio account sign-in → familiar library → add-on stream list with quality details → browser capability probe → direct/native playback if compatible → browser-local recovery if possible → user's paired agent if enabled → explicit hosted processing quote only when needed.
+- Server-side compute: no transcoding, remuxing or hosted processing.
+- Payments, credits or paid tiers.
+- DRM bypass or access to media the user is not allowed to watch.
+- Hosting, relaying or proxying media.
+- Shipping, recommending or naming third-party sources. Users install their own.
+- Claiming universal codec, 4K or HDR support. Support depends on the browser and device.
 
-Never charge simply because a source is 4K. Never silently use remote compute.
+## Quality bar
 
-## Non-functional constraints
-
-- Static public site where practical; serverless control endpoints only when needed.
-- Media bytes bypass the shared control plane when lawful and technically practical.
-- Per-user, per-device and global limits on untrusted add-on execution and processing.
-- Hostile-source isolation, SSRF protection, no raw Nuvio refresh tokens on agents.
-- Published customer prices and usage caps; internal costing may remain private.
-- Source and release provenance; clean builds, verified browser results and rollback.
-
-## Non-goals and caveats
-
-Not universal 8K/HDR/Dolby Vision/Atmos playback. No DRM circumvention or unauthorized torrent/media access. No second general-purpose account platform. No unlimited hosted conversions. No unrestricted provider proxy. No automatic merging from upstream forks.
-
-## Open launch dependencies
-
-Permission to use the hosted Nuvio identity/sync backend at public scale; cross-browser add-on/CORS test evidence; licensing review; payment/consumer-law and age-requirement assessment; infrastructure benchmarks and cost ceilings.
+- Required CI checks stay green on every PR.
+- New behaviour has unit or Playwright tests with fixtures or mocks.
+- Accessible by keyboard; captions work.
+- Secrets and Nuvio tokens are never logged or committed.

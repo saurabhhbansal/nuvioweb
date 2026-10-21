@@ -1,47 +1,39 @@
-# Technical architecture — proposed
+# Architecture
 
-This is a target design, not a description of already deployed systems.
+Updated 2026-10-21. This describes what exists in the repo today.
 
-## Components
+## Overview
 
-1. **Browser/PWA** — Cloudflare Pages/static CDN: existing Nuvio auth client and account sync; HTTP/Stremio add-ons; bounded Nuvio JS sandbox; source discovery; codec probing; HTML video/HLS/DASH; local decode/demux where supported.
-2. **Control API** — Cloudflare Workers: server-side Nuvio identity verification, agent pairing, capability registration, job authorization/routing, credit entitlement, quotas and job status. Never an unrestricted media relay.
-3. **Control DB** — D1 or similar: verified Nuvio identity mapping, nonsecret agent identity and permissions, job metadata, prepaid credit ledger, settlements, audit events. No second Nuvio password database.
-4. **Compute protocol** — versioned messages for capabilities, job request, authorized source references, output description, lease, progress, cancel, cleanup and usage.
-5. **Executors** — local browser; self-hosted Docker/NAS/VPS/desktop agent; user-owned Cloudflare Worker Lite for supported control tasks plus optional Container; hosted isolated processing compute.
-6. **Payment integration** — hosted checkout/webhook, only if user explicitly opts into managed compute.
+NuvioWeb is a static PWA. There is no NuvioWeb backend. The browser talks directly to Nuvio, to add-ons the user installed and to media hosts.
 
-## Routing algorithm
+```
+Browser / PWA (Cloudflare Pages, static files)
+  ├─ Nuvio public API (Supabase auth + sync)  → account, profiles, library, progress
+  ├─ User-installed add-ons (HTTP/Stremio)    → catalogs, metadata, sources, subtitles
+  ├─ User-installed JS plugins (in browser)   → extra sources
+  └─ Media host                               → played in <video> / HLS.js / DASH.js,
+                                                 or handed to an external player
+```
 
-Compatible direct play → browser-local recovery preserving source bytes/HDR → configured owner-provided compute → *explicitly quoted* hosted compute. Do not silently switch to paid processing. Browser feature preferences may override order when the user chooses.
+## Parts
 
-## Compute job model
+1. **Static hosting.** `app/alpha` builds to `app/alpha/dist`. It is served from Cloudflare Pages with the rules in [deploy/cloudflare](../deploy/cloudflare). No Functions or Workers. See [DEPLOY_PREVIEW](DEPLOY_PREVIEW.md).
+2. **Identity and sync.** The app uses the Nuvio public API with the publishable key, the same as other Nuvio clients. Tokens stay in the browser. See the [identity contract](NUVIO_IDENTITY_CONTRACT.md) and [sync policy](LIBRARY_SYNC_POLICY.md).
+3. **Add-ons.** Standard Stremio add-on protocol over HTTP: manifest, catalog, meta, stream and subtitles. The browser's CORS rules apply.
+4. **JS plugins.** User-installed Nuvio JS plugins run in the browser through the existing plugin runtime under `app/alpha/js/core/player/`. Work tracked in #166.
+5. **Playback pipeline.** Sources are mapped to a capability description and ranked by what this browser reports it can play. The player tries native video, then HLS.js or DASH.js. On failure it shows a short reason and next step.
+6. **External hand-off.** The source URL can be opened in an external player (desktop, Android intent, iOS app link). The browser is not involved after hand-off.
+7. **Optional sidecars.** Upstream integrations that need a server (Trakt auth, debrid bridges, external-player return) are off by default and disabled on the public preview.
 
-- Check verified identity and media authorization; reserve compute credits only for hosted jobs.
-- Negotiate executor capabilities, codec/container requirements, expected CPU/storage and maximum charge/duration.
-- Issue short-lived, audience-scoped signed job lease; never share Nuvio refresh tokens.
-- Process locally on executor; send progress and bounded usage; output is user-scoped with expiration.
-- Cancel/expire/revoke; delete temporary assets. Set hard memory, CPU, disk, bandwidth, timeout and concurrency limits.
-- Treat source URLs and remote media servers as untrusted; block SSRF, unsafe redirects, private IP, credentials and cloud metadata endpoints.
+## Layout
 
-## Cloudflare distinction
+- `app/alpha/` — the application (upstream fork). Run app commands from here.
+- `scripts/` — build checks and preview staging for this repo.
+- `tests/browser/` — Playwright tests. `tests/fixtures/` — legal fixture media, add-on fixture server.
+- `deploy/cloudflare/` — static host headers, redirects and public build config.
+- `.github/workflows/` — CI.
 
-Worker Lite is suitable for short, bounded APIs and pairing/control; FFmpeg/media transcodes require separate compute such as Cloudflare Containers or other container/VM infrastructure. Cloudflare Containers must be benchmarked for startup delays, volume, sustained encode throughput and per-GB charges before availability claims. BYOC template must not claim one-click Containers support until verified.
+## Boundaries
 
-## UI promises
-
-One Nuvio login. No second account creation. Same playlist and watch history. Add-on sources labeled with container/resolution/codec/HDR/audio; accurately report unknown metadata. Show when playback needs local vs remote processing and what it will cost before work begins.
-
-## Data boundaries
-
-Nuvio manages identity and sync; the NuvioWeb control plane only stores verified identity bindings, entitlements and narrowly necessary processing metadata. User source bytes should travel directly from authorized origins to the selected processor/browser where possible. Logs redact tokens, URL queries and private media details.
-
-## Current source layout
-
-The owner-approved baseline lives in `app/alpha`, preserving the complete original Alpha tree and history. Root `docs`, `scripts` and `.github/workflows` belong to this project. Upstream workflows are retained under `app/alpha/.github` as source; they are not root Actions workflows. Run future application commands from `app/alpha`; see [feature evidence](FEATURE_SUPPORT.md) for verified status.
-
-## Suggested future code structure
-
-apps/web, apps/desktop-agent, packages/compute-protocol, packages/source-capabilities, packages/nuvio-auth, services/control-api, services/compute-agent, services/hosted-compute, deploy/docker, deploy/cloudflare-lite, deploy/cloudflare-compute, tests/fixtures.
-
-**Migration note:** Start by importing the original Alpha source intact; refactor only after reproducible baseline tests. This directory structure is aspirational and must not be misrepresented as existing.
+- No server compute, no media relay, no payment system.
+- Third-party sources are untrusted input. Nothing from an add-on or plugin is trusted to run outside its sandbox.

@@ -1,31 +1,38 @@
-# Security, privacy, compliance and abuse prevention
+# Security and privacy
+
+Updated 2026-10-21.
 
 ## Identity
 
-The user signs in via the existing Nuvio authentication system. Protected NuvioWeb control APIs must verify access tokens against an authoritative upstream endpoint, checking signature/session, expiry, issuer/audience as supported, and verified stable subject. A client-provided user ID or simply decoded JWT is not sufficient. Never collect Nuvio passwords, issue substitute Nuvio identities or send refresh tokens to compute agents. Review existing browser localStorage tokens for XSS risks. Confirm upstream's API permissions for a public paid application.
+- Users sign in through the existing Nuvio authentication. NuvioWeb never collects or stores Nuvio passwords on any server of its own, and has no second account system.
+- Access and refresh tokens stay in the browser. They are never logged, committed, put in URLs or sent to add-ons, plugins or external players.
+- A rejected or expired refresh signs the user out locally and clears private state.
+- See the [identity contract](NUVIO_IDENTITY_CONTRACT.md) for the API terms and limits.
 
-The [Nuvio identity contract](NUVIO_IDENTITY_CONTRACT.md) records public terms/API evidence, imported flow risks and future verification requirements. Documented third-party API use has public support and the owner accepted proceeding without a separate permission letter on 2026-10-18; undocumented owner/QR/fallback requests and compute/billing identity use remain separate release gates. Principal identity is the configured upstream trust domain plus authoritative subject, never a cached sync owner. User lookup does not by itself prove live-session revocation; pairing and financial actions need an approved session-status contract. Passwords and refresh tokens stay out of the control plane; all Nuvio tokens stay out of compute agents, plugins and logs. Consent to login/sync does not authorize pairing, provider-secret export or charges. These requirements are documented, not implemented or live-tested.
+## Add-ons, plugins and sources
 
-## Agent pairing and authentication
+- Manifests, catalog data, stream metadata, subtitles and plugin code are untrusted input.
+- Rendered text is escaped. Stream metadata cannot inject markup.
+- JS plugins must run sandboxed, with time, memory, output and network limits and no access to app tokens. Browser plugin execution is being reworked in #166.
+- Source URLs handed to an external player are the user's choice. NuvioWeb does not rewrite, proxy or relay them.
 
-Use expiring one-time pairing codes and explicit approval from an authenticated browser. Agents get scoped device identities and revocable short-lived job credentials; no public inbound admin port by default. Prevent replay/CSRF, cross-account access, agent impersonation, unaudited remote command execution and privilege escalation. Limit the executable to approved processing verbs rather than raw shell command submission.
+## Build and hosting
 
-## Add-ons and remote integrations
+- Browser build properties contain only public values: the Nuvio URL and publishable key. Server secrets must never go into them.
+- `scripts/prepare-static-preview.mjs` refuses to stage a build with private fields, unexpected destinations or enabled sidecars.
+- Host headers set `nosniff`, `no-referrer`, frame denial and no-store for the service worker and runtime config.
+- No Functions, Workers, databases or proxies are deployed.
 
-Manifest, JS plugin, HTML, subtitles and stream metadata are untrusted. JS runtimes need bounded time, CPU/memory, DOM size, output, network requests and no unrestricted host APIs. Browser Worker alone is insufficient for arbitrary trusted isolation. Server fetch integrations require protocol and destination allowlists, DNS re-resolution and private range filtering, redirect validation, capped headers, bounded response bytes and authentication/rate limits. **Do not deploy an open CORS proxy.**
+## Privacy
 
-## Media processing
+- Do not add analytics or tracking.
+- Failure diagnostics are built from an allowlist. They never include URLs, titles, header values or tokens, and are never uploaded.
 
-Only user-authorized media. Do not circumvent DRM or source restrictions. Strict limits on input/output size, CPU, memory, disk, egress, jobs, duration, decompression and file explosion. Isolation among accounts, unique signed job IDs, lifecycle cleanup, no permanent media store by default. Redact URLs with access tokens/queries from logs. Bound expiration of streaming outputs.
+## Media
 
-## Payment integrity
+- Only media the user is allowed to access. No DRM circumvention.
+- Tests and demos use the legal fixture media in `tests/fixtures`.
 
-Signed payment-provider webhook, idempotent event handling and atomic credit grants/reservations/settlement. Quote maximum total user charge before starting; never fallback silently into paid compute. Refund unused reservation according to published terms. Gate access via verified existing Nuvio subject + transaction ledger, not client assertions. Track refund policy, taxation, consumer-law and age-related provider requirements before accepting funds.
+## Licenses
 
-## Cost control
-
-Global per-month budget and emergency stop, per-user quota, bounded live workers, no unrestricted traffic relay, storage TTL and egress tracking. Free browser site must remain accessible if compute budget is exhausted.
-
-## License and third-party dependencies
-
-Before importing Alpha, preserve GPL-3.0 and copyright notices. Review licenses of Falcon, GYK and Orochi independently and obligations for serving modified network services. Treat upstream auth/backend as an external operator with usage terms rather than automatically available public infrastructure.
+Keep upstream GPL-3.0 text, copyright notices and history in `app/alpha`. See the [license audit](UPSTREAM_LICENSE_AUDIT.md).

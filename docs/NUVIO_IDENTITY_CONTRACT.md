@@ -1,6 +1,6 @@
 # Nuvio hosted API and identity contract
 
-Reviewed 2026-10-18 for [issue #3](https://github.com/saurabhhbansal/nuvioweb/issues/3). **Documentation only; no verifier, service permission exception, deployment or live account test is delivered.** [Plan and executed checks](plans/issues/issue-3.md). Human auth/security review is required before acceptance.
+Reviewed 2026-10-18 for [issue #3](https://github.com/saurabhhbansal/nuvioweb/issues/3). **Documentation only; no verifier, service permission exception, deployment or live account test is delivered.** [Plan and executed checks](archive/plans/issues/issue-3.md). Human auth/security review is required before acceptance.
 
 Owner decision, 2026-10-18: the project owner supplied the public documentation, accepted proceeding with documented public-client APIs without a separate permission letter, and authorized a public preview. Do not hold ordinary documented-client development for another permission request. The API reference hash was rechecked unchanged. Unlisted endpoint support, deployed session guarantees and separately monetized compute remain technical/service-scope questions; no blanket service entitlement or live verification is inferred.
 
@@ -29,11 +29,11 @@ These are dated observations. Live pages can change; hashes identify the retriev
 | [Nuvio public API Markdown](https://nuvio.tv/docs/nuvio-public-api.md) | v1.3 / 2026-08-20; SHA-256 `81f6f15f6ea66f39c488de63e6efdca50393541697a0243bb02aa2eafa7efd4c` of fetched Markdown |
 | [Terms](https://nuvio.tv/terms) | 2026-08-08; [rendering asset](https://nuvio.tv/_next/static/chunks/app/terms/page-27e119a7f63b7214.js), SHA-256 `f533c645153afe757e268e2a03ad57dc1c4736424df247b74756cef9dcaebef4` |
 | [Privacy policy](https://nuvio.tv/privacy-policy) | 2026-08-08; [rendering asset](https://nuvio.tv/_next/static/chunks/app/privacy-policy/page-cebe36a0497cee60.js), SHA-256 `9e48792111180cfe875451b20922c648203f5281bf3aa5de3099ee7ed7d79842` |
-| [Alpha source](https://github.com/alphasquare404/NuvioWeb/tree/5624da2fb26c19e4acad66a4f0cd4e4bcb8b74ff) | `web` tip rechecked at `5624da2fb26c19e4acad66a4f0cd4e4bcb8b74ff`; pristine #4 import matched the pinned tree exactly with original GPL notices; current auth/runtime source remains unchanged, while [#29](DEPENDENCY_REMEDIATION.md) patches package.json and package-lock.json |
+| [Alpha source](https://github.com/alphasquare404/NuvioWeb/tree/5624da2fb26c19e4acad66a4f0cd4e4bcb8b74ff) | `web` tip rechecked at `5624da2fb26c19e4acad66a4f0cd4e4bcb8b74ff`; pristine #4 import matched the pinned tree exactly with original GPL notices; current auth/runtime source remains unchanged, while [#29](archive/DEPENDENCY_REMEDIATION.md) patches package.json and package-lock.json |
 | [Official self-host schema](https://github.com/NuvioMedia/self-host/blob/30f156807ae77b2aec80b091b0d513841a25ab91/database/migrations/00000000000000_baseline.sql#L585) | `main` observed at `30f156807ae77b2aec80b091b0d513841a25ab91` (2026-10-16); baseline SHA-256 `31ee75708b08b3257d601d3b551e449e8caf7871360bf57911aa0564e38d24b2`; source inspected, not imported |
 | [Supabase getUser](https://supabase.com/docs/reference/javascript/auth-getuser), [JWT guide](https://supabase.com/docs/guides/auth/jwts), [sessions](https://supabase.com/docs/guides/auth/sessions) | Generic verification/session guidance read 2026-10-18; does not establish Nuvio's actual signing configuration, session revocation guarantees or service permission |
 
-Exact public fetch/hash commands and outcomes are in the [execution record](plans/issues/issue-3.md). Public pages and documentation assets were fetched without credentials; browser extraction failed for some pages, so raw public HTML/JavaScript/Markdown was inspected. Source and documentation inspection establish contracts to test, not actual deployed behavior. No published Nuvio user token, real user record, password or private API key was used or copied into this contract. Public client keys are referenced by placeholder only.
+Exact public fetch/hash commands and outcomes are in the [execution record](archive/plans/issues/issue-3.md). Public pages and documentation assets were fetched without credentials; browser extraction failed for some pages, so raw public HTML/JavaScript/Markdown was inspected. Source and documentation inspection establish contracts to test, not actual deployed behavior. No published Nuvio user token, real user record, password or private API key was used or copied into this contract. Public client keys are referenced by placeholder only.
 
 ## Imported request and session flow
 
@@ -142,11 +142,11 @@ Before releasing the imported hosted-account flow: human auth/privacy review; re
 
 No runtime files, licenses or imported history changed; no credential, payment or compute configuration changed; no media was relayed or processed. Documentation/public-source reads create no hosted compute spend. Future verification incurs upstream requests and control-plane costs that require bounded capacity planning. Neither free API documentation nor user-owned compute removes third-party service constraints. Plugin/SSRF/media isolation remains separately gated; credentials must never reach plugins, generic remote fetchers or media processors.
 
-Rollback: revert this scoped documentation commit through review and restore matrix/decision/security references; retain evidence history. There is no runtime migration, account data mutation, deployment or bill to undo. The [feature matrix](FEATURE_SUPPORT.md) and [plan](plans/issues/issue-3.md) distinguish completed documentation checks from unexecuted contract/browser tests. Keep issue #3 open until required evidence and human review are accepted.
+Rollback: revert this scoped documentation commit through review and restore matrix/decision/security references; retain evidence history. There is no runtime migration, account data mutation, deployment or bill to undo. The [feature matrix](FEATURE_SUPPORT.md) and [plan](archive/plans/issues/issue-3.md) distinguish completed documentation checks from unexecuted contract/browser tests. Keep issue #3 open until required evidence and human review are accepted.
 
 ## QR publication and rendering disposition — 2026-10-20 (synthetic)
 
-**Status: bounded synthetic fix; no live QR support claim.** Parent #7 remains open and live QR consent/expiry/nonce/device observation stays blocked under [#120](https://github.com/saurabhhbansal/nuvioweb/issues/120). Evidence: [issue7-qr-ownership-2026-10-20.json](evidence/issue7-qr-ownership-2026-10-20.json); plan [issue-118.md](plans/issues/issue-118.md).
+**Status: bounded synthetic fix; no live QR support claim.** Parent #7 remains open and live QR consent/expiry/nonce/device observation stays blocked under [#120](https://github.com/saurabhhbansal/nuvioweb/issues/120). Evidence: [issue7-qr-ownership-2026-10-20.json](archive/evidence/issue7-qr-ownership-2026-10-20.json); plan [issue-118.md](archive/plans/issues/issue-118.md).
 
 ### Reachable sources and sinks
 
