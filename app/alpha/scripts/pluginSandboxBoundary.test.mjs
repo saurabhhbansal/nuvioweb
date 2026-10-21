@@ -18,7 +18,7 @@ test("synthetic constructor-chain probes stay in the guest realm and cannot poll
   globalThis[marker] = true;
   try {
     const result = await run(`module.exports.getStreams = async function() {
-      var constructors = [Function, ({}).constructor.constructor, fetch.constructor, api.log.constructor, __hostFetch.constructor];
+      var constructors = [Function, ({}).constructor.constructor, console.log.constructor, fetch.constructor, api.log.constructor, __hostFetch.constructor];
       // fetch is async: its constructor produces an AsyncFunction. Await each
       // result rather than comparing the Promise itself with the expected text.
       var observations = await Promise.all(constructors.map(function(ctor) {
