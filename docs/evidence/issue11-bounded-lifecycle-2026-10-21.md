@@ -37,7 +37,22 @@ Additional observed runs:
 - Final focused command adds `app/alpha/scripts/pluginGetStreamsPrototype.test.mjs` to the corrected focused command above: **62/62 pass,0 skip, exit0**. Covers CommonJS/global positional API, GET response text/json, zero-dispatch POST/header/credential/signal rejection, absent modules/host globals, unsupported playback metadata refusal, unsafe URL drops, cancellation/time quota and forged-error redaction. Synthetic regression only.
 - `NUVIO_PLAYWRIGHT_WEBKIT=1 NUVIO_PLAYWRIGHT_FIREFOX=1 npx playwright test tests/browser/plugin-engine.spec.mjs --project=chromium --project=webkit --project=firefox` (before adapter browser additions): **exit1,24 launch failures,15 reported passes**. Of those passes only13 are actual Chromium tests;2 are Node manifest-only cases in other projects. WebKit launch lacks system libraries; Gecko executable missing at default path. Neither engine executed a guest test. No bypass, dependency-validation suppression or fake engine pass. Existing required CI installs its own engines/dependencies; multi-engine pass requires those actual checks.
 
-Final checks and separate automated actual-diff review are recorded below only after observation. No pending job or check is a pass.
+## Corrective review and final local results
+
+Separate [automated actual-diff review](../agent-runs/2026-10-21-issue11-automated-review.md) at `ca325a7` found2P2 defects: descriptor self-authorization and guest serializer metadata bypass; both corrected at source head `2dbe2da3db5afc931ea9bf0f5d507875a96b72a5`. Adapter now requires independently trusted approvedHosts and validates plain parsed output before normalization. Shared media-input projection removes the P3 duplication heuristic.
+
+The review also surfaced an inherited swallowed `JS_FreeRuntime` assertion in an otherwise passing suite. Ordered/subset probes identified **sync unbounded recursion**, not the adjacent allocation test. A real child-process regression (with inherited NODE_TEST_CONTEXT removed and exactly1 executed case asserted) went red. Error-handle cleanup alone stayed red; guest stack512KiB permitted a host RangeError before a guest error handle returned. Tightening stack to64KiB and enforcing it as a shared hard ceiling made the exact regression green. No log/assertion suppression or relaxed stack guard; temporary debug tags removed. Both prototypes now use finite limits and UTF-8 input/output checks. Earlier standalone child invocations inherited runner context and were not valid reproduction evidence; the final regression asserts actual executed count.
+
+At corrected source `2dbe2da` with pinned Node22.23.1:
+
+- Focused command (broker + sandbox wildcard + session + adapter): **65/65 pass,0 skip, exit0**.
+- `npm test --prefix app/alpha`: **1481/1481 pass,0 skip, exit0**; searched output has **no Aborted/Assertion diagnostic**. This is tested teardown evidence, not a universal engine-security proof.
+- `npm run lint --prefix app/alpha`: exit0.
+- Inert default build and `node scripts/check-alpha-build.mjs`: exit0, **12 baseline assets**, inert config/no privileged fields.
+- `npx playwright test tests/browser/plugin-engine.spec.mjs --project=chromium`: **16/16 pass,0 skipped, exit0 (6.3s)**. Includes actual-browser serializer refusal; loopback JS/WASM HTTP only, provider transport synthetic.
+- `node --test scripts/check-docs.test.mjs scripts/governance.test.mjs`:15/15 exit0; `npm run test:preview`:7/7 exit0; docs links, structural ledger, whitespace, commit-reference ancestry pass. All non-#11 ledger entries identical to baseline; unchanged CURRENT prefix preserved except appended scoped pointer.
+
+PR [#140](https://github.com/saurabhhbansal/nuvioweb/pull/140) opened as a draft. Exact final-head and actual-merge protected contexts/review resolution must be verified before integration; pending checks are not a pass. Final protected outcome will be recorded in this issue's PR/issue thread without claiming a deployment or acceptance closure.
 
 ## Security, privacy, licensing, costs and rollback
 
