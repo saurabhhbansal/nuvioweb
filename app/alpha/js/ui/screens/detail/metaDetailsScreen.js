@@ -228,8 +228,8 @@ function firstNonNegativeInt(values = []) {
 }
 
 // Stremio video ids frequently encode the season and episode as the trailing
-// colon-separated segments (e.g. "tt1234567:1:2"). Many addons (AIOStreams and
-// other aggregators included) rely on this and do NOT populate the explicit
+// colon-separated segments (e.g. "tt1234567:1:2"). Many addons (aggregators
+// included) rely on this and do NOT populate the explicit
 // `season`/`episode` fields, which previously caused every episode to be
 // dropped and the detail screen to report "No episodes available".
 // Returns null when the id does not encode a season/episode pair.

@@ -247,7 +247,7 @@ function openOfflineSubtitleChoice({ subtitles = [], onSelect = () => {} } = {})
     actionsClassName: "desktop-external-player-actions",
     buttons: subtitles.map((subtitle) => {
       const display = normalizeSubtitleForDisplay(subtitle);
-      // Nine English subtitles all read "English · AIOStreams". The release name
+      // Nine English subtitles all read "English · <addon name>". The release name
       // is the only thing that tells them apart, and the only way to match one
       // against the video that was actually downloaded -- so it is shown in full,
       // laid out the way Download Options already shows the same subtitles.
