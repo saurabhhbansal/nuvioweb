@@ -41,7 +41,7 @@ function formatBytes(value) {
 function getAddonBadgeLabel(name = "") {
   const cleaned = String(name || "").trim();
   if (!cleaned) return "A";
-  if (/torrentio|torbox|torrent/i.test(cleaned)) return "µ";
+  if (/torbox|torrent/i.test(cleaned)) return "µ";
   const letters = cleaned
     .split(/\s+/)
     .map((part) => part.charAt(0).toUpperCase())
