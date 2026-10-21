@@ -60,7 +60,7 @@ test("global getStreams fallback and GET response text/json/status use the broke
   }`, { transport: async (...args) => {
     calls += 1;
     assert.equal(args[0], "https://allowed.example/data");
-    assert.deepEqual(Object.keys(args[1]).sort(), ["method", "signal"]);
+    assert.deepEqual(Object.keys(args[1]).sort(), ["credentials", "method", "redirect", "signal"]);
     return transport();
   } });
   assert.equal(result.ok, true);
@@ -68,7 +68,76 @@ test("global getStreams fallback and GET response text/json/status use the broke
   assert.equal(calls, 1);
 });
 
-test("POST, headers, credentials and signals are unsupported and dispatch nothing", async () => {
+test("approved guest headers and follow mode cross bounded JSON bridge and redirects", async () => {
+  const calls = [];
+  const result = await run(`module.exports.getStreams = async function() {
+    var response = await fetch("https://allowed.example/start", { headers: { Accept: "application/json" }, redirect: "follow" });
+    return [{ url: (await response.json()).url }];
+  };`, {
+    headerPolicy: { "allowed.example": ["Accept"] }, resolveHost: async () => ["93.184.216.34"],
+    transport: async (url, options) => {
+      calls.push({ url, headers: options.headers, redirect: options.redirect, credentials: options.credentials });
+      return url.endsWith("/start") ? { status: 302, headers: { location: "/data" }, body: "" } : transport();
+    }
+  });
+  assert.equal(result.ok, true);
+  assert.equal(result.groups[0].streams.length, 1);
+  assert.deepEqual(calls.map(c => [c.headers, c.redirect, c.credentials]), [[{ accept: "application/json" }, "manual", "omit"], [{ accept: "application/json" }, "manual", "omit"]]);
+});
+
+test("a second network call from a Promise continuation stays within the same VM and quotas", async () => {
+  let calls = 0;
+  const result = await run(`module.exports.getStreams = async function() {
+    await fetch("https://allowed.example/one", { headers: { Accept: "application/json" } });
+    var response = await fetch("https://allowed.example/two", { headers: { Accept: "application/json" } });
+    return [{ url: (await response.json()).url }];
+  };`, { headerPolicy: { "allowed.example": ["Accept"] }, resolveHost: async () => ["93.184.216.34"],
+    transport: async () => { calls++; return transport(); } });
+  assert.equal(result.ok, true);
+  assert.equal(calls, 2);
+  assert.equal(result.groups[0].streams.length, 1);
+});
+
+test("parallel guest fetches cannot oversubscribe broker or deferred reply budget", async () => {
+  let calls = 0;
+  const result = await run(`module.exports.getStreams = async function() {
+    var all = await Promise.allSettled(Array.from({length:12}, function() { return fetch("https://allowed.example/data"); }));
+    return [{url:"https://media.example/s",description:String(all.filter(function(r){return r.status === "fulfilled";}).length)}];
+  };`, { transport: async () => { calls++; return transport(); } });
+  assert.equal(result.ok, true, JSON.stringify(result));
+  assert.equal(calls, 4);
+  assert.equal(result.groups[0].streams[0].description, "4");
+});
+
+test("async guest fetch cancellation ignores late completion and a fresh VM recovers", async () => {
+  const controller = new AbortController();
+  let finish, started;
+  const ready = new Promise(resolve => { started = resolve; });
+  const pending = run('module.exports.getStreams=async function(){await fetch("https://allowed.example/slow");return [];};', {
+    signal: controller.signal, transport: () => { started(); return new Promise(resolve => { finish = resolve; }); }
+  });
+  await ready; controller.abort();
+  assert.deepEqual(await pending, {ok:false,error:"cancelled"});
+  finish({status:200,body:'{"private":"must-not-export"}'});
+  const after = await run('module.exports.getStreams=function(){return [{url:"https://media.example/s"}];};');
+  assert.equal(after.ok, true);
+  assert.doesNotMatch(JSON.stringify(after), /must-not-export/);
+});
+
+test("direct async binding cannot bypass options size shape or credential-header policy", async () => {
+  let calls = 0;
+  for (const [encoded, expected] of [[JSON.stringify({headers:{Authorization:"secret-canary"}}),"header-policy"], [JSON.stringify({credentials:"include"}),"request-options"], ["{", "request-options"], ["x".repeat(12289), "request-size"]]) {
+    const result = await run(`module.exports.getStreams=async function(){var r=JSON.parse(await __hostFetchAsync("https://allowed.example/data",${JSON.stringify(encoded)}));return [{url:"https://media.example/s",description:r.error}];};`, {
+      transport: async () => { calls++; return transport(); }
+    });
+    assert.equal(result.ok, true, JSON.stringify(result));
+    assert.equal(result.groups[0].streams[0].description, expected);
+    assert.doesNotMatch(JSON.stringify(result), /secret-canary/);
+  }
+  assert.equal(calls, 0);
+});
+
+test("POST, unapproved headers, credentials and signals are unsupported and dispatch nothing", async () => {
   let calls = 0;
   for (const options of [{ method: "POST" }, { headers: { Authorization: "private" } }, { credentials: "include" }, { signal: {} }]) {
     const result = await run(`module.exports.getStreams = async function() { await fetch("https://allowed.example/data", ${JSON.stringify(options)}); return []; };`, {
@@ -97,6 +166,7 @@ test("required unsupported output metadata is rejected, never silently stripped"
   for (const field of [{ headers: {} }, { subtitles: [] }, { infoHash: "hash" }, { url: { url: "https://media.example/s" } }]) {
     const result = await run(`module.exports.getStreams = function() { return [${JSON.stringify({ url: "https://media.example/s", ...field })}]; };`);
     assert.equal(result.ok, false);
+    if (field.headers) assert.equal(result.error, "playback-headers");
   }
   assert.equal((await run('module.exports.getStreams = function() { return { url: "https://media.example/s" }; };')).ok, false);
   assert.equal((await run("module.exports.other = function() { return []; };")).ok, false);

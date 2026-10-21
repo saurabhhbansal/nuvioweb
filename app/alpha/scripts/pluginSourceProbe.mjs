@@ -32,18 +32,20 @@ const modules = ["cheerio", "cheerio-without-node-native", "crypto-js", "axios",
 const optionNames = ["method", "headers", "body", "signal", "redirect", "credentials", "mode", "cache", "timeout", "agent"];
 const methodNames = ["GET", "POST", "HEAD", "PUT", "DELETE", "PATCH", "OPTIONS"];
 const streamFields = ["name", "title", "url", "quality", "size", "headers", "provider", "format", "infoHash", "behaviorHints"];
-const booleanFields = ["bootstrapOk", "entryFunction", "invocationResolved", "returnedArray", "unsupportedHeaders", "unsupportedOtherOption", "sampleHasHeaders", "headerScanTruncated"];
+const booleanFields = ["bootstrapOk", "entryFunction", "invocationResolved", "returnedArray", "requestHeadersPresent", "unsupportedOtherOption", "sampleHasHeaders", "headerScanTruncated"];
 const countFields = ["rows", "fetchAttempts", "unsupportedRequestRejections", "rowsWithHeaders"];
-const arrayFields = { observedOptions: optionNames, observedMethods: methodNames, missingGlobals: apis, sampleFields: streamFields };
+const refusalNames = ["header-shape", "header-policy", "header-duplicate", "header-value", "header-size", "header-origin", "request-options", "request-size", "dns-policy", "dns", "private-address", "redirect-mode", "redirect-disallowed", "redirect-unvalidated", "url", "scheme", "credentials", "host", "port", "ip", "method", "requests", "redirect-limit", "redirect-url", "response-size", "response-total", "response-body", "transport", "cancelled", "timeout"];
+const headerNames = ["user-agent", "referer", "origin", "accept", "accept-language", "accept-encoding", "sec-fetch-site", "sec-fetch-mode", "sec-fetch-dest", "sec-fetch-user", "content-type", "authorization", "cookie", "connection", "upgrade-insecure-requests", "cache-control", "pragma", "dnt", "other"];
+const arrayFields = { observedOptions: optionNames, observedMethods: methodNames, missingGlobals: apis, sampleFields: streamFields, networkRefusals: refusalNames, observedHeaderNames: headerNames };
 const fields = [...booleanFields, ...countFields, ...Object.keys(arrayFields), "missingApi", "caughtErrorName", "observedImport"];
 
-export async function probePluginSource({ source, id, hosts }) {
+export async function probePluginSource({ source, id, hosts, transport: replayTransport, headerPolicy, resolveHost }) {
   assert.ok(source && createHash("sha256").update(source.code).digest("hex") === source.sha256, "unaltered descriptor.code");
   let transportCalls = 0;
-  const transport = async () => { transportCalls++; return { status: 200, body: "{}" }; };
+  const transport = async (...args) => { transportCalls++; return replayTransport ? replayTransport(...args) : { status: 200, body: "{}" }; };
   const actual = await executeGetStreamsPrototype({
     descriptor: { id, name: id, code: source.code, allowedHosts: hosts }, approvedHosts: hosts,
-    input: { tmdbId: 453405, mediaType: "movie" }, transport
+    input: { tmdbId: 453405, mediaType: "movie" }, transport, headerPolicy, resolveHost
   });
   const actualDispatches = transportCalls;
   // Exact adapter prelude, not a looser fake-fetch implementation. Diagnostics
@@ -53,12 +55,14 @@ export async function probePluginSource({ source, id, hosts }) {
   assert.ok(prefix.startsWith("var console =") && prefix.includes("unsupported-request"), "diagnostic prelude");
   const diagnosticCode = prefix + `
 var __probe = { bootstrapOk:false, entryFunction:false, invocationResolved:false, returnedArray:false, rows:0,
-  fetchAttempts:0, unsupportedRequestRejections:0, unsupportedHeaders:false, unsupportedOtherOption:false,
+  fetchAttempts:0, unsupportedRequestRejections:0, requestHeadersPresent:false, unsupportedOtherOption:false,
   sampleHasHeaders:false, headerScanTruncated:false, rowsWithHeaders:0, sampleFields:[],
-  missingApi:'none', caughtErrorName:'none', observedOptions:[], observedMethods:[], missingGlobals:[], observedImport:'none' };
+  missingApi:'none', caughtErrorName:'none', observedOptions:[], observedMethods:[], missingGlobals:[], observedImport:'none', networkRefusals:[], observedHeaderNames:[] };
 function __classify(e) {
   if (e && ['ReferenceError','TypeError','Error','SyntaxError'].indexOf(e.name) !== -1) __probe.caughtErrorName = e.name;
   var message = typeof e === 'string' ? e : e instanceof Error ? String(e.message) : '';
+  var network = /plugin-network:([a-z-]+)/.exec(message);
+  if (network && ${JSON.stringify(refusalNames)}.indexOf(network[1]) !== -1 && __probe.networkRefusals.indexOf(network[1]) === -1) __probe.networkRefusals.push(network[1]);
   ${JSON.stringify(apis)}.forEach(function(name) {
     if (message === name + ' is not defined' || message === "'" + name + "' is not defined" || message === 'ReferenceError: ' + name + ' is not defined') {
       __probe.missingApi = name;
@@ -78,8 +82,13 @@ var __strictFetch = fetch;
 fetch = async function(url, options) {
   __probe.fetchAttempts++;
   if (options && typeof options === 'object') {
-    if (Object.prototype.hasOwnProperty.call(options, 'headers')) __probe.unsupportedHeaders = true;
-    if (Object.keys(options).some(function(k) { return k !== 'method' && k !== 'headers'; })) __probe.unsupportedOtherOption = true;
+    if (Object.prototype.hasOwnProperty.call(options, 'headers')) __probe.requestHeadersPresent = true;
+    if (Object.keys(options).some(function(k) { return ['method','headers','redirect'].indexOf(k) === -1; })) __probe.unsupportedOtherOption = true;
+    if (options.headers && typeof options.headers === 'object') Object.keys(options.headers).forEach(function(k) {
+      var name = k.toLowerCase();
+      if (${JSON.stringify(headerNames)}.indexOf(name) === -1) name = 'other';
+      if (__probe.observedHeaderNames.indexOf(name) === -1) __probe.observedHeaderNames.push(name);
+    });
     ${JSON.stringify(optionNames)}.forEach(function(k) {
       if (Object.prototype.hasOwnProperty.call(options, k) && __probe.observedOptions.indexOf(k) === -1) __probe.observedOptions.push(k);
     });
@@ -90,6 +99,7 @@ fetch = async function(url, options) {
   try { return await __strictFetch(url, options); }
   catch (e) {
     if (e instanceof Error && e.message === 'unsupported-request') __probe.unsupportedRequestRejections++;
+    __classify(e);
     throw e;
   }
 };
@@ -122,7 +132,7 @@ async function resolve(api, input) {
 }`;
   let observation;
   const diagnostic = await executePluginWithNetworkPrototype({
-    code: diagnosticCode, allowedHosts: hosts, transport, limits: { logs: 0 },
+    code: diagnosticCode, allowedHosts: hosts, transport, headerPolicy, resolveHost, limits: { logs: 0 },
     validateResult(raw) {
       if (!Array.isArray(raw) || raw.length !== 1 || !raw[0] ||
           Object.keys(raw[0]).sort().join("|") !== [...fields].sort().join("|")) return false;
