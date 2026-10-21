@@ -41,7 +41,7 @@ jobs:
       - name: Install locked dependencies
         run: npm ci
       - name: Audit all locked dependencies
-        run: npm audit --audit-level=low
+        run: npm audit --audit-level=high
       - name: Build with inert public configuration
         env:
           NUVIO_LOCAL_PROPERTIES: ${{ github.workspace }}/tests/fixtures/build.properties
