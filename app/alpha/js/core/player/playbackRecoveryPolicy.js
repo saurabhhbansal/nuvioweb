@@ -11,7 +11,7 @@
 // in browserAudioTracks.js); it may cross language and role and is not an
 // automatic recovery attempt.
 //
-// Rules enforced here (docs/plans/issues/issue-12.md §4-§5):
+// Rules enforced here (docs/archive/plans/issues/issue-12.md §4-§5):
 // - A generic media error is never treated as an audio-only failure without
 //   attributable evidence.
 // - A stale generation or a stale track snapshot yields no action.

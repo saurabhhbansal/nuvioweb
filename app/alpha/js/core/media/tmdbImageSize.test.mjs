@@ -39,8 +39,8 @@ test("images from anywhere else pass through unchanged", () => {
   assert.equal(capTmdbImageSize("", "logo"), "");
   assert.equal(capTmdbImageSize(null, "poster"), "");
   assert.equal(
-    capTmdbImageSize("https://cdn.xperience-app.com/covers/default/genres.webp", "poster"),
-    "https://cdn.xperience-app.com/covers/default/genres.webp"
+    capTmdbImageSize("https://cdn.example-covers.test/covers/default/genres.webp", "poster"),
+    "https://cdn.example-covers.test/covers/default/genres.webp"
   );
 });
 

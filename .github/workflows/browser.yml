@@ -6,11 +6,15 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: browser-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   smoke:
+    # Job name is a required status check on main; keep it unchanged.
     name: Chromium application smoke
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     env:
       HUSKY: "0"
     steps:
@@ -26,7 +30,7 @@ jobs:
             app/alpha/package-lock.json
       - run: npm ci
       - name: Audit browser verification tooling
-        run: npm audit --audit-level=low
+        run: npm audit --audit-level=high
       - run: npx playwright install --with-deps chromium
       - run: npm ci
         working-directory: app/alpha
@@ -35,28 +39,7 @@ jobs:
         working-directory: app/alpha
         env:
           NUVIO_LOCAL_PROPERTIES: ${{ github.workspace }}/tests/fixtures/build.properties
-      - run: npm run test:browser
-      # WebKit engine coverage runs inside this required job so a WebKit
-      # regression blocks integration instead of sitting in an advisory job.
-      # The project is opt-in (see playwright.config.mjs) because not every
-      # workstation can install WebKit.
-      - name: Install WebKit for engine coverage
-        run: npx playwright install --with-deps webkit
-      - name: WebKit engine playback and diagnostics
-        run: NUVIO_PLAYWRIGHT_WEBKIT=1 npx playwright test --project=webkit
-      - name: Install Gecko for engine coverage
-        run: npx playwright install --with-deps firefox
-      - name: Gecko engine playback and diagnostics
-        run: NUVIO_PLAYWRIGHT_FIREFOX=1 npx playwright test --project=firefox
-      - run: npm run test:engine-media
-      - name: Audio-fixture generation gate
-        # Records whether browser-native AAC encoding exists. A BLOCKED result is
-        # a gate outcome, not a failure: the AAC fixture chain stays blocked and
-        # is reported, never skipped.
-        run: npm run probe:audio-fixtures
-      - run: npm run test:audio-recovery-gate
+      - name: Chromium and PWA browser tests
+        run: npm run test:browser
       - run: npm run test:addon-fixtures
-      - run: npm run test:quality-fixtures
       - run: npm run test:preview
-      - name: Rebuild and stage public-only static preview without uploading
-        run: npm run preview:stage

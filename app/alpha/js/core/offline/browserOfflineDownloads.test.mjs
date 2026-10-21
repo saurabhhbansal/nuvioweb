@@ -317,7 +317,7 @@ test("offline all-subtitle selection persists deduped safe descriptors", () => {
 });
 
 test("offline subtitle fingerprints retain distinct releases from one provider and normalize signed ids", () => {
-  const base = { addonName: "AIOStreams", lang: "eng", url: "https://subs.example/file.srt?token=secret" };
+  const base = { addonName: "Example Addon", lang: "eng", url: "https://subs.example/file.srt?token=secret" };
   const releaseA = createOfflineSubtitleFingerprint({ ...base, id: "https://api.example/a?token=one", fileName: "Release.A.srt" });
   const releaseB = createOfflineSubtitleFingerprint({ ...base, id: "https://api.example/b?token=two", fileName: "Release.B.srt" });
   assert.notEqual(releaseA, releaseB);

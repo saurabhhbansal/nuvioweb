@@ -52,3 +52,12 @@ test("bad percent encoding is reported without crashing", () => {
   writeFileSync(join(root, "README.md"), "[bad](%XX.md)\n");
   assert.equal(findBrokenLinks(root, ["README.md"])[0].reason, "invalid URL encoding");
 });
+
+test("docs/archive is not scanned for broken links", () => {
+  const root = makeRepo();
+  mkdirSync(join(root, "docs", "archive", "old"), { recursive: true });
+  writeFileSync(join(root, "docs", "archive", "old", "note.md"), "[gone](missing.md)\n");
+  writeFileSync(join(root, "docs", "archive.md"), "[still checked](missing.md)\n");
+  const files = findBrokenLinks(root, ["docs"]).map(({ file }) => file.split("\\").join("/"));
+  assert.deepEqual(files, ["docs/archive.md"]);
+});

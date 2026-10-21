@@ -1,0 +1,111 @@
+# Source declarations and browser predictions — issue #10
+
+[#10](https://github.com/saurabhhbansal/nuvioweb/issues/10) remains **OPEN / `in_progress`, DEFERRED (not verified)**, labelled `deferred`. The owner's actual installed-provider acceptance instruction supersedes earlier fixture acceptance. The descriptor contract below is unchanged. [Plan](plans/issues/issue-10.md) · [actual-provider report](evidence/issue10-real-provider-2026-10-20.md) · [full receipt](evidence/issue10-real-streams-2026-10-20.json).
+
+## Current real-provider status and engine scope — 2026-10-20
+
+Test Chromium once (Chrome/Edge/Brave/Opera family), WebKit once (Safari family), Gecko once (Firefox family), not duplicated brands. Actual Chromium156 playback of the [provider] AVC/AAC alternative delivered1920×1080 frames for30s, with pause/seek/new post-seek frame/resume/Back. **No actual4K frame case passed.** WPE's real4K MKV and AVC/AAC control stalled; Gecko's3840×2076 metadata/resume clock had zero total frames/media advancement and observer exit2; the actual4K MP4 failed on both WPE and Gecko. These are observations, not universal codec/engine or hardware diagnoses. [Current engine summary and historical regressions](ENGINE_CAPABILITY_MATRIX.md).
+
+Actual selected cards showed “Format and codec unknown”, “Resolution unknown · HDR unknown” and “Browser support unknown” despite rich provider filename/quality tags. Only the unknown-metadata acceptance box is checked. Original4K and explainable-error boxes remain unchecked: real header-required guidance/Back work, but generic startup-stall remains insufficiently actionable. Exact real delivery/startup diagnostics are deferred to [#137](https://github.com/saurabhhbansal/nuvioweb/issues/137), physical HDR output to [#138](https://github.com/saurabhhbansal/nuvioweb/issues/138). Audible/multitrack and broader devices/DRM remain separate retained limits.
+
+The preview remains pinned at `b5a8679`, not repository base `45d59a16`; no deploy or actual-current-main UI claim. All240 returned-row observations and privacy/export checks are retained in the receipt. Chromium headless-shell1248/156 provenance is reconstructed from the installed default selector and hashed binary, not captured runtime argv. All earlier generated/loopback evidence below is **historical synthetic regression only**, including unchanged strict60 exit3. Historical brand gates, remaining lists, pending integration and then-current preview statements below are dated checkpoints, not current acceptance requirements/status.
+
+The integrated contradictory-codec guard still yields unknown before ordering/card MIME caches and unsupported blame, preserving header/network precedence and original source choice/bytes. Its original640×360 playback evidence is a bundled regression, not actual-provider acceptance.
+
+## Contract
+
+`core/streams/sourceCapabilities.js` produces a version1 descriptor from explicit optional provider fields: `mimeType`, `video.{codec,width,height,bitrate,framerate,hdr}`, `audioTracks`, `subtitles`, ISO `expiresAt` and existing `behaviorHints.proxyHeaders.request`. These extensions are optional internal projection inputs, not mandatory Stremio fields. Missing/invalid metadata is null; empty track lists mean no track metadata was supplied, not proof that media has no tracks. Only finite positive numeric declarations are accepted. Text is bounded, codec/language/format tokens restricted, arrays capped at32 and header-count output capped at256. Provider declarations remain unverified.
+
+The descriptor records content type/container, video/audio/subtitle declarations, header count and declared expiry; it contains no media/provider URL, header name/value, raw title or subtitle query. URL scheme/path is inspected only for a transport hint; `.m3u8` does not prove a codec or working HLS. Filename/title/quality strings never populate codec, resolution or HDR evidence. Existing `4k` labels are now explicitly introduced as provider labels in browser cards.
+
+Actual provider mapping attaches the descriptor; actual flattening carries it to the shared browser source card. Cards show unknown metadata, unverified provider declarations and a native-type browser prediction, with16px wrapping text in browser layouts. Header/expired-link declarations produce advisory guidance. They do not fetch, authorize, block, reorder, replace or downscale a source. Existing engine choice, source URLs, autoplay, transport/session and season-download actions remain unchanged.
+
+## Browser evidence semantics
+
+[WHATWG canPlayType](https://html.spec.whatwg.org/multipage/media.html) supplies an empty/maybe/probably type prediction. The UI labels positive results as predictions and negative native results as “another engine may work”; native rejection must not conceal an HLS.js/DASH.js option. No source GET/HEAD or new network destination is introduced by this probe.
+
+The optional async report calls [W3C MediaCapabilities decodingInfo](https://www.w3.org/TR/media-capabilities/) only when explicit video MIME/codec/dimensions/bitrate/framerate are present. It reports video-only supported/smooth/powerEfficient predictions, with audio/HDR/display output explicitly unverified. It does not invent missing configuration, request DRM access or promise an actual playback result. Missing APIs/configuration, rejection or a bounded750ms default timeout produce unknown/unavailable. No report, URL or fingerprint is persisted or logged. This async report is exposed at the module seam and tested; the current card displays the synchronous native prediction only.
+
+## Executed evidence and limitations
+
+- Focused new descriptor tests initially5/5 passed: titles cannot invent metadata, secrets are absent, invalid declarations remain unknown, native outcomes remain distinct, exact declared3840x2160 dimensions survive a synthetic decoding report and unavailable/rejected/hanging probes are bounded. That4K case is a synthetic contract assertion, not observed4K playback.
+- Initial four actual Chromium capability/browser journeys passed4/4 in22.7seconds: unsupported MIME reports remain advisory, unknown title-only4K metadata remains unknown, explicit original fixture metadata survives repository→flatten→card, actual MediaCapabilities returns a video prediction, and all three bundled journeys still play the original640x360 file with advancing time/no media error. Provider observations contain no Authorization/apikey.
+- Four local HTTP fixture contracts passed4/4 with zero skips, including explicit declarations versus title-only claims and unchanged original media URL. Original CC0 media/hash remains unchanged.
+- First lint run caught a control-character-regex rule violation. Replaced the regex with explicit character-code validation; existing lint rules remain intact. Subsequent configured build/lint passed. Full application suite passed1084/1084 (1079 inherited plus5 new), zero skips,49.2seconds before final reporting/format-only refinements. Final full browser/build/check results will be recorded before integration.
+
+Remaining #10 work: compatible-source ranking with honest unknown handling; legal realistic1080p/4K/HLS/DASH playback, seek and expiry cases; named Chrome/Edge/Firefox/Safari and hardware/mobile evidence. Actual audio/subtitle switching, HDR output, public HTTPS/PNA/provider failures, live auth/cloud sync and paid/own compute are not established. One VP8 fixture and a browser prediction do not establish codec/device compatibility. Current public preview remains its separately recorded #6 revision; this branch is not deployed.
+
+No new dependency, backend, financial commitment or media-processing/auth/remote-fetch policy change. The upstream pin/history/GPL/license files are preserved; local patch inventory is in [provenance](../UPSTREAM_SOURCES.md). Rollback is a protected revert of the descriptor/projection/card changes with no account/schema/data migration.
+
+## Review correction and final verification checkpoint
+
+Automated Standards review found a real gap: raw plugin results could supply an internal-looking descriptor, bypassing HTTP mapping. Flattening, direct card rendering and probe entry points now revalidate those declarations through the same bounded/token/redaction rules; no plugin execution/isolation or transport behavior changed. A dedicated forged-descriptor unit/browser regression covers URL-bearing codec/MIME, oversized HDR, excess tracks and direct-vs-flattened rendering. Metadata cannot grant support or processing authority. Automated review is not independent human approval.
+
+An initial full browser run was18pass/1fail; GitHub draft CI reproduced the same failure. The header/expiry test incorrectly counted the fixture harness's existing head script when checking injected card markup. Its assertion now targets rendered body content, retaining no-img/script and no injected-marker assertions; no application escaping rule was weakened. Dedicated visible header/expiry/redaction checks and a forged-descriptor case are included in the forthcoming20-journey final run. Desktop1280x800 and narrow390x844 source-card screenshots were inspected once: evidence wraps at16px with no horizontal text overflow. Inherited icon-font fallback remains visible because external font requests are blocked.
+
+After the metadata-boundary fix, `npm test` passed1085/1085 (1079 inherited plus6 new), zero failures/skips,47.3seconds; focused6/6 passed. Configured build/lint passed. Final complete browser and protected exact-head CI results remain required before integration. #10 remains open/in_progress after this first unit.
+
+Final first-unit local verification: `npm run test:browser` **20/20 passed**,0fail/0skip,1.6minutes (eight add-on, six capability, four shell and two real-worker journeys). This includes actual header/expiry guidance, no rendered injection/secret URL, forged raw-provider descriptor normalization, original fixture playback, desktop/narrow16px wrapping and real MediaCapabilities predictions. `NUVIO_LOCAL_PROPERTIES=../../tests/fixtures/build.properties npm run build`, `npm run lint`, `node scripts/check-alpha-build.mjs` and `node --test scripts/check-docs.test.mjs scripts/governance.test.mjs` passed (12 artifact checks,15 tests,0skips). Final runtime review follow-ups report zero actionable Standards and Spec findings; explicitly automated. All four protected contexts passed on644fe92; final documentation-head checks are required again before merge. These receipts validate this unit, not the remaining #10 milestone or a production release.
+
+The second #10 unit records original1080p/4K and HLS/DASH/failure evidence in the [quality matrix](PLAYBACK_QUALITY_MATRIX.md); it remains unmerged pending required checks and human review of fatal manifest recovery. First-unit unknown/descriptor evidence remains unchanged.
+
+## Device readiness — issue #147, 2026-10-21
+
+The browser startup notice offers Check, Continue without checking and keyboard-native Details. It is advisory, disappears during playback and never changes source order or authorizes processing. The [single plan/evidence](plans/issues/issue-147.md) and [receipt](evidence/issue147-readiness.json) distinguish injected fixtures from observed local browser behavior. Fixed diagnostic configurations predict native MP4/HEVC Main10/MKV/Dolby Vision profile5, MSE/MMS and video/audio WebCodecs separately; other DV profiles, actual streams, audio/output fidelity and physical HDR remain unknown. API availability is not configuration support. No capability profile is uploaded, logged or persisted. Only the optional storage-purpose button requests persistence; denial retains ordinary playback. No notification/file/share permission or media activation is requested. No codec/CORS/header/blocker bypass is implied; no new local processing engine or deployment is included. Historical smoke obstruction/status collisions are retained in evidence. The correction places the notice after the app in static flow and preserves inert footer space on hide/dismiss to prevent scroll clamping; no app viewport resize/padding or overlay. Local affected journeys17/17 pass; final protected exact-head and merge results are linked from the receipt. Executable job-specific optional-processing consent remains outstanding; issue147 stays open.
+
+## Optional native-prediction ordering — third unit, 2026-10-19
+
+The owner approved PR39's explained HLS recovery behavior and it merged through protected checks at0cf8876; its player fixes and dated quality evidence are now integrated. This supersedes its historical pending-review notes. No public preview upload followed.
+
+The next unit adds `orderSourcesByNativePrediction(streams, {videoElement, now})` and a browser-only **Native predictions first** toggle. It is off on fresh entry and restored only in the existing in-memory back snapshot. Default add-on/debrid/plugin order remains unchanged. Opt-in order is stable within three groups:
+
+1. Direct sources with explicit video MIME+codec strings for which canPlayType reports probably/maybe, without a declared header/expiry caution.
+2. Unknown evidence, including missing/bare-MIME/invalid/API-unavailable declarations and HLS/DASH whose engine support cannot be established by a native file probe.
+3. Native support not reported, declared required headers, or a provider-declared expired link. These are cautions, not proof that no engine can play a source.
+
+Titles, filenames, quality/HDR claims and resolution never create codec support or break ties. The same objects, IDs, URLs, original4K options and unknown sources remain selectable. Normalize descriptors again; raw header/expiry/transport evidence also prevents a supplied descriptor from hiding a caution or masquerading an adaptive URL as a direct file. MIME predictions are memoized only during a call. Expiry is re-evaluated on render/refresh, not a background timer that silently moves cards.
+
+Changing the display order performs no provider/media requests and does not change native/HLS/DASH engine policy. Automatic selection and invalid-ID fallback explicitly use provider order even when the display preference is on. Choosing a source still plays that original source. No new persistent settings, login, backend, compute, processing, fees or deployment.
+
+Local verification so far: focused capability/preference/ordering/auto-play unit tests19/19, HTTP fixture contracts6/6, actual browser UI/selector scenarios2/2, configured inert build/lint pass. The bundled test proves default/toggled order, every original canonical source ID retained, Enter/Space/Tab and focus, no toggle requests, actual original3840x2160 playback and retained preference on player Back. The imported screen/real selector test proves enabled FIRST_STREAM auto-play chooses provider-first despite a differently ranked display. All third-party traffic blocked. Initial test-driver assumptions about upstream-generated IDs, source-module entry order and the player's Sources panel were corrected; no application behavior or assertion was weakened to accept failure. One desktop/narrow visual round found a header row collision; one corrective round confirms separate44px/16px control, wrapping and no new horizontal overflow. Blocked external icon fonts still show inherited fallback text, not a newly certified icon/font release.
+
+Final complete local browser run on5f4d0b4 passed29/29 (54.2seconds),0fail/skip/flaky; [structured receipt](evidence/source-order-2026-10-19.json). Automated Standards/Spec reviews have zero unresolved actionable findings; an initial expiry-cache concern was withdrawn after confirming inherited render invalidation. Artifact12 and docs/governance15/15 plus links/ledger/ancestry/whitespace pass. [PR40](https://github.com/saurabhhbansal/nuvioweb/pull/40) remains unmerged pending required exact-head CI. Named Chrome/Edge/Firefox/Safari/device, sustained high-bitrate/4K60/HDR and broader failure evidence remain outstanding; #10 is not complete. Prediction ordering is advisory, not automatic quality selection or compatibility certification.
+
+
+Third-unit exact executed commands (pinned Node22):
+
+```sh
+node --test app/alpha/js/core/streams/sourcePreference.test.mjs app/alpha/js/core/streams/sourceCapabilities.test.mjs app/alpha/js/core/streams/streamOrdering.test.mjs app/alpha/js/core/streams/streamAutoPlaySelector.test.mjs
+npm run test:addon-fixtures
+NUVIO_LOCAL_PROPERTIES=../../tests/fixtures/build.properties npm run build --prefix app/alpha
+npm run lint --prefix app/alpha
+npx playwright test tests/browser/source-preference.spec.mjs --project chromium
+PLAYWRIGHT_JSON_OUTPUT_NAME=/tmp/nuvioweb-source-order-browser-2026-10-19.json npx playwright test --reporter=list,json
+node scripts/check-alpha-build.mjs
+node --test scripts/check-docs.test.mjs scripts/governance.test.mjs
+node scripts/check-docs.mjs
+node scripts/check-progress.mjs
+node scripts/check-commit-references.mjs origin/main HEAD
+git diff --check
+```
+
+The restricted sandbox summarized only test-file subprocesses; the authorized rerun produced19 actual unit and6 actual fixture results. The full local application suite was not rerun for this display-only unit: focused seam tests and mandatory remote full regression are the planned gates. The inherited1089 run remains PR39 evidence, not new-feature proof. No new browser/device, account or deployment result is inferred.
+
+## Protected integration and preview receipt — 2026-10-19
+
+PR40 merged at8edec4248405d59f5b8639085a1e779e6878911b after all four exact-head contexts passed, including the normally triggered ready-for-review integrity check. Full remote application regression1094/1094 passed,0fail/0skip; remote full browser29/29 passed. [Application](https://github.com/saurabhhbansal/nuvioweb/actions/runs/39195533730/job/117877374950), [browser](https://github.com/saurabhhbansal/nuvioweb/actions/runs/39195533796/job/117877375553), [docs](https://github.com/saurabhhbansal/nuvioweb/actions/runs/39195533814/job/117877375057), [integrity](https://github.com/saurabhhbansal/nuvioweb/actions/runs/39195640312/job/117877695113). These supersede the third-unit pending-integration notes, not the still-open #10 device/quality gates.
+
+The already-authorized development preview now serves that reviewed merge. [Deployment/HTTPS/shell evidence](STATIC_PREVIEW.md) distinguishes public asset/guest verification from local legal-media playback tests. No live login/sync/provider, all-device playback, HDR/4K60 or production readiness is claimed. Next work remains expanded named-browser/media/device validation; Linux Chromium evidence cannot certify Chrome/Edge/Firefox/Safari/mobile or hardware HDR output.
+
+
+## Device-aware default order — issue #149 (2026-10-21)
+
+Supersedes the historical opt-in video-only rule above: browser lists now default to complete video/audio native predictions first, then external-player candidates, unknown evidence, required-header/own-proxy routes and blocked delivery/expiry. Existing provider order remains the stable tie-breaker and is available through the Device-aware order toggle. Autoplay retains provider order; no source is replaced, removed, launched externally or dispatched to compute by ranking.
+
+Exact container/codecs are required; no filename, 4K label, missing audio, generic HEVC alias or fixed readiness sample creates support. HEVC Main10 uses the current browser's exact configuration prediction; only explicitly declared Dolby Vision profile5 is eligible, never physical-output certification. MKV demux and TrueHD decoding are unavailable in the shipped browser path. HLS/DASH remain unknown pending engine/delivery evidence. Required request headers, including nested/raw maps, override predictions and URL-only external candidates: the user needs their own proxy; none is implemented or started here.
+
+Each card includes one route/reason line. A Didn't play here / Clear correction action reversibly demotes a prediction, keeping only weak in-memory source references across shallow Back snapshots; reload or a fresh provider response resets it. No URL/credential/fingerprint key or correction is persisted or uploaded. [Single plan, executed evidence and automated review](plans/issues/issue-149.md), [compact receipt](evidence/issue149-ranking.json). Predictions are not real-device or working-delivery results.
+
+## Failure diagnostics — issue #150
+
+The failure overlay separates observed access/transport/activation/range/decode signals from declared-container/audio and native-configuration predictions. Unknown startup/seek remains explicitly unknown, with candidate causes and a next action. Optional redacted JSON uses an allowlist, never raw errors, URLs, titles or header values; no upload/storage/network probe or extension enumeration. External actions retain #148 guards and no repair is launched. [Limitation ledger](BROWSER_LIMITATIONS.md) · [single plan/evidence/review](plans/issues/issue-150.md). No new physical-device/provider/root-cause certification.

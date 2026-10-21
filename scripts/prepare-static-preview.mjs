@@ -6,7 +6,6 @@ import { createHash } from "node:crypto";
 import { ENV_PROPERTY_KEYS } from "../app/alpha/scripts/envProperties.mjs";
 import { stageIdentityProgressDemo } from "./stage-identity-progress-demo.mjs";
 import { stageLegalDemo } from "./stage-legal-demo.mjs";
-import { validatePluginEngineInstallation } from "../app/alpha/scripts/pluginEngineManifest.mjs";
 
 export function validatePublicConfig(source) {
   const json = source.match(/var values = (\{[\s\S]*?\n\});/)?.[1];
@@ -42,12 +41,6 @@ export async function preparePreview() {
     stdio:"inherit"
   });
   const source = join(root,"app/alpha/dist");
-  const engineOptIn = /^(1|true|yes|on)$/i.test(String(process.env.NUVIO_PLUGIN_ENGINE_ASSETS || ""));
-  const engineManifest = await validatePluginEngineInstallation({ distDir: source, optIn: engineOptIn });
-  if (engineManifest) console.log(`Plugin engine assets (opt-in): ${engineManifest.directory}`);
-  const engineNoticePaths = engineManifest
-    ? ["quickjs-emscripten/LICENSE", "quickjs-emscripten-core/LICENSE", "@jitl/quickjs-wasmfile-release-asyncify/LICENSE"]
-    : [];
   validatePublicConfig(await readFile(join(source,"nuvio.env.js"),"utf8"));
   const files = await readdir(source,{recursive:true,withFileTypes:true});
   for (const entry of files) {
@@ -69,14 +62,14 @@ export async function preparePreview() {
   await cp(join(root,"deploy/cloudflare/404.html"),join(destination,"404.html"));
   await cp(join(root,"app/alpha/LICENSE"),join(destination,"LICENSE.txt"));
   await cp(join(root,"UPSTREAM_SOURCES.md"),join(destination,"UPSTREAM_SOURCES.md"));
-  for (const path of [...noticePaths, ...engineNoticePaths]) {
+  for (const path of noticePaths) {
     const target = join(destination,"third-party",path);
     await mkdir(resolve(target,".."),{recursive:true});
     await cp(join(root,"app/alpha/node_modules",path),target);
   }
   await stageLegalDemo(destination);
   await stageIdentityProgressDemo(destination);
-  await writeFile(join(destination,"SOURCE.txt"),`NuvioWeb independent community preview; not affiliated with or endorsed by Nuvio.\nGPL source and build instructions for this revision:\nhttps://github.com/saurabhhbansal/nuvioweb/tree/${revision}\nUpstream provenance: /UPSTREAM_SOURCES.md\nGPL license: /LICENSE.txt\nThird-party notice files: ${[...noticePaths, ...engineNoticePaths].map((path)=>`/third-party/${path}`).join(", ")}\nBrowser preview only. Native sidecars, paid compute and a media proxy are not deployed.\n`);
+  await writeFile(join(destination,"SOURCE.txt"),`NuvioWeb independent community preview; not affiliated with or endorsed by Nuvio.\nGPL source and build instructions for this revision:\nhttps://github.com/saurabhhbansal/nuvioweb/tree/${revision}\nUpstream provenance: /UPSTREAM_SOURCES.md\nGPL license: /LICENSE.txt\nThird-party notice files: ${noticePaths.map((path)=>`/third-party/${path}`).join(", ")}\nBrowser preview only. Native sidecars, paid compute and a media proxy are not deployed.\n`);
   const inventory = [];
   for (const entry of await readdir(destination,{recursive:true,withFileTypes:true})) if (entry.isFile()) {
     const path = join(entry.parentPath,entry.name);

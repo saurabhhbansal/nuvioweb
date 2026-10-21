@@ -31,7 +31,7 @@ Successful operations acknowledge only their captured revision when the full kno
 | Explicit remove | One known `(content_id, content_type)` to `sync_delete_library_items` | Same guard; absent local item does not guess its remote type | Exact delete preserves unrelated keys |
 | Unknown full snapshot | No request | Refused | Pending retained; no silent upload |
 
-The owner explicitly accepted bounded recovery on 2026-10-20; [exact decisions](evidence/issue7-owner-scope-2026-10-20.json). Durable replay/outbox and atomic same-key ordering are separate follow-up scope. #119 may close only after this bounded policy, failure/reload/reconnect/storage/legacy regressions and review are integrated. Local implementation and verification are engineering work, not external blockers. #120 retains actual hosted/new-change/QR/device/lifecycle observations; direct API setup is separate from application write-path evidence.
+The owner explicitly accepted bounded recovery on 2026-10-20; [exact decisions](archive/evidence/issue7-owner-scope-2026-10-20.json). Durable replay/outbox and atomic same-key ordering are separate follow-up scope. #119 may close only after this bounded policy, failure/reload/reconnect/storage/legacy regressions and review are integrated. Local implementation and verification are engineering work, not external blockers. #120 retains actual hosted/new-change/QR/device/lifecycle observations; direct API setup is separate from application write-path evidence.
 
 ## Manual reconciliation
 

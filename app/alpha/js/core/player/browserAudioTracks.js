@@ -5,7 +5,7 @@
 // engine declarations and browser predictions are reported as the evidence
 // kinds they are, and missing values stay unknown.
 //
-// Contract: docs/plans/issues/issue-12.md §5 ("Audio observation contract",
+// Contract: docs/archive/plans/issues/issue-12.md §5 ("Audio observation contract",
 // "Selection contract"). Normalized observations are runtime facts for one
 // playback generation, never device certification.
 

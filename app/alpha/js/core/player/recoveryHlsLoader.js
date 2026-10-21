@@ -11,7 +11,7 @@
 // HTTP status, overlapping-load leaks, missing onAbort, ignored byte ranges,
 // non-monotonic timing and a non-existent default base loader. A loader will be
 // written against those findings in a dedicated unit; see
-// docs/agent-runs/2026-10-19-recovery-loader-review.md.
+// docs/archive/agent-runs/2026-10-19-recovery-loader-review.md.
 
 export const RECOVERY_LIMITS = Object.freeze({
   maxConcurrentRequests: 4,
