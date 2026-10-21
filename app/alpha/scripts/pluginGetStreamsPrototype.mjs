@@ -1,12 +1,23 @@
 // Test-only narrow GYK-shaped API adapter, NOT installed-plugin support.
 // No GYK source is copied. See the pinned API comparison in docs/agent-runs/.
-import { normalizePluginDescriptor } from "../js/core/plugins/pluginContract.js";
+import { normalizePluginDescriptor, normalizePluginHost } from "../js/core/plugins/pluginContract.js";
 import { executePluginWithNetworkPrototype } from "./pluginSandboxNetworkPrototype.mjs";
+import { pluginMediaInput } from "./pluginPrototypeInput.mjs";
 
-export async function executeGetStreamsPrototype({ descriptor, input = {}, transport, signal, limits, brokerLimits } = {}) {
+function allowedSerializedResult(raw) {
+  return Array.isArray(raw) && raw.length === 1 && raw.every((group) =>
+    group && typeof group === "object" && Array.isArray(group.streams) && group.streams.every((stream) =>
+      stream && typeof stream === "object" && !Array.isArray(stream) &&
+      !["headers", "subtitles", "infoHash"].some((key) => Object.hasOwn(stream, key)) &&
+      (!Object.hasOwn(stream, "url") || typeof stream.url === "string")));
+}
+
+export async function executeGetStreamsPrototype({ descriptor, approvedHosts = [], input = {}, transport, signal, limits, brokerLimits } = {}) {
   const checked = normalizePluginDescriptor(descriptor);
   if (!checked.ok) return { ok: false, error: "descriptor" };
   const plugin = checked.descriptor;
+  const approved = new Set((Array.isArray(approvedHosts) ? approvedHosts : []).map(normalizePluginHost).filter(Boolean));
+  if (plugin.allowedHosts.some((host) => !approved.has(host))) return { ok: false, error: "host-policy" };
   // Guest-only compatibility shims. No browser/Node globals are provided; every
   // fetch still crosses the existing bounded broker with no headers or secrets.
   const code = `
@@ -42,15 +53,10 @@ async function resolve(api, input) {
   return [{ sourceId: ${JSON.stringify(plugin.id)}, sourceName: ${JSON.stringify(plugin.name)}, streams: streams }];
 }`;
   // Only media identity enters the guest; no settings/API keys/tokens are copied.
-  const safeInput = {
-    tmdbId: typeof input.tmdbId === "string" || Number.isSafeInteger(input.tmdbId) ? String(input.tmdbId).slice(0, 40) : "",
-    mediaType: input.mediaType === "tv" ? "tv" : "movie",
-    season: Number.isSafeInteger(input.season) && input.season > 0 ? input.season : null,
-    episode: Number.isSafeInteger(input.episode) && input.episode > 0 ? input.episode : null
-  };
+  const safeInput = pluginMediaInput(input);
   const result = await executePluginWithNetworkPrototype({
     code, input: safeInput, allowedHosts: plugin.allowedHosts, transport, signal,
-    limits: { ...limits, logs: 0 }, brokerLimits
+    limits: { ...limits, logs: 0 }, brokerLimits, validateResult: allowedSerializedResult
   });
   // No plugin logs, source, raw exceptions or extra host diagnostics leave here.
   return result.ok ? { ok: true, groups: result.groups, dropped: result.dropped } : { ok: false, error: result.error };

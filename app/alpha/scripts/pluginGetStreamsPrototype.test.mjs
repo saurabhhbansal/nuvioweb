@@ -4,7 +4,7 @@ import { executeGetStreamsPrototype as execute } from "./pluginGetStreamsPrototy
 
 const descriptor = { id: "original-regression", name: "Original upstream-shaped regression", allowedHosts: ["allowed.example"] };
 const transport = async () => ({ status: 200, body: '{"url":"https://media.example/s"}' });
-const run = (code, options = {}) => execute({ descriptor: { ...descriptor, code }, transport, ...options });
+const run = (code, options = {}) => execute({ descriptor: { ...descriptor, code }, approvedHosts: ["allowed.example"], transport, ...options });
 
 test("CommonJS positional getStreams maps flat results into normalized groups", async () => {
   const result = await run(`module.exports.getStreams = async function(id, type, season, episode) {
@@ -66,6 +66,31 @@ test("required unsupported output metadata is rejected, never silently stripped"
   }
   assert.equal((await run('module.exports.getStreams = function() { return { url: "https://media.example/s" }; };')).ok, false);
   assert.equal((await run("module.exports.other = function() { return []; };")).ok, false);
+});
+
+test("descriptor host declaration cannot self-authorize without trusted approval", async () => {
+  let calls = 0;
+  const code = 'module.exports.getStreams = async function() { await fetch("https://not-approved.example/data"); return []; };';
+  const result = await execute({ descriptor: { ...descriptor, code, allowedHosts: ["not-approved.example"] },
+    approvedHosts: ["allowed.example"], transport: async () => { calls += 1; return transport(); } });
+  assert.deepEqual(result, { ok: false, error: "host-policy" });
+  assert.deepEqual(await run(code, { approvedHosts: [] }), { ok: false, error: "host-policy" });
+  assert.equal(calls, 0);
+});
+
+test("serializer and late getters cannot hide required playback metadata", async () => {
+  const expressions = [
+    '[{ toJSON() { return { url: "https://media.example/s", headers: { Authorization: "required" } }; } }]',
+    'Object.assign([], { toJSON() { return [{ url: "https://media.example/s", subtitles: ["required"] }]; } })',
+    '[{ url: "https://media.example/s", get headers() { return undefined; }, toJSON() { return { url: "https://media.example/s", infoHash: "required" }; } }]',
+    '[{ toJSON() { return { url: { url: "https://media.example/s" } }; } }]',
+    '(function(){ var reads = 0; return [{ url: "https://media.example/s", get headers() { return ++reads === 1 ? undefined : { Authorization: "required" }; } }]; })()'
+  ];
+  for (const expression of expressions) {
+    const result = await run(`module.exports.getStreams = function() { return ${expression}; };`);
+    assert.equal(result.ok, false);
+    assert.doesNotMatch(JSON.stringify(result), /Authorization|required/);
+  }
 });
 
 test("adapter keeps cancellation, normalization and VM resource limits", async () => {

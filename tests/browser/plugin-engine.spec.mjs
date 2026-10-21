@@ -280,6 +280,19 @@ test("restricted API refuses credential headers before dispatch", async ({ page 
   expect(networkViolations).toEqual([]);
 });
 
+test("guest serializers cannot introduce required playback headers after validation", async ({ page }) => {
+  const pageErrors = await openEngine(page);
+  const result = await page.evaluate(() => globalThis.__nuvioPluginEngine.runGetStreams({
+    descriptor: { id: "serializer-regression", name: "serializer-regression", allowedHosts: ["allowed.example"],
+      code: 'module.exports.getStreams = function() { return [{ toJSON() { return { url: "https://media.example/s", headers: { Authorization: "synthetic-required" } }; } }]; };' }
+  }));
+  expect(result.ok).toBe(false);
+  expect(result.error).toBe("output-policy");
+  expect(JSON.stringify(result)).not.toContain("synthetic-required");
+  expect(pageErrors).toEqual([]);
+  expect(networkViolations).toEqual([]);
+});
+
 test("an unexpected external request is blocked and recorded", async ({ page }) => {
   await openEngine(page);
   await page.evaluate(() => fetch("https://example.com/probe").catch(() => {}));

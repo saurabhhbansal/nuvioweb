@@ -1,6 +1,7 @@
 // Test-only, default-off lifecycle seam. No application import, storage, real
 // transport or public API. Configuration is trusted host policy, never plugin input.
 import { normalizePluginDescriptor, normalizePluginHost } from "../js/core/plugins/pluginContract.js";
+import { pluginMediaInput } from "./pluginPrototypeInput.mjs";
 
 export function createPluginPrototypeSession({
   enabled = false, approvedHosts = [], transport,
@@ -37,12 +38,7 @@ export function createPluginPrototypeSession({
         if (controller.signal.aborted || closed) return { ok: false, error: "cancelled" };
         // Input intentionally contains only media identity, never arbitrary
         // account/session data, settings, credentials or caller metadata.
-        const safeInput = {
-          tmdbId: typeof input.tmdbId === "string" || Number.isSafeInteger(input.tmdbId) ? String(input.tmdbId).slice(0, 40) : "",
-          mediaType: input.mediaType === "tv" ? "tv" : "movie",
-          season: Number.isSafeInteger(input.season) && input.season > 0 ? input.season : null,
-          episode: Number.isSafeInteger(input.episode) && input.episode > 0 ? input.episode : null
-        };
+        const safeInput = pluginMediaInput(input);
         const result = await engine.executePluginWithNetworkPrototype({
           code: plugin.code, allowedHosts: plugin.allowedHosts, input: safeInput,
           transport, signal: controller.signal, limits: { logs: 0 }

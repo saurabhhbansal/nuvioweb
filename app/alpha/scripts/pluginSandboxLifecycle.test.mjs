@@ -1,13 +1,15 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { spawnSync } from "node:child_process";
 import { executePluginWithNetworkPrototype as execute } from "./pluginSandboxNetworkPrototype.mjs";
+import { executePluginPrototype as executeSync } from "./pluginSandboxPrototype.mjs";
 
 const code = "async function resolve() { return []; }";
 const transport = async () => ({ status: 200, body: "" });
 
 test("invalid VM/broker budgets reject before starting the engine", async () => {
-  for (const limits of [{ timeMs: NaN }, { timeMs: Infinity }, { memoryBytes: 2 ** 40 }, { outputBytes: -1 }, { logs: 21 }, { unknown: 1 }]) {
-    assert.deepEqual(await execute({ code, transport, limits }), { ok: false, error: "limits" });
+  for (const limits of [{ timeMs: NaN }, { timeMs: Infinity }, { memoryBytes: 2 ** 40 }, { stackBytes: 512 * 1024 }, { outputBytes: -1 }, { logs: 21 }, { unknown: 1 }]) {
+    for (const engine of [execute, executeSync]) assert.deepEqual(await engine({ code, transport, limits }), { ok: false, error: "limits" });
   }
   assert.deepEqual(await execute({ code, transport, brokerLimits: { maxRequests: Infinity } }), { ok: false, error: "limits" });
 });
@@ -73,6 +75,15 @@ test("deadline aborts the actual injected signal and late responses cannot reviv
   assert.equal(signal.aborted, true);
   late({ status: 200, body: "private" });
   assert.equal((await execute({ code, transport })).ok, true);
+});
+
+test("stack exhaustion tears down without a swallowed engine assertion", () => {
+  const env = { ...process.env };
+  delete env.NODE_TEST_CONTEXT;
+  const child = spawnSync(process.execPath, ["--test", "--test-name-pattern=unbounded recursion", new URL("./pluginSandboxAbuse.test.mjs", import.meta.url).pathname], { encoding: "utf8", timeout: 5000, env });
+  assert.equal(child.status, 0);
+  assert.match(child.stdout, /# tests 1\n/);
+  assert.doesNotMatch(child.stdout + child.stderr, /Assertion failed|Aborted\(|JS_FreeRuntime/);
 });
 
 test("success removes caller abort listeners and clears deadline timer", async () => {

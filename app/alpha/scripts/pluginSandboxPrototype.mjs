@@ -13,14 +13,8 @@
 import { getQuickJS } from "quickjs-emscripten";
 import { normalizePluginResult, PLUGIN_CONTRACT_LIMITS } from "../js/core/plugins/pluginContract.js";
 
-export const PLUGIN_SANDBOX_DEFAULTS = Object.freeze({
-  timeMs: 250,
-  memoryBytes: 16 * 1024 * 1024,
-  stackBytes: 512 * 1024,
-  outputBytes: 64 * 1024,
-  logs: 20,
-  logLength: 200
-});
+import { pluginSandboxBudget } from "./pluginSandboxLimits.mjs";
+export { PLUGIN_SANDBOX_DEFAULTS } from "./pluginSandboxLimits.mjs";
 
 function failureCode(error, deadline) {
   if (Date.now() > deadline) return "timeout";
@@ -42,7 +36,11 @@ function dumpHandle(context, handle) {
 export async function executePluginPrototype({ code, input = {}, limits = {} } = {}) {
   if (typeof code !== "string" || !code.trim()) return { ok: false, error: "code" };
   if (new TextEncoder().encode(code).length > PLUGIN_CONTRACT_LIMITS.codeBytes) return { ok: false, error: "code-size" };
-  const budget = { ...PLUGIN_SANDBOX_DEFAULTS, ...limits };
+  const budget = pluginSandboxBudget(limits);
+  if (!budget) return { ok: false, error: "limits" };
+  let inputJson;
+  try { inputJson = JSON.stringify(input ?? {}); } catch { return { ok: false, error: "input" }; }
+  if (typeof inputJson !== "string" || new TextEncoder().encode(inputJson).length > budget.inputBytes) return { ok: false, error: "input-size" };
   const startedAt = Date.now();
   const deadline = startedAt + budget.timeMs;
   const logs = [];
@@ -74,7 +72,7 @@ export async function executePluginPrototype({ code, input = {}, limits = {} } =
     log.dispose();
     context.setProp(context.global, "api", api);
     api.dispose();
-    const inputHandle = context.newString(JSON.stringify(input ?? {}));
+    const inputHandle = context.newString(inputJson);
     context.setProp(context.global, "inputJson", inputHandle);
     inputHandle.dispose();
 
@@ -115,13 +113,14 @@ resolve(api, JSON.parse(inputJson)).then(
         result = dumpHandle(context, resultProbe.value);
         pluginError = dumpHandle(context, errorProbe.value);
       } finally {
-        doneProbe.value.dispose();
-        resultProbe.value.dispose();
-        errorProbe.value.dispose();
+        // A quota failure can make a probe return error without value. Dispose
+        // every handle even then; dereferencing value used to skip all error
+        // disposal and leave live GC objects when the runtime was destroyed.
+        for (const probe of [doneProbe, resultProbe, errorProbe]) {
+          probe.value?.dispose();
+          probe.error?.dispose();
+        }
       }
-      if (doneProbe.error) doneProbe.error.dispose();
-      if (errorProbe.error) errorProbe.error.dispose();
-      if (resultProbe.error) resultProbe.error.dispose();
       if (done === "true") {
         if (typeof pluginError === "string" && pluginError !== "undefined") {
           // A rejected promise can be a quota interrupt or a genuine plugin error.
@@ -141,7 +140,7 @@ resolve(api, JSON.parse(inputJson)).then(
         return { ok: false, error: "timeout", elapsedMs: Date.now() - startedAt };
       }
     }
-    if (serialized.length > budget.outputBytes) {
+    if (new TextEncoder().encode(serialized).length > budget.outputBytes) {
       return { ok: false, error: "output-size", elapsedMs: Date.now() - startedAt };
     }
     let parsed;

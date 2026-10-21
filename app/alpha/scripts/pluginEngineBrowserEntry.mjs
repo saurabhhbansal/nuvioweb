@@ -42,7 +42,7 @@ globalThis.__nuvioPluginEngine = {
   async runGetStreams({ descriptor, input } = {}) {
     let transportCalls = 0;
     const result = await executeGetStreamsPrototype({
-      descriptor, input, transport: async () => {
+      descriptor, input, approvedHosts: ["allowed.example"], transport: async () => {
         transportCalls += 1;
         return { status: 200, body: '{"url":"https://media.example/s"}' };
       }

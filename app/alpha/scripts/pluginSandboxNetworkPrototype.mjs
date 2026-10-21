@@ -8,18 +8,8 @@
 import { newAsyncContext } from "quickjs-emscripten";
 import { createPluginNetworkBroker } from "../js/core/plugins/pluginBroker.js";
 import { normalizePluginResult, PLUGIN_CONTRACT_LIMITS } from "../js/core/plugins/pluginContract.js";
-import { PLUGIN_SANDBOX_DEFAULTS } from "./pluginSandboxPrototype.mjs";
-
-export const PLUGIN_SANDBOX_CEILINGS = Object.freeze({
-  timeMs: 5000, memoryBytes: 32 * 1024 * 1024, stackBytes: 1024 * 1024,
-  outputBytes: 1024 * 1024, logs: 20, logLength: 200, inputBytes: 1024 * 1024
-});
-
-function validBudget(budget) {
-  return Object.entries(budget).every(([key, value]) =>
-    Object.hasOwn(PLUGIN_SANDBOX_CEILINGS, key) && Number.isSafeInteger(value) &&
-    value >= (key === "logs" || key === "logLength" ? 0 : 1) && value <= PLUGIN_SANDBOX_CEILINGS[key]);
-}
+import { pluginSandboxBudget } from "./pluginSandboxLimits.mjs";
+export { PLUGIN_SANDBOX_CEILINGS } from "./pluginSandboxLimits.mjs";
 
 function networkErrorCode(message) {
   const match = /plugin-network:([a-z-]+)/.exec(String(message || ""));
@@ -34,13 +24,14 @@ export async function executePluginWithNetworkPrototype({
   transport,
   limits = {},
   brokerLimits = {},
-  signal
+  signal,
+  validateResult
 } = {}) {
   if (typeof code !== "string" || !code.trim()) return { ok: false, error: "code" };
   if (new TextEncoder().encode(code).length > PLUGIN_CONTRACT_LIMITS.codeBytes) return { ok: false, error: "code-size" };
   if (typeof transport !== "function") return { ok: false, error: "transport-config" };
-  const budget = { ...PLUGIN_SANDBOX_DEFAULTS, inputBytes: 1024 * 1024, ...limits };
-  if (!validBudget(budget)) return { ok: false, error: "limits" };
+  const budget = pluginSandboxBudget(limits);
+  if (!budget) return { ok: false, error: "limits" };
   if (signal?.aborted) return { ok: false, error: "cancelled" };
   let inputJson;
   try { inputJson = JSON.stringify(input ?? {}); } catch { return { ok: false, error: "input" }; }
@@ -189,13 +180,11 @@ resolve(api, JSON.parse(inputJson)).then(
         resultValue = context.dump(resultProbe.value);
         errorValue = context.dump(errorProbe.value);
       } finally {
-        doneProbe.value.dispose();
-        resultProbe.value.dispose();
-        errorProbe.value.dispose();
+        for (const probe of [doneProbe, resultProbe, errorProbe]) {
+          probe.value?.dispose();
+          probe.error?.dispose();
+        }
       }
-      if (doneProbe.error) doneProbe.error.dispose();
-      if (resultProbe.error) resultProbe.error.dispose();
-      if (errorProbe.error) errorProbe.error.dispose();
 
       if (doneValue === "true") {
         if (typeof errorValue === "string" && errorValue !== "undefined") {
@@ -238,6 +227,11 @@ resolve(api, JSON.parse(inputJson)).then(
       parsed = JSON.parse(serialized);
     } catch {
       return { ok: false, error: "output-json" };
+    }
+    // Compatibility policies must inspect plain serialized data on the host:
+    // guest getters/toJSON can change fields after any in-guest validation.
+    if (validateResult !== undefined && (typeof validateResult !== "function" || validateResult(parsed) !== true)) {
+      return { ok: false, error: "output-policy" };
     }
     const normalized = normalizePluginResult(parsed);
     return {
