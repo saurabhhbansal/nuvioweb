@@ -50,6 +50,9 @@ async function fixture(t) {
           return [...cloud.entries()].filter(([key]) => key.startsWith(`${pid}::`)).map(([, row]) => row)
             .slice(body.p_offset, body.p_offset + body.p_limit);
         }
+        if (name === "sync_push_library_items" && body.p_items.some((row) => row.content_id === "rejected-by-server")) {
+          throw Object.assign(new Error("HTTP 400"), { status: 400 });
+        }
         if (name === "sync_push_library_items") {
           body.p_items.forEach((row) => cloud.set(`${pid}::${row.content_type}::${row.content_id}`, row));
         }
@@ -294,4 +297,26 @@ test("the device keeps at most 1000 items per profile, dropping the oldest local
   assert.equal(ids.length, 1000);
   assert.equal(ids.includes("newest"), true);
   assert.equal(ids.includes("old-0"), false);
+});
+
+test("one item the server rejects does not block the other saves", async (t) => {
+  const f = await fixture(t);
+  await f.repository.save(movie("good-1"));
+  await f.repository.save(movie("rejected-by-server"));
+  await f.repository.save(movie("good-2"));
+  assert.equal(await f.repository.flush(), false);
+  assert.deepEqual(f.cloudIds(), ["good-1", "good-2"]);
+  assert.deepEqual(f.outbox.list("1").map((op) => op.item.contentId), ["rejected-by-server"]);
+});
+
+test("an unreadable outbox refuses edits instead of overwriting queued changes", async (t) => {
+  const f = await fixture(t);
+  f.api.offline = true;
+  await f.repository.save(movie("queued"));
+  const saved = f.storage.getItem("savedLibrarySyncOutbox");
+  f.storage.setItem("savedLibrarySyncOutbox", "{not json");
+  await assert.rejects(f.repository.save(movie("next")), { code: "LIBRARY_STORAGE_UNAVAILABLE" });
+  assert.equal(f.storage.getItem("savedLibrarySyncOutbox"), "{not json");
+  f.storage.setItem("savedLibrarySyncOutbox", saved);
+  assert.deepEqual(f.outbox.list("1").map((op) => op.item.contentId), ["queued"]);
 });

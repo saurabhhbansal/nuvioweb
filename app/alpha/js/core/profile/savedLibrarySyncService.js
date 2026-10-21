@@ -102,26 +102,48 @@ export const SavedLibrarySyncService = {
   },
 
   // Sends outbox operations: saves in one upsert, removals in one exact-key
-  // delete. onSent runs for each operation the cloud confirmed.
+  // delete. If a batch fails, each operation is retried alone so one bad item
+  // cannot hold back the rest. onSent runs for each operation the cloud
+  // confirmed.
   async push(profileId = null, ops = [], { onSent = () => {} } = {}) {
     try {
       if (!AuthManager.isAuthenticated) return false;
       const sessionGeneration = AuthManager.getSessionGeneration();
       const resolvedProfileId = resolveProfileId(profileId);
-      const valid = (Array.isArray(ops) ? ops : []).filter((op) => typeof op?.item?.contentId === "string" && op.item.contentId.trim());
-      const saves = valid.filter((op) => op.kind !== "remove");
-      const removes = valid.filter((op) => op.kind === "remove");
-      const requests = [
-        saves.length && { ops: saves, rpc: UPSERT_RPC, body: { p_profile_id: resolvedProfileId, p_items: saves.map((op) => toRemoteItem(op.item)) } },
-        removes.length && { ops: removes, rpc: DELETE_RPC, body: { p_profile_id: resolvedProfileId, p_keys: removes.map((op) => ({ content_id: op.item.contentId, content_type: op.item.contentType || "movie" })) } }
-      ].filter(Boolean);
-      for (const { ops: sent, rpc, body } of requests) {
-        if (!AuthManager.isSessionCurrent(sessionGeneration)) return false;
-        await SupabaseApi.rpc(rpc, body, true, { expectedSessionGeneration: sessionGeneration });
-        if (!AuthManager.isSessionCurrent(sessionGeneration)) return false;
-        sent.forEach((op) => onSent(op));
+      const current = () => AuthManager.isSessionCurrent(sessionGeneration);
+      const valid = [];
+      for (const op of Array.isArray(ops) ? ops : []) {
+        // A malformed entry can never be sent; drop it instead of retrying forever.
+        if (typeof op?.item?.contentId === "string" && op.item.contentId.trim()) valid.push(op);
+        else onSent(op);
       }
-      return true;
+      const send = async (batch) => {
+        const removal = batch[0].kind === "remove";
+        const body = removal
+          ? { p_profile_id: resolvedProfileId, p_keys: batch.map((op) => ({ content_id: op.item.contentId, content_type: op.item.contentType || "movie" })) }
+          : { p_profile_id: resolvedProfileId, p_items: batch.map((op) => toRemoteItem(op.item)) };
+        await SupabaseApi.rpc(removal ? DELETE_RPC : UPSERT_RPC, body, true, { expectedSessionGeneration: sessionGeneration });
+        if (!current()) return false;
+        batch.forEach((op) => onSent(op));
+        return true;
+      };
+      let ok = true;
+      for (const batch of [valid.filter((op) => op.kind !== "remove"), valid.filter((op) => op.kind === "remove")]) {
+        if (!batch.length) continue;
+        if (!current()) return false;
+        try {
+          if (!(await send(batch))) return false;
+        } catch (error) {
+          // Only a client error points at a bad item; outages fail every item alike.
+          const status = Number(error?.status || 0);
+          if (batch.length === 1 || status < 400 || status >= 500 || status === 429) throw error;
+          for (const op of batch) {
+            if (!current()) return false;
+            try { if (!(await send([op]))) return false; } catch { ok = false; }
+          }
+        }
+      }
+      return ok;
     } catch {
       // No account or item data in diagnostics. Unsent operations stay in the
       // outbox and are retried later.

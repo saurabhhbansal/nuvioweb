@@ -313,7 +313,10 @@ class AuthManagerClass {
     const refreshToken = SessionStore.refreshToken;
     const sessionGeneration = this.sessionGeneration;
     if (!refreshToken) {
-      return Boolean(accessToken) && !isJwtExpired(accessToken, 0);
+      const usable = Boolean(accessToken) && !isJwtExpired(accessToken, 0);
+      // An expired token with nothing to refresh it can never recover.
+      if (!usable) this.lastRefreshFailureKind = "rejected";
+      return usable;
     }
 
     if (!force && accessToken && !isJwtExpired(accessToken)) {
