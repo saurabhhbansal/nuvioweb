@@ -16,6 +16,44 @@ test.beforeEach(async ({ context, request }) => {
     else await route.abort("blockedbyclient");
   });
 });
+// Unmerged #11 diagnostic: observes only an already-failed public fixture.
+test.afterEach(async ({ page }, testInfo) => {
+  if (testInfo.status === testInfo.expectedStatus || !testInfo.title.startsWith("bundled quality-dash ")) return;
+  const codec = provenance.files.find(entry => entry.file === "original-2160p.mp4").codec;
+  let timer;
+  try {
+    const observation = await Promise.race([
+      page.evaluate(mime => {
+        const video = document.querySelector("video");
+        const bounded = (value, max) => Number.isInteger(value) && value >= 0 && value <= max ? value : null;
+        const capability = Constructor => {
+          try { return typeof Constructor === "function" && Constructor.isTypeSupported(mime); } catch { return false; }
+        };
+        const prediction = document.createElement("video").canPlayType(mime);
+        const message = document.querySelector(".player-startup-error-message")?.textContent || "";
+        return {
+          observation: "failed-public-fixture",
+          mediaSourcePresent: typeof globalThis.MediaSource === "function",
+          managedMediaSourcePresent: typeof globalThis.ManagedMediaSource === "function",
+          mediaSourceCodec: Boolean(capability(globalThis.MediaSource)),
+          managedMediaSourceCodec: Boolean(capability(globalThis.ManagedMediaSource)),
+          nativeCodec: ["", "maybe", "probably"].includes(prediction) ? prediction : "unexpected",
+          videoExists: Boolean(video),
+          readyState: bounded(video?.readyState, 4), networkState: bounded(video?.networkState, 3),
+          width: bounded(video?.videoWidth, 8192), height: bounded(video?.videoHeight, 8192),
+          errorCode: bounded(video?.error?.code, 4), paused: Boolean(video?.paused),
+          sourceKind: !video?.currentSrc ? "none" : video.currentSrc.startsWith("blob:") ? "blob" : video.currentSrc.startsWith("http:") ? "http" : "other",
+          engineEvents: Array.isArray(globalThis.__qualityEngineEvents) ? globalThis.__qualityEngineEvents.filter(x => ["hls.js", "dash.js"].includes(x)).slice(0, 8) : [],
+          sourceErrorCount: Array.isArray(globalThis.__qualitySourceErrors) ? Math.min(globalThis.__qualitySourceErrors.length, 8) : 0,
+          overlayShown: document.querySelector("#playerStartupErrorOverlay")?.getAttribute("aria-hidden") === "false",
+          errorCategory: !message ? "none" : /media.?source|\bMSE\b/i.test(message) ? "media-source" : /unsupported|not supported|unavailable/i.test(message) ? "unsupported" : /network|fetch|load/i.test(message) ? "network" : "other",
+        };
+      }, `video/mp4; codecs="${codec}"`).catch(() => ({ observation: "page-unavailable" })),
+      new Promise(resolve => { timer = setTimeout(() => resolve({ observation: "observation-timeout" }), 2000); }),
+    ]);
+    console.log("ISSUE11_NATIVE_DIAG " + JSON.stringify(observation));
+  } finally { clearTimeout(timer); }
+});
 async function openSource(page, context, scenario) {
   await context.addInitScript(
     ({ provider, scenario }) => {
