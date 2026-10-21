@@ -1,40 +1,37 @@
-# Saved Library sync policy — 2026-10-20
+# Library sync policy
 
-Parent #7 / child #119. This bounded policy preserves explicit operations; it does not claim conflict-free same-key edits or offline durability.
+How saved Library items move between this device and the Nuvio cloud. Updated for #162.
 
-## Supported operations
+## API
 
-The public [Nuvio API v1.3](https://nuvio.tv/docs/nuvio-public-api.md) documents additive `sync_push_library_items` and exact-key `sync_delete_library_items`. A bounded disposable-account experiment observed both endpoints return204, independent-session arrival and exact cleanup with all original rows unchanged. Read cursors are not atomic write preconditions, but these per-item operations safely preserve **unrelated keys** without them.
+The [Nuvio public API](https://nuvio.tv/docs/nuvio-public-api.md) offers three Library calls, all used as documented:
 
-The application queues only an explicit UI save/remove, including the exact content type and ID. Debounce retains every distinct key and the final same-key local intent. Session/profile queue tails serialize operations; account changes discard unsent work. Requests copy their input before awaiting. Each write carries one exact key, so a 1001st local item neither evicts another item nor causes a truncated replacement upload. Local cache and pull pagination retain >1000 rows; the Library screen still displays at most1000.
-
-Successful operations acknowledge only their captured revision when the full known queue succeeded. A failed predecessor or unknown legacy pending snapshot is never acknowledged by a later successful explicit operation. Pulls preserve pending local cache. Clean empty remote snapshots clear clean local data. Removing a final item sends its exact delete, which preserves concurrent unrelated additions.
-
-## Unsupported behavior and safe refusals
-
-| Boundary | Behavior / dependency |
+| Call | Used for |
 | --- | --- |
-| Unknown legacy snapshot or implicit `push(profileId)` | Refused; no full replacement and no inferred deletion. Explicit subsequent edits send only their own keys, leaving earlier unknown edits pending. |
-| Missing/rejected per-item endpoint | Local pending retained; no fallback to legacy replacement. |
-| Failed edit → reload/reconnect | Local cache/pending marker survives successful browser storage writes. Per-key queue is memory-only; no automatic retry or durable per-key outbox. Earlier failed edits require explicit user reconciliation and remain pending. |
-| Same key edited by independent clients | Provider applies arriving operations; no version/ETag precondition, timestamp conflict UI or atomic merge is established. Unsupported ordering guarantee. Distinct-key edits are supported by additive/exact-delete semantics. |
-| Multi-tab coordination | No cross-tab lock; same-key ordering unsupported. |
-| Browser storage quota/write failure | Pending metadata is written and read back before an authenticated item mutation. Failure refuses the edit and cloud dispatch. Item writes are checked before notification/dispatch; unconfirmed readback retains pending protection and disables acknowledgement by later queued edits. Guest failures also surface. Failed clean metadata never falsely acknowledges. No durability claim when storage itself is unreadable/unwritable. |
-| Already-issued writes | Cannot be undone or cancelled on the server. Session guards control subsequent requests/publication only. No destructive snapshot rollback. |
+| `sync_pull_library` | Reads the profile's cloud list, 500 rows per page, up to 1000 items |
+| `sync_push_library_items` | Adds or updates items; other items are untouched |
+| `sync_delete_library_items` | Removes items by exact `(content_id, content_type)`; other items are untouched |
 
-## Operation table
+Every item keeps its own content type, including types other than `movie` and `series`.
 
-| Operation | Input | Ownership/cancellation | Result |
-| --- | --- | --- | --- |
-| `sync_pull_library` | 500 rows per page | Session and local revision guard | Clean snapshot hydrate; pending cache retained |
-| Explicit save | One known item to `sync_push_library_items` | Captured session/profile and queue revision | Additive upsert preserves unrelated keys |
-| Explicit remove | One known `(content_id, content_type)` to `sync_delete_library_items` | Same guard; absent local item does not guess its remote type | Exact delete preserves unrelated keys |
-| Unknown full snapshot | No request | Refused | Pending retained; no silent upload |
+## Outbox
 
-The owner explicitly accepted bounded recovery on 2026-10-20; [exact decisions](archive/evidence/issue7-owner-scope-2026-10-20.json). Durable replay/outbox and atomic same-key ordering are separate follow-up scope. #119 may close only after this bounded policy, failure/reload/reconnect/storage/legacy regressions and review are integrated. Local implementation and verification are engineering work, not external blockers. #120 retains actual hosted/new-change/QR/device/lifecycle observations; direct API setup is separate from application write-path evidence.
+- A signed-in save or remove updates the local list and adds one operation to a per-profile outbox in browser storage (`savedLibrarySyncOutbox`).
+- The outbox holds one operation per item. A later save or remove of the same item replaces the earlier one (last write wins).
+- The outbox is sent about half a second after a change, on every pull (startup and the two-minute sync cycle) and when the browser comes back online. Saves go in one upsert call and removals in one delete call.
+- An operation leaves the outbox only after the cloud confirmed it. A change made to the same item while a send is in flight stays queued and goes out next time.
+- If browser storage refuses the write, the change is reported as failed and nothing is queued or sent.
 
-## Manual reconciliation
+## Pull
 
-The Library screen shows a pending notice instead of implying synchronization. Compare the intended item against another signed-in client and repeat only the intended save/removal. Earlier failed or unknown operations remain pending even if a later explicit operation succeeds. There is no blind “retry snapshot” button. Signing out discards this device's pending state; record intended changes first, then use a new clean sign-in to hydrate the authoritative cloud state. This is explicit user reconciliation, not automatic durable recovery.
+A pull first sends the outbox, then replaces the profile's local list with the cloud list and re-applies whatever is still in the outbox. Items added or removed on other devices therefore appear even while this device has unsent changes. Pushes and pulls for one profile run one at a time.
 
-Checked storage reads are strict at mutation/persistence boundaries. Ordinary UI list reads retain their bounded empty fallback rather than throwing a new unhandled screen-loading exception. An unreadable sync-state envelope is conservatively pending, never treated as a clean baseline. The error dialog contains fixed guidance and no account/item data. Already issued server writes cannot be cancelled or undone by a later local failure.
+## Limits
+
+- This device keeps at most 1000 items per profile. Saving beyond that drops the oldest item locally only; the cloud keeps it.
+- No conflict handling beyond last write wins: if two devices change the same item, the change that reaches the cloud last wins.
+- Tabs do not coordinate; each tab sends its own outbox.
+- Guest (signed-out) Library edits stay on the device and are not uploaded later.
+- Sign-out clears the Library, the outbox and other account data on this device. Unsent changes are lost.
+
+The Library screen shows a short notice while changes are waiting to sync.

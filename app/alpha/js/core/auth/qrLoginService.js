@@ -3,6 +3,7 @@ import { Environment } from "../../platform/environment.js";
 import { SessionStore } from "../storage/sessionStore.js";
 import { AuthManager } from "./authManager.js";
 import { fetchSupabaseAuth } from "./supabaseAuthFetch.js";
+import { isJwtExpired, isJwtLike } from "./jwt.js";
 
 let lastError = null;
 let activeAttempt = null;
@@ -10,38 +11,6 @@ let attemptSequence = 0;
 
 function hasQrAuthConfig() {
   return Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
-}
-
-function isJwtLike(token) {
-  const value = String(token || "").trim();
-  return value.split(".").length === 3;
-}
-
-function decodeJwtPayload(token) {
-  try {
-    const [, payload] = String(token || "").split(".");
-    if (!payload) {
-      return null;
-    }
-    const normalized = payload.replace(/-/g, "+").replace(/_/g, "/");
-    const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "=");
-    return JSON.parse(atob(padded));
-  } catch {
-    return null;
-  }
-}
-
-function isJwtExpired(token, leewaySeconds = 30) {
-  if (!isJwtLike(token)) {
-    return true;
-  }
-  const payload = decodeJwtPayload(token);
-  const exp = Number(payload?.exp || 0);
-  if (!Number.isFinite(exp) || exp <= 0) {
-    return false;
-  }
-  const nowSeconds = Math.floor(Date.now() / 1000);
-  return exp <= nowSeconds + leewaySeconds;
 }
 
 function getBearerToken() {
@@ -303,40 +272,15 @@ function cancelAttempt(attemptId = null) {
 
 async function ensureQrSessionAuthenticated({ forceNewAnonymous = false, attempt = null } = {}) {
   assertAttemptOwned(attempt);
-  if (forceNewAnonymous) {
-    const wasAnonymous = SessionStore.isAnonymousSession;
-    if (!wasAnonymous && SessionStore.refreshToken) {
-      const refreshed = await AuthManager.refreshSessionIfNeeded({ force: true });
-      assertAttemptOwned(attempt);
-      if (refreshed && SessionStore.accessToken && !isJwtExpired(SessionStore.accessToken, 0)) {
-        return true;
-      }
-      if (AuthManager.wasLastSessionRefreshTransientFailure?.()) {
-        return true;
-      }
-    }
-    assertAttemptOwned(attempt);
-    SessionStore.accessToken = null;
-    SessionStore.refreshToken = null;
-    SessionStore.isAnonymousSession = false;
-  }
-
-  if (SessionStore.accessToken && !isJwtLike(SessionStore.accessToken)) {
-    SessionStore.accessToken = null;
-    SessionStore.refreshToken = null;
-  }
+  // The QR caller is always a fresh anonymous session. A signed-out device
+  // may still hold an old account pair (kept for retry after a server error);
+  // the exchange would reject it as stale, so drop it here. A live sign-in
+  // made elsewhere during this attempt supersedes the attempt instead.
   if (SessionStore.accessToken && !SessionStore.isAnonymousSession) {
-    if (!isJwtExpired(SessionStore.accessToken)) {
-      return true;
-    }
-    const refreshed = await AuthManager.refreshSessionIfNeeded();
-    assertAttemptOwned(attempt);
-    if (refreshed && SessionStore.accessToken && !isJwtExpired(SessionStore.accessToken)) {
-      return true;
-    }
-    if (AuthManager.wasLastSessionRefreshTransientFailure?.()) {
-      return true;
-    }
+    if (AuthManager.isAuthenticated) throw staleAttemptError();
+    SessionStore.clear();
+  }
+  if (forceNewAnonymous || (SessionStore.accessToken && !isJwtLike(SessionStore.accessToken))) {
     SessionStore.clear();
   }
   if (SessionStore.accessToken && SessionStore.isAnonymousSession) {
@@ -679,7 +623,6 @@ export const QrLoginService = {
       }
       await ensureQrSessionAuthenticated({ attempt });
       assertAttemptOwned(attempt);
-      const generation = AuthManager.getSessionGeneration();
       const response = await fetchWithCallerSessionRecovery(() =>
         fetchSupabaseAuth("/functions/v1/tv-logins-exchange", {
           method: "POST",
@@ -696,7 +639,6 @@ export const QrLoginService = {
         attempt
       );
       assertAttemptOwned(attempt);
-      if (AuthManager.getSessionGeneration() !== generation) throw staleAttemptError();
       if (!response.ok) {
         lastError = redactSecrets(await parseErrorText(response), [code, deviceNonce]);
         console.error("QR exchange rejected");
@@ -705,7 +647,6 @@ export const QrLoginService = {
 
       const result = await response.json();
       assertAttemptOwned(attempt);
-      if (AuthManager.getSessionGeneration() !== generation) throw staleAttemptError();
       if (!SessionStore.isAnonymousSession) throw staleAttemptError();
       const tokens = extractSessionTokens(result) || {
         accessToken: result?.access_token || null,

@@ -1836,10 +1836,8 @@ export const LibraryScreen = {
   },
 
   renderSyncNotice() {
-    try {
-      if (!savedLibraryRepository.getSyncState().pending) return "";
-    } catch { return '<p role="status">Library device storage is unavailable. Check browser storage before editing.</p>'; }
-    return '<p role="status" class="library-sync-notice">Library changes are pending on this device. Automatic retry is unavailable. Compare with another signed-in device and repeat only the intended save or removal. Earlier unconfirmed changes remain pending. Signing out discards this device’s pending changes; first record anything you need to keep.</p>';
+    if (!savedLibraryRepository.hasPendingChanges()) return "";
+    return '<p role="status" class="library-sync-notice">Some Library changes have not synced yet. They will sync automatically when the connection is back.</p>';
   },
 
   render() {

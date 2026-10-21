@@ -1,4 +1,22 @@
-import { readLibraryStorage, writeLibraryStorage } from "./savedLibraryStorage.js";
+import { LocalStore } from "../../core/storage/localStore.js";
+
+export const LIBRARY_ITEM_LIMIT = 1000;
+
+export function libraryStorageError() {
+  const error = new Error("Library changes could not be saved on this device. Check available browser storage and try again.");
+  error.code = "LIBRARY_STORAGE_UNAVAILABLE";
+  return error;
+}
+
+function readLibraryStorage(key, fallback) {
+  try { return LocalStore.get(key, fallback, { strict: true }); }
+  catch { throw libraryStorageError(); }
+}
+
+function writeLibraryStorage(key, value) {
+  try { LocalStore.set(key, value, { strict: true }); }
+  catch { throw libraryStorageError(); }
+}
 
 const SAVED_LIBRARY_KEY = "savedLibraryItems";
 const changeListeners = new Set();
@@ -21,7 +39,7 @@ function notifyChange(profileId, reason) {
   });
 }
 
-function normalizeItem(item = {}, profileId = 1) {
+export function normalizeItem(item = {}, profileId = 1) {
   const updatedAt = Number(item.updatedAt || item.addedAt || Date.now());
   return {
     ...item,
@@ -100,10 +118,12 @@ export const SavedLibraryStore = {
     }
     const key = savedLibraryItemKey(normalized);
     const items = this.listAll(true);
-    // Never silently evict the oldest item at a 1000-item boundary. A local
-    // set is retained here; explicit cloud operations affect only their keys.
-    const next = [normalized, ...items.filter((entry) => savedLibraryItemKey(entry) !== key)];
-    const nextItems = dedupeAndSort(next);
+    const others = items.filter((entry) => savedLibraryItemKey(entry) !== key);
+    // Keep at most LIBRARY_ITEM_LIMIT items per profile on this device. The
+    // oldest ones drop off locally only; the cloud keeps them.
+    const sameProfile = others.filter((entry) => String(entry.profileId || "1") === pid);
+    const dropped = new Set(sameProfile.slice(LIBRARY_ITEM_LIMIT - 1));
+    const nextItems = dedupeAndSort([normalized, ...others.filter((entry) => !dropped.has(entry))]);
     if (itemsSignature(items) === itemsSignature(nextItems)) {
       return normalized;
     }

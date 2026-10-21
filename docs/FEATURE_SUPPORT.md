@@ -6,8 +6,8 @@ Updated 2026-10-21. "Tested" means covered by automated tests in CI, mostly Chro
 
 | Feature | Status | Limits |
 | --- | --- | --- |
-| Sign in with Nuvio, refresh, sign out | Works; tested with mocks and fixtures | QR sign-in unsupported (provider rejects the redirect). Natural token expiry on real accounts not observed |
-| Profiles, library, watch progress sync | Works; per-item saves and deletes | Failed saves stay pending and are shown; no durable replay or cross-tab ordering guarantee. See [sync policy](LIBRARY_SYNC_POLICY.md). Fixes in #162 |
+| Sign in with Nuvio, refresh, sign out | Works; tested with mocks and fixtures. Startup survives server errors and retries when back online | QR sign-in unsupported (provider rejects the redirect). Natural token expiry on real accounts not observed |
+| Profiles, library, watch progress sync | Works; Library changes queue in a saved outbox and retry on startup, reconnect and the sync cycle | Same-item edits on two devices: last write wins. No cross-tab coordination. See [sync policy](LIBRARY_SYNC_POLICY.md) |
 | Guest mode | Works; tested | Data stays on this device |
 | HTTP/Stremio add-ons | Install by URL, catalogs, details, sources, subtitles; tested with a fixture add-on | Each add-on must allow browser CORS |
 | Source ranking | Default order puts likely-playable sources first, then external-player candidates, unknown, header-required and blocked. Provider order is one toggle away. Every source stays selectable | Based on browser predictions and declared metadata, never on file names or "4K" labels |

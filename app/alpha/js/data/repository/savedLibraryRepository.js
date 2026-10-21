@@ -1,107 +1,105 @@
-import { SavedLibraryStore } from "../local/savedLibraryStore.js";
+import { SavedLibraryStore, normalizeItem } from "../local/savedLibraryStore.js";
+import { SavedLibraryOutbox, outboxKey } from "../local/savedLibraryOutbox.js";
 import { ProfileManager } from "../../core/profile/profileManager.js";
 import { AuthManager } from "../../core/auth/authManager.js";
-import { SavedLibrarySyncState } from "../local/savedLibrarySyncState.js";
+import { registerAccountRuntimeResetHandler } from "../../core/auth/accountLocalDataReset.js";
+
+// Signed-in Library edits go to the local store and to a persisted outbox.
+// The outbox is sent shortly after each change, on every pull (startup and the
+// periodic sync) and when the browser comes back online. A sent operation
+// leaves the outbox only once the cloud confirmed it.
+const FLUSH_DELAY_MS = 500;
+const flushTimers = new Map();
+const syncLocks = new Map();
 
 function activeProfileId() {
   return String(ProfileManager.getActiveProfileId() || "1");
 }
 
-const savedLibrarySyncTimers = new Map();
-const savedLibrarySyncBatches = new Map();
-const savedLibrarySyncInFlightByProfile = new Map();
-const unconfirmedProfiles = new Set();
-function sessionProfileKey(profileId) {
-  return `${AuthManager.getSessionGeneration()}:${String(profileId || "1")}`;
+function copyItem(item) {
+  return { ...item, genres: Array.isArray(item.genres) ? [...item.genres] : [] };
 }
 
-function queueSavedLibraryCloudSync(profileId, change, edit, delayMs = 500) {
-  if (!AuthManager.isAuthenticated) return;
-  const item = { ...change.item, genres: Array.isArray(change.item.genres) ? [...change.item.genres] : [] };
-  const { previousState, state } = edit;
-  const sessionGeneration = AuthManager.getSessionGeneration();
-  const isCurrent = () => AuthManager.isSessionCurrent(sessionGeneration);
-  const profileKey = `${sessionGeneration}:${String(profileId || "1")}`;
-  let batch = savedLibrarySyncBatches.get(profileKey);
-  if (!batch) {
-    batch = { changes: new Map(), predecessor: savedLibrarySyncInFlightByProfile.get(profileKey), acknowledge: !unconfirmedProfiles.has(profileKey) && (!previousState.pending || savedLibrarySyncInFlightByProfile.has(profileKey)) };
-    savedLibrarySyncBatches.set(profileKey, batch);
-  }
-  batch.revision = state.revision;
-  // Only explicit operations are replayable. Distinct keys survive debounce;
-  // repeated same-key actions retain the last local intent.
-  batch.changes.set(JSON.stringify([item.contentType, item.contentId]), { kind: change.kind, item });
-  clearTimeout(savedLibrarySyncTimers.get(profileKey));
-  const timerId = setTimeout(() => {
-    savedLibrarySyncTimers.delete(profileKey);
-    savedLibrarySyncBatches.delete(profileKey);
-    if (!isCurrent()) return;
-    const inFlight = savedLibrarySyncInFlightByProfile.get(profileKey) || batch.predecessor;
-    const pushPromise = Promise.resolve(inFlight).catch(() => false)
-      .then(async (priorSucceeded) => {
-        if (!isCurrent()) return false;
-        const { SavedLibrarySyncService } = await import("../../core/profile/savedLibrarySyncService.js");
-        if (!isCurrent()) return false;
-        const acknowledge = batch.acknowledge && !unconfirmedProfiles.has(profileKey) && priorSucceeded !== false;
-        const success = await SavedLibrarySyncService.push(profileId, [...batch.changes.values()], {
-          revision: batch.revision, acknowledge
-        });
-        // A later successful operation must not mark a failed/legacy edit clean.
-        return success && acknowledge;
-      })
-      .catch(() => false)
-      .finally(() => {
-        if (savedLibrarySyncInFlightByProfile.get(profileKey) === pushPromise) savedLibrarySyncInFlightByProfile.delete(profileKey);
-      });
-    savedLibrarySyncInFlightByProfile.set(profileKey, pushPromise);
-  }, delayMs);
-  savedLibrarySyncTimers.set(profileKey, timerId);
+function scheduleFlush(profileId) {
+  const pid = String(profileId || "1");
+  clearTimeout(flushTimers.get(pid));
+  flushTimers.set(pid, setTimeout(() => {
+    flushTimers.delete(pid);
+    void savedLibraryRepository.flush(pid).catch(() => {});
+  }, FLUSH_DELAY_MS));
 }
 
-function beginLocalEdit(profileId) {
-  if (!AuthManager.isAuthenticated) return null;
-  const previousState = SavedLibrarySyncState.get(profileId);
-  const state = SavedLibrarySyncState.markPending(profileId);
-  if (!SavedLibrarySyncState.isPersisted(profileId, state)) {
-    unconfirmedProfiles.add(sessionProfileKey(profileId));
-    const error = new Error("Library changes could not be saved safely on this device. Check browser storage and try again. Cloud sync was not started.");
-    error.code = "LIBRARY_SYNC_STORAGE_UNAVAILABLE";
+// Queues the cloud operations, then applies the local change. If the local
+// write fails, the queued operations are undone so the cloud never receives
+// a change this device reported as failed.
+function commitChange(profileId, changes, applyLocally) {
+  if (!AuthManager.isAuthenticated) return applyLocally();
+  const queued = [];
+  try {
+    for (const [kind, item] of changes) queued.push(SavedLibraryOutbox.put(profileId, kind, copyItem(item)));
+    const value = applyLocally();
+    scheduleFlush(profileId);
+    return value;
+  } catch (error) {
+    for (const entry of queued.reverse()) {
+      try { SavedLibraryOutbox.revert(profileId, entry); } catch { /* storage unavailable */ }
+    }
     throw error;
   }
-  return { previousState, state };
-}
-
-function commitLocalEdit(profileId, mutation) {
-  const edit = beginLocalEdit(profileId);
-  let value;
-  try { value = mutation(); }
-  catch (error) {
-    if (edit) unconfirmedProfiles.add(sessionProfileKey(profileId));
-    // A write may have committed before its readback failed. Retain pending;
-    // clearing it here would let the next pull silently discard that edit.
-    throw error;
-  }
-  return { edit, value };
 }
 
 class SavedLibraryRepository {
-  getSyncState(profileId = activeProfileId()) {
-    if (AuthManager.isAuthenticated && !SavedLibrarySyncState.has(profileId)) {
-      try {
-        if (!SavedLibraryStore.listForProfile(profileId, true).length) return SavedLibrarySyncState.get(profileId);
-      } catch {
-        // Unreadable legacy items may contain unsynced intent. Refuse hydration
-        // until explicit reconciliation rather than recording a clean baseline.
-        unconfirmedProfiles.add(sessionProfileKey(profileId));
-      }
-      return SavedLibrarySyncState.markPending(profileId);
-    }
-    return SavedLibrarySyncState.get(profileId);
+  // Runs cloud work for one profile one task at a time, so a pull never
+  // interleaves with a push. Locks belong to one session.
+  withSyncLock(profileId, task) {
+    const key = `${AuthManager.getSessionGeneration()}:${String(profileId || "1")}`;
+    const run = (syncLocks.get(key) || Promise.resolve()).then(task);
+    const tail = run.catch(() => {});
+    syncLocks.set(key, tail);
+    tail.then(() => { if (syncLocks.get(key) === tail) syncLocks.delete(key); });
+    return run;
   }
 
-  acknowledgeSync(profileId, revision) {
-    if (unconfirmedProfiles.has(sessionProfileKey(profileId))) return false;
-    return SavedLibrarySyncState.acknowledge(profileId, revision);
+  hasPendingChanges(profileId = activeProfileId()) {
+    try { return SavedLibraryOutbox.list(profileId).length > 0; }
+    catch { return false; }
+  }
+
+  async flush(profileId = activeProfileId()) {
+    if (!AuthManager.isAuthenticated) return false;
+    const generation = AuthManager.getSessionGeneration();
+    return this.withSyncLock(profileId, async () => {
+      if (!AuthManager.isSessionCurrent(generation)) return false;
+      const ops = SavedLibraryOutbox.list(profileId);
+      if (!ops.length) return true;
+      const { SavedLibrarySyncService } = await import("../../core/profile/savedLibrarySyncService.js");
+      return SavedLibrarySyncService.push(profileId, ops, {
+        onSent: (op) => {
+          if (AuthManager.isSessionCurrent(generation)) SavedLibraryOutbox.acknowledge(profileId, op);
+        }
+      });
+    });
+  }
+
+  async flushAll() {
+    if (!AuthManager.isAuthenticated) return false;
+    let ok = true;
+    for (const profileId of SavedLibraryOutbox.profileIds()) {
+      ok = (await this.flush(profileId)) && ok;
+    }
+    return ok;
+  }
+
+  // Replaces the profile's local list with the cloud list, then re-applies
+  // changes still waiting in the outbox so unsent edits are not lost.
+  applyRemote(items, profileId = activeProfileId()) {
+    const byKey = new Map((items || []).map((item) => [outboxKey(item), item]));
+    for (const op of SavedLibraryOutbox.list(profileId)) {
+      if (op.kind === "remove") byKey.delete(outboxKey(op.item));
+      else byKey.set(outboxKey(op.item), op.item);
+    }
+    SavedLibraryStore.replaceForProfile(profileId, [...byKey.values()]);
+    return SavedLibraryStore.listForProfile(profileId);
   }
 
   async getAll(limit = 200, profileId = activeProfileId()) {
@@ -113,45 +111,38 @@ class SavedLibraryRepository {
   }
 
   async save(item, profileId = activeProfileId()) {
-    if (!item?.contentId) {
-      return;
-    }
-    this.getSyncState(profileId);
-    const { edit, value } = commitLocalEdit(profileId, () => SavedLibraryStore.upsert(item, profileId));
-    queueSavedLibraryCloudSync(profileId, { kind: "save", item: value }, edit);
+    if (!item?.contentId) return;
+    const normalized = normalizeItem({ ...item, updatedAt: item.updatedAt || Date.now() }, profileId);
+    commitChange(profileId, [["save", normalized]], () => SavedLibraryStore.upsert(normalized, profileId));
   }
 
   async remove(contentId, profileId = activeProfileId()) {
-    this.getSyncState(profileId);
-    const items = SavedLibraryStore.listForProfile(profileId, true).filter(item => item.contentId === contentId);
+    const items = SavedLibraryStore.listForProfile(profileId, true).filter((item) => item.contentId === contentId);
     if (!items.length) return;
-    const { edit } = commitLocalEdit(profileId, () => SavedLibraryStore.remove(contentId, profileId));
-    for (const item of items) queueSavedLibraryCloudSync(profileId, { kind: "remove", item }, edit);
+    commitChange(profileId, items.map((item) => ["remove", item]), () => SavedLibraryStore.remove(contentId, profileId));
   }
 
   async toggle(item, profileId = activeProfileId()) {
-    if (!item?.contentId) {
-      return false;
-    }
-    this.getSyncState(profileId);
-    const exists = SavedLibraryStore.findByContentId(item.contentId, profileId, true);
-    if (exists) {
+    if (!item?.contentId) return false;
+    if (SavedLibraryStore.findByContentId(item.contentId, profileId, true)) {
       await this.remove(item.contentId, profileId);
       return false;
     }
-    const { edit, value } = commitLocalEdit(profileId, () => SavedLibraryStore.upsert(item, profileId));
-    queueSavedLibraryCloudSync(profileId, { kind: "save", item: value }, edit);
+    await this.save(item, profileId);
     return true;
-  }
-
-  async replaceAll(items, profileId = activeProfileId()) {
-    SavedLibraryStore.listForProfile(profileId, true);
-    if (!SavedLibrarySyncState.has(profileId)) {
-      // Establish a clean baseline before store notifications can trigger reads.
-      SavedLibrarySyncState.acknowledge(profileId, 0);
-    }
-    SavedLibraryStore.replaceForProfile(profileId, items || []);
   }
 }
 
 export const savedLibraryRepository = new SavedLibraryRepository();
+
+registerAccountRuntimeResetHandler(() => {
+  flushTimers.forEach((timer) => clearTimeout(timer));
+  flushTimers.clear();
+  syncLocks.clear();
+});
+
+if (typeof globalThis.addEventListener === "function") {
+  globalThis.addEventListener("online", () => {
+    void savedLibraryRepository.flushAll().catch(() => {});
+  });
+}

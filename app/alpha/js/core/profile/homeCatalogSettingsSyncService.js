@@ -1,6 +1,7 @@
 import { AuthManager } from "../auth/authManager.js";
 import { LocalStore } from "../storage/localStore.js";
 import { SessionStore } from "../storage/sessionStore.js";
+import { decodeJwtPayload } from "../auth/jwt.js";
 import { SupabaseApi } from "../../data/remote/supabase/supabaseApi.js";
 import { addonRepository } from "../../data/repository/addonRepository.js";
 import { HomeCatalogStore } from "../../data/local/homeCatalogStore.js";
@@ -60,20 +61,6 @@ function stableStringify(value) {
 
 function normalizeString(value) {
   return String(value ?? "").trim();
-}
-
-function decodeJwtPayload(token) {
-  try {
-    const [, payload] = String(token || "").split(".");
-    if (!payload) {
-      return null;
-    }
-    const normalized = payload.replace(/-/g, "+").replace(/_/g, "/");
-    const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "=");
-    return JSON.parse(atob(padded));
-  } catch (_) {
-    return null;
-  }
 }
 
 function currentPullToken(profileId = null) {

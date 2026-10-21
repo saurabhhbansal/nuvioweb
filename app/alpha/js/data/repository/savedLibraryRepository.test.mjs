@@ -4,20 +4,35 @@ import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { build } from "esbuild";
 
+// Library sync end to end: the real repository, store, outbox and sync service
+// against an in-memory cloud. Only auth, the active profile and the API call
+// are stubbed.
 let revision = 0;
 const turn = () => new Promise((resolve) => setImmediate(resolve));
-function deferred() {
-  let resolve;
-  const promise = new Promise((next) => { resolve = next; });
-  return { promise, resolve };
+
+function memoryStorage() {
+  const values = new Map();
+  const storage = {
+    failWrites: false,
+    get length() { return values.size; },
+    key: (index) => [...values.keys()][index] ?? null,
+    getItem: (key) => values.get(key) ?? null,
+    setItem: (key, value) => {
+      if (storage.failWrites === true || storage.failWrites === key) throw new Error("Synthetic quota exceeded");
+      values.set(key, String(value));
+    },
+    removeItem: (key) => values.delete(key),
+    clear: () => values.clear()
+  };
+  return storage;
 }
 
-async function fixture(t, { guest = false, realService = false } = {}) {
+async function fixture(t) {
   let generation = 1;
-  let authenticated = !guest;
+  let authenticated = true;
+  const cloud = new Map(); // `${profileId}::${type}::${id}` -> row
   const calls = [];
-  const values = new Map();
-  const resetHandlers = [];
+  const api = { offline: false, hold: null, rpc: null };
   const dependencies = {
     AuthManager: {
       get isAuthenticated() { return authenticated; },
@@ -25,463 +40,283 @@ async function fixture(t, { guest = false, realService = false } = {}) {
       isSessionCurrent: (expected) => authenticated && expected === generation
     },
     ProfileManager: { getActiveProfileId: () => "1" },
-    failedKeys: new Set(),
-    failedReads: new Set(),
-    failReadAfterWrite: new Set(),
-    failAfterReadback: false,
-    readsAfterWrite: -1,
-    LocalStore: { get: (key, fallback) => { if (key === "savedLibraryItems" && dependencies.failAfterReadback && dependencies.readsAfterWrite >= 0 && ++dependencies.readsAfterWrite > 1) throw new Error("Synthetic later read denied"); if (dependencies.failedReads.has(key)) throw new Error("Synthetic read denied"); return values.has(key) ? values.get(key) : fallback; }, set: (key, value) => { if (!dependencies.failedKeys.has(key)) { values.set(key, value); if (key === "savedLibraryItems") dependencies.readsAfterWrite = 0; if (dependencies.failReadAfterWrite.has(key)) dependencies.failedReads.add(key); } } },
-    SupabaseApi: { rpc: async () => [] },
-    SavedLibrarySyncService: { push: async (profileId) => { calls.push({ profileId, generation }); return true; } }
+    SupabaseApi: {
+      async rpc(name, body) {
+        calls.push({ name, body: structuredClone(body) });
+        if (api.hold) await api.hold;
+        if (api.offline) throw new TypeError("Failed to fetch");
+        const pid = body.p_profile_id;
+        if (name === "sync_pull_library") {
+          return [...cloud.entries()].filter(([key]) => key.startsWith(`${pid}::`)).map(([, row]) => row)
+            .slice(body.p_offset, body.p_offset + body.p_limit);
+        }
+        if (name === "sync_push_library_items" && body.p_items.some((row) => row.content_id === "rejected-by-server")) {
+          throw Object.assign(new Error("HTTP 400"), { status: 400 });
+        }
+        if (name === "sync_push_library_items") {
+          body.p_items.forEach((row) => cloud.set(`${pid}::${row.content_type}::${row.content_id}`, row));
+        }
+        if (name === "sync_delete_library_items") {
+          body.p_keys.forEach((key) => cloud.delete(`${pid}::${key.content_type}::${key.content_id}`));
+        }
+        return null;
+      }
+    }
   };
-  globalThis.__savedLibraryRepoDeps__ = dependencies;
-  globalThis.__savedLibraryRepoResets__ = resetHandlers;
+  api.rpc = dependencies.SupabaseApi;
+  globalThis.__libraryFixture__ = dependencies;
   const result = await build({
-    ...(realService ? {stdin: {
-      contents: 'export { savedLibraryRepository } from "./savedLibraryRepository.js"; export { SavedLibrarySyncService } from "../../core/profile/savedLibrarySyncService.js";',
-      resolveDir: dirname(fileURLToPath(import.meta.url)), sourcefile: "actual-library-recovery.mjs"
-    }} : {entryPoints: [fileURLToPath(new URL("./savedLibraryRepository.js", import.meta.url))]}),
+    stdin: {
+      contents: [
+        'export { savedLibraryRepository } from "./savedLibraryRepository.js";',
+        'export { SavedLibrarySyncService } from "../../core/profile/savedLibrarySyncService.js";',
+        'export { SavedLibraryOutbox } from "../local/savedLibraryOutbox.js";',
+        'export { clearAccountLocalData, resetAccountRuntimeState } from "../../core/auth/accountLocalDataReset.js";'
+      ].join("\n"),
+      resolveDir: dirname(fileURLToPath(import.meta.url)),
+      sourcefile: "library-sync-fixture.mjs"
+    },
     bundle: true, format: "esm", platform: "node", write: false,
-    plugins: [{ name: "saved-library-repository-boundaries", setup(buildApi) {
-      buildApi.onResolve({ filter: /accountLocalDataReset\.js$/ }, () => ({ path: "reset", namespace: "fixture" }));
-      for (const name of Object.keys(dependencies).filter(name => !(realService && name === "SavedLibrarySyncService") && !["failedKeys", "failedReads", "failReadAfterWrite", "failAfterReadback", "readsAfterWrite"].includes(name))) {
-        buildApi.onResolve({ filter: new RegExp(`${name}\\.js$`, "i") }, () => ({ path: name, namespace: "fixture" }));
+    plugins: [{ name: "library-sync-boundaries", setup(buildApi) {
+      for (const name of Object.keys(dependencies)) {
+        buildApi.onResolve({ filter: new RegExp(`/${name}\\.js$`, "i") }, () => ({ path: name, namespace: "fixture" }));
       }
       buildApi.onLoad({ filter: /.*/, namespace: "fixture" }, ({ path }) => ({
-        contents: path === "reset" ? "export const registerAccountRuntimeResetHandler = (callback) => globalThis.__savedLibraryRepoResets__.push(callback);" : `export const ${path} = globalThis.__savedLibraryRepoDeps__.${path};`
+        contents: `export const ${path} = globalThis.__libraryFixture__.${path};`
       }));
     } }]
   });
-  const loaded = (await import(`data:text/javascript;base64,${Buffer.from(result.outputFiles[0].contents).toString("base64")}#${revision++}`));
-  const repository = loaded.savedLibraryRepository;
-  const realSetTimeout = globalThis.setTimeout;
-  const realClearTimeout = globalThis.clearTimeout;
+  const loaded = await import(`data:text/javascript;base64,${Buffer.from(result.outputFiles[0].contents).toString("base64")}#${revision++}`);
+
+  const originals = { localStorage: globalThis.localStorage, setTimeout: globalThis.setTimeout, clearTimeout: globalThis.clearTimeout, warn: console.warn };
+  const storage = memoryStorage();
+  globalThis.localStorage = storage;
   const timers = new Map();
-  let nextId = 0;
-  globalThis.setTimeout = (callback) => { timers.set(++nextId, callback); return nextId; };
+  let nextTimer = 0;
+  globalThis.setTimeout = (callback) => { timers.set(++nextTimer, callback); return nextTimer; };
   globalThis.clearTimeout = (id) => timers.delete(id);
+  console.warn = () => {};
   t.after(() => {
-    globalThis.setTimeout = realSetTimeout;
-    globalThis.clearTimeout = realClearTimeout;
-    delete globalThis.__savedLibraryRepoDeps__;
-    delete globalThis.__savedLibraryRepoResets__;
+    globalThis.localStorage = originals.localStorage;
+    globalThis.setTimeout = originals.setTimeout;
+    globalThis.clearTimeout = originals.clearTimeout;
+    console.warn = originals.warn;
+    delete globalThis.__libraryFixture__;
   });
+
   return {
-    repository, service: loaded.SavedLibrarySyncService, dependencies, calls, timers,
-    seedLegacy: (items) => values.set("savedLibraryItems", items),
-    switchAccount: () => { generation++; authenticated = true; values.clear(); resetHandlers.forEach((reset) => reset()); },
-    signOut: () => { generation++; authenticated = false; values.clear(); resetHandlers.forEach((reset) => reset()); },
-    flush: async () => { await turn(); await turn(); },
-    runTimers: async () => {
-      const callbacks = [...timers.values()]; timers.clear();
-      for (const callback of callbacks) callback();
-      await turn(); await turn();
+    ...loaded,
+    repository: loaded.savedLibraryRepository,
+    service: loaded.SavedLibrarySyncService,
+    outbox: loaded.SavedLibraryOutbox,
+    api, calls, cloud, storage, timers,
+    cloudIds: (profileId = 1) => [...cloud.keys()].filter((key) => key.startsWith(`${profileId}::`)).map((key) => key.split("::")[2]).sort(),
+    localIds: async () => (await loaded.savedLibraryRepository.getAll(5000)).map((item) => item.contentId).sort(),
+    async runTimers() {
+      const callbacks = [...timers.values()];
+      timers.clear();
+      callbacks.forEach((callback) => callback());
+      for (let index = 0; index < 5; index += 1) await turn();
+    },
+    async signOut() {
+      generation += 1;
+      authenticated = false;
+      loaded.clearAccountLocalData(storage, null);
+      await loaded.resetAccountRuntimeState();
     }
   };
 }
 
-test("save then final remove retains local semantics and debounces one snapshot push", async (t) => {
+const movie = (id, extra = {}) => ({ contentId: id, contentType: "movie", title: `Synthetic ${id}`, ...extra });
+
+test("a save syncs after the debounce and leaves the outbox empty", async (t) => {
   const f = await fixture(t);
-  await f.repository.save({ contentId: "synthetic" });
-  await f.repository.remove("synthetic");
-  assert.deepEqual(await f.repository.getAll(), []);
+  await f.repository.save(movie("a"));
+  assert.equal(f.repository.hasPendingChanges(), true);
+  assert.equal(f.calls.length, 0);
+  await f.runTimers();
+  assert.deepEqual(f.cloudIds(), ["a"]);
+  assert.equal(f.repository.hasPendingChanges(), false);
+});
+
+test("an offline save is kept and syncs once the browser is back online", async (t) => {
+  const f = await fixture(t);
+  f.api.offline = true;
+  await f.repository.save(movie("offline"));
+  await f.runTimers();
+  assert.deepEqual(f.cloudIds(), []);
+  assert.equal(f.repository.hasPendingChanges(), true);
+  f.api.offline = false;
+  assert.equal(await f.repository.flushAll(), true);
+  assert.deepEqual(f.cloudIds(), ["offline"]);
+  assert.equal(f.repository.hasPendingChanges(), false);
+});
+
+test("a failed push is retried on the next pull and cloud items from other devices still appear", async (t) => {
+  const f = await fixture(t);
+  f.cloud.set("1::series::other-device", { content_id: "other-device", content_type: "series", name: "Other" });
+  f.api.offline = true;
+  await f.repository.save(movie("local"));
+  await f.runTimers();
+  assert.deepEqual(await f.service.pull(1), []);
+  // A server error on the push does not block the pull.
+  let failPushOnce = true;
+  f.api.offline = false;
+  const realRpc = f.api.rpc.rpc;
+  f.api.rpc.rpc = async (name, body) => {
+    if (name === "sync_push_library_items" && failPushOnce) { failPushOnce = false; throw new Error("HTTP 503"); }
+    return realRpc(name, body);
+  };
+  await f.service.pull(1);
+  assert.deepEqual(await f.localIds(), ["local", "other-device"]);
+  assert.deepEqual(f.cloudIds(), ["other-device"]);
+  assert.equal(f.repository.hasPendingChanges(), true);
+  await f.service.pull(1);
+  assert.deepEqual(f.cloudIds(), ["local", "other-device"]);
+  assert.deepEqual(await f.localIds(), ["local", "other-device"]);
+  assert.equal(f.repository.hasPendingChanges(), false);
+});
+
+test("a pull applies cloud removals and keeps a pending removal removed", async (t) => {
+  const f = await fixture(t);
+  f.cloud.set("1::movie::keep", { content_id: "keep", content_type: "movie" });
+  f.cloud.set("1::movie::removed-here", { content_id: "removed-here", content_type: "movie" });
+  await f.service.pull(1);
+  assert.deepEqual(await f.localIds(), ["keep", "removed-here"]);
+  f.api.offline = true;
+  await f.repository.remove("removed-here");
+  f.cloud.delete("1::movie::keep"); // removed on another device
+  f.api.offline = false;
+  const originalRpc = f.api.rpc.rpc;
+  f.api.rpc.rpc = async (name, body) => {
+    if (name === "sync_delete_library_items") throw new Error("HTTP 500");
+    return originalRpc(name, body);
+  };
+  await f.service.pull(1);
+  assert.deepEqual(await f.localIds(), []);
+  assert.equal(f.repository.hasPendingChanges(), true);
+});
+
+test("an item with an unknown content type syncs with its own type", async (t) => {
+  const f = await fixture(t);
+  await f.repository.save({ contentId: "custom-1", contentType: "anime", title: "Synthetic" });
+  await f.repository.save(movie("plain"));
+  await f.runTimers();
+  const push = f.calls.find((call) => call.name === "sync_push_library_items");
+  assert.deepEqual(push.body.p_items.map((row) => row.content_type).sort(), ["anime", "movie"]);
+  assert.equal(f.repository.hasPendingChanges(), false);
+  await f.repository.remove("custom-1");
+  await f.runTimers();
+  const remove = f.calls.find((call) => call.name === "sync_delete_library_items");
+  assert.deepEqual(remove.body, { p_profile_id: 1, p_keys: [{ content_id: "custom-1", content_type: "anime" }] });
+});
+
+test("the last change to an item wins and a change made during a push is not lost", async (t) => {
+  const f = await fixture(t);
+  await f.repository.save(movie("x"));
+  await f.repository.remove("x");
+  await f.runTimers();
+  assert.deepEqual(f.calls.map((call) => call.name), ["sync_delete_library_items"]);
+
+  let release;
+  f.api.hold = new Promise((resolve) => { release = resolve; });
+  await f.repository.save(movie("y"));
+  const flushing = f.repository.flush();
+  await turn();
+  await f.repository.save(movie("y", { title: "Renamed while sending" }));
+  f.api.hold = null;
+  release();
+  assert.equal(await flushing, true);
+  assert.equal(f.repository.hasPendingChanges(), true);
+  await f.repository.flush();
+  assert.equal(f.cloud.get("1::movie::y").name, "Renamed while sending");
+  assert.equal(f.repository.hasPendingChanges(), false);
+});
+
+test("upsert keeps the profile and remote field mapping", async (t) => {
+  const f = await fixture(t);
+  await f.repository.save({ contentId: "mapped", contentType: "movie", title: "Synthetic title", updatedAt: 17, posterShape: "square" }, "3");
+  await f.repository.flush("3");
+  assert.deepEqual(f.calls, [{ name: "sync_push_library_items", body: {
+    p_profile_id: 3,
+    p_items: [{ content_id: "mapped", content_type: "movie", name: "Synthetic title", poster: null, poster_shape: "SQUARE", background: null, description: "", release_info: "", imdb_rating: null, genres: [], addon_base_url: null, added_at: 17 }]
+  } }]);
+});
+
+test("sign-out clears the outbox and stops queued pushes", async (t) => {
+  const f = await fixture(t);
+  f.api.offline = true;
+  await f.repository.save(movie("private"));
+  await f.runTimers();
+  await f.repository.save(movie("queued"));
   assert.equal(f.timers.size, 1);
-  await f.runTimers();
-  assert.deepEqual(f.calls, [{ profileId: "1", generation: 1 }]);
+  await f.signOut();
+  assert.equal(f.timers.size, 0);
+  assert.equal(f.storage.getItem("savedLibrarySyncOutbox"), null);
+  assert.equal(f.storage.getItem("savedLibraryItems"), null);
+  assert.equal(f.repository.hasPendingChanges(), false);
+  f.api.offline = false;
+  assert.equal(await f.repository.flushAll(), false);
+  assert.deepEqual(f.cloudIds(), []);
 });
 
-for (const action of ["switchAccount", "signOut"]) {
-  test(`queued mutation is discarded after ${action}`, async (t) => {
-    const f = await fixture(t);
-    await f.repository.save({ contentId: "old-account" });
-    f[action]();
-    await f.runTimers();
-    assert.deepEqual(f.calls, []);
-  });
-}
-
-test("guest local save never becomes an authenticated cloud write after login", async (t) => {
-  const f = await fixture(t, { guest: true });
-  await f.repository.save({ contentId: "guest-only" });
-  f.switchAccount();
-  await f.runTimers();
-  assert.deepEqual(f.calls, []);
-});
-
-test("toggle keeps same-session local membership and queues current profile", async (t) => {
+test("guest edits stay local and never reach the outbox", async (t) => {
   const f = await fixture(t);
-  assert.equal(await f.repository.toggle({ contentId: "synthetic" }, "2"), true);
-  assert.equal(await f.repository.toggle({ contentId: "synthetic" }, "2"), false);
-  await f.runTimers();
-  assert.deepEqual(await f.repository.getAll(200, "2"), []);
-  assert.deepEqual(f.calls, [{ profileId: "2", generation: 1 }]);
-});
-
-test("new account same-profile queue runs without waiting for old account push", async (t) => {
-  const f = await fixture(t);
-  const old = deferred();
-  f.dependencies.SavedLibrarySyncService.push = async (profileId) => {
-    f.calls.push(profileId);
-    return f.calls.length === 1 ? old.promise : true;
-  };
-  await f.repository.save({ contentId: "old" });
-  await f.runTimers();
-  f.switchAccount();
-  await f.repository.save({ contentId: "new" });
-  try {
-    await f.runTimers();
-    assert.deepEqual(f.calls, ["1", "1"]);
-  } finally {
-    old.resolve(true);
-    await f.flush();
-  }
-});
-
-test("obsolete queued continuation cannot adopt new account after waiting on an old push", async (t) => {
-  const f = await fixture(t);
-  const old = deferred();
-  f.dependencies.SavedLibrarySyncService.push = async () => { f.calls.push("push"); return old.promise; };
-  await f.repository.save({ contentId: "old-first" });
-  await f.runTimers();
-  await f.repository.save({ contentId: "old-second" });
-  await f.runTimers();
-  f.switchAccount();
-  old.resolve(true);
-  await f.flush();
-  assert.deepEqual(f.calls, ["push"]);
-});
-
-test("three same-session mutations serialize behind each queued push", async (t) => {
-  const f = await fixture(t);
-  const pending = [deferred(), deferred(), deferred()];
-  f.dependencies.SavedLibrarySyncService.push = async () => {
-    const index = f.calls.length;
-    f.calls.push(index);
-    return pending[index].promise;
-  };
-  try {
-    for (const contentId of ["one", "two", "three"]) {
-      await f.repository.save({ contentId });
-      await f.runTimers();
-    }
-    assert.deepEqual(f.calls, [0]);
-    pending[0].resolve(true);
-    await f.flush();
-    assert.deepEqual(f.calls, [0, 1]);
-    pending[1].resolve(true);
-    await f.flush();
-    assert.deepEqual(f.calls, [0, 1, 2]);
-  } finally {
-    for (const task of pending) task.resolve(true);
-    await f.flush();
-  }
-});
-
-test("old account completion cannot detach the new account's pending push", async (t) => {
-  const f = await fixture(t);
-  const old = deferred();
-  const current = deferred();
-  f.dependencies.SavedLibrarySyncService.push = async () => {
-    f.calls.push("push");
-    return f.calls.length === 1 ? old.promise : current.promise;
-  };
-  try {
-    await f.repository.save({ contentId: "old" });
-    await f.runTimers();
-    f.switchAccount();
-    await f.repository.save({ contentId: "new" });
-    await f.runTimers();
-    old.resolve(true);
-    await f.flush();
-    await f.repository.save({ contentId: "newer" });
-    await f.runTimers();
-    assert.deepEqual(f.calls, ["push", "push"]);
-    current.resolve(true);
-    await f.flush();
-    assert.deepEqual(f.calls, ["push", "push", "push"]);
-  } finally {
-    old.resolve(true);
-    current.resolve(true);
-    await f.flush();
-  }
-});
-
-test("real local mutations mark pending metadata and old acknowledgements cannot clear newer edits", async (t) => {
-  const f = await fixture(t);
-  await f.repository.save({ contentId: "first" });
-  const first = f.repository.getSyncState("1");
-  assert.equal(first.pending, true);
-  await f.repository.remove("first");
-  const removed = f.repository.getSyncState("1");
-  assert.notEqual(removed.revision, first.revision);
-  assert.equal(f.repository.acknowledgeSync("1", first.revision), false);
-  assert.equal(f.repository.getSyncState("1").pending, true);
-  assert.equal(f.repository.acknowledgeSync("1", removed.revision), true);
-  assert.equal(f.repository.getSyncState("1").pending, false);
-});
-
-test("guest edits never mark cloud intent and account reset drops old pending metadata", async (t) => {
-  const f = await fixture(t, { guest: true });
-  await f.repository.save({ contentId: "guest" });
-  assert.deepEqual(f.repository.getSyncState("1"), { revision: 0, pending: false });
-  f.switchAccount();
-  await f.repository.save({ contentId: "authenticated" });
-  assert.equal(f.repository.getSyncState("1").pending, true);
-  f.switchAccount();
-  assert.deepEqual(f.repository.getSyncState("1"), { revision: 0, pending: false });
-});
-
-test("unmarked authenticated legacy cache is preserved as pending rather than assumed clean", async (t) => {
-  const f = await fixture(t);
-  f.seedLegacy([{ profileId: "1", contentId: "legacy-unsynced", contentType: "movie" }]);
-  assert.equal(f.repository.getSyncState("1").pending, true);
-  assert.deepEqual((await f.repository.getAll()).map((item) => item.contentId), ["legacy-unsynced"]);
-  assert.equal(f.timers.size, 0, "migration never schedules a cloud snapshot");
-});
-
-test("fresh remote hydration establishes clean metadata before cache publication", async (t) => {
-  const f = await fixture(t);
-  await f.repository.replaceAll([{ contentId: "remote-clean", contentType: "movie" }], "1");
-  assert.deepEqual(f.repository.getSyncState("1"), { revision: 0, pending: false });
-  assert.deepEqual((await f.repository.getAll()).map((item) => item.contentId), ["remote-clean"]);
+  await f.signOut();
+  await f.repository.toggle(movie("guest"));
+  assert.deepEqual(await f.localIds(), ["guest"]);
+  assert.equal(f.repository.hasPendingChanges(), false);
   assert.equal(f.timers.size, 0);
 });
 
-test("the local store retains a 1001st item instead of evicting the oldest", async (t) => {
-  const f = await fixture(t);
-  for (let index = 0; index < 1001; index += 1) {
-    await f.repository.save({ contentId: `item-${index}` });
-  }
-  const retained = await f.repository.getAll(1001);
-  assert.equal(retained.length, 1001);
-  assert.equal((await f.repository.getAll(1000)).length, 1000);
-  assert.equal(retained.some((item) => item.contentId === "item-0"), true);
-  assert.equal(retained.some((item) => item.contentId === "item-1000"), true);
-});
-
-test("a 1001-item replacement (pull path) is retained without a cap", async (t) => {
-  const f = await fixture(t);
-  const items = Array.from({ length: 1001 }, (_, index) => ({ contentId: `pull-${index}` }));
-  await f.repository.replaceAll(items, "1");
-  const retained = await f.repository.getAll(1001);
-  assert.equal(retained.length, 1001);
-  assert.equal(retained.some((item) => item.contentId === "pull-0"), true);
-  assert.equal(retained.some((item) => item.contentId === "pull-1000"), true);
-});
-
-test("debounce retains distinct explicit keys and the final same-key operation", async (t) => {
-  const f = await fixture(t);
-  let received;
-  f.dependencies.SavedLibrarySyncService.push = async (_profile, changes, options) => { received = { changes, options }; return true; };
-  await f.repository.save({ contentId: "first", contentType: "series" });
-  await f.repository.save({ contentId: "second", contentType: "movie" });
-  await f.repository.remove("first");
-  await f.runTimers();
-  assert.deepEqual(received.changes.map(change => [change.kind, change.item.contentId, change.item.contentType]), [
-    ["remove", "first", "series"], ["save", "second", "movie"]
-  ]);
-  assert.equal(received.options.acknowledge, true);
-  assert.equal(received.options.revision, f.repository.getSyncState().revision);
-});
-
-test("later successful explicit operation cannot acknowledge a failed predecessor", async (t) => {
-  const f = await fixture(t);
-  const first = deferred();
-  const options = [];
-  f.dependencies.SavedLibrarySyncService.push = async (_profile, _changes, option) => {
-    options.push(option);
-    return options.length === 1 ? first.promise : true;
-  };
-  await f.repository.save({ contentId: "failed" });
-  await f.runTimers();
-  await f.repository.save({ contentId: "later" });
-  await f.runTimers();
-  first.resolve(false);
-  await f.flush();
-  assert.equal(options.length, 2);
-  assert.equal(options[1].acknowledge, false);
-  assert.equal(f.repository.getSyncState().pending, true);
-});
-
-test("an explicit edit never uploads or acknowledges unknown legacy items", async (t) => {
-  const f = await fixture(t);
-  f.seedLegacy([{ contentId: "legacy", contentType: "movie", profileId: "1" }]);
-  let received;
-  f.dependencies.SavedLibrarySyncService.push = async (_profile, changes, options) => { received = { changes, options }; return true; };
-  await f.repository.save({ contentId: "explicit", contentType: "movie" });
-  await f.runTimers();
-  assert.deepEqual(received.changes.map(change => change.item.contentId), ["explicit"]);
-  assert.equal(received.options.acknowledge, false);
-  assert.equal(f.repository.getSyncState().pending, true);
-});
-
-test("removing an absent local item does not guess a remote content type", async (t) => {
-  const f = await fixture(t);
-  await f.repository.remove("absent");
-  await f.runTimers();
-  assert.deepEqual(f.calls, []);
-});
-
-test("a failed predecessor settling before the next debounce cannot be forgotten", async (t) => {
-  const f = await fixture(t);
-  const first = deferred();
-  const options = [];
-  f.dependencies.SavedLibrarySyncService.push = async (_profile, _changes, option) => { options.push(option); return options.length === 1 ? first.promise : true; };
-  await f.repository.save({ contentId: "failed" });
-  await f.runTimers();
-  await f.repository.save({ contentId: "later" });
-  first.resolve(false);
-  await f.flush();
-  await f.runTimers();
-  assert.equal(options[1].acknowledge, false);
-  assert.equal(f.repository.getSyncState().pending, true);
-});
-
-test("same content ID with two types sends each explicit typed removal", async (t) => {
-  const f = await fixture(t);
-  let changes;
-  f.dependencies.SavedLibrarySyncService.push = async (_profile, received) => { changes = received; return true; };
-  await f.repository.save({ contentId: "shared", contentType: "movie" });
-  await f.repository.save({ contentId: "shared", contentType: "series" });
-  await f.repository.remove("shared");
-  await f.runTimers();
-  assert.deepEqual(changes.map(change => [change.kind, change.item.contentType]).sort(), [["remove", "movie"], ["remove", "series"]]);
-  assert.deepEqual(await f.repository.getAll(), []);
-});
-
-test("legacy predecessor outcome survives settling before successor debounce", async (t) => {
-  const f = await fixture(t);
-  f.seedLegacy([{ contentId: "legacy", contentType: "movie", profileId: "1" }]);
-  const first = deferred();
-  const options = [];
-  f.dependencies.SavedLibrarySyncService.push = async (_profile, _changes, option) => { options.push(option); return options.length === 1 ? first.promise : true; };
-  await f.repository.save({ contentId: "first-explicit" });
-  await f.runTimers();
-  await f.repository.save({ contentId: "second-explicit" });
-  first.resolve(true);
-  await f.flush();
-  await f.runTimers();
-  assert.equal(options[0].acknowledge, false);
-  assert.equal(options[1].acknowledge, false);
-});
-
-test("same ID with distinct types retains both explicit saves", async (t) => {
-  const f = await fixture(t);
-  let changes;
-  f.dependencies.SavedLibrarySyncService.push = async (_profile, received) => { changes = received; return true; };
-  await f.repository.save({ contentId: "shared", contentType: "movie" });
-  await f.repository.save({ contentId: "shared", contentType: "series" });
-  await f.runTimers();
-  assert.deepEqual(changes.map(change => [change.kind, change.item.contentType]).sort(), [["save", "movie"], ["save", "series"]]);
-});
-
-for (const method of ["save", "remove", "toggle"]) {
-  test(`failed item storage rejects ${method} without notifications or cloud dispatch`, async (t) => {
+for (const failing of [true, "savedLibraryItems"]) {
+  test(`a storage write failure (${failing === true ? "all keys" : failing}) is reported and nothing reaches the cloud`, async (t) => {
     const f = await fixture(t);
-    await f.repository.replaceAll([{contentId: "existing", contentType: "movie"}]);
-    const before = await f.repository.getAll();
-    f.dependencies.failedKeys.add("savedLibraryItems");
-    const operation = method === "remove" ? f.repository.remove("existing")
-      : f.repository[method]({contentId: method === "toggle" ? "existing" : "new", contentType: "movie"});
-    await assert.rejects(operation, {code: "LIBRARY_STORAGE_UNAVAILABLE"});
-    assert.deepEqual(await f.repository.getAll(), before);
+    await f.repository.save(movie("kept"));
     await f.runTimers();
-    assert.deepEqual(f.calls, []);
+    f.storage.failWrites = failing;
+    await assert.rejects(f.repository.save(movie("no-space")), { code: "LIBRARY_STORAGE_UNAVAILABLE" });
+    await assert.rejects(f.repository.remove("kept"), { code: "LIBRARY_STORAGE_UNAVAILABLE" });
+    f.storage.failWrites = false;
+    await f.runTimers();
+    assert.equal(f.repository.hasPendingChanges(), false);
+    assert.deepEqual(await f.localIds(), ["kept"]);
+    assert.deepEqual(f.cloudIds(), ["kept"]);
+    assert.deepEqual(f.calls.map((call) => call.name), ["sync_push_library_items"]);
   });
 }
 
-test("failed pending metadata blocks dispatch and retains current-page pending", async (t) => {
+test("the device keeps at most 1000 items per profile, dropping the oldest locally", async (t) => {
   const f = await fixture(t);
-  f.dependencies.failedKeys.add("savedLibrarySyncState");
-  await assert.rejects(f.repository.save({contentId: "new", contentType: "movie"}), {code: "LIBRARY_SYNC_STORAGE_UNAVAILABLE"});
-  assert.deepEqual(await f.repository.getAll(), []);
-  assert.equal(f.repository.getSyncState().pending, true);
-  await f.runTimers();
-  assert.deepEqual(f.calls, []);
+  const items = Array.from({ length: 1000 }, (_, index) => ({ content_id: `old-${index}`, content_type: "movie", added_at: index + 1 }));
+  items.forEach((row) => f.cloud.set(`1::movie::${row.content_id}`, row));
+  await f.service.pull(1);
+  assert.equal((await f.localIds()).length, 1000);
+  await f.repository.save(movie("newest", { updatedAt: 5000 }));
+  const ids = await f.localIds();
+  assert.equal(ids.length, 1000);
+  assert.equal(ids.includes("newest"), true);
+  assert.equal(ids.includes("old-0"), false);
 });
 
-test("guest item write failure refuses a successful toggle", async (t) => {
-  const f = await fixture(t, {guest: true});
-  f.dependencies.failedKeys.add("savedLibraryItems");
-  await assert.rejects(f.repository.toggle({contentId: "new"}), {code: "LIBRARY_STORAGE_UNAVAILABLE"});
-  assert.deepEqual(await f.repository.getAll(), []);
-  assert.deepEqual(f.calls, []);
-});
-
-for (const key of ["savedLibraryItems", "savedLibrarySyncState"]) {
-  test(`unreadable ${key} refuses edit without overwriting unrelated cached rows`, async (t) => {
-    const f = await fixture(t);
-    await f.repository.replaceAll([{contentId: "original", profileId: "2"}], "2");
-    f.dependencies.failedReads.add(key);
-    await assert.rejects(f.repository.save({contentId: "new"}), {code: key === "savedLibrarySyncState" ? "LIBRARY_SYNC_STORAGE_UNAVAILABLE" : "LIBRARY_STORAGE_UNAVAILABLE"});
-    f.dependencies.failedReads.clear();
-    assert.equal((await f.repository.getAll(200, "2"))[0].contentId, "original");
-    await f.runTimers();
-    assert.deepEqual(f.calls, []);
-  });
-}
-
-test("committed write with failed readback retains pending and blocks cloud publication", async (t) => {
+test("one item the server rejects does not block the other saves", async (t) => {
   const f = await fixture(t);
-  await f.repository.replaceAll([]);
-  f.dependencies.failReadAfterWrite.add("savedLibraryItems");
-  await assert.rejects(f.repository.save({contentId: "committed-but-unconfirmed"}), {code: "LIBRARY_STORAGE_UNAVAILABLE"});
-  f.dependencies.failedReads.clear();
-  assert.equal((await f.repository.getAll())[0].contentId, "committed-but-unconfirmed");
-  assert.equal(f.repository.getSyncState().pending, true);
-  await f.runTimers();
-  assert.deepEqual(f.calls, []);
+  await f.repository.save(movie("good-1"));
+  await f.repository.save(movie("rejected-by-server"));
+  await f.repository.save(movie("good-2"));
+  assert.equal(await f.repository.flush(), false);
+  assert.deepEqual(f.cloudIds(), ["good-1", "good-2"]);
+  assert.deepEqual(f.outbox.list("1").map((op) => op.item.contentId), ["rejected-by-server"]);
 });
 
-test("an unqueued committed edit cannot be acknowledged by later edits in the same debounce batch", async (t) => {
+test("an unreadable outbox refuses edits instead of overwriting queued changes", async (t) => {
   const f = await fixture(t);
-  f.dependencies.SavedLibrarySyncService.push = async (profileId, changes, options) => {
-    f.calls.push(changes.map(change => change.item.contentId));
-    if (options.acknowledge) f.repository.acknowledgeSync(profileId, options.revision);
-    return true;
-  };
-  await f.repository.save({contentId: "queued-a"});
-  f.dependencies.failReadAfterWrite.add("savedLibraryItems");
-  await assert.rejects(f.repository.save({contentId: "unconfirmed-b"}));
-  f.dependencies.failedReads.clear();
-  f.dependencies.failReadAfterWrite.clear();
-  await f.repository.save({contentId: "queued-c"});
-  await f.runTimers();
-  assert.deepEqual(f.calls, [["queued-a", "queued-c"]]);
-  assert.equal(f.repository.getSyncState().pending, true);
-});
-
-test("save uses the verified stored item without a fallible post-commit lookup", async (t) => {
-  const f = await fixture(t);
-  f.dependencies.SavedLibrarySyncService.push = async (profileId, changes, options) => {
-    f.calls.push(changes.map(change => change.item.contentId));
-    if (options.acknowledge) f.repository.acknowledgeSync(profileId, options.revision);
-    return true;
-  };
-  await f.repository.save({contentId: "queued-a"});
-  f.dependencies.failAfterReadback = true;
-  await f.repository.save({contentId: "verified-b"});
-  f.dependencies.failAfterReadback = false;
-  await f.runTimers();
-  assert.deepEqual(f.calls, [["queued-a", "verified-b"]]);
-});
-
-test("unreadable item store refuses removal instead of reporting an absent item", async (t) => {
-  const f = await fixture(t);
-  await f.repository.replaceAll([{contentId: "existing"}]);
-  f.dependencies.failedReads.add("savedLibraryItems");
-  await assert.rejects(f.repository.remove("existing"), {code: "LIBRARY_STORAGE_UNAVAILABLE"});
-  await f.runTimers();
-  assert.deepEqual(f.calls, []);
-});
-
-test("actual pull with unreadable legacy items stays pending after storage recovery", async (t) => {
-  const f = await fixture(t, {realService: true});
-  f.seedLegacy([{contentId: "legacy-unsynced", contentType: "movie"}]);
-  f.dependencies.failedReads.add("savedLibraryItems");
-  await f.service.pull("1");
-  f.dependencies.failedReads.clear();
-  await f.service.pull("1");
-  assert.deepEqual((await f.repository.getAll()).map(i => i.contentId), ["legacy-unsynced"]);
-  assert.equal(f.repository.getSyncState().pending, true);
+  f.api.offline = true;
+  await f.repository.save(movie("queued"));
+  const saved = f.storage.getItem("savedLibrarySyncOutbox");
+  f.storage.setItem("savedLibrarySyncOutbox", "{not json");
+  await assert.rejects(f.repository.save(movie("next")), { code: "LIBRARY_STORAGE_UNAVAILABLE" });
+  assert.equal(f.storage.getItem("savedLibrarySyncOutbox"), "{not json");
+  f.storage.setItem("savedLibrarySyncOutbox", saved);
+  assert.deepEqual(f.outbox.list("1").map((op) => op.item.contentId), ["queued"]);
 });

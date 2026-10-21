@@ -12,6 +12,7 @@ const ACCOUNT_LOCAL_STORAGE_KEYS = new Set([
   "installedAddonEnabledStates",
   "watchedItems",
   "savedLibraryItems",
+  "savedLibrarySyncOutbox",
   "watchProgressItems",
   "streamPreferences",
   "trackPreferences",

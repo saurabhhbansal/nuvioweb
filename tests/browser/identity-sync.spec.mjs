@@ -590,7 +590,7 @@ test("clean independent receiver reflects deletion of the final cloud item on re
   } finally { await receiverContext.close(); }
 });
 
-test("failed local removal stays pending across reload and a competing nonempty cloud pull", async ({ context, page }) => {
+test("failed local removal stays queued across reload and a competing nonempty cloud pull", async ({ context, page }) => {
   const fixture = await installIdentityFixture(context, { allowLibraryWrites: true, rejectLibraryWrites: true });
   await page.goto("/");
   await signIn(page, "B");
@@ -606,8 +606,8 @@ test("failed local removal stays pending across reload and a competing nonempty 
   await expect.poll(() => fixture.requests.slice(start).some((entry) => entry.operation === "sync_pull_library")).toBe(true);
   await expect(page.locator('#library .library-grid-card[data-item-id="fixture-library-b"]')).toHaveCount(0);
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem("savedLibraryItems") || "[]"))).toEqual([]);
-  expect(await page.evaluate(() => JSON.parse(localStorage.getItem("savedLibrarySyncState")).profiles["1"].pending)).toBe(true);
-  await expect(page.getByRole("status").filter({hasText: "Automatic retry is unavailable"})).toBeVisible();
+  expect(await page.evaluate(() => Object.values(JSON.parse(localStorage.getItem("savedLibrarySyncOutbox")).profiles["1"]).map((op) => [op.kind, op.item.contentId]))).toEqual([["remove", "fixture-library-b"]]);
+  await expect(page.getByRole("status").filter({hasText: "have not synced yet"})).toBeVisible();
   expect(fixture.unexpected).toEqual([]);
 });
 
@@ -777,7 +777,7 @@ test("explicit UI deletion preserves an unseen concurrent Library addition", asy
   expect(fixture.unexpected).toEqual([]);
 });
 
-for (const key of ["savedLibraryItems", "savedLibrarySyncState"]) {
+for (const key of ["savedLibraryItems", "savedLibrarySyncOutbox"]) {
   test(`device storage failure for ${key} refuses UI removal and cloud writes`, async ({context, page}) => {
     const errors = [];
     page.on("pageerror", error => errors.push(error.message));
@@ -824,8 +824,8 @@ test("failed UI save survives reload and reconnect without false sync or unrelat
   await openLibrary(page);
   await expect(page.locator('#library .library-grid-card[data-item-id="fixture-new-save"]')).toBeVisible();
   await expect(page.locator('#library .library-grid-card[data-item-id="fixture-library-b"]')).toBeVisible();
-  await expect(page.getByRole("status").filter({hasText: "Automatic retry is unavailable"})).toBeVisible();
-  expect(await page.evaluate(() => JSON.parse(localStorage.getItem("savedLibrarySyncState")).profiles["1"].pending)).toBe(true);
+  await expect(page.getByRole("status").filter({hasText: "have not synced yet"})).toBeVisible();
+  expect(await page.evaluate(() => Object.values(JSON.parse(localStorage.getItem("savedLibrarySyncOutbox")).profiles["1"]).map((op) => [op.kind, op.item.contentId]))).toEqual([["save", "fixture-new-save"]]);
   expect(fixture.unexpected).toEqual([]);
 });
 
