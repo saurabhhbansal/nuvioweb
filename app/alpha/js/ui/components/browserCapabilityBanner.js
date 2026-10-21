@@ -1,15 +1,17 @@
 import { browserCapabilityEnvironment, detectDeviceCapabilities, readinessVerdict, requestPersistentSiteData } from "../../core/streams/deviceCapabilities.js";
 
-// Operate-mode extension: incumbent dark tokens, compact corner notice,
+// Operate-mode extension: incumbent dark tokens, normal-flow footer after app,
 // Check first, readable details on demand; never a modal or playback gate.
 export function mountBrowserCapabilityBanner({ document = globalThis.document, environment = browserCapabilityEnvironment(), detect = detectDeviceCapabilities } = {}) {
+  const slot = document.createElement("div");
+  slot.className = "browser-capability-slot";
   const notice = document.createElement("aside");
   notice.className = "browser-capability-banner";
   notice.setAttribute("aria-labelledby", "readiness-heading");
   notice.innerHTML = `
     <h2 id="readiness-heading">Check this browser</h2>
     <p>See playback predictions, not a guarantee. No media is downloaded or played by this check.</p>
-    <p class="readiness-status" role="status" aria-live="polite"></p>
+    <p class="readiness-status" role="status" aria-label="Browser readiness result" aria-live="polite"></p>
     <div class="readiness-actions">
       <button type="button" class="readiness-primary">Check</button>
       <button type="button" class="readiness-continue">Continue without checking</button>
@@ -22,7 +24,7 @@ export function mountBrowserCapabilityBanner({ document = globalThis.document, e
       <h3>Optional: keep site data</h3>
       <p>Ask your browser to protect this site's existing data from automatic eviction. This is not more space, a download or consent to processing. Clearing site data in browser settings removes it and may sign you out.</p>
       <button type="button" class="readiness-storage">Keep site data</button>
-      <p class="readiness-storage-status" role="status"></p>
+      <p class="readiness-storage-status" role="status" aria-label="Site data persistence result"></p>
       <p>No optional local processing starts here. Any future processing action must explain its CPU/battery use, downloads, temporary-storage bound and deletion before you choose it. Declining optional actions leaves ordinary free playback available.</p>
     </details>`;
   const check = notice.querySelector(".readiness-primary");
@@ -45,12 +47,15 @@ export function mountBrowserCapabilityBanner({ document = globalThis.document, e
     disposed = true;
     observer?.disconnect();
     const hadFocus = notice.contains(document.activeElement);
+    // Do not shorten the scrolling document: that clamps scrollTop and moves
+    // unrelated app controls. Retain only inert empty space after dismissal.
+    slot.style.height = `${slot.getBoundingClientRect().height}px`;
     notice.remove();
     if (hadFocus) {
       // Return to the ordinary UI without hijacking a user's existing focus.
       const target = [...document.querySelectorAll('button, a[href], input, [tabindex="0"]')]
         .find((node) => node.getClientRects().length && !node.disabled);
-      target?.focus();
+      target?.focus({ preventScroll: true });
     }
   }
   dismiss.addEventListener("click", close);
@@ -94,6 +99,7 @@ export function mountBrowserCapabilityBanner({ document = globalThis.document, e
     storageStatus.textContent = result === "granted" ? "Browser reports persistent storage granted. Playback capability is unchanged." : result === "not-granted" ? "Browser did not grant persistent storage. Ordinary playback is unchanged." : "Persistent storage is unavailable or its result is unknown. Ordinary playback is unchanged.";
     storage.disabled = false;
   });
-  document.body.append(notice);
+  slot.append(notice);
+  document.body.append(slot);
   return { dismiss: close };
 }
