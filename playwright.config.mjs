@@ -1,14 +1,12 @@
 import { defineConfig, devices } from "@playwright/test";
-import { engineLaunchOptions } from "./scripts/engine-launch-options.mjs";
-// Additional engines are opt-in: default workstation runs remain Chromium-only.
-// These presets select engine/viewport, not branded-browser/device certification.
-// CI runs the WebKit project inside the required smoke context.
-const engineSpecs = ["**/engine-capabilities.spec.mjs", "**/quality.spec.mjs", "**/plugin-engine.spec.mjs"];
+// Default runs are Chromium-only (CI: browser.yml). Firefox and WebKit run the
+// playback quality spec on demand (CI: browser-engines.yml, manual).
+const engineSpecs = ["**/quality.spec.mjs"];
 const webkitProject = process.env.NUVIO_PLAYWRIGHT_WEBKIT === "1"
-  ? [{ name: "webkit", testMatch: engineSpecs, use: { ...devices["Desktop Safari"], launchOptions: engineLaunchOptions("webkit") } }]
+  ? [{ name: "webkit", testMatch: engineSpecs, use: { ...devices["Desktop Safari"] } }]
   : [];
 const firefoxProject = process.env.NUVIO_PLAYWRIGHT_FIREFOX === "1"
-  ? [{ name: "firefox", testMatch: engineSpecs, use: { ...devices["Desktop Firefox"], launchOptions: engineLaunchOptions("firefox") } }]
+  ? [{ name: "firefox", testMatch: engineSpecs, use: { ...devices["Desktop Firefox"] } }]
   : [];
 export default defineConfig({
   testDir: "./tests/browser",

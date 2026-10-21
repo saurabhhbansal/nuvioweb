@@ -1,17 +1,70 @@
+// Manual check of the deployed dev preview. Not run in CI.
+// Usage: node scripts/verify-preview.mjs <local staging directory>
+// Checks served file hashes/headers against the staged manifest, the service
+// worker and guest shell, then the same-host legal demo playback journey.
+// Guest context only; every third-party request is blocked.
 import assert from "node:assert/strict";
-import { writeFile } from "node:fs/promises";
 import { chromium, expect } from "@playwright/test";
+import { readFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import { resolve, join } from "node:path";
 
-// Explicitly invoked after an approved upload. Disposable guest context only;
-// no credentials, tokens, service accounts or third-party provider requests.
-const origin = "https://nuvioweb-preview.pages.dev";
-const revision = process.argv[2];
-if (!/^[a-f0-9]{40}$/.test(revision || "")) throw new Error("Pass the approved deployed source SHA");
-const source = await fetch(`${origin}/SOURCE.txt`, { signal: AbortSignal.timeout(20000), redirect: "error" });
-assert.equal(source.status, 200);
-assert.ok((await source.text()).includes(`/tree/${revision}`), "Deployed source mismatch");
-const browser = await chromium.launch();
-try {
+const url = new URL(process.env.NUVIO_PREVIEW_URL || "https://nuvioweb-preview.pages.dev");
+if (!/^https:\/\/(?:[a-z0-9-]+\.)?nuvioweb-preview\.pages\.dev\/$/.test(url.href)) throw new Error("Only the dedicated HTTPS preview project is allowed");
+const origin = url.origin;
+if (!process.argv[2]) throw new Error("Pass the reviewed local staging directory");
+const artifact = resolve(process.argv[2]);
+const manifest = JSON.parse(await readFile(join(artifact,"preview-manifest.json"),"utf8"));
+const revision = manifest.revision;
+
+async function checkServedFiles() {
+  for (const path of ["index.html","app.bundle.js","sw.js","nuvio.env.js","SOURCE.txt","LICENSE.txt","UPSTREAM_SOURCES.md","third-party/dashjs/dist/dash.all.min.js.LICENSE.txt","third-party/core-js/LICENSE","third-party/jszip/LICENSE.markdown"]) {
+    const response = await fetch(`${origin}/${path}`,{signal:AbortSignal.timeout(20000)});
+    assert.equal(response.status,200,path);
+    const bytes = Buffer.from(await response.arrayBuffer());
+    assert.equal(createHash("sha256").update(bytes).digest("hex"),manifest.files.find((entry)=>entry.path === path)?.sha256,path);
+    const cacheControl = response.headers.get("cache-control");
+    assert.match(cacheControl,/no-cache/);
+    if (["sw.js","nuvio.env.js"].includes(path)) assert.match(cacheControl,/no-store/);
+    assert.equal(response.headers.get("x-content-type-options"),"nosniff");
+  }
+  for (const path of ["/missing.js","/api/unavailable"]) assert.equal((await fetch(origin+path,{signal:AbortSignal.timeout(20000)})).status,404,path);
+  assert.equal((await fetch(`https://github.com/saurabhhbansal/nuvioweb/tree/${manifest.revision}`,{signal:AbortSignal.timeout(20000)})).status,200,"matching source URL");
+  const source = await fetch(`${origin}/SOURCE.txt`, { signal: AbortSignal.timeout(20000), redirect: "error" });
+  assert.ok((await source.text()).includes(`/tree/${revision}`), "Deployed source mismatch");
+}
+
+async function checkShell(browser) {
+  const context = await browser.newContext({serviceWorkers:"allow"});
+  const blockedExternalOrigins = new Set();
+  await context.route("**/*",async (route)=> {
+    const requestOrigin = new URL(route.request().url()).origin;
+    if (requestOrigin === origin) await route.continue();
+    else { blockedExternalOrigins.add(requestOrigin); await route.abort("blockedbyclient"); }
+  });
+  const page = await context.newPage();
+  const pageErrors = []; page.on("pageerror",(error)=>pageErrors.push(error.message));
+  await page.goto(`${origin}/`);
+  await expect(page.locator("#account .desktop-auth-card")).toBeVisible();
+  await expect.poll(()=>page.evaluate(()=>Boolean(navigator.serviceWorker.controller)),{timeout:45000}).toBe(true);
+  const cacheNames = await page.evaluate(()=>caches.keys());
+  assert.ok(cacheNames.some((key)=>key.startsWith("nuvio-app-shell-")));
+  await page.locator('[data-action="continueGuest"]').click();
+  await expect(page.locator("#home")).toBeVisible();
+  for (const [label,screen] of [["Search","search"],["Library","library"],["Settings","settings"]]) {
+    await page.getByRole("button",{name:label,exact:true}).click();
+    await expect(page.locator(`#${screen}`)).toBeVisible();
+  }
+  await page.reload();
+  await expect(page.locator("#profileSelection")).toBeVisible();
+  await expect(page.locator('#profileSelection [data-profile-id="1"]')).toContainText("Profile 1");
+  assert.deepEqual(pageErrors,[]);
+  const aliasPage = await context.newPage(); await aliasPage.goto(`${origin}/library`);
+  await expect(aliasPage.locator("#profileSelection")).toBeVisible();
+  await context.close();
+}
+
+async function checkGuestJourney(browser) {
   const context = await browser.newContext({ serviceWorkers: "block" });
   await context.route("**/*", async route => {
     if (new URL(route.request().url()).origin === origin) await route.continue();
@@ -76,15 +129,15 @@ try {
   await page.getByRole("button", { name: "Library", exact: true }).click();
   await expect(page.locator('#library .library-grid-card[data-item-id="nuvioweb-demo-original"]')).toBeVisible();
   assert.deepEqual(errors, []);
-  const report = {
-    sourceRevision: revision, url: origin, browser: browser.version(), platform: process.platform, architecture: process.arch,
-    mode: "actual hosted HTTPS app and optional same-host legal demo; guest; third parties blocked",
-    journeys: { guestEntry: "PASS", addonInstallCatalog: "PASS", sourcePlayback: "PASS", pauseSeekResume: "PASS", subtitleActiveCue: "PASS", returnToBrowsing: "PASS", saveReloadPersistence: "PASS" },
-    decodedDimensions: [640, 360], uncaughtPageErrors: 0,
-    limits: "No real account/service, external-provider CORS, audible/multitrack output, named Chrome/Edge, other browser/mobile or complete offline claim. Automatic-worker verification is separate."
-  };
-  if (process.env.NUVIO_MVP_REPORT) await writeFile(process.env.NUVIO_MVP_REPORT, JSON.stringify(report, null, 2) + "\n");
-  console.log(JSON.stringify(report, null, 2));
+  await context.close();
+}
+
+await checkServedFiles();
+const browser = await chromium.launch();
+try {
+  await checkShell(browser);
+  await checkGuestJourney(browser);
+  console.log(`Preview ${origin} at ${revision} passed: served files, worker/guest shell and legal demo journey (${browser.version()}).`);
 } finally {
   await browser.close();
 }
