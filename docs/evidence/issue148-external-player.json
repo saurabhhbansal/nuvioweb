@@ -6,15 +6,15 @@
   "status": "in_progress_not_device_verified",
   "evidence": "docs/plans/M2-ADDONS-PLAYBACK.md",
   "capability": "Explicit URL-only external-player chooser: documented mobile schemes and desktop playlist/copy, with fail-closed header requirements",
-  "contracts": {"ios": "VLC callback >=2.4; Infuse >=8.4.7, documented not device tested", "android": "Chrome gesture ACTION_VIEW targeting org.videolan.vlc, documented not device tested", "desktop": "URL-only .m3u download/copy, no assumed handler", "not_advertised": ["Lenna", "Outplayer", "nPlayer", "universal-link target", "Share Sheet player target"]},
+  "contracts": {"ios": "VLC callback >=2.4; Infuse >=8.4.7, documented not device tested", "android": "Chrome gesture ACTION_VIEW + video/* targeting org.videolan.vlc; raw fragments rejected before state instead of changing signed requests, copy retains original URL; documented not device tested", "desktop": "URL-only .m3u download/copy, no assumed handler", "not_advertised": ["Lenna", "Outplayer", "nPlayer", "universal-link target", "Share Sheet player target"]},
   "headers": {"route": "URL-only", "declared_requirements": "blocked on source/raw/subtitle/count-only descriptors", "signed_urls": "retained, not generated or equivalent to headers", "redirect_segment_key_subtitle_range_expiry_canaries": "not executed; no header-preservation claim"},
   "toolchain": {"node": "22.23.1", "npm": "10.9.8"},
   "local": [
     {"command": "npm ci && npm audit --audit-level=low && npm --prefix app/alpha ci && npm --prefix app/alpha audit --audit-level=low", "result": "pass with pinned toolchain; both audits zero vulnerabilities"},
     {"command": "npm --prefix app/alpha test", "result": "1533/1533 pass, zero failures/skips; stdout summarized through a pipe with pipefail"},
-    {"command": "NUVIO_LOCAL_PROPERTIES=$PWD/tests/fixtures/build.properties npm --prefix app/alpha run build && node scripts/check-alpha-build.mjs", "result": "pass: 12 assets, inert config; final build e99d9b30685d"},
+    {"command": "NUVIO_LOCAL_PROPERTIES=$PWD/tests/fixtures/build.properties npm --prefix app/alpha run build && node scripts/check-alpha-build.mjs", "result": "pass: 12 assets, inert config; final build 8bbc184e318e"},
     {"command": "npm --prefix app/alpha run lint", "result": "pass"},
-    {"command": "PLAYWRIGHT_BROWSERS_PATH=/home/saurabh/.cache/ms-playwright npx playwright test tests/browser/external-player.spec.mjs tests/browser/sidecars.spec.mjs tests/browser/mvp-playback.spec.mjs --project=chromium", "result": "12/12 pass, 33.7s; eight external-player cases including actual failed-source/keyboard paths plus adjacent playback/sidecar regressions"},
+    {"command": "PLAYWRIGHT_BROWSERS_PATH=/home/saurabh/.cache/ms-playwright npx playwright test tests/browser/external-player.spec.mjs tests/browser/sidecars.spec.mjs tests/browser/mvp-playback.spec.mjs --project=chromium", "result": "12/12 pass, 36.8s; eight external-player cases including actual failed-source/keyboard paths plus adjacent playback/sidecar regressions"},
     {"command": "node --test scripts/check-docs.test.mjs scripts/governance.test.mjs scripts/check-issue7-acceptance.test.mjs && node scripts/check-docs.mjs && node scripts/check-progress.mjs && node scripts/check-issue7-acceptance.mjs docs/evidence/issue7-acceptance.json --validate && git diff --check", "result": "50/50 pass; links/ledger/schema/whitespace pass; unrelated issue7 remains open"},
     {"command": "node /home/saurabh/.agents/skills/impeccable/scripts/detect.mjs --json app/alpha/js/ui/components/browserExternalPlayerDialog.js app/alpha/css/components.css", "result": "exit2: 13 inherited CSS warnings, all outside added block; zero chooser/new-block findings; no unrelated styling changes"}
   ],

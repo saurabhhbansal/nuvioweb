@@ -148,13 +148,14 @@ function buildIosVlcReturnLaunchUrl({ mediaUrl, subtitleUrl = "", externalReturn
 }
 
 export function buildAndroidVlcLaunchUrl({ mediaUrl } = {}) {
-  if (!isTransferableExternalMediaUrl(mediaUrl)) return "";
+  if (!isTransferableExternalMediaUrl(mediaUrl) || String(mediaUrl).includes("#")) return "";
   const parsed = new URL(String(mediaUrl));
   // Chrome's documented intent syntax keeps the source URL as ACTION_VIEW data
   // while restricting resolution to VLC's official Android package.
   // Preserve authority (including port), encoded paths and signed query bytes.
-  // A source fragment must never introduce a second #Intent control section.
-  const data = String(mediaUrl).slice(parsed.protocol.length).replace(/#/g, "%23");
+  // Reject raw fragments: encoding them would change the HTTP request, while
+  // embedding them would make the Intent delimiter contract ambiguous.
+  const data = String(mediaUrl).slice(parsed.protocol.length);
   return `intent:${data}#Intent;scheme=${parsed.protocol.slice(0, -1)};package=org.videolan.vlc;action=android.intent.action.VIEW;type=video/*;S.browser_fallback_url=${encodeURIComponent(ANDROID_VLC_STORE_URL)};end`;
 }
 
@@ -215,7 +216,8 @@ export function buildBrowserExternalPlayerLaunch({ player, platform, mediaUrl, t
     return href ? { href, storeUrl: IOS_APP_STORE_URLS.outplayer } : null;
   }
   if (platform === "android" && selectedPlayer === EXTERNAL_PLAYER_IDS.VLC) {
-    return { href: buildAndroidVlcLaunchUrl({ mediaUrl }), storeUrl: ANDROID_VLC_STORE_URL };
+    const href = buildAndroidVlcLaunchUrl({ mediaUrl });
+    return href ? { href, storeUrl: ANDROID_VLC_STORE_URL } : null;
   }
   return null;
 }
@@ -247,6 +249,7 @@ export function prepareBrowserExternalPlaybackLaunch({
   runtime = globalThis
 } = {}) {
   if (!assessBrowserExternalHandoff({ mediaUrl, source, subtitle, subtitleUrl, requestHeaders }).allowed) return null;
+  if (platform === "android" && String(mediaUrl).includes("#")) return null;
   const normalizedPlayer = normalizeBrowserExternalPlayer(player);
   const capabilities = getBrowserExternalPlayerCapabilities(normalizedPlayer);
   const observationCallback = capabilities.callbackMode === "return-only";

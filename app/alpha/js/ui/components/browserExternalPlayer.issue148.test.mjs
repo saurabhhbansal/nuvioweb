@@ -63,10 +63,18 @@ test("extensionless Android media includes MIME type to match VLC's browsable HT
   assert.match(intent, /action=android\.intent\.action\.VIEW;type=video\/\*;/);
 });
 
-test("Android URL fragments cannot change intent package or action", () => {
-  const intent = buildAndroidVlcLaunchUrl({ mediaUrl: `${mediaUrl}#Intent;package=evil.app;end` });
-  assert.equal(intent.split("#Intent").length, 2);
-  assert.match(intent, /%23Intent;package=evil\.app;end#Intent;scheme=https;package=org\.videolan\.vlc;/);
+test("Android fragments fail closed without changing signed requests; copy/playlist/iOS keep original bytes", async () => {
+  for (const fragment of ["#t=12", "#Intent;package=evil.app;end"]) {
+    const url = `${mediaUrl}${fragment}`;
+    assert.equal(buildAndroidVlcLaunchUrl({ mediaUrl: url }), "");
+    assert.equal(buildBrowserExternalPlayerLaunch({ player: "vlc", platform: "android", mediaUrl: url }), null);
+    assert.equal(prepareBrowserExternalPlaybackLaunch({ player: "vlc", platform: "android", mediaUrl: url, runtime: { localStorage: { setItem() { assert.fail("must not write state"); } } } }), null);
+    assert.equal(buildBrowserExternalPlaylist({ mediaUrl: url }), `#EXTM3U\n${url}\n`);
+    let copied;
+    assert.equal(await copyBrowserExternalStreamLink({ mediaUrl: url, runtime: { navigator: { clipboard: { writeText: async (text) => { copied = text; } } } } }), true);
+    assert.equal(copied, url);
+    assert.equal(new URL(buildBrowserExternalPlayerLaunch({ player: "infuse", platform: "ios", mediaUrl: url }).href).searchParams.get("url"), url);
+  }
 });
 
 test("playlist/credential/control injection and local schemes are rejected", () => {
