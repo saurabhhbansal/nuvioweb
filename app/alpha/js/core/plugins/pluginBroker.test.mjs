@@ -201,7 +201,7 @@ test("allowlist entries are defensively normalized and invalid entries ignored",
 });
 
 test("redirects re-resolve same host and reject any private or special address before dispatch", async () => {
-  for (const denied of ["127.0.0.1", "10.0.0.1", "169.254.169.254", "172.16.0.1", "192.168.1.1", "100.64.0.1", "0.0.0.0", "224.0.0.1", "::1", "::ffff:127.0.0.1", "fe80::1", "fc00::1", "2001:db8::1"]) {
+  for (const denied of ["127.0.0.1", "10.0.0.1", "169.254.169.254", "172.16.0.1", "012.0.0.1", "172.037.0.1", "198.022.0.1", "192.168.1.1", "100.64.0.1", "0.0.0.0", "224.0.0.1", "::1", "::ffff:127.0.0.1", "fe80::1", "fc00::1", "2001:db8::1"]) {
     let lookups = 0, calls = 0;
     const broker = brokerWith(async () => { calls++; return { status: 302, headers: { location: "/again" }, body: "" }; }, {
       resolveHost: async () => ++lookups === 1 ? ["93.184.216.34"] : ["93.184.216.34", denied]

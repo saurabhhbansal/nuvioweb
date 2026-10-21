@@ -40,7 +40,10 @@ export function pluginRequestHeaders(raw, host, policy, authorize) {
 export function isPublicPluginAddress(raw) {
   if (typeof raw !== "string" || raw.length > 45) return false;
   if (/^(?:\d{1,3}\.){3}\d{1,3}$/.test(raw)) {
-    const p = raw.split(".").map(Number);
+    const parts = raw.split(".");
+    // Reject alternate/octal spellings before a transport parser can reinterpret them.
+    if (parts.some(part => part.length > 1 && part[0] === "0")) return false;
+    const p = parts.map(Number);
     if (p.some(n => n > 255)) return false;
     const [a, b, c] = p;
     return !(a === 0 || a === 10 || a === 127 || a >= 224 ||
