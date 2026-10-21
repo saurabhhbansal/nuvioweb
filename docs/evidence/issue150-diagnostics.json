@@ -16,7 +16,14 @@
       "fail": 1,
       "reason": "Node24 subprocess reporter differs from inherited TAP assertion; remote pinned Node22 required"
     },
-    "browser": "affected Chromium final result in PR; initial17pass/3 stale-copy assertion failures corrected",
+    "browser": {
+      "pass": 20,
+      "fail": 0,
+      "skip": 0,
+      "seconds": 31.5,
+      "layer": "local Chromium UI and local original-quality fixtures; no real-device result",
+      "initial": "17pass/3 stale-copy assertion failures, corrected"
+    },
     "build": "pass",
     "lint": "pass",
     "artifactChecks": 12,
@@ -38,5 +45,6 @@
     "requiredContexts": 4,
     "authority": "protected PR conversation at exact final head",
     "webkitDashReruns": []
-  }
+  },
+  "pr": 159
 }

@@ -18,7 +18,7 @@
 
 ## Execution, review and integration
 - Focused classifier/startup tests:45/45 pass (23 new diagnostics,22 retained startup);0skip. Injected MKV/TrueHD/config, headers/access/410/ranges/activation/delivery,206 success, decode ambiguity, conflicts, opaque CORS/resource/interference and secret-metadata negatives. No device result inferred.
-- Final configured inert build, lint and12-asset check pass. Local Chromium affected-suite rerun is recorded in the PR verification comment; initial17pass/3fail were stale exact-copy expectations, corrected to assert bounded unknown/header guidance and retained Back. No media assertion was weakened; original1080/2160/HLS/DASH dimensions/seek remain required.
+- Final configured inert build, lint and12-asset check pass. Local Chromium affected-suite rerun20/20 passes in31.5s,0fail/skip; initial17pass/3fail were stale exact-copy expectations, corrected to assert bounded unknown/header guidance and retained Back. No media assertion was weakened; original1080/2160/HLS/DASH dimensions/seek remain required.
 - Full local application1571/1572 passed under Node24.21.0: unrelated `pluginSandboxLifecycle` expects TAP `# tests1` but its subprocess emits spec `ℹ tests1`. Not treated as a pass or changed here. Required remote Node22 clean install/full regression is the integration gate. Local docs/governance15/15, links/progress/whitespace pass.
 - First lint found an unused raw-detail helper and unused legacy message argument after removing unsafe output; corrected without relaxing rules. Subsequent lint passes.
 - Distinct direct automated actual-diff Standards/Spec/security review, same-agent substitute because Codex absent on PATH; no reviewer agents and NOT independent human approval. Found syntactically valid metadata could carry private strings: replaced permissive MIME/token exports with recognized media/codec vocabulary and added a negative test. Found transport wording could lose precedence: added bounded boolean signal before predictions, no raw text export. Mixed audio does not claim all tracks are TrueHD. No unresolved material review finding.
@@ -45,3 +45,5 @@ Protected PR conversation is the exact-head/check-run/merge authority, avoiding 
 
 ## Handoff
 Next issue starts from #137's original-source/device observations and this vocabulary; no new work on that issue here.
+
+Integration authority: [PR159](https://github.com/saurabhhbansal/nuvioweb/pull/159). All #150 diagnostic-only acceptance boxes are addressed; no device acceptance is inferred. Dependency147 supplies already-merged vocabulary only, not its outstanding processing-consent scope.
