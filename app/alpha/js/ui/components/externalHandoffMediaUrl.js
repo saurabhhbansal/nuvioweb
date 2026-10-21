@@ -1,5 +1,5 @@
 import { DirectDebridResolver } from "../../core/debrid/directDebridResolver.js";
-import { isTransferableExternalMediaUrl } from "./browserExternalPlayer.js";
+import { isTransferableExternalMediaUrl } from "../../core/player/externalHandoff.js";
 
 function playableUrl(stream) {
   return [stream?.url, stream?.externalUrl].find(isTransferableExternalMediaUrl) || "";

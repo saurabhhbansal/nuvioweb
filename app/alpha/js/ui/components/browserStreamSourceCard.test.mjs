@@ -1,44 +1,31 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { normalizeSourceForDisplay } from "./browserStreamSourceCard.js";
+import { normalizeSourceForDisplay, renderBrowserSourceCardContent } from "./browserStreamSourceCard.js";
 
 const options = { badgeSettings: { showAddonLogo: false }, streamBadgesEnabled: false };
 
-test("source cards isolate conflicting declarations from native predictions in either order", () => {
+test("source cards stay compact and never create video elements", () => {
   const previousDocument = globalThis.document;
-  let calls = 0;
-  globalThis.document = {
-    createElement() { return { canPlayType() { calls++; return "probably"; } }; }
-  };
+  globalThis.document = { createElement() { throw new Error("source cards must not probe"); } };
   try {
-    for (const [mimeType, conflictFirst] of [
-      ['video/webm; codecs="vp8,opus"', false],
-      ['video/webm; codecs="vp8"', true]
-    ]) {
-      const make = (codec) => ({
-        url: "https://fixture.invalid/original.webm",
-        mimeType,
-        video: { codec }
-      });
-      const clean = make("vp8");
-      const conflict = make("vp09.00.10.08");
-      for (const source of conflictFirst ? [conflict, clean] : [clean, conflict]) {
-        const callsBefore = calls;
-        const model = normalizeSourceForDisplay(source, options);
-        if (source === conflict) {
-          assert.equal(calls, callsBefore, "conflicting metadata must never be probed");
-          assert.equal(model.deviceRanking.route, "unknown");
-        } else {
-          assert.equal(model.deviceRanking.route, mimeType.includes("opus") ? "browser" : "unknown");
-        }
-        assert.ok(model.evidenceLines.includes(source === conflict
-          ? "Browser support unknown"
-          : "Browser predicts native support; playback unverified"));
-      }
-    }
-
+    const model = normalizeSourceForDisplay({ name: "Fixture 1080p", url: "https://fixture.invalid/a.mkv" }, options);
+    assert.equal(model.sourceHint, null);
+    const html = renderBrowserSourceCardContent(model);
+    assert.doesNotMatch(html, /unknown|unverified|Provider label/i);
+    assert.doesNotMatch(html, /stream-route-source-hint/);
   } finally {
     if (previousDocument === undefined) delete globalThis.document;
     else globalThis.document = previousDocument;
   }
+});
+
+test("a header-restricted source shows one Needs headers badge", () => {
+  const model = normalizeSourceForDisplay({
+    name: "Fixture",
+    url: "https://fixture.invalid/a.mp4",
+    behaviorHints: { proxyHeaders: { request: { Referer: "fixture" } } }
+  }, options);
+  const html = renderBrowserSourceCardContent(model);
+  assert.equal(html.match(/stream-route-source-hint/g)?.length, 1);
+  assert.match(html, /Needs headers/);
 });

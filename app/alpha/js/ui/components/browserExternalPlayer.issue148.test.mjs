@@ -40,13 +40,18 @@ test("top-level, normalized, raw, subtitle and malformed requirement maps fail c
     { behaviorHints: { proxyHeaders: { request: { Cookie: "canary" } } } },
     { raw: { headers: { Authorization: "canary" } } },
     { sourceDescriptor: { requiredHeaderCount: 1 } }, { requiredHeaderCount: 2 },
-    { headers: "malformed" }, { headers: ["malformed"] },
-    { behaviorHints: { notWebReady: true } }
+    { headers: "malformed" }, { headers: ["malformed"] }
   ]) {
     assert.equal(assessBrowserExternalHandoff({ mediaUrl, source }).allowed, false);
     assert.equal(assessBrowserExternalHandoff({ mediaUrl, subtitle: source }).allowed, false);
   }
   assert.equal(assessBrowserExternalHandoff({ mediaUrl, source: { headers: {} } }).allowed, true);
+});
+
+test("notWebReady alone still allows URL-only hand-off and playlist", () => {
+  const source = { behaviorHints: { notWebReady: true } };
+  assert.equal(assessBrowserExternalHandoff({ mediaUrl, source }).allowed, true);
+  assert.equal(buildBrowserExternalPlaylist({ mediaUrl, source }), `#EXTM3U\n${mediaUrl}\n`);
 });
 
 test("signed media URL bytes survive iOS, Android and inert playlist without credentials or directives", () => {

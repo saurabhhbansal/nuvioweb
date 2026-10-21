@@ -8,38 +8,8 @@ import {
 import { matchStreamBadges, normalizeStreamBadgeChipColor } from "../../core/streams/streamBadgeRules.js";
 import { I18n } from "../../i18n/index.js";
 import { assessSourceForDevice } from "../../core/streams/sourcePreference.js";
-import { describeSource, hasSourceCodecConflict, normalizeSourceDescriptor, probeNativeSource } from "../../core/streams/sourceCapabilities.js";
 
 const STREAM_BADGE_LIMIT = 9;
-
-function sourceEvidenceLines(source) {
-  const descriptor = source.sourceDescriptor
-    ? normalizeSourceDescriptor(source.sourceDescriptor) : describeSource(source);
-  let native = "unknown";
-  if (descriptor.contentType && !hasSourceCodecConflict(descriptor) && typeof document !== "undefined") {
-    native = probeNativeSource(descriptor, document.createElement("video"));
-  }
-  const knownVideo = descriptor.video || {};
-  const format = [descriptor.container, knownVideo.codec].filter(Boolean).join(" / ");
-  const metadata = format
-    ? t("source_metadata_declared", [format], "Provider format: %1$s (unverified)")
-    : t("source_metadata_unknown", {}, "Format and codec unknown");
-  const prediction = native === "probably" || native === "maybe"
-    ? t("source_native_predicted", {}, "Browser predicts native support; playback unverified")
-    : native === "not-reported"
-      ? t("source_native_not_reported", {}, "Native support not reported; another engine may work")
-      : t("source_native_unknown", {}, "Browser support unknown");
-  const size = knownVideo.width && knownVideo.height
-    ? t("source_size_declared", [`${knownVideo.width} × ${knownVideo.height}`], "Provider size: %1$s (unverified)")
-    : t("source_size_unknown", {}, "Resolution unknown");
-  const hdr = knownVideo.hdr
-    ? t("source_hdr_declared", [knownVideo.hdr], "HDR: %1$s (unverified)")
-    : t("source_hdr_unknown", {}, "HDR unknown");
-  const lines = [metadata, `${size} · ${hdr}`, prediction];
-  if (descriptor.requiredHeaderCount) lines.push(t("source_headers_declared", {}, "Requires request headers; native playback may be restricted"));
-  if (descriptor.expiresAt && Date.parse(descriptor.expiresAt) <= Date.now()) lines.push(t("source_expiry_declared", {}, "Provider-declared link expiry has passed; refresh sources"));
-  return lines;
-}
 
 function t(key, params = {}, fallback = key) {
   return I18n.t(key, params, { fallback });
@@ -71,7 +41,7 @@ function formatBytes(value) {
 function getAddonBadgeLabel(name = "") {
   const cleaned = String(name || "").trim();
   if (!cleaned) return "A";
-  if (/torrentio|torbox|torrent/i.test(cleaned)) return "µ";
+  if (/torbox|torrent/i.test(cleaned)) return "µ";
   const letters = cleaned
     .split(/\s+/)
     .map((part) => part.charAt(0).toUpperCase())
@@ -200,10 +170,7 @@ export function normalizeSourceForDisplay(
     normalizeAddonLogoUrl(source.addonLogo) || resolveAddonLogo(addonName, addonLogoLookup);
   const displayAddonLogoUrl = getCachedAddonLogoDisplayUrl(addonLogoUrl) || addonLogoUrl;
   const descriptionLines = getSourceDescriptionLines(source);
-  const evidenceLines = sourceEvidenceLines(source);
-  const deviceRanking = assessSourceForDevice(stream);
-  // Do not place an optimistic type-only line beneath an incompatible route.
-  if (["external", "proxy", "blocked"].includes(deviceRanking.route)) evidenceLines.splice(2, 1);
+  const sourceHint = assessSourceForDevice(stream);
   const filename = String(source.behaviorHints?.filename || "").trim();
   return {
     source,
@@ -213,13 +180,12 @@ export function normalizeSourceForDisplay(
     topBadges: resolveBadgePlacement(badgeSettings) === "TOP" ? badges : "",
     bottomBadges: resolveBadgePlacement(badgeSettings) === "BOTTOM" ? badges : "",
     descriptionLines,
-    evidenceLines,
-    deviceRanking,
+    sourceHint,
     addonName,
     addonLogoUrl: displayAddonLogoUrl,
     addonBadgeLabel: getAddonBadgeLabel(addonName),
     showAddonLogo: badgeSettings?.showAddonLogo === true,
-    accessibleLabel: [headline, quality, deviceRanking.explanation, ...evidenceLines, addonName, filename].filter(Boolean).join(" · ")
+    accessibleLabel: [headline, quality, sourceHint?.label, addonName, filename].filter(Boolean).join(" · ")
   };
 }
 
@@ -229,5 +195,5 @@ export function renderBrowserSourceCardContent(model = {}) {
   const addonIdentity = model.showAddonLogo
     ? `<div class="stream-route-card-side"><div class="stream-route-addon-badge">${model.addonLogoUrl ? `<img src="${escapeHtml(model.addonLogoUrl)}" alt="${escapeHtml(model.addonName || "Addon")}" decoding="async" loading="lazy" referrerpolicy="no-referrer" /><span hidden>${escapeHtml(model.addonBadgeLabel || "A")}</span>` : `<span>${escapeHtml(model.addonBadgeLabel || "A")}</span>`}</div><div class="stream-route-addon-name" title="${escapeHtml(model.addonName || "Addon")}">${escapeHtml(model.addonName || "Addon")}</div></div>`
     : "";
-  return `<div class="stream-route-card-copy"><div class="stream-route-card-heading">${escapeHtml(model.headline || "Unknown source")}</div>${model.deviceRanking ? `<div class="stream-route-card-line source-capability-evidence source-device-ranking" data-source-route="${escapeHtml(model.deviceRanking.route)}">${escapeHtml(model.deviceRanking.explanation)}</div>` : ""}${model.topBadges || ""}${!badges ? `<div class="stream-route-card-quality">${escapeHtml(t("source_provider_label", [model.quality || "Auto"], "Provider label: %1$s"))}</div>` : ""}${(model.evidenceLines || []).map((line) => `<div class="stream-route-card-line secondary source-capability-evidence">${escapeHtml(line)}</div>`).join("")}${(model.descriptionLines || []).map((line, index) => `<div class="stream-route-card-line${index > 0 ? " secondary" : ""}" title="${escapeHtml(line)}">${escapeHtml(line)}</div>`).join("")}${model.bottomBadges || ""}</div>${addonIdentity}`;
+  return `<div class="stream-route-card-copy"><div class="stream-route-card-heading">${escapeHtml(model.headline || "Unknown source")}</div>${model.topBadges || ""}${!badges ? `<div class="stream-route-card-quality">${escapeHtml(model.quality || "Auto")}</div>` : ""}${(model.descriptionLines || []).map((line, index) => `<div class="stream-route-card-line${index > 0 ? " secondary" : ""}" title="${escapeHtml(line)}">${escapeHtml(line)}</div>`).join("")}${model.bottomBadges || ""}${model.sourceHint ? `<span class="stream-route-source-hint" data-source-hint="${escapeHtml(model.sourceHint.reason)}">${escapeHtml(model.sourceHint.label)}</span>` : ""}</div>${addonIdentity}`;
 }

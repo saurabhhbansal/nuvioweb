@@ -6861,10 +6861,10 @@ export const SettingsScreen = {
         this.openOptionDialog({
           title: "External Player Progress",
           options: [
-            ...(getSidecarCapabilities().externalReturn ? [{ id: "automatic", label: "Automatic when supported" }] : []),
+            { id: "automatic", label: "Automatic when supported" },
             { id: "manual", label: "Always ask manually" }
           ],
-          selectedId: getSidecarCapabilities().externalReturn ? PlayerSettingsStore.get().externalPlayerProgress || "automatic" : "manual",
+          selectedId: PlayerSettingsStore.get().externalPlayerProgress || "automatic",
           returnFocusKey: "playback:externalPlayerProgress",
           onSelect: (option) => {
             PlayerSettingsStore.set({ externalPlayerProgress: option.id });
@@ -6885,7 +6885,7 @@ export const SettingsScreen = {
         const offered = selectReturnMethodsOffered({
           pushState: this.pushReturnState,
           automationAvailability: getAutomationReturnAvailability(),
-          progressMode: getSidecarCapabilities().externalReturn ? PlayerSettingsStore.get().externalPlayerProgress : "manual"
+          progressMode: PlayerSettingsStore.get().externalPlayerProgress
         });
         const options = [
           ...(offered.includes("automation")
@@ -6896,7 +6896,7 @@ export const SettingsScreen = {
         ];
         this.openOptionDialog({
           title: "Return to NuvioWeb",
-          message: !getSidecarCapabilities().externalReturn ? sidecarUnavailableMessage("externalReturn") :
+          message:
             "An Automation needs no notification, so Nuvio stops asking for one. Your notifications stay switched on either way.\n\nEither way, closing the player opens a page in your default browser confirming your progress arrived. It closes itself a moment later, and only stays open if something went wrong.",
           options,
           selectedId: PlayerSettingsStore.get().externalReturnMethod,
@@ -7468,24 +7468,25 @@ export const SettingsScreen = {
             : ""
         }
         ${
-          isDesktopBrowser
+          // Progress and return settings do nothing without the return bridge.
+          isDesktopBrowser && getSidecarCapabilities().externalReturn
             ? this.renderActionRow({
                 focusKey: "playback:externalPlayerProgress",
                 title: "External Player Progress",
-                subtitle: getSidecarCapabilities().externalReturn ? "Choose automatic callbacks where supported or always report playback manually." : sidecarUnavailableMessage("externalReturn"),
-                value: !getSidecarCapabilities().externalReturn || model.player.externalPlayerProgress === "manual" ? "Always ask manually" : "Automatic when supported",
+                subtitle: "Choose automatic callbacks where supported or always report playback manually.",
+                value: model.player.externalPlayerProgress === "manual" ? "Always ask manually" : "Automatic when supported",
                 classes: "settings-playback-external-player-row"
               })
             : ""
         }
         ${
-          isDesktopBrowser
+          isDesktopBrowser && getSidecarCapabilities().externalReturn
             ? this.renderActionRow({
                 focusKey: "playback:returnMethod",
                 title: "Return to NuvioWeb",
                 subtitle:
-                  getSidecarCapabilities().externalReturn ? "Choose whether a notification or an iOS Shortcut automation brings you back after external playback." : "Notifications are unavailable here. A compatible iOS Shortcut can still reopen the app for manual progress.",
-                value: !getSidecarCapabilities().externalReturn && model.player.externalReturnMethod === "notification" ? "Unavailable on this site" : ({
+                  "Choose whether a notification or an iOS Shortcut automation brings you back after external playback.",
+                value: ({
                   notification: "A notification",
                   automation: "A Shortcut automation"
                 })[model.player.externalReturnMethod] || "Not chosen",

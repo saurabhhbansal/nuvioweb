@@ -13,7 +13,9 @@ test("failure overlay renders bounded reason, next action and redacted downloada
     screen.getFailureDiagnosticInput = () => ({ engine: "native-file", readyState: 0, networkState: 3,
       mediaErrorCode: 4, descriptor: {}, detail: "https://private.invalid/?token=SECRET_SENTINEL", title: "SECRET_SENTINEL" });
     for (const method of ["stopLoadingLogoFillAnimation", "clearPlaybackStallGuard", "clearBufferingSpinnerTimer", "releaseStartupAudioGate", "updateLoadingVisibility", "renderControlButtons", "renderSourcesPanel", "renderSubtitleDialog", "renderAudioDialog", "renderSpeedDialog", "renderEpisodePanel", "renderPauseOverlay", "focusStartupErrorButton"]) screen[method] = () => {};
-    screen.showStartupError("SECRET_SENTINEL", { detail: "SECRET_SENTINEL", details: ["SECRET_SENTINEL"] });
+    window.__fixtureScreen = screen;
+    // No message from the caller: the diagnostic explanation is the fallback.
+    screen.showStartupError("", { detail: "SECRET_SENTINEL" });
   });
   await expect(page.locator(".player-startup-error-message")).toContainText("did not expose why");
   await expect(page.locator(".player-startup-error-details")).toContainText("Reason: unknown-at-transport/startup");
@@ -30,6 +32,12 @@ test("failure overlay renders bounded reason, next action and redacted downloada
   const download = page.waitForEvent("download");
   await page.keyboard.press("Enter");
   expect((await download).suggestedFilename()).toBe("nuvio-playback-diagnostic.json");
+
+  // A cause named by the caller (here a debrid message) is shown, not replaced.
+  await page.evaluate(() => window.__fixtureScreen.showStartupError("Not cached on your Debrid account.", { detail: "SECRET_SENTINEL" }));
+  await expect(page.locator(".player-startup-error-message")).toHaveText("Not cached on your Debrid account.");
+  await expect(page.locator(".player-startup-error-details")).toContainText("Reason: unknown-at-transport/startup");
+  await expect(page.locator("body")).not.toContainText("SECRET_SENTINEL");
 });
 
 
@@ -45,6 +53,7 @@ test("header diagnosis coexists with the real blocked-handoff dialog and export 
   await page.locator('[data-action="playStream"]').click();
   const overlay = page.locator("#playerStartupErrorOverlay");
   await expect(overlay).toHaveAttribute("aria-hidden", "false");
+  await expect(overlay.locator(".player-startup-error-message")).toContainText("requires special request headers");
   await expect(overlay).toContainText("Reason: header-required");
   await expect(overlay.locator(".player-startup-error-next-action")).toContainText("own header-capable proxy");
   const external = overlay.getByRole("button", { name: "Open in another player", exact: true });

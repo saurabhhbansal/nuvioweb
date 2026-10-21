@@ -19485,12 +19485,6 @@ html[data-card-depth="true"][data-card-depth-trailers="true"] .detail-trailer-ca
   margin-top: 4px;
 }
 
-.stream-route-card-line.source-capability-evidence {
-  display: block;
-  overflow: visible;
-  overflow-wrap: anywhere;
-}
-
 .stream-route-card-meta {
   margin-top: 16px;
   display: flex;
@@ -21692,27 +21686,16 @@ html[data-card-depth="true"][data-card-depth-trailers="true"] .detail-trailer-ca
   outline-offset: 2px;
 }
 
-/* Device prediction corrections are sibling actions, never nested play targets. */
-.stream-route-source-correction {
-  min-height: 44px;
-  padding: 8px 16px;
-  margin: 4px 0 12px;
-  max-width: 100%;
+/* One compact hint per source card, only when something is positively known. */
+.stream-route-source-hint {
+  display: inline-block;
+  align-self: flex-start;
+  margin-top: 4px;
+  padding: 2px 8px;
   border: 1px solid var(--text-secondary);
-  border-radius: 8px;
-  background: var(--bg-secondary);
+  border-radius: 6px;
   color: var(--text-primary);
-  font: inherit;
-  font-size: 16px;
-  white-space: normal;
-  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
 }
-.stream-route-source-correction:hover { text-decoration: underline; }
-.stream-route-source-correction:focus-visible { outline: 2px solid var(--text-primary); outline-offset: 3px; }
-.source-device-ranking { font-weight: 600; }
-
-.stream-route-card-row:has(> .stream-route-source-correction) {
-  flex-direction: column;
-  align-items: stretch;
-}
-.stream-route-source-correction { align-self: flex-start; flex: 0 0 auto; }

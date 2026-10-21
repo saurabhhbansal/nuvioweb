@@ -6,8 +6,6 @@ import { TrackingScrobbleService } from "../../data/repository/trackingScrobbleS
 import { WatchProgressSyncService } from "../profile/watchProgressSyncService.js";
 import { nativeVideoEngine } from "./engines/nativeVideoEngine.js";
 import { hlsJsEngine } from "./engines/hlsJsEngine.js";
-import { normalizeEngineAudioTracks } from "./browserAudioTracks.js";
-import { describeAudioTrackAvailability } from "./audioTrackAvailability.js";
 import { dashJsEngine } from "./engines/dashJsEngine.js";
 import { isTerminalHlsHttpStatus } from "./hlsNetworkErrorPolicy.js";
 import { loadStreamingLibs } from "../../runtime/loadStreamingLibs.js";
@@ -304,46 +302,6 @@ export const PlayerController = {
       }));
     }
     return this.getNativeAudioTracks();
-  },
-
-  // Evidence-aware observation for the current playback generation. Purely
-  // additive: the legacy getBrowserAudioTracks() wrapper keeps its shape.
-  // Whether the active engine can actually apply a track change. Reporting
-  // "select an audio track" for an engine with no setter is a false promise.
-  getBrowserAudioTrackSetterAvailable() {
-    if (this.playbackEngine === "hls.js") {
-      return Boolean(this.hlsInstance);
-    }
-    if (this.playbackEngine === "dash.js") {
-      return Boolean(this.dashInstance && typeof this.dashInstance.setCurrentTrack === "function");
-    }
-    return typeof this.setNativeAudioTrack === "function";
-  },
-
-  getNormalizedBrowserAudioTracks() {
-    const tracks = this.getBrowserAudioTracks();
-    return normalizeEngineAudioTracks({
-      engine: this.playbackEngine || "none",
-      generation: Number(this.playRequestToken || 0) || 1,
-      tracks,
-      selectedIndex: this.getSelectedBrowserAudioTrackIndex(),
-      hasSetter: this.getBrowserAudioTrackSetterAvailable()
-    });
-  },
-
-  // Copy contract for the audio dialog: an i18n key plus an honest English
-  // fallback derived from the same normalized observation. Additive; the legacy
-  // wrappers keep their shape and nothing renders this yet.
-  getAudioTrackAvailabilityCopy() {
-    const normalized = this.getNormalizedBrowserAudioTracks();
-    return describeAudioTrackAvailability({
-      trackCount: normalized.trackCount,
-      availableCount: normalized.availableCount,
-      unavailableCount: normalized.unavailableCount,
-      unknownCount: normalized.unknownCount,
-      ambiguousCount: normalized.ambiguousCount,
-      predictedCount: normalized.predictedCount
-    });
   },
 
   getSelectedBrowserAudioTrackIndex() {

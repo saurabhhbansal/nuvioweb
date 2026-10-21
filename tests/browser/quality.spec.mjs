@@ -80,9 +80,7 @@ for (const [scenario, width, height, file] of [
         });
     });
     await openSource(page, context, scenario);
-    await expect(page.locator('[data-action="playStream"]')).toContainText(
-      `Provider size: ${width} × ${height} (unverified)`,
-    );
+    await expect(page.locator('[data-action="playStream"]')).toHaveCount(1);
     // These fixtures are H.264. A capable engine must decode them; an engine
     // that reports no H.264 support must still surface an explicit, actionable
     // failure instead of hanging. Do not assume Chromium's codec set.
@@ -281,9 +279,9 @@ for (const [scenario, status] of [
     });
     await openSource(page, context, scenario);
     if (scenario === "quality-expired")
-      await expect(page.locator('[data-action="playStream"]')).toContainText(
-        "Provider-declared link expiry has passed",
-      );
+      await expect(
+        page.locator('[data-action="playStream"] .stream-route-source-hint'),
+      ).toHaveText("Link expired");
     await page.locator('[data-action="playStream"]').click();
     const overlay = page.locator("#playerStartupErrorOverlay");
     await expect(overlay).toHaveAttribute("aria-hidden", "false");
@@ -294,10 +292,6 @@ for (const [scenario, status] of [
     await expect(
       overlay.locator(".player-startup-error-message"),
     ).not.toBeEmpty();
-    if (scenario !== "quality-hls-cors")
-      await expect(
-        overlay.locator(".player-startup-error-message"),
-      ).toContainText("The browser did not expose why playback failed");
     if (scenario === "quality-hls-cors")
       // Engines report a blocked manifest as either a failed request or a
       // failed response. Either observation plus the visible overlay and the
