@@ -21129,6 +21129,37 @@ html[data-card-depth="true"][data-card-depth-trailers="true"] .detail-trailer-ca
 .licenses-list section { margin-bottom: 2rem; }
 .licenses-list h2 { font-size: .95rem; letter-spacing: .12em; color: var(--color-text-secondary, #aaa); }
 .license-row { display: block; width: 100%; margin: .65rem 0; }
+/* URL-only hand-off explanations stay readable and scrollable on phones. */
+.desktop-external-player-dialog.external-handoff-dialog,
+.desktop-browser .desktop-external-player-dialog.external-handoff-dialog {
+  width: min(calc(100vw - 32px), 440px);
+  max-width: min(calc(100vw - 32px), 440px) !important;
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.desktop-external-player-dialog.external-handoff-dialog .nuvio-dialog-subtitle,
+.desktop-browser .desktop-external-player-dialog.external-handoff-dialog .nuvio-dialog-subtitle,
+.external-handoff-details,
+.desktop-external-player-dialog.external-handoff-dialog .nuvio-dialog-button,
+.desktop-browser .desktop-external-player-dialog.external-handoff-dialog .nuvio-dialog-button,
+.external-handoff-dialog .nuvio-dialog-button-label {
+  font-size: 16px;
+  line-height: 1.4;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.external-handoff-details {
+  color: var(--color-text-secondary, #b3b3b3);
+}
+
+.external-handoff-details p { margin: 0 0 8px; }
+.external-handoff-installs { display: flex; flex-wrap: wrap; gap: 16px; }
+.external-handoff-installs a { color: var(--color-text-primary, #fff); text-decoration: underline; }
+.external-handoff-installs a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+
 /* Compact external-player return dialogs must also be styled in installed PWAs,
    where the desktop-browser selector is intentionally absent. */
 .desktop-external-player-dialog {

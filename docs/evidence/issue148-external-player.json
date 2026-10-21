@@ -1,0 +1,28 @@
+{
+  "issue": 148,
+  "repository": "saurabhhbansal/nuvioweb",
+  "base": "e7619f57b873f088625df7008284461ef548dd39",
+  "branch": "m2/issue-148-external-player",
+  "status": "in_progress_not_device_verified",
+  "evidence": "docs/plans/M2-ADDONS-PLAYBACK.md",
+  "capability": "Explicit URL-only external-player chooser: documented mobile schemes and desktop playlist/copy, with fail-closed header requirements",
+  "contracts": {"ios": "VLC callback >=2.4; Infuse >=8.4.7, documented not device tested", "android": "Chrome gesture ACTION_VIEW targeting org.videolan.vlc, documented not device tested", "desktop": "URL-only .m3u download/copy, no assumed handler", "not_advertised": ["Lenna", "Outplayer", "nPlayer", "universal-link target", "Share Sheet player target"]},
+  "headers": {"route": "URL-only", "declared_requirements": "blocked on source/raw/subtitle/count-only descriptors", "signed_urls": "retained, not generated or equivalent to headers", "redirect_segment_key_subtitle_range_expiry_canaries": "not executed; no header-preservation claim"},
+  "toolchain": {"node": "22.23.1", "npm": "10.9.8"},
+  "local": [
+    {"command": "npm ci && npm audit --audit-level=low && npm --prefix app/alpha ci && npm --prefix app/alpha audit --audit-level=low", "result": "pass with pinned toolchain; both audits zero vulnerabilities"},
+    {"command": "npm --prefix app/alpha test", "result": "1533/1533 pass, zero failures/skips; stdout summarized through a pipe with pipefail"},
+    {"command": "NUVIO_LOCAL_PROPERTIES=$PWD/tests/fixtures/build.properties npm --prefix app/alpha run build && node scripts/check-alpha-build.mjs", "result": "pass: 12 assets, inert config; final build eb8de6136e2a"},
+    {"command": "npm --prefix app/alpha run lint", "result": "pass"},
+    {"command": "PLAYWRIGHT_BROWSERS_PATH=/home/saurabh/.cache/ms-playwright npx playwright test tests/browser/external-player.spec.mjs tests/browser/sidecars.spec.mjs tests/browser/mvp-playback.spec.mjs --project=chromium", "result": "10/10 pass, 28.5s; six external-player cases plus adjacent playback/sidecar regressions"},
+    {"command": "node --test scripts/check-docs.test.mjs scripts/governance.test.mjs scripts/check-issue7-acceptance.test.mjs && node scripts/check-docs.mjs && node scripts/check-progress.mjs && node scripts/check-issue7-acceptance.mjs docs/evidence/issue7-acceptance.json --validate && git diff --check", "result": "50/50 pass; links/ledger/schema/whitespace pass; unrelated issue7 remains open"},
+    {"command": "node /home/saurabh/.agents/skills/impeccable/scripts/detect.mjs --json app/alpha/js/ui/components/browserExternalPlayerDialog.js app/alpha/css/components.css", "result": "exit2: 13 inherited CSS warnings, all outside added block; zero chooser/new-block findings; no unrelated styling changes"}
+  ],
+  "earlier_failures": ["Unpinned Node24 full test run: 1525/1527; obsolete push-subscription assertion and pre-existing Node22 TAP-output expectation. Corrected assertion, then pinned Node22 1527/1527.", "First pinned lint: control-character regex and indentation regex style errors; corrected; subsequent lint passed.", "First focused browser run 5/6: guessed fixture filename assertion failed; corrected to compare actual playing URL. Subsequent focused6/6 and final adjacent10/10 passed."],
+  "browser_scope": "Actual bundled desktop legal-fixture playback/chooser/file bytes plus source-module negative seams and Chromium mobile UA emulation; never native app playback",
+  "review": {"mode": "direct bounded automated technical/security pass, not independent approval", "reviewer_agents": 0, "integration": "draft PR only; no merge/deployment"},
+  "security_cost_license": {"new_dependencies": 0, "media_relay": false, "cloudflare_media": false, "commerce": false, "identity_token_export": false, "new_header_credential_recipient": false, "operator_compute_cost": 0, "license": "existing GPL notices preserved; no third-party source imported"},
+  "owner_device_next": ["Install VLC (iOS/Android) or Infuse >=8.4.7 on named OS/device. Try authorized header-free URL; confirm app receives it, not just the browser prompt.", "Check missing-app/cancel/help/manual return and manual progress. Record exact app version, browser, device, source/fixture hash, expiry and observed playback.", "Observe legal MKV/HEVC Main10 and named DV profiles/output chain; distinguish TrueHD decode/LPCM from bitstream passthrough and preserved Atmos.", "For any future header route, use disposable authorized canaries and observe redirects, manifests, segments, keys, subtitles, ranges and expiry before claiming survival; current UI blocks declared header maps."],
+  "protected_ci": "pending",
+  "pull_request": null
+}

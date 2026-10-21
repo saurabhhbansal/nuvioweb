@@ -118,24 +118,40 @@ test("manual external playback uses a valid non-wrapping time row and responsive
   );
 });
 
-test("Player external launches bind the optional Push return subscription unless an Automation already returns the person", async () => {
+test("explicit player launches keep the gesture, force manual progress and never bind sidecars", async () => {
   const source = await readFile(playerScreenUrl, "utf8");
-
-  assert.match(
-    source,
-    /import \{ bindBrowserPushReturn \} from "\.\.\/\.\.\/components\/browserPushReturn\.js";/
-  );
-  // The binding is skipped for an Automation, which already brings the person
-  // back, so a notification would arrive for an app they are looking at. The
-  // launch stays outside the branch: nothing about the chosen way back may
-  // decide whether playback starts.
-  assert.match(
-    source,
-    /if \(returnMethod !== "automation"\) \{\s*await bindBrowserPushReturn\(\{ token: prepared\.handoff\?\.token \}\);\s*\}\s*launchBrowserExternalPlayer\(\{ href: prepared\.launch\.href \}\);/
-  );
-  // Choosing an Automation must never cancel the subscription: it carries
-  // every other notification the app sends.
-  assert.doesNotMatch(source, /disableBrowserPushReturn/);
+  assert.doesNotMatch(source, /bindBrowserPushReturn|disableBrowserPushReturn/);
+  const method = source.match(/ {2}launchExternalPlayer\(player\) \{[\s\S]*?\n {2}\},/)[0];
+  const calls = [];
+  let preparedOptions;
+  let requested = true;
+  const screen = vm.runInNewContext(`({${method}})`, {
+    getBrowserExternalPlayerPlatform: () => "ios",
+    prepareBrowserExternalPlaybackLaunch(options) {
+      preparedOptions = options;
+      calls.push("prepare");
+      return { launch: { href: "infuse://fixture" }, handoff: { token: "opaque" } };
+    },
+    PlayerController: {
+      createProgressContext: () => ({ itemId: "fixture" }),
+      beginExternalPlaybackHandoff: () => calls.push("begin"),
+      video: { pause: () => calls.push("pause") }
+    },
+    launchBrowserExternalPlayer: () => { calls.push("request"); return requested; },
+    clearExternalPlaybackHandoff: () => calls.push("clear")
+  });
+  const context = { mediaUrl: "https://fixture.invalid/a", source: { url: "https://fixture.invalid/a" } };
+  screen.getExternalPlayerContext = () => context;
+  screen.getExternalPlayerResumeSeconds = () => 12;
+  screen.getExternalPlayerKnownDurationMs = () => 60000;
+  assert.equal(screen.launchExternalPlayer("infuse"), true);
+  assert.equal(preparedOptions.progressMode, "manual");
+  assert.equal(preparedOptions.source, context.source);
+  assert.deepEqual(calls, ["prepare", "request", "begin", "pause"]);
+  calls.length = 0;
+  requested = false;
+  assert.equal(screen.launchExternalPlayer("infuse"), false);
+  assert.deepEqual(calls, ["prepare", "request", "clear"]);
 });
 
 

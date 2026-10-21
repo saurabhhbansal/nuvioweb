@@ -74,7 +74,8 @@ import {
 } from "../../components/browserExternalPlayer.js";
 import { resolveExternalHandoffMediaUrl } from "../../components/externalHandoffMediaUrl.js";
 import { resolveExternalResumeSeconds } from "../../components/externalPlayerResume.js";
-import { bindBrowserPushReturn } from "../../components/browserPushReturn.js";
+import { showBrowserExternalPlayerDialog } from "../../components/browserExternalPlayerDialog.js";
+import { clearExternalPlaybackHandoff } from "../../components/browserExternalPlaybackHandoff.js";
 import { normalizeSubtitleForDisplay } from "../../components/browserSubtitleDisplay.js";
 import {
   createBrowserOfflineSubtitlePicker,
@@ -2884,58 +2885,64 @@ export const StreamScreen = {
   async routeSelectedStream(selected, context = {}) {
     if (!Environment.isBrowser() || context.offlineObjectUrl) return false;
     const player = normalizeBrowserExternalPlayer(PlayerSettingsStore.get().browserExternalPlayer);
-    // A player this platform cannot launch is not a reason to ask a debrid
-    // provider for a link. Desktop offers no external player at all, and a
-    // stored choice from a phone outlives the device it was made on.
+    // Preferences never silently leave the browser, and a stored phone choice
+    // must not resolve a provider link on a platform that cannot launch it.
     if (player === "disabled" || !getBrowserExternalPlayerOptions().includes(player)) return false;
+    const loadToken = this.loadToken;
+    const resolveToken = (this.externalPlayerResolveToken || 0) + 1;
+    this.externalPlayerResolveToken = resolveToken;
     const mediaUrl = await resolveExternalHandoffMediaUrl(selected, {
       season: this.params?.season == null ? null : Number(this.params.season),
       episode: this.params?.episode == null ? null : Number(this.params.episode),
       onNetworkResolve: () => this.showStreamToast("Preparing stream...")
     });
+    if (this.loadToken !== loadToken || this.externalPlayerResolveToken !== resolveToken) return true;
     if (!mediaUrl) return false;
     const itemType = normalizeType(this.params?.itemType);
-    const prepared = prepareBrowserExternalPlaybackLaunch({
-      player,
-      platform: getBrowserExternalPlayerPlatform(),
-      mediaUrl,
-      title: this.params?.episodeTitle || this.params?.itemTitle || this.params?.playerTitle || "",
-      subtitleUrl: "",
-      resumePositionSeconds: resolveExternalResumeSeconds({
-        positionMs: context.resumePositionMs,
-        progressPercent: context.resumeProgressPercent,
-        durationMs: context.resumeDurationMs
-      }),
-      knownDurationMs:
-        Number(context.resumeDurationMs || 0) ||
-        Math.max(0, Number(this.params?.runtime || this.params?.runtimeMinutes || 0)) * 60_000,
-      progressMode: PlayerSettingsStore.get().externalPlayerProgress,
-      returnMethod: PlayerSettingsStore.get().externalReturnMethod,
-      progressContext: {
-        itemId: this.params?.itemId || null,
-        itemType: itemType || "movie",
-        videoId: itemType === "series" || itemType === "tv" ? this.params?.videoId || null : null,
-        season: this.params?.season == null ? null : Number(this.params.season),
-        episode: this.params?.episode == null ? null : Number(this.params.episode),
-        title: this.params?.itemTitle || this.params?.playerTitle || null,
-        poster: this.params?.poster || null,
-        background: this.getBackdropUrl() || null,
-        episodeTitle: this.params?.episodeTitle || null,
-        streamIdentity: buildStreamResumeIdentity(selected) || null
+    this.externalPlayerChooserDialog?.destroy?.();
+    this.externalPlayerChooserDialog = showBrowserExternalPlayerDialog({
+      players: [player],
+      getContext: () => this.loadToken === loadToken && this.externalPlayerResolveToken === resolveToken
+        ? { mediaUrl, source: selected } : null,
+      onDismiss: () => { this.externalPlayerChooserDialog = null; },
+      onLaunch: () => {
+        if (this.loadToken !== loadToken || this.externalPlayerResolveToken !== resolveToken) return false;
+        const prepared = prepareBrowserExternalPlaybackLaunch({
+          player,
+          platform: getBrowserExternalPlayerPlatform(),
+          mediaUrl,
+          source: selected,
+          title: this.params?.episodeTitle || this.params?.itemTitle || this.params?.playerTitle || "",
+          subtitleUrl: "",
+          resumePositionSeconds: resolveExternalResumeSeconds({
+            positionMs: context.resumePositionMs,
+            progressPercent: context.resumeProgressPercent,
+            durationMs: context.resumeDurationMs
+          }),
+          knownDurationMs:
+            Number(context.resumeDurationMs || 0) ||
+            Math.max(0, Number(this.params?.runtime || this.params?.runtimeMinutes || 0)) * 60_000,
+          progressMode: "manual",
+          progressContext: {
+            itemId: this.params?.itemId || null,
+            itemType: itemType || "movie",
+            videoId: itemType === "series" || itemType === "tv" ? this.params?.videoId || null : null,
+            season: this.params?.season == null ? null : Number(this.params.season),
+            episode: this.params?.episode == null ? null : Number(this.params.episode),
+            title: this.params?.itemTitle || this.params?.playerTitle || null,
+            poster: this.params?.poster || null,
+            background: this.getBackdropUrl() || null,
+            episodeTitle: this.params?.episodeTitle || null,
+            streamIdentity: buildStreamResumeIdentity(selected) || null
+          }
+        });
+        if (!prepared?.launch?.href) return false;
+        const requested = launchBrowserExternalPlayer({ href: prepared.launch.href });
+        if (!requested) clearExternalPlaybackHandoff();
+        if (requested) context.onRequested?.();
+        return requested;
       }
     });
-    if (!prepared?.launch?.href) return false;
-    // Optional return convenience only: never allow binding failure to alter
-    // the already-verified external-player launch path.
-    // An Automation already brings the person back, so asking the relay for a
-    // notification too would arrive for an app they are already looking at.
-    // The subscription itself is left alone: it carries every other
-    // notification the app sends, so cancelling it here would cost more than
-    // this one message is worth.
-    if (PlayerSettingsStore.get().externalReturnMethod !== "automation") {
-      await bindBrowserPushReturn({ token: prepared.handoff?.token });
-    }
-    launchBrowserExternalPlayer({ href: prepared.launch.href });
     return true;
   },
 
@@ -3028,12 +3035,12 @@ export const StreamScreen = {
         offlineStream,
         resumePositionMs,
         resumeProgressPercent,
-        resumeDurationMs
+        resumeDurationMs,
+        onRequested: () => {
+          if (returnRoute !== "stream") this.leaveForOriginWhenHidden();
+        }
       }))
     ) {
-      if (returnRoute !== "stream") {
-        this.leaveForOriginWhenHidden();
-      }
       return;
     }
 
@@ -3302,6 +3309,8 @@ export const StreamScreen = {
   },
 
   cleanup() {
+    this.externalPlayerChooserDialog?.destroy?.();
+    this.externalPlayerChooserDialog = null;
     this.clearExternalHandoffWatch();
     this.closeOfflineDownloadOptions?.();
     this.cancelAutoPlayCountdown();

@@ -60,16 +60,14 @@ import {
   shouldMarkBrowserPictureInPictureUnavailable
 } from "../../components/browserPictureInPicture.js";
 import {
-  copyBrowserExternalStreamLink,
   getBrowserExternalPlayerPlatform,
-  getManualBrowserExternalPlayerOptions,
   isTransferableExternalMediaUrl,
   launchBrowserExternalPlayer,
   prepareBrowserExternalPlaybackLaunch
 } from "../../components/browserExternalPlayer.js";
 import { clearExternalPlaybackHandoff } from "../../components/browserExternalPlaybackHandoff.js";
 import { resolveExternalResumeSeconds } from "../../components/externalPlayerResume.js";
-import { bindBrowserPushReturn } from "../../components/browserPushReturn.js";
+import { showBrowserExternalPlayerDialog } from "../../components/browserExternalPlayerDialog.js";
 import { markBrowserExternalPlaybackFinished } from "../../components/browserExternalPlaybackFinish.js";
 import {
   externalPlaybackReportDurationSeconds,
@@ -4569,7 +4567,7 @@ export const PlayerScreen = {
         ${
           externalPlayerAvailable
             ? `<button class="player-desktop-tool-button" type="button" tabindex="-1" data-player-desktop-action="external-player"
-                  title="Play with external player" aria-label="Play with external player">
+                  title="Open in another player" aria-label="Open in another player">
                 <img class="player-desktop-tool-icon" src="assets/icons/ic_player_external.svg" alt="" aria-hidden="true" />
               </button>`
             : ""
@@ -4596,90 +4594,36 @@ export const PlayerScreen = {
     return {
       mediaUrl,
       title: uiState.currentEpisodeTitle || uiState.title || "",
-      subtitleUrl: selectedSubtitle?.url || ""
+      subtitleUrl: selectedSubtitle?.url || "",
+      source: this.getCurrentStreamCandidate(),
+      subtitle: selectedSubtitle || null
     };
   },
 
   canOpenInExternalPlayer() {
-    return Boolean(
-      this.getExternalPlayerContext() && getManualBrowserExternalPlayerOptions().length
-    );
+    // Desktop has explicit playlist/copy delivery; header-restricted sources
+    // still get an explanation rather than silently disappearing from the UI.
+    return Boolean(this.getExternalPlayerContext());
   },
 
   openExternalPlayerChooser() {
     if (!this.canOpenInExternalPlayer()) return false;
     this.externalPlayerChooserDialog?.destroy?.();
-    this.externalPlayerChooserDialog = new NuvioDialog({
-      title: "Open in external player",
-      subtitle: "Choose a player",
-      widthVw: 32,
-      panelClassName: "desktop-external-player-dialog",
-      actionsClassName: "desktop-external-player-actions",
-      buttons: [
-        ...getManualBrowserExternalPlayerOptions().map((player) => ({
-          label:
-            player === "lenna"
-              ? "Lenna"
-              : player === "infuse"
-                ? "Infuse"
-                : player === "outplayer"
-                  ? "Outplayer"
-                  : "VLC",
-          className: "desktop-external-player-choice",
-          content: () => {
-            const copy = document.createElement("span");
-            const playerName =
-              player === "lenna"
-                ? "Lenna"
-                : player === "infuse"
-                  ? "Infuse"
-                  : player === "outplayer"
-                    ? "Outplayer"
-                    : "VLC";
-            copy.className = "desktop-external-player-choice-copy";
-            copy.innerHTML = `<strong>${playerName}</strong><small>Open this stream in ${playerName}</small>`;
-            return copy;
-          },
-          onAction: () => {
-            this.externalPlayerChooserDialog?.destroy?.();
-            this.launchExternalPlayer(player);
-          }
-        })),
-        {
-          label: "Copy Stream Link",
-          className: "desktop-external-player-choice",
-          onAction: async () => {
-            const copied = await copyBrowserExternalStreamLink({
-              mediaUrl: this.getExternalPlayerContext()?.mediaUrl
-            });
-            this.externalPlayerChooserDialog?.destroy?.();
-            this.showAspectToast(copied ? "Stream link copied" : "Could not copy stream link");
-          }
-        },
-        {
-          label: "Cancel",
-          className: "desktop-external-player-cancel",
-          onAction: () => this.externalPlayerChooserDialog?.destroy?.()
-        }
-      ],
-      onDismiss: () => {
-        this.externalPlayerChooserDialog = null;
-      }
-    }).mount(document.body);
+    this.externalPlayerChooserDialog = showBrowserExternalPlayerDialog({
+      getContext: () => this.getExternalPlayerContext(),
+      onLaunch: (player) => this.launchExternalPlayer(player),
+      onDismiss: () => { this.externalPlayerChooserDialog = null; }
+    });
     return true;
   },
 
-  async launchExternalPlayer(player) {
+  launchExternalPlayer(player) {
     const context = this.getExternalPlayerContext();
     if (!context) return false;
-    const settings = PlayerSettingsStore.get();
-    const progressMode = settings.externalPlayerProgress === "manual" ? "manual" : "automatic";
-    const returnMethod = settings.externalReturnMethod;
     const prepared = prepareBrowserExternalPlaybackLaunch({
       player,
       platform: getBrowserExternalPlayerPlatform(),
-      progressMode,
-      returnMethod,
+      progressMode: "manual",
       resumePositionSeconds: this.getExternalPlayerResumeSeconds(),
       knownDurationMs: this.getExternalPlayerKnownDurationMs(),
       progressContext: PlayerController.createProgressContext?.(),
@@ -4688,21 +4632,12 @@ export const PlayerScreen = {
     if (!prepared?.launch?.href) {
       return false;
     }
-    if (prepared.handoff) {
-      PlayerController.beginExternalPlaybackHandoff?.(prepared.handoff);
-    }
-    // Return notifications are optional: the binding helper resolves false on
-    // unsupported, unavailable, or failed Push paths and must not alter launch.
-    // An Automation already brings the person back, so asking the relay for a
-    // notification too would arrive for an app they are already looking at.
-    // The subscription itself is left alone: it carries every other
-    // notification the app sends, so cancelling it here would cost more than
-    // this one message is worth.
-    if (returnMethod !== "automation") {
-      await bindBrowserPushReturn({ token: prepared.handoff?.token });
-    }
-    launchBrowserExternalPlayer({ href: prepared.launch.href });
-    return true;
+    const requested = launchBrowserExternalPlayer({ href: prepared.launch.href });
+    if (requested) {
+      if (prepared.handoff) PlayerController.beginExternalPlaybackHandoff?.(prepared.handoff);
+      PlayerController.video?.pause?.();
+    } else clearExternalPlaybackHandoff();
+    return requested;
   },
 
   getExternalPlayerResumeSeconds() {
@@ -9101,7 +9036,7 @@ export const PlayerScreen = {
         ${
           this.canOpenInExternalPlayer()
             ? `<button class="player-mobile-more-action player-mobile-more-icon-action" type="button" tabindex="-1" data-player-desktop-action="external-player"
-                  title="Play with external player" aria-label="Play with external player">
+                  title="Open in another player" aria-label="Open in another player">
                 <img class="player-desktop-tool-icon" src="assets/icons/ic_player_external.svg" alt="" aria-hidden="true" />
               </button>`
             : ""

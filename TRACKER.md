@@ -6,6 +6,8 @@ Total tickets: **26**. Verified completed: **10**. In progress: **4** (#7, #10, 
 
 The initial 24 roadmap tickets are retained, plus dependency remediation #29 and owner-requested recovery #31. Remaining unfinished tickets include all non-verified rows below; blocked work is included rather than hidden.
 
+Issue [#148](https://github.com/saurabhhbansal/nuvioweb/issues/148) (2026-10-21) is separately **in progress**: explicit URL-only mobile confirmation and desktop playlist/copy increment; header-dependent sources blocked, no native-device fidelity claim. Single [plan/evidence matrix](docs/plans/M2-ADDONS-PLAYBACK.md#issue-148--explicit-external-player-hand-off-2026-10-21), compact [receipt](docs/evidence/issue148-external-player.json). Draft/unmerged, not deployed; issue stays open for owner device checks. Earlier ticket-count snapshot above is unchanged.
+
 | Ticket | State | Dependencies | Evidence or precise limitation |
 | --- | --- | --- | --- |
 | [#1](https://github.com/saurabhhbansal/nuvioweb/issues/1) [M0][P0] Validate upstream licenses, provenance, and import strategy | verified | None | PR #27; acceptance/verification in linked ledger documents |
