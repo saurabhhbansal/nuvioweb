@@ -61,6 +61,41 @@ test("bundled desktop player offers explicit playlist/copy, responsive explanati
   expect(sidecars).toEqual([]);
 });
 
+for (const scenario of ["basic", "startup-header-required"]) {
+  test(`bundled failed source keeps an explicit keyboard-accessible handoff: ${scenario}`, async ({ page, context }) => {
+    test.setTimeout(60000);
+    if (scenario === "startup-header-required") await page.setViewportSize({ width: 390, height: 844 });
+    await context.addInitScript(({ provider, scenario }) => {
+      localStorage.setItem("installedAddonUrls", JSON.stringify({ __profileScoped: true, version: 1, profiles: { "1": [`${provider}/${scenario}`] } }));
+    }, { provider, scenario });
+    if (scenario === "basic") await page.route("**/media/procedural-vp8-opus.webm", (route) => route.fulfill({ contentType: "video/webm", body: "deliberately invalid media fixture" }));
+    await page.goto("/");
+    await page.locator('[data-action="continueGuest"]').click();
+    await page.locator('#home .home-poster-card[data-item-id="fixture:original"]').first().click();
+    await page.locator('button[data-action="playDefault"]').click();
+    await page.locator('[data-action="playStream"]').click();
+    const overlay = page.locator("#playerStartupErrorOverlay");
+    await expect(overlay).toHaveAttribute("aria-hidden", "false", { timeout: 45000 });
+    const external = overlay.getByRole("button", { name: "Open in another player", exact: true });
+    await expect(external).toBeVisible();
+    await expect(external).toBeInViewport();
+    await overlay.getByRole("button", { name: "Go Back", exact: true }).focus();
+    await page.keyboard.press("Tab");
+    await expect(external).toBeFocused();
+    await page.keyboard.press("Enter");
+    const dialog = page.getByRole("dialog");
+    if (scenario === "startup-header-required") {
+      await expect(dialog.getByRole("status")).toContainText("requires request headers");
+      await expect(dialog.getByRole("button")).toHaveCount(1);
+    } else await expect(dialog.getByRole("button", { name: "Download .m3u playlist", exact: true })).toBeVisible();
+    await dialog.getByRole("button", { name: "Cancel / stay in Nuvio", exact: true }).click();
+    await expect(dialog).toHaveCount(0);
+    await expect(overlay).toHaveAttribute("aria-hidden", "false");
+    await overlay.getByRole("button", { name: "Go Back", exact: true }).click();
+    await expect(page.locator('[data-action="playStream"]')).toBeVisible();
+  });
+}
+
 async function mountSourcePlayer(page, source, subtitle = null) {
   await page.goto("/"); // Load real built styling, then exercise the actual source screen seam.
   await page.evaluate(async ({ sourceRoot, mediaUrl, source, subtitle }) => {

@@ -192,9 +192,12 @@ test("startup failures are classified once and every startup path reports the re
     source,
     /sourceDescriptor: stream\.sourceDescriptor \|\| stream\.raw\?\.sourceDescriptor \|\| null,/
   );
-  // The startup overlay keeps the single documented return path.
-  assert.equal(source.match(/data-player-error-action="/g).length, 1);
-  assert.match(source, /data-player-error-action="back"/);
+  // Keep the original return action alongside the conditional URL-only fallback.
+  const overlay = source.slice(source.indexOf("  renderStartupErrorOverlay()"), source.indexOf("  shouldUseLoadingLogoFill()"));
+  assert.equal(overlay.match(/<button[^>]*data-player-error-action=/g).length, 2);
+  assert.match(overlay, /data-player-error-action="back"/);
+  assert.match(overlay, /this\.canOpenInExternalPlayer\(\)/);
+  assert.match(overlay, /data-player-error-action="external-player"/);
 });
 
 test("classified header-required guidance outranks an HTTP status and messages are not double-punctuated", async () => {

@@ -6282,9 +6282,16 @@ export const PlayerScreen = {
         `
             : ""
         }
-        <button class="player-startup-error-button focusable focused" type="button" tabindex="-1" data-player-error-action="back">
-          ${escapeHtml(t("player_go_back", {}, "Go Back"))}
-        </button>
+        <div class="player-startup-error-actions">
+          <button class="player-startup-error-button focusable focused" type="button" tabindex="0" data-player-error-action="back">
+            ${escapeHtml(t("player_go_back", {}, "Go Back"))}
+          </button>
+          ${this.canOpenInExternalPlayer() ? `
+            <button class="player-startup-error-button focusable" type="button" tabindex="0" data-player-error-action="external-player">
+              Open in another player
+            </button>
+          ` : ""}
+        </div>
       </div>
     `;
     this.uiRefs = {
@@ -16546,6 +16553,9 @@ export const PlayerScreen = {
 
     const errorAction = target.closest?.("[data-player-error-action]");
     if (errorAction && this.isStartupErrorVisible()) {
+      if (errorAction.dataset.playerErrorAction === "external-player") {
+        return this.openExternalPlayerChooser();
+      }
       if (String(errorAction.dataset.playerErrorAction || "") === "back") {
         this.navigateBackToStreamScreen();
         return true;
@@ -16854,9 +16864,13 @@ export const PlayerScreen = {
     }
 
     if (this.isStartupErrorVisible()) {
+      if (keyCode === 9) return false; // Keep the error actions keyboard reachable.
       event?.preventDefault?.();
       event?.stopPropagation?.();
-      if (isBackKey || isSelectKeyCode(keyCode) || keyCode === 66) {
+      if ((isSelectKeyCode(keyCode) || keyCode === 32) && activeTarget?.matches?.('[data-player-error-action="external-player"]')) {
+        return this.openExternalPlayerChooser();
+      }
+      if (isBackKey || isSelectKeyCode(keyCode) || keyCode === 32 || keyCode === 66) {
         if (!this.navigateBackToStreamScreen()) {
           Router.back();
         }
