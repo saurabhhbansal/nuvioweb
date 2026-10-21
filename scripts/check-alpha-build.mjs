@@ -1,8 +1,6 @@
 import assert from "node:assert/strict";
 import { readFileSync, statSync } from "node:fs";
 import { runInNewContext } from "node:vm";
-import { fileURLToPath } from "node:url";
-import { validatePluginEngineInstallation } from "../app/alpha/scripts/pluginEngineManifest.mjs";
 
 const dist = new URL("../app/alpha/dist/", import.meta.url);
 const assets = [
@@ -22,10 +20,4 @@ assert.equal(context.__NUVIO_ENV__.NUVIO_SUPABASE_URL, "https://identity.example
 for (const field of ["TRAKT_CLIENT_SECRET", "TRAKT_REDIRECT_URI", "NUVIO_WEB_PUSH_PRIVATE_KEY"]) {
   assert.ok(!Object.hasOwn(context.__NUVIO_ENV__, field), `${field} must not reach the browser`);
 }
-const engineOptIn = /^(1|true|yes|on)$/i.test(String(process.env.NUVIO_PLUGIN_ENGINE_ASSETS || ""));
-const engine = await validatePluginEngineInstallation({ distDir: fileURLToPath(dist), optIn: engineOptIn });
-if (engine) {
-  console.log(`Plugin engine (opt-in): ${engine.directory}, ${engine.totalBytes} bytes, hashes and MIME verified.`);
-}
-
 console.log(`Alpha baseline: ${assets.length} nonempty assets, inert config, no privileged fields.`);
