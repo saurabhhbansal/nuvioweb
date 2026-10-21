@@ -51,14 +51,21 @@
       "failed": 0,
       "skipped": 0
     },
-    "visual": "1280x800 and390x844 inspected once; correction action originally stretched beside card, corrected to sibling below full-width card; final source3 rerun pending"
+    "visual": "final source3/3 pass; desktop1280x800 and narrow390x844 confirmation inspected; full-width cards with sibling44px correction button; inherited icon-font fallback",
+    "sourceBrowserAfterLayout": {
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0
+    }
   },
   "review": "direct separate automated diff/security/spec pass; no reviewer agents or independent-human claim; corrections documented in single evidence",
   "protectedIntegration": {
+    "pr": 158,
     "requiredChecks": 4,
     "strict": true,
     "adminEnforced": true,
-    "status": "pending"
+    "authority": "https://github.com/saurabhhbansal/nuvioweb/pull/158",
+    "rule": "Merge only with all four green on exact final head; head, run IDs, flake disposition and merge recorded in PR integration receipt. No bypass."
   },
   "unverified": [
     "physical devices/HDR/audio output",
@@ -66,5 +73,12 @@
     "live provider delivery",
     "adaptive-engine support ranking"
   ],
-  "deployment": "none; pinned previews and elapsed observers untouched"
+  "deployment": "none; pinned previews and elapsed observers untouched",
+  "acceptance": {
+    "exactRequirementsAndPredictions": true,
+    "browserFirstUnverifiedCandidates": true,
+    "preserveOriginalSources": true,
+    "explainAndCorrectLocally": true,
+    "negativeAndPlatformFixtures": true
+  }
 }

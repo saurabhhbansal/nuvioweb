@@ -811,11 +811,12 @@
     {
       "number": 149,
       "title": "Device-aware, explainable source ranking",
-      "status": "in_progress",
+      "status": "verified",
       "dependencies": [],
-      "progress": {
+      "completion": {
+        "pr": 158,
         "documents": ["docs/plans/issues/issue-149.md", "docs/evidence/issue149-ranking.json"],
-        "verification": ["Default stable browser/external/unknown/proxy/blocked tiers; complete native video/audio declarations and existing capability/header assessments. Every original source preserved; reversible memory-only failed-prediction correction. Local verification and exact-head integration pending; no deployment or physical-device claim."]
+        "verification": ["Default stable browser/external/unknown/proxy/blocked tiers; complete native video/audio declarations and existing capability/header assessments. Every original source preserved; reversible memory-only failed-prediction correction. Focused50/50, affected Chromium24/24 plus layout-confirmation3/3, docs/governance50/50 and inert build/lint/artifact12 pass. Proposed until protected evidence PR158 merges after four exact-head checks; no deployment or physical-device claim."]
       }
     }
   ],
