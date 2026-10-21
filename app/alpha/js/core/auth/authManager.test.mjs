@@ -21,10 +21,10 @@ function storage(entries = {}) {
 function resetAuthManager() {
   AuthManager.state = AuthState.LOADING;
   AuthManager.cachedEffectiveUserId = null;
-  AuthManager.cachedEffectiveUserSourceUserId = null;
   AuthManager.refreshPromise = null;
   AuthManager.lastRefreshFailureKind = null;
   AuthManager.sessionGeneration = 0;
+  AuthManager.clearSessionRetry();
 }
 
 async function withAuthGlobals({ localStorage, fetch, navigator }, callback) {
@@ -69,6 +69,24 @@ test("offline bootstrap reuses the existing owner marker only after a transient 
   );
 });
 
+test("startup survives a server error from the sync-owner lookup by using the cached owner", async () => {
+  await withAuthGlobals(
+    {
+      localStorage: storage({
+        access_token: "header.eyJzdWIiOiJ1c2VyIn0.signature",
+        nuvioAccountOwnerMarker: "owner-a"
+      }),
+      fetch: async () => new Response("unavailable", { status: 503 }),
+      navigator: { onLine: true }
+    },
+    async () => {
+      await AuthManager.bootstrap();
+      assert.equal(AuthManager.getAuthState(), AuthState.AUTHENTICATED);
+      assert.equal(await AuthManager.getEffectiveUserId(), "owner-a");
+    }
+  );
+});
+
 test("offline bootstrap never substitutes the cached owner for an authorization rejection", async () => {
   await withAuthGlobals(
     {
@@ -80,8 +98,8 @@ test("offline bootstrap never substitutes the cached owner for an authorization 
       navigator: { onLine: false }
     },
     async () => {
-      await assert.rejects(() => AuthManager.bootstrap(), /forbidden/);
-      assert.notEqual(AuthManager.getAuthState(), AuthState.AUTHENTICATED);
+      await AuthManager.bootstrap();
+      assert.equal(AuthManager.getAuthState(), AuthState.SIGNED_OUT);
     }
   );
 });

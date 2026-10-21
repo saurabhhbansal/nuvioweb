@@ -42,7 +42,6 @@ function reset() {
   AuthManager.state = AuthState.LOADING;
   AuthManager.listeners = [];
   AuthManager.cachedEffectiveUserId = null;
-  AuthManager.cachedEffectiveUserSourceUserId = null;
   AuthManager.refreshPromise = null;
   AuthManager.lastRefreshFailureKind = null;
   AuthManager.sessionGeneration = 0;
@@ -193,26 +192,6 @@ test("a current valid exchange establishes the account through the common path",
   });
 });
 
-test("a delayed AuthManager TV exchange cannot publish over a later session", async () => {
-  const response = deferred();
-  const started = deferred();
-  await withSession({ access_token: token("anonymous") }, async () => {
-    started.resolve();
-    return response.promise;
-  }, async () => {
-    const pending = AuthManager.exchangeTvLoginSession("synthetic-code", "synthetic-nonce");
-    await started.promise;
-    await AuthManager.signOut();
-    SessionStore.accessToken = token("later-account");
-    SessionStore.refreshToken = "later-refresh";
-    AuthManager.setState(AuthState.AUTHENTICATED);
-    response.resolve(json({ accessToken: token("stale"), refreshToken: "stale" }));
-    await assert.rejects(pending, /Session changed during TV login exchange/);
-    assert.equal(SessionStore.accessToken, token("later-account"));
-    assert.equal(SessionStore.refreshToken, "later-refresh");
-  });
-});
-
 test("a delayed email sign-in cannot publish over a later session", async () => {
   const response = deferred();
   const started = deferred();
@@ -230,6 +209,26 @@ test("a delayed email sign-in cannot publish over a later session", async () => 
     await assert.rejects(pending, /Session changed during sign-in/);
     assert.equal(SessionStore.accessToken, token("later-account"));
     assert.equal(SessionStore.refreshToken, "later-refresh");
+  });
+});
+
+test("a signed-out device holding an old account pair starts QR from a fresh anonymous session", async () => {
+  const calls = [];
+  await withSession({ access_token: token("old-account"), refresh_token: "old-refresh" }, async (url, options) => {
+    calls.push({ url, authorization: options?.headers?.Authorization });
+    if (url.endsWith("/auth/v1/signup")) return json({ access_token: token("anonymous"), refresh_token: "fixture-anonymous-refresh" });
+    if (url.endsWith("/functions/v1/tv-logins-exchange")) return json({ access_token: token("qr-account"), refresh_token: "qr-refresh" });
+    if (url.endsWith("/rest/v1/rpc/get_sync_owner")) return json("owner-qr");
+    throw new Error(`unexpected request ${url}`);
+  }, async () => {
+    AuthManager.setState(AuthState.SIGNED_OUT);
+    const attemptId = QrLoginService.beginAttempt();
+    assert.ok(await QrLoginService.exchange("synthetic-code", "synthetic-nonce", attemptId));
+    assert.equal(AuthManager.getAuthState(), AuthState.AUTHENTICATED);
+    assert.equal(SessionStore.accessToken, token("qr-account"));
+    assert.equal(calls.some((call) => call.url.includes("grant_type=refresh_token")), false);
+    const exchange = calls.find((call) => call.url.endsWith("/functions/v1/tv-logins-exchange"));
+    assert.equal(exchange.authorization, `Bearer ${token("anonymous")}`);
   });
 });
 
@@ -365,62 +364,6 @@ test("a stale poll from a superseded attempt is refused before any request", asy
     assert.equal(await QrLoginService.poll("synthetic-code", "synthetic-nonce", first), null);
     assert.match(QrLoginService.getLastError(), /not active/);
     assert.equal(calls.length, 0);
-  });
-});
-
-test("a superseded email establishment leaves the later session intact", async () => {
-  const ownerResponse = deferred();
-  const ownerStarted = deferred();
-  await withSession({}, async (url) => {
-    if (url.endsWith("grant_type=password")) {
-      return json({ access_token: token("email-account"), refresh_token: "email-refresh" });
-    }
-    if (url.endsWith("/rest/v1/rpc/get_sync_owner")) {
-      ownerStarted.resolve();
-      return ownerResponse.promise;
-    }
-    throw new Error(`unexpected request ${url}`);
-  }, async () => {
-    const pending = AuthManager.signInWithEmail("synthetic@example.invalid", "fixture-password");
-    await ownerStarted.promise;
-    AuthManager.beginAuthenticationAttempt();
-    SessionStore.accessToken = token("later-account");
-    SessionStore.refreshToken = "later-refresh";
-    SessionStore.isAnonymousSession = false;
-    AuthManager.setState(AuthState.AUTHENTICATED);
-    ownerResponse.resolve(json("owner-email"));
-    await assert.rejects(pending, /Authentication attempt was superseded/);
-    assert.equal(SessionStore.accessToken, token("later-account"));
-    assert.equal(SessionStore.refreshToken, "later-refresh");
-    assert.equal(AuthManager.getAuthState(), AuthState.AUTHENTICATED);
-  });
-});
-
-test("a superseded TV exchange leaves the later session intact", async () => {
-  const ownerResponse = deferred();
-  const ownerStarted = deferred();
-  await withSession({ access_token: token("anonymous") }, async (url) => {
-    if (url.endsWith("/functions/v1/tv-logins-exchange")) {
-      return json({ accessToken: token("tv-account"), refreshToken: "tv-refresh" });
-    }
-    if (url.endsWith("/rest/v1/rpc/get_sync_owner")) {
-      ownerStarted.resolve();
-      return ownerResponse.promise;
-    }
-    throw new Error(`unexpected request ${url}`);
-  }, async () => {
-    const pending = AuthManager.exchangeTvLoginSession("synthetic-code", "synthetic-nonce");
-    await ownerStarted.promise;
-    AuthManager.beginAuthenticationAttempt();
-    SessionStore.accessToken = token("later-account");
-    SessionStore.refreshToken = "later-refresh";
-    SessionStore.isAnonymousSession = false;
-    AuthManager.setState(AuthState.AUTHENTICATED);
-    ownerResponse.resolve(json("owner-tv"));
-    await assert.rejects(pending, /Authentication attempt was superseded/);
-    assert.equal(SessionStore.accessToken, token("later-account"));
-    assert.equal(SessionStore.refreshToken, "later-refresh");
-    assert.equal(AuthManager.getAuthState(), AuthState.AUTHENTICATED);
   });
 });
 

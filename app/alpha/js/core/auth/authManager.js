@@ -3,40 +3,10 @@ import { clearAccountLocalData, resetAccountRuntimeState } from "./accountLocalD
 import { SessionStore } from "../storage/sessionStore.js";
 import { SUPABASE_ANON_KEY } from "../../config.js";
 import { fetchSupabaseAuth } from "./supabaseAuthFetch.js";
+import { isJwtExpired } from "./jwt.js";
 
 const ACCOUNT_OWNER_MARKER_KEY = "nuvioAccountOwnerMarker";
-
-function isJwtLike(token) {
-  const value = String(token || "").trim();
-  return value.split(".").length === 3;
-}
-
-function decodeJwtPayload(token) {
-  try {
-    const [, payload] = String(token || "").split(".");
-    if (!payload) {
-      return null;
-    }
-    const normalized = payload.replace(/-/g, "+").replace(/_/g, "/");
-    const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "=");
-    return JSON.parse(atob(padded));
-  } catch {
-    return null;
-  }
-}
-
-function isJwtExpired(token, leewaySeconds = 30) {
-  if (!isJwtLike(token)) {
-    return true;
-  }
-  const payload = decodeJwtPayload(token);
-  const exp = Number(payload?.exp || 0);
-  if (!Number.isFinite(exp) || exp <= 0) {
-    return false;
-  }
-  const nowSeconds = Math.floor(Date.now() / 1000);
-  return exp <= nowSeconds + leewaySeconds;
-}
+const SESSION_RETRY_MS = 60000;
 
 function isTransientNetworkError(error) {
   const name = String(error?.name || "").toLowerCase();
@@ -50,6 +20,14 @@ function isTransientNetworkError(error) {
     message.includes("internet") ||
     message.includes("offline")
   );
+}
+
+// The server could not answer (outage, rate limit or no network). That says
+// nothing about whether the session is still valid.
+function isServerUnavailable(error) {
+  const status = Number(error?.status || 0);
+  if (status > 0) return status >= 500 || status === 429;
+  return isTransientNetworkError(error);
 }
 
 function getStoredAccountOwnerMarker() {
@@ -71,16 +49,14 @@ class AuthManagerClass {
     this.state = AuthState.LOADING;
     this.listeners = [];
     this.cachedEffectiveUserId = null;
-    this.cachedEffectiveUserSourceUserId = null;
     this.refreshPromise = null;
     this.lastRefreshFailureKind = null;
     this.sessionGeneration = 0;
     this.authAttemptSequence = 0;
+    this.sessionRetryTimer = null;
+    this.sessionRetryListener = null;
   }
 
-  // ------------------------------------
-  // SUBSCRIBE (equivalente StateFlow)
-  // ------------------------------------
   subscribe(listener) {
     this.listeners.push(listener);
     listener(this.state);
@@ -94,42 +70,90 @@ class AuthManagerClass {
     this.listeners.forEach((l) => l(newState));
   }
 
-  // ------------------------------------
-  // BOOTSTRAP (equivalente observeSessionStatus)
-  // ------------------------------------
   async bootstrap() {
     const authAttempt = this.beginAuthenticationAttempt();
     const sessionGeneration = this.sessionGeneration;
-    const token = SessionStore.accessToken;
+    const isCurrent = () =>
+      authAttempt === this.authAttemptSequence && sessionGeneration === this.sessionGeneration;
 
-    if (!token) {
-      this.setState(AuthState.SIGNED_OUT);
-      return;
-    }
-
-    if (SessionStore.isAnonymousSession) {
+    if (!SessionStore.accessToken || SessionStore.isAnonymousSession) {
       this.setState(AuthState.SIGNED_OUT);
       return;
     }
 
     const refreshed = await this.refreshSessionIfNeeded();
-    if (authAttempt !== this.authAttemptSequence || sessionGeneration !== this.sessionGeneration) return;
+    if (!isCurrent()) return;
     if (!refreshed) {
-      // Signing out here stops every cloud pull and push for the rest of the
-      // run, and nothing retries afterwards -- so a session lost to a bad
-      // moment on the network looks exactly like a session the server
-      // rejected. `lastRefreshFailureKind` is the one fact that tells them
-      // apart, and it was never recorded anywhere the device could show it.
-      console.warn(`[Auth] bootstrap signed out: refresh ${this.lastRefreshFailureKind}`);
+      console.warn(`[Auth] bootstrap refresh ${this.lastRefreshFailureKind}`);
       if (this.lastRefreshFailureKind === "rejected") {
         await this.signOut();
-      } else {
-        this.setState(AuthState.SIGNED_OUT);
+        return;
       }
+      // The server or network failed. Keep the tokens, continue with the
+      // account this device last verified, and try again later.
+      this.scheduleSessionRetry();
+      if (!this.resumeWithCachedOwner()) this.setState(AuthState.SIGNED_OUT);
       return;
     }
 
-    await this.establishAuthenticatedSession(authAttempt);
+    try {
+      await this.establishAuthenticatedSession(authAttempt);
+      if (this.lastRefreshFailureKind === "transient") this.scheduleSessionRetry();
+    } catch (error) {
+      if (!isCurrent()) return;
+      console.warn(`[Auth] bootstrap could not confirm the account (${error?.status || "no status"})`);
+      if (isServerUnavailable(error)) this.scheduleSessionRetry();
+      if (this.state !== AuthState.SIGNED_OUT) this.setState(AuthState.SIGNED_OUT);
+    }
+  }
+
+  resumeWithCachedOwner() {
+    const cachedOwner = getStoredAccountOwnerMarker();
+    if (!cachedOwner || !SessionStore.accessToken) return false;
+    this.cachedEffectiveUserId = cachedOwner;
+    this.setState(AuthState.AUTHENTICATED);
+    return true;
+  }
+
+  // After a startup that could not reach the server, try again when the
+  // browser comes back online or after SESSION_RETRY_MS, whichever is first.
+  scheduleSessionRetry() {
+    this.clearSessionRetry();
+    const generation = this.sessionGeneration;
+    const retry = () => {
+      this.clearSessionRetry();
+      if (generation === this.sessionGeneration) void this.retrySession();
+    };
+    this.sessionRetryTimer = setTimeout(retry, SESSION_RETRY_MS);
+    this.sessionRetryTimer?.unref?.();
+    if (typeof globalThis.addEventListener === "function") {
+      this.sessionRetryListener = retry;
+      globalThis.addEventListener("online", retry);
+    }
+  }
+
+  clearSessionRetry() {
+    if (this.sessionRetryTimer) clearTimeout(this.sessionRetryTimer);
+    this.sessionRetryTimer = null;
+    if (this.sessionRetryListener && typeof globalThis.removeEventListener === "function") {
+      globalThis.removeEventListener("online", this.sessionRetryListener);
+    }
+    this.sessionRetryListener = null;
+  }
+
+  async retrySession() {
+    if (this.state !== AuthState.AUTHENTICATED) {
+      if (SessionStore.accessToken && !SessionStore.isAnonymousSession) await this.bootstrap();
+      return;
+    }
+    const generation = this.sessionGeneration;
+    const refreshed = await this.refreshSessionIfNeeded();
+    if (generation !== this.sessionGeneration) return;
+    if (!refreshed && this.lastRefreshFailureKind === "rejected") {
+      await this.signOut();
+    } else if (!refreshed || this.lastRefreshFailureKind === "transient") {
+      this.scheduleSessionRetry();
+    }
   }
 
   getAuthState() {
@@ -148,9 +172,6 @@ class AuthManagerClass {
     return isJwtExpired(SessionStore.accessToken, leewaySeconds);
   }
 
-  // ------------------------------------
-  // EMAIL LOGIN
-  // ------------------------------------
   async signInWithEmail(email, password) {
     const authAttempt = this.beginAuthenticationAttempt();
     const sessionGeneration = this.sessionGeneration;
@@ -195,9 +216,9 @@ class AuthManagerClass {
     this.sessionGeneration += 1;
     this.authAttemptSequence += 1;
     this.refreshPromise = null;
+    this.clearSessionRetry();
     SessionStore.clear();
     this.cachedEffectiveUserId = null;
-    this.cachedEffectiveUserSourceUserId = null;
     this.setState(AuthState.SIGNED_OUT);
     clearAccountLocalData();
     await resetAccountRuntimeState();
@@ -238,15 +259,10 @@ class AuthManagerClass {
       ownerId = String(await this.getEffectiveUserId({ assertCurrent: checkAuthAttempt, cacheResult: false })).trim();
     } catch (error) {
       const cachedOwner = getStoredAccountOwnerMarker();
-      // A cached owner is only trusted for a previously authenticated local
-      // session when owner verification itself cannot reach the backend. HTTP
-      // rejections and malformed responses remain authoritative failures.
-      if (
-        !SessionStore.accessToken ||
-        !cachedOwner ||
-        Number(error?.status || 0) > 0 ||
-        !isTransientNetworkError(error)
-      ) {
+      // A cached owner is trusted only for a session this device already
+      // verified, and only when the server could not answer. 4xx rejections
+      // and malformed responses stay authoritative failures.
+      if (!SessionStore.accessToken || !cachedOwner || !isServerUnavailable(error)) {
         throw error;
       }
       ownerId = cachedOwner;
@@ -293,10 +309,6 @@ class AuthManagerClass {
     const accessToken = SessionStore.accessToken;
     const refreshToken = SessionStore.refreshToken;
     const sessionGeneration = this.sessionGeneration;
-    const ownsSession = () =>
-      sessionGeneration === this.sessionGeneration &&
-      SessionStore.accessToken === accessToken &&
-      SessionStore.refreshToken === refreshToken;
     if (!refreshToken) {
       return Boolean(accessToken) && !isJwtExpired(accessToken, 0);
     }
@@ -304,6 +316,16 @@ class AuthManagerClass {
     if (!force && accessToken && !isJwtExpired(accessToken)) {
       return true;
     }
+
+    const tokensUnchanged = () =>
+      SessionStore.accessToken === accessToken && SessionStore.refreshToken === refreshToken;
+    // Another tab or the installed app shares this session and may rotate the
+    // token pair first. Its new pair is then the session: a rejection of the
+    // old refresh token is expected and must not sign this device out.
+    const adoptStoredTokens = () => {
+      this.lastRefreshFailureKind = null;
+      return Boolean(SessionStore.accessToken) && !isJwtExpired(SessionStore.accessToken, 0);
+    };
 
     const refreshPromise = (async () => {
       try {
@@ -315,13 +337,15 @@ class AuthManagerClass {
           },
           body: JSON.stringify({ refresh_token: refreshToken })
         });
-        if (!ownsSession()) return false;
+        if (sessionGeneration !== this.sessionGeneration) return false;
+        if (!tokensUnchanged()) return adoptStoredTokens();
         if (!res.ok) {
           this.lastRefreshFailureKind = [400, 401, 403].includes(res.status) ? "rejected" : "unavailable";
           return false;
         }
         const data = await res.json();
-        if (!ownsSession()) return false;
+        if (sessionGeneration !== this.sessionGeneration) return false;
+        if (!tokensUnchanged()) return adoptStoredTokens();
         if (!data?.access_token) {
           this.lastRefreshFailureKind = "invalid";
           return false;
@@ -333,7 +357,8 @@ class AuthManagerClass {
         this.lastRefreshFailureKind = null;
         return true;
       } catch (error) {
-        if (!ownsSession()) return false;
+        if (sessionGeneration !== this.sessionGeneration) return false;
+        if (!tokensUnchanged()) return adoptStoredTokens();
         console.warn("Session refresh failed", error);
         if (isTransientNetworkError(error) && accessToken) {
           this.lastRefreshFailureKind = "transient";
@@ -349,98 +374,6 @@ class AuthManagerClass {
 
     return refreshPromise;
   }
-
-  // ------------------------------------
-  // QR LOGIN FLOW
-  // ------------------------------------
-
-  async startTvLoginSession(deviceNonce, deviceName, redirectBaseUrl) {
-    const res = await fetchSupabaseAuth("/rest/v1/rpc/start_tv_login_session", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        apikey: SUPABASE_ANON_KEY,
-        Authorization: `Bearer ${SessionStore.accessToken}`
-      },
-      body: JSON.stringify({
-        p_device_nonce: deviceNonce,
-        p_redirect_base_url: redirectBaseUrl,
-        ...(deviceName && { p_device_name: deviceName })
-      })
-    });
-
-    if (!res.ok) throw new Error(await res.text());
-
-    const data = await res.json();
-    return data[0];
-  }
-
-  async pollTvLoginSession(code, deviceNonce) {
-    const res = await fetchSupabaseAuth("/rest/v1/rpc/poll_tv_login_session", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        apikey: SUPABASE_ANON_KEY,
-        Authorization: `Bearer ${SessionStore.accessToken}`
-      },
-      body: JSON.stringify({
-        p_code: code,
-        p_device_nonce: deviceNonce
-      })
-    });
-
-    if (!res.ok) throw new Error(await res.text());
-
-    const data = await res.json();
-    return data[0];
-  }
-
-  async exchangeTvLoginSession(code, deviceNonce) {
-    const authAttempt = this.beginAuthenticationAttempt();
-    const sessionGeneration = this.sessionGeneration;
-    const res = await fetchSupabaseAuth("/functions/v1/tv-logins-exchange", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        apikey: SUPABASE_ANON_KEY,
-        Authorization: `Bearer ${SessionStore.accessToken}`
-      },
-      body: JSON.stringify({
-        code,
-        device_nonce: deviceNonce
-      })
-    });
-
-    if (authAttempt !== this.authAttemptSequence || sessionGeneration !== this.sessionGeneration) {
-      throw new Error("Session changed during TV login exchange");
-    }
-    if (!res.ok) throw new Error(await res.text());
-
-    const data = await res.json();
-    if (authAttempt !== this.authAttemptSequence || sessionGeneration !== this.sessionGeneration) {
-      throw new Error("Session changed during TV login exchange");
-    }
-
-    const writtenAccess = data.accessToken;
-    const writtenRefresh = data.refreshToken;
-    SessionStore.accessToken = writtenAccess;
-    SessionStore.refreshToken = writtenRefresh;
-
-    try {
-      await this.establishAuthenticatedSession(authAttempt);
-    } catch (error) {
-      if (authAttempt === this.authAttemptSequence) {
-        await this.signOut().catch(() => {});
-      } else if (SessionStore.accessToken === writtenAccess && SessionStore.refreshToken === writtenRefresh) {
-        SessionStore.clear();
-      }
-      throw error;
-    }
-  }
-
-  // ------------------------------------
-  // EFFECTIVE USER ID (PORTING CACHE LOGIC)
-  // ------------------------------------
 
   async getEffectiveUserId({ assertCurrent = () => {}, cacheResult = true } = {}) {
     const sessionGeneration = this.sessionGeneration;

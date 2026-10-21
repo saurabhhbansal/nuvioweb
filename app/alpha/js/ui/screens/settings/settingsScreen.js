@@ -11,6 +11,7 @@ import { ensureSpatialFocusVisible, ScreenUtils } from "../../navigation/screen.
 import { addonRepository } from "../../../data/repository/addonRepository.js";
 import { LocalStore } from "../../../core/storage/localStore.js";
 import { SessionStore } from "../../../core/storage/sessionStore.js";
+import { decodeJwtPayload } from "../../../core/auth/jwt.js";
 import { TmdbSettingsStore } from "../../../data/local/tmdbSettingsStore.js";
 import { HomeCatalogStore } from "../../../data/local/homeCatalogStore.js";
 import { buildCatalogOrderKey } from "../../../core/addons/homeCatalogs.js";
@@ -1950,20 +1951,6 @@ export function settingsScrollIndicatorMarkup(axis = "vertical") {
       <svg viewBox="0 0 24 24" focusable="false"><path d="m7.4 9.4 4.6 4.6 4.6-4.6" /></svg>
     </span>
   `;
-}
-
-function decodeJwtPayload(token) {
-  try {
-    const [, payload] = String(token || "").split(".");
-    if (!payload) {
-      return null;
-    }
-    const normalized = payload.replace(/-/g, "+").replace(/_/g, "/");
-    const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "=");
-    return JSON.parse(atob(padded));
-  } catch {
-    return null;
-  }
 }
 
 function getSessionEmail() {
