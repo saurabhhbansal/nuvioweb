@@ -1,3 +1,4 @@
+import { diagnosePlaybackFailure, exportPlaybackDiagnostic } from "../../../core/player/failureDiagnostics.js";
 import { PlayerController } from "../../../core/player/playerController.js";
 import {
   audioTrackLabelConflictsWithCodec,
@@ -1282,7 +1283,7 @@ function describeSafePlaybackEndpoint(value = "") {
   }
 }
 
-function pushPlaybackDiagnosticLine(lines, label, value, maxLength = 320) {
+function _pushPlaybackDiagnosticLine(lines, label, value, maxLength = 320) {
   const text = cleanPlaybackDiagnosticValue(value, maxLength);
   if (!text) {
     return;
@@ -2306,6 +2307,8 @@ export const PlayerScreen = {
     this.startupErrorMessage = "";
     this.startupErrorMediaCode = 0;
     this.startupErrorDetails = [];
+    this.startupFailureDiagnostic = null;
+    this.startupFailureExport = "";
     this.startupPlaybackBaselineSeconds = null;
     this.startupPlaybackHasAdvanced = false;
     this.paused = false;
@@ -5727,6 +5730,8 @@ export const PlayerScreen = {
     this.startupErrorMessage = "";
     this.startupErrorMediaCode = 0;
     this.startupErrorDetails = [];
+    this.startupFailureDiagnostic = null;
+    this.startupFailureExport = "";
     this.renderStartupErrorOverlay();
   },
 
@@ -5823,127 +5828,53 @@ export const PlayerScreen = {
     );
   },
 
-  getPlaybackErrorDetailLines({
-    mediaErrorCode = 0,
-    detail = "",
-    error = null,
-    eventDetail = null,
-    streamCandidate = null,
-    playbackUrl = "",
-    reason = "",
-    resolverStatus = "",
-    resolverDetail = ""
-  } = {}) {
-    const lines = [];
-    const video = PlayerController.video || null;
-    const candidate =
-      streamCandidate ||
-      this.getStreamCandidateByUrl(playbackUrl || this.activePlaybackUrl) ||
-      this.getCurrentStreamCandidate();
-    const raw = candidate?.raw || {};
-    const requestHeaders =
-      raw?.behaviorHints?.proxyHeaders?.request ||
-      candidate?.behaviorHints?.proxyHeaders?.request ||
-      null;
-    const headerNames =
-      requestHeaders && typeof requestHeaders === "object"
-        ? Object.keys(requestHeaders).filter(Boolean).join(", ")
-        : "";
-    const mediaError = video?.error || null;
-    const eventErrorDetail = this.getPlaybackEventErrorDetail(eventDetail);
-    const rememberedHlsError =
-      typeof PlayerController.getLastHlsErrorDetail === "function"
-        ? PlayerController.getLastHlsErrorDetail()
-        : "";
-    const httpStatus = extractPlaybackHttpStatus(
-      [
-        detail,
-        eventErrorDetail,
-        rememberedHlsError,
-        error?.message,
-        error?.name,
-        error?.errorText,
-        error?.status
-      ]
-        .filter(Boolean)
-        .join(" ")
-    );
-    const runtimeDetail =
-      detail ||
-      eventErrorDetail ||
-      error?.message ||
-      error?.name ||
-      error?.errorText ||
-      error?.status ||
-      "";
-    const sourceLabel = [
-      candidate?.addonName,
-      candidate?.name || candidate?.title || candidate?.description,
-      candidate?.id
-    ]
-      .filter(Boolean)
-      .join(" / ");
-    const sourceType = [
-      candidate?.mimeType,
-      raw?.mimeType,
-      candidate?.sourceType,
-      raw?.sourceType,
-      raw?.type
-    ].find(Boolean);
-    const activeUrl =
-      playbackUrl ||
-      this.activePlaybackUrl ||
-      candidate?.url ||
-      candidate?.externalUrl ||
-      raw?.url ||
-      raw?.externalUrl ||
-      "";
-
-    pushPlaybackDiagnosticLine(lines, "Platform", "browser");
-    pushPlaybackDiagnosticLine(lines, "Reason", reason);
-    pushPlaybackDiagnosticLine(lines, "Media code", this.getPlaybackErrorCodeLabel(mediaErrorCode));
-    pushPlaybackDiagnosticLine(lines, "HTTP status", httpStatus || "unavailable");
-    pushPlaybackDiagnosticLine(lines, "Runtime error", runtimeDetail);
-    pushPlaybackDiagnosticLine(
-      lines,
-      "HLS error",
-      eventDetail?.hlsErrorDetails || eventDetail?.hlsErrorType || rememberedHlsError,
-      420
-    );
-    pushPlaybackDiagnosticLine(lines, "DASH error", eventDetail?.dashError);
-    pushPlaybackDiagnosticLine(lines, "HTML media error", mediaError?.message || mediaError?.code);
-    pushPlaybackDiagnosticLine(lines, "Video readyState", video?.readyState);
-    pushPlaybackDiagnosticLine(lines, "Video networkState", video?.networkState);
-    pushPlaybackDiagnosticLine(
-      lines,
-      "Current source",
-      describeSafePlaybackEndpoint(video?.currentSrc || video?.src)
-    );
-    pushPlaybackDiagnosticLine(
-      lines,
-      "Playback engine",
-      PlayerController.playbackEngine || "unknown"
-    );
-    pushPlaybackDiagnosticLine(lines, "Source", sourceLabel);
-    pushPlaybackDiagnosticLine(lines, "Source type", sourceType);
-    pushPlaybackDiagnosticLine(lines, "Source endpoint", describeSafePlaybackEndpoint(activeUrl));
-    pushPlaybackDiagnosticLine(lines, "Proxy header names", headerNames);
-    pushPlaybackDiagnosticLine(lines, "Resolver status", resolverStatus);
-    pushPlaybackDiagnosticLine(lines, "Resolver detail", resolverDetail);
-    return lines;
+  getFailureDiagnosticInput({ mediaErrorCode = 0, detail = "", error = null,
+    eventDetail = null, streamCandidate = null, playbackUrl = "", reason = "" } = {}) {
+    const candidate = streamCandidate || this.getStreamCandidateByUrl(playbackUrl || this.activePlaybackUrl) || this.getCurrentStreamCandidate();
+    const descriptor = this.getStartupSourceDescriptor(candidate);
+    const video = PlayerController.video;
+    // No HEAD/GET probe or parsing arbitrary error text for response metadata.
+    const hlsStatus = eventDetail?.responseCode || eventDetail?.hlsResponseCode;
+    return {
+      descriptor, navigator: globalThis.navigator,
+      engine: PlayerController.playbackEngine || "none",
+      nativePrediction: this.getStartupNativePrediction(descriptor),
+      readyState: video?.readyState, networkState: video?.networkState,
+      mediaErrorCode: Number(mediaErrorCode) || video?.error?.code,
+      httpStatus: Number(hlsStatus) || extractPlaybackHttpStatus(detail) || undefined,
+      headerRequired: Boolean(this.getWebHeaderRestrictedStreamMessage(candidate)),
+      phase: reason.includes("seek") ? "seek" : this.hasPresentedPlaybackFrame ? "playback" : "startup",
+      activationRejected: error?.name === "NotAllowedError",
+      transportFailure: /failed to fetch|networkerror|network error|net::err|request timed out/i.test(String(detail || "").slice(0, 1024))
+    };
   },
 
-  formatPlaybackErrorForSources(message = "", options = {}) {
-    const baseMessage =
-      String(message || "").trim() || t("player_error_playback_fallback", {}, "Playback error");
-    const detailLines = this.getPlaybackErrorDetailLines(options);
-    return detailLines.length
-      ? `${baseMessage}\n\nDetails\n${detailLines.join("\n")}`
-      : baseMessage;
+  getPlaybackErrorDetailLines(options = {}) {
+    const report = diagnosePlaybackFailure(this.getFailureDiagnosticInput(options));
+    return [
+      `Reason: ${report.cause}`,
+      `Confidence: ${report.confidence}`,
+      `Platform: browser / ${report.observed.platform}`,
+      `Playback engine: ${report.observed.engine} / ${report.observed.engineHint}`,
+      `Video readyState: ${report.observed.readyState ?? "unavailable"}`,
+      `Video networkState: ${report.observed.networkState ?? "unavailable"}`,
+      `Media code: ${report.observed.mediaErrorCode ?? "unavailable"}`,
+      `HTTP status: ${report.observed.httpStatus ?? "unavailable"}`,
+      `Response content-type: ${report.observed.contentType ?? "unavailable"}`,
+      `Range capability: ${report.observed.rangeCapability}`,
+      `Required headers: ${report.observed.requiredHeaders}`,
+      `Evidence: ${report.candidateCauses[0].evidence.join(", ")}`,
+      `Next action: ${report.nextAction.label}`
+    ];
+  },
+
+  formatPlaybackErrorForSources(_message = "", options = {}) {
+    const report = diagnosePlaybackFailure(this.getFailureDiagnosticInput(options));
+    return `${report.explanation}\n\nDetails\n${this.getPlaybackErrorDetailLines(options).join("\n")}`;
   },
 
   showStartupError(
-    message = "",
+    _message = "",
     {
       mediaErrorCode = 0,
       detail = "",
@@ -5953,16 +5884,19 @@ export const PlayerScreen = {
       playbackUrl = "",
       reason = "",
       resolverStatus = "",
-      resolverDetail = "",
-      details = null
+      resolverDetail = ""
     } = {}
   ) {
-    this.startupErrorMessage =
-      String(message || "").trim() || t("player_error_playback_fallback", {}, "Playback error");
+    const diagnosticInput = this.getFailureDiagnosticInput({ mediaErrorCode, detail, error,
+      eventDetail, streamCandidate, playbackUrl, reason });
+    this.startupFailureDiagnostic = diagnosePlaybackFailure(diagnosticInput);
+    this.startupFailureExport = exportPlaybackDiagnostic(diagnosticInput);
+    // Keep explicit missing-link/resolver guidance; never append raw engine text.
+    this.startupErrorMessage = reason === "missing-url"
+      ? t("player_error_no_stream_url", {}, "No stream URL provided")
+      : this.startupFailureDiagnostic.explanation;
     this.startupErrorMediaCode = Number(mediaErrorCode || 0);
-    this.startupErrorDetails = Array.isArray(details)
-      ? details.map((line) => cleanPlaybackDiagnosticValue(line)).filter(Boolean)
-      : this.getPlaybackErrorDetailLines({
+    this.startupErrorDetails = this.getPlaybackErrorDetailLines({
           mediaErrorCode,
           detail,
           error,
@@ -6283,10 +6217,12 @@ export const PlayerScreen = {
         `
             : ""
         }
+        ${this.startupFailureDiagnostic ? `<p class="player-startup-error-next-action">${escapeHtml(this.startupFailureDiagnostic.nextAction.label)}</p>` : ""}
         <div class="player-startup-error-actions">
           <button class="player-startup-error-button focusable focused" type="button" tabindex="0" data-player-error-action="back">
             ${escapeHtml(t("player_go_back", {}, "Go Back"))}
           </button>
+          ${this.startupFailureExport ? `<a class="player-startup-error-button focusable" download="nuvio-playback-diagnostic.json" href="data:application/json;charset=utf-8,${encodeURIComponent(this.startupFailureExport)}" data-diagnostic-export>Export redacted diagnostics</a>` : ""}
           ${this.canOpenInExternalPlayer() ? `
             <button class="player-startup-error-button focusable" type="button" tabindex="0" data-player-error-action="external-player">
               Open in another player
@@ -6295,6 +6231,12 @@ export const PlayerScreen = {
         </div>
       </div>
     `;
+    const exportLink = overlay.querySelector("[data-diagnostic-export]");
+    exportLink?.addEventListener("click", event => event.stopPropagation());
+    exportLink?.addEventListener("keydown", event => {
+      event.stopPropagation();
+      if (event.key === " ") { event.preventDefault(); exportLink.click(); }
+    });
     this.uiRefs = {
       ...(this.uiRefs || {}),
       startupErrorButton: overlay.querySelector(".player-startup-error-button")

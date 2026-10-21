@@ -465,7 +465,7 @@ test("a header-restricted source reports header-required with a working return p
   const overlayBack = page.locator('[data-player-error-action="back"]');
   await expect(overlayBack).toBeVisible({ timeout: 45000 });
   await expect(page.locator(".player-startup-error-message")).toContainText(
-    "requires special request headers",
+    "declares special request headers",
   );
   await expect(page.locator(".player-startup-error-details")).toContainText(
     "Reason: header-required",
@@ -475,7 +475,8 @@ test("a header-restricted source reports header-required with a working return p
   );
   // The composed message must end exactly once, not with the old ".." append.
   const message = await page.locator(".player-startup-error-message").innerText();
-  expect(message.endsWith("contact the add-on provider.")).toBe(true);
+  expect(message.endsWith("this is not a codec or provider failure.")).toBe(true);
+  await expect(page.locator(".player-startup-error-next-action")).toContainText("own header-capable proxy");
   expect(message).not.toContain("..");
   await overlayBack.click();
   await expect

@@ -1,0 +1,42 @@
+{
+  "issue": 150,
+  "date": "2026-10-21",
+  "base": "f42ac18",
+  "layer": "injected classifier + local browser UI; historical real-provider references only",
+  "evidence": "docs/plans/issues/issue-150.md",
+  "ledger": "docs/BROWSER_LIMITATIONS.md",
+  "verification": {
+    "focused": {
+      "pass": 45,
+      "fail": 0,
+      "skip": 0
+    },
+    "localFullApplication": {
+      "pass": 1571,
+      "fail": 1,
+      "reason": "Node24 subprocess reporter differs from inherited TAP assertion; remote pinned Node22 required"
+    },
+    "browser": "affected Chromium final result in PR; initial17pass/3 stale-copy assertion failures corrected",
+    "build": "pass",
+    "lint": "pass",
+    "artifactChecks": 12,
+    "docsGovernance": 15,
+    "links": "pass",
+    "progress": "pass",
+    "whitespace": "pass"
+  },
+  "deviceResult": false,
+  "deployment": false,
+  "review": "same-agent distinct automated direct diff review; no independent human approval",
+  "limits": [
+    "same-source iPhone/laptop not reproduced",
+    "native player/audible/HDR not tested",
+    "opaque transport remains unknown",
+    "response headers unavailable without existing engine observation"
+  ],
+  "ci": {
+    "requiredContexts": 4,
+    "authority": "protected PR conversation at exact final head",
+    "webkitDashReruns": []
+  }
+}
