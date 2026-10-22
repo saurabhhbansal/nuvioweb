@@ -88,9 +88,7 @@ export const FocusEngine = {
       return;
     }
 
-    // This nonmodal browser notice owns native keyboard controls, not the
-    // underlying screen's TV navigation or Back mapping.
-    if (hasActiveModal() || event?.target?.closest?.(".browser-capability-banner")) {
+    if (hasActiveModal()) {
       return;
     }
 
@@ -141,7 +139,6 @@ export const FocusEngine = {
       this.activeKeyDownStartedAt.delete(keyIdentity);
     }
 
-    if (event?.target?.closest?.(".browser-capability-banner")) return;
     const currentScreen = Router.getCurrentScreen();
     if (!currentScreen?.onKeyUp) {
       return;

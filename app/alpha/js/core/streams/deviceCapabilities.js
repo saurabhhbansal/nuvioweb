@@ -103,14 +103,7 @@ export async function detectDeviceCapabilities(environment = browserCapabilityEn
   };
 }
 
-export function readinessVerdict(report) {
-  const baseline = report.samples.find((sample) => sample.id === "avc");
-  if (!report.features.nativeVideo) return "Native video API unavailable. Try an installed external player; if that cannot play it, use your own compute. Neither route is verified here.";
-  if (["probably", "maybe"].includes(baseline?.native)) return "Your browser predicts it can play the AVC sample. Your selected stream, audio and display still need playback verification.";
-  return "Browser playback is uncertain. Try the original stream first, then an installed external player, then your own compute if needed. These routes do not bypass source requirements.";
-}
-
-// Call ONLY for the explicit storage-purpose button, never Check or Continue.
+// Call only from an explicit user request for persistent storage.
 export async function requestPersistentSiteData(storage, { timeoutMs = 750 } = {}) {
   if (!available(storage?.persist)) return "unavailable";
   const result = await bounded(() => storage.persist(), Math.min(2000, Math.max(1, Number(timeoutMs) || 750)));

@@ -31,6 +31,11 @@ test("real worker replaces a stale cached shell and refreshes runtime config", a
   expect(await page.evaluate(async () => (await fetch("/app.bundle.js")).text())).toContain("__NUVIO_PWA_APP__=0");
   expect(await page.evaluate(async () => (await fetch("/nuvio.env.js")).text())).toContain("__NUVIO_PWA_CONFIG__=1");
   await page.evaluate(async () => (await navigator.serviceWorker.getRegistration()).update());
+  // The new build installs and then waits: the open page keeps the old one
+  // until the user taps "Reload", which posts SKIP_WAITING.
+  await expect.poll(() => page.evaluate(async () => Boolean((await navigator.serviceWorker.getRegistration()).waiting))).toBe(true);
+  expect(await page.evaluate(async () => (await fetch("/app.bundle.js")).text())).toContain("__NUVIO_PWA_APP__=0");
+  await page.evaluate(async () => (await navigator.serviceWorker.getRegistration()).waiting.postMessage({ type: "SKIP_WAITING" }));
   await expect.poll(() => page.evaluate(async () => (await caches.keys()).filter((key) => key.startsWith("nuvio-app-shell-")))).toEqual([oldCache.replace(/0$/, "1")]);
   await expect.poll(() => page.evaluate(async () => (await fetch("/app.bundle.js")).text())).toContain("__NUVIO_PWA_APP__=1");
   await page.reload();

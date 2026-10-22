@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { detectDeviceCapabilities, platformHints, readinessVerdict, requestPersistentSiteData, READINESS_SAMPLES } from "./deviceCapabilities.js";
+import { detectDeviceCapabilities, platformHints, requestPersistentSiteData, READINESS_SAMPLES } from "./deviceCapabilities.js";
 
 // Named injected API fixtures ONLY; none is an observed physical device.
 function fixture(userAgent, supported = true) {
@@ -26,14 +26,12 @@ for (const [name, ua, engine, platform] of [
   assert.equal(report.evidence, "browser-prediction");
   assert.equal(report.observedPlayback, "not-tested"); assert.equal(report.physicalHdrOutput, "unknown");
   assert.equal(report.samples[1].mediaCapabilities.videoDecoding.supported, true);
-  assert.match(readinessVerdict(report), /predicts/);
 });
 
 test("absent, rejecting, malformed and hanging APIs remain unknown, bounded and permission-free", async () => {
   const empty = await detectDeviceCapabilities({});
   assert.equal(empty.hdrDisplayQuery, "unknown");
   assert.equal(empty.samples[0].webCodecsVideo, "unknown");
-  assert.match(readinessVerdict(empty), /external player/);
   const env = fixture("Linux");
   env.navigator.mediaCapabilities.decodingInfo = () => new Promise(() => {});
   env.VideoDecoder.isConfigSupported = async () => { throw new Error("denied"); };
@@ -50,7 +48,6 @@ test("negative configuration predictions do not certify browser-wide incapabilit
   const report = await detectDeviceCapabilities(fixture("Android Chrome/156", false));
   assert.equal(report.samples[0].native, "not-reported");
   assert.equal(report.samples[0].mse, "predicted-unsupported");
-  assert.match(readinessVerdict(report), /uncertain/);
 });
 
 test("native, MSE, MMS and video/audio decoder configurations stay separate", async () => {

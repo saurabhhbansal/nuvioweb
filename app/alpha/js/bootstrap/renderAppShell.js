@@ -1,5 +1,5 @@
 import { Platform } from "../platform/index.js";
-import { mountBrowserCapabilityBanner } from "../ui/components/browserCapabilityBanner.js";
+import { installOfflineNotice } from "../ui/components/offlineNotice.js";
 
 const APP_SHELL = `
   <div id="app">
@@ -38,5 +38,5 @@ export function renderAppShell() {
     return;
   }
   document.body.insertAdjacentHTML("afterbegin", APP_SHELL);
-  if (Platform.isBrowser()) mountBrowserCapabilityBanner();
+  if (Platform.isBrowser()) installOfflineNotice();
 }

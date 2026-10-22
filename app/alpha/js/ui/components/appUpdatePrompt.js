@@ -119,3 +119,39 @@ export function showAppUpdatePrompt(update, { documentRef = globalThis.document 
   dialog.mount(documentRef.body);
   return dialog;
 }
+
+const SERVICE_WORKER_TOAST_ID = "app-sw-update-toast";
+
+/**
+ * Browser builds: a small "Update ready – Reload" toast shown when a new
+ * build has installed and is waiting. Nothing reloads until the user taps it.
+ */
+export function showServiceWorkerUpdateToast({ onReload, documentRef = globalThis.document } = {}) {
+  if (!documentRef?.body || typeof onReload !== "function") {
+    return null;
+  }
+  documentRef.getElementById(SERVICE_WORKER_TOAST_ID)?.remove();
+
+  const toast = documentRef.createElement("div");
+  toast.id = SERVICE_WORKER_TOAST_ID;
+  toast.className = "app-sw-update-toast";
+  toast.setAttribute("role", "status");
+
+  const label = documentRef.createElement("span");
+  label.className = "app-sw-update-toast-label";
+  label.textContent = t("update_ready_title", "Update ready");
+  toast.appendChild(label);
+
+  const button = documentRef.createElement("button");
+  button.type = "button";
+  button.className = "app-sw-update-toast-button";
+  button.textContent = t("update_ready_reload", "Reload");
+  button.addEventListener("click", () => {
+    button.disabled = true;
+    onReload();
+  });
+  toast.appendChild(button);
+
+  documentRef.body.appendChild(toast);
+  return toast;
+}

@@ -927,18 +927,19 @@ html.desktop-browser {
   .desktop-browser
     .home-screen-shell.desktop-navigation-enabled.home-layout-modern
     .desktop-hero-carousel-dots {
-    padding-block: 13px;
-    margin-block: -13px;
+    padding-block: 19px;
+    margin-block: -19px;
   }
 
   /* With the arrows gone a 7px dot is the only control a finger has, so it
-     gets a target around it without growing on screen. */
+     gets a 44px-tall target around it without growing on screen. Sideways the
+     targets meet halfway across the gap. */
   .desktop-browser
     .home-screen-shell.desktop-navigation-enabled.home-layout-modern
     .desktop-hero-carousel-dot::before {
     content: "";
     position: absolute;
-    inset: -13px -4px;
+    inset: -18.5px -4px;
   }
 }
 
@@ -15101,6 +15102,20 @@ body.desktop-browser {
 
 .desktop-browser .home-hero-description-toggle[hidden] {
   display: none;
+}
+
+/* The "more" label is one word of text; on touch it gets a finger-sized
+   target around it without changing how it looks. */
+@media (any-pointer: coarse) {
+  .desktop-browser .home-hero-description-toggle {
+    position: relative;
+  }
+
+  .desktop-browser .home-hero-description-toggle::before {
+    content: "";
+    position: absolute;
+    inset: -12px -10px;
+  }
 }
 
 /* The settings rail drew the same glyphs the phone does, but in a box the size
