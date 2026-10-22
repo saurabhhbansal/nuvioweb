@@ -94,7 +94,8 @@ test("guest installs and toggles a legal HTTP add-on through the real bundled se
   await page.locator('#profileSelection [data-profile-id="1"]').click();
   await expect(page.getByRole("heading",{name:"Choose a player",exact:true})).toBeVisible();
   await page.getByRole("button",{name:"Skip setup",exact:true}).click();
-  await expect(page.locator("#home")).toBeVisible();
+  // The reload comes back to Settings.
+  await expect(page.locator("#settings")).toBeVisible();
   await navigateAddonSettings(page);
   await expect(card).toBeVisible();
   await expect(card.locator('input[type="checkbox"]')).toBeChecked();

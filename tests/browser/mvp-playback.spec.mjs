@@ -82,10 +82,11 @@ test("guest installs a legal add-on, saves its item, uses player controls and re
   await page.reload();
   await page.locator('#profileSelection [data-profile-id="1"]').click();
   await page.getByRole("button", { name: "Skip setup", exact: true }).click();
+  // The reload comes back to Library, with Home behind it.
+  await expect(page.locator('#library .library-grid-card[data-item-id="fixture:original"]')).toBeVisible();
+  await page.goBack();
   await expect(page.locator("#home")).toBeVisible();
   await expect(page.locator('#home .home-poster-card[data-item-id="fixture:original"]').first()).toBeVisible();
-  await page.getByRole("button", { name: "Library", exact: true }).click();
-  await expect(page.locator('#library .library-grid-card[data-item-id="fixture:original"]')).toBeVisible();
   expect(pageErrors).toEqual([]);
   await testInfo.attach("observed-mvp-playback", { body: JSON.stringify({ browser: browser.version(), environment: "headless Chromium on Linux ARM64", media: "CC0 original VP8/Opus 640x360", pausedAt, duration, subtitleState, audioDescription, limits: "Single audio fixture; audible output and track switching unverified. Synthetic local add-on, no hosted or real identity service." }), contentType: "application/json" });
 });
