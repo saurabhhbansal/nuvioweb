@@ -32,6 +32,7 @@ import { ProfileManager } from "../../core/profile/profileManager.js";
 import { RouteStateStore } from "./routeStateStore.js";
 import { getBrowserVerticalScrollOwner } from "./browserScrollPosition.js";
 import { setBrowserRouteTitle } from "./browserDocumentTitle.js";
+import { parseRouteHash, serializeRouteHash } from "./routeUrl.js";
 import {
   canStackRouteUnderItself,
   createRouteContainer,
@@ -201,6 +202,9 @@ export const Router = {
   // The document's own scroll-lock state from before the first layer went up.
   suspendedDocumentChrome: null,
   pendingPreviousRouteBack: null,
+  // A route the page was opened on (a reload or a shared link), held until the
+  // sign-in and profile flow first reaches Home, then opened over it.
+  pendingDeepLink: null,
 
   routes: {
     home: HomeScreen,
@@ -336,6 +340,7 @@ export const Router = {
     if (this.popstateBound) {
       return;
     }
+    this.pendingDeepLink = this.readDeepLinkFromLocation();
     if (window?.history && "scrollRestoration" in window.history) {
       window.history.scrollRestoration = "manual";
     }
@@ -352,12 +357,16 @@ export const Router = {
       }
       if (Date.now() < Number(this.suppressPopstateUntil || 0)) {
         if (window?.history && typeof window.history.pushState === "function") {
-          window.history.pushState(this.createBrowserHistoryState(), "");
+          this.writeBrowserHistory("push", this.createBrowserHistoryState());
         }
         this.settlePreviousRouteBack(false);
         return;
       }
       const state = event?.state || null;
+      if (await this.openHashNavigation(state)) {
+        this.settlePreviousRouteBack(false);
+        return;
+      }
       const hasValidHistoryTarget = Boolean(state?.route && this.routes[state.route]);
       const departingBrowserHistoryIndex = this.browserHistoryIndex;
       this.browserHistoryIndex = getNuvioHistoryIndex(state);
@@ -405,7 +414,7 @@ export const Router = {
             previousIndex,
             previousRoute
           );
-          window.history.pushState(this.createBrowserHistoryState(), "");
+          this.writeBrowserHistory("push", this.createBrowserHistoryState());
         }
         this.settlePreviousRouteBack(false);
         return;
@@ -440,6 +449,83 @@ export const Router = {
       }
       this.settlePreviousRouteBack(false);
     });
+  },
+
+  // The route in the address bar, when it names a screen other than Home.
+  readDeepLinkFromLocation() {
+    if (!Platform.isBrowser()) {
+      return null;
+    }
+    const link = parseRouteHash(window?.location?.hash || "");
+    return link && link.route !== "home" && this.routes[link.route] ? link : null;
+  },
+
+  // The hash this entry should show, or null to leave the address bar as it
+  // is: a screen without a URL of its own (the player, account pages, sign-in)
+  // keeps the URL of the screen it was opened from, so reloading lands there.
+  browserRouteUrl(route, params) {
+    if (!Platform.isBrowser() || !window?.location) {
+      return null;
+    }
+    return serializeRouteHash(route, params || {});
+  },
+
+  writeBrowserHistory(method, state) {
+    const write = method === "push" ? window.history.pushState : window.history.replaceState;
+    const url = this.browserRouteUrl(state?.route, state?.params);
+    if (url) write.call(window.history, state, "", url);
+    else write.call(window.history, state, "");
+  },
+
+  // Opens a deep link once the app is ready for it, with Home written into the
+  // history entry underneath so Back from the linked screen lands on Home.
+  async openDeepLinkOverHome(link, homeParams = {}) {
+    const { forceReload: _forceReload, ...homeState } = homeParams || {};
+    const index = this.historyInitialized
+      ? Math.max(0, Number(this.browserHistoryIndex || 0))
+      : (getNuvioHistoryIndex(window?.history?.state) ?? 0);
+    this.browserHistoryIndex = index;
+    this.browserHistoryProvenance = null;
+    if (window?.history && typeof window.history.replaceState === "function") {
+      RouteStateStore.clearByHistoryEntry(index);
+      this.writeBrowserHistory("replace", this.createBrowserHistoryState("home", homeState));
+      this.historyInitialized = true;
+    }
+    await this.navigate(link.route, link.params, {
+      pushHistory: true,
+      historyPreviousRoute: "home"
+    });
+  },
+
+  // The address bar changed without a history state of ours: someone pasted or
+  // followed a link to this app while it was open. The browser has already
+  // added the entry; it is taken over for the linked screen.
+  async openHashNavigation(state) {
+    if (state?.route) {
+      return false;
+    }
+    const link = this.readDeepLinkFromLocation();
+    if (!link) {
+      return false;
+    }
+    if (!this.current || NON_BACKSTACK_ROUTES.has(this.current)) {
+      // Still signing in or choosing a profile: finish that first.
+      this.pendingDeepLink = link;
+      return true;
+    }
+    const departingIndex = Number.isInteger(this.browserHistoryIndex)
+      ? this.browserHistoryIndex
+      : 0;
+    this.browserHistoryIndex = departingIndex + 1;
+    this.browserHistoryProvenance = this.createBrowserHistoryProvenance(
+      departingIndex,
+      this.current
+    );
+    await this.navigate(link.route, link.params, {
+      replaceHistory: true,
+      captureHistoryIndex: departingIndex
+    });
+    return true;
   },
 
   suppressNextPopstate(durationMs = 700) {
@@ -872,6 +958,20 @@ export const Router = {
       return;
     }
 
+    // The first time the app reaches Home on its own (after sign-in and profile
+    // choice), a pending deep link opens instead, with Home beneath it.
+    if (
+      routeName === "home" &&
+      !fromHistory &&
+      !options?.isBackNavigation &&
+      this.pendingDeepLink
+    ) {
+      const link = this.pendingDeepLink;
+      this.pendingDeepLink = null;
+      await this.openDeepLinkOverHome(link, targetParams);
+      return;
+    }
+
     const bootGuard = globalThis.NuvioBootGuard;
     if (bootGuard && typeof bootGuard.stage === "function") {
       bootGuard.stage(`Opening ${routeName} screen`);
@@ -1029,22 +1129,22 @@ export const Router = {
         this.browserHistoryIndex = getNuvioHistoryIndex(window.history.state) ?? 0;
         this.browserHistoryProvenance = null;
         const state = this.createBrowserHistoryState();
-        window.history.replaceState(state, "");
+        this.writeBrowserHistory("replace", state);
         this.historyInitialized = true;
       } else if (!fromHistory) {
-        if (replaceHistory || NON_BACKSTACK_ROUTES.has(previousRoute)) {
+        if (!options?.pushHistory && (replaceHistory || NON_BACKSTACK_ROUTES.has(previousRoute))) {
           RouteStateStore.clearByHistoryEntry(this.browserHistoryIndex);
           const state = this.createBrowserHistoryState();
-          window.history.replaceState(state, "");
+          this.writeBrowserHistory("replace", state);
         } else {
           const previousIndex = this.browserHistoryIndex;
           this.browserHistoryIndex = Math.max(0, Number(this.browserHistoryIndex || 0)) + 1;
           this.browserHistoryProvenance = this.createBrowserHistoryProvenance(
             previousIndex,
-            previousRoute
+            options?.historyPreviousRoute || previousRoute
           );
           const state = this.createBrowserHistoryState();
-          window.history.pushState(state, "");
+          this.writeBrowserHistory("push", state);
         }
       }
     }

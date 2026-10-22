@@ -33,8 +33,9 @@ function makeContainer() {
     removeAttribute: (name) => attributes.delete(name)
   };
 }
+const testLocation = { hash: "" };
 const history = {
-  entries: [{ state: null }],
+  entries: [{ state: null, hash: "" }],
   index: 0,
   pendingTraversal: Promise.resolve(),
 
@@ -42,22 +43,35 @@ const history = {
     return this.entries[this.index]?.state ?? null;
   },
 
-  replaceState(state) {
-    this.entries[this.index] = { state };
-    historyCalls.push({ type: "replace", state });
+  replaceState(state, _title, url) {
+    if (url) testLocation.hash = url;
+    this.entries[this.index] = { state, hash: testLocation.hash };
+    historyCalls.push({ type: "replace", state, url });
   },
 
-  pushState(state) {
+  pushState(state, _title, url) {
+    if (url) testLocation.hash = url;
     this.entries.splice(this.index + 1);
-    this.entries.push({ state });
+    this.entries.push({ state, hash: testLocation.hash });
     this.index = this.entries.length - 1;
-    historyCalls.push({ type: "push", state });
+    historyCalls.push({ type: "push", state, url });
+  },
+
+  // What the browser does when the address bar's hash changes: a new entry
+  // with no state of ours, then popstate.
+  followHashLink(hash) {
+    testLocation.hash = hash;
+    this.entries.splice(this.index + 1);
+    this.entries.push({ state: null, hash });
+    this.index = this.entries.length - 1;
+    this.pendingTraversal = dispatchPopstate(null);
   },
 
   back() {
     historyCalls.push({ type: "back" });
     if (this.index === 0) return;
     this.index -= 1;
+    testLocation.hash = this.entries[this.index].hash || "";
     this.pendingTraversal = dispatchPopstate(this.state);
   },
 
@@ -65,6 +79,7 @@ const history = {
     historyCalls.push({ type: "forward" });
     if (this.index >= this.entries.length - 1) return;
     this.index += 1;
+    testLocation.hash = this.entries[this.index].hash || "";
     this.pendingTraversal = dispatchPopstate(this.state);
   },
 
@@ -73,7 +88,8 @@ const history = {
   },
 
   reset() {
-    this.entries = [{ state: null }];
+    testLocation.hash = "";
+    this.entries = [{ state: null, hash: "" }];
     this.index = 0;
     this.pendingTraversal = Promise.resolve();
   }
@@ -89,6 +105,7 @@ const testDocument = {
 };
 const testWindow = {
   history,
+  location: testLocation,
   addEventListener(type, handler) {
     const handlers = listeners.get(type) || [];
     handlers.push(handler);
@@ -289,6 +306,7 @@ function resetRouter(routes) {
   Router.suspendedRouteStack = [];
   Router.suspendedDocumentChrome = null;
   Router.pendingPreviousRouteBack = null;
+  Router.pendingDeepLink = null;
   Router.browserPullToRefreshCleanup?.();
   Router.browserPullToRefreshCleanup = null;
   RouteStateStore.clearAll();
@@ -2092,4 +2110,98 @@ test("unsolicited browser Back still dismisses player UI instead of traversing",
   await flushNavigation();
   assert.equal(player.audioDialogVisible, false);
   assert.equal(Router.getCurrent(), "player");
+});
+
+test("navigation writes hash URLs for screens that have one and keeps the URL for those that do not", async () => {
+  const home = makeScreen("home");
+  const search = makeScreen("search");
+  const detail = makeDetailScreen();
+  const stream = makeStreamScreen();
+  const player = makeScreen("player");
+  resetRouter({ home, search, detail, stream, player });
+  Router.init();
+
+  await Router.navigate("home");
+  assert.equal(testLocation.hash, "#/");
+  await Router.navigate("search", { query: "private words" });
+  assert.equal(testLocation.hash, "#/search");
+  await Router.navigate("detail", {
+    itemId: "tt0000001",
+    itemType: "movie",
+    addonBaseUrl: "https://addon.example/secret-token/manifest.json"
+  });
+  assert.equal(testLocation.hash, "#/detail/movie/tt0000001");
+  await Router.navigate("stream", { itemId: "tt0000001", itemType: "movie" });
+  assert.equal(testLocation.hash, "#/stream/movie/tt0000001");
+  await Router.navigate("player", {
+    itemId: "tt0000001",
+    itemType: "movie",
+    streamUrl: "https://media.example/video.mp4?token=abc"
+  });
+  // The player has no URL of its own: reloading it lands on the source list.
+  assert.equal(testLocation.hash, "#/stream/movie/tt0000001");
+  const urls = historyCalls.map((call) => call.url).filter(Boolean);
+  assert.ok(urls.every((url) => !/token|https?:|private/.test(url)), urls.join(" "));
+
+  history.back();
+  await history.whenSettled();
+  await flushNavigation();
+  assert.equal(Router.getCurrent(), "stream");
+  history.back();
+  await history.whenSettled();
+  await flushNavigation();
+  assert.equal(Router.getCurrent(), "detail");
+  assert.equal(testLocation.hash, "#/detail/movie/tt0000001");
+});
+
+test("a deep link waits for profile choice, then opens over Home and Back returns to Home", async () => {
+  const home = makeScreen("home");
+  const profileSelection = makeScreen("profileSelection");
+  const detail = makeDetailScreen();
+  resetRouter({ home, profileSelection, detail });
+  testLocation.hash = "#/detail/series/tt0000002";
+  Router.init();
+
+  await Router.navigate("profileSelection");
+  assert.equal(Router.getCurrent(), "profileSelection");
+  assert.equal(testLocation.hash, "#/detail/series/tt0000002");
+
+  await Router.navigate("home", { forceReload: true });
+  assert.equal(Router.getCurrent(), "detail");
+  assert.deepEqual(detail.mounts.at(-1).params, { itemId: "tt0000002", itemType: "series" });
+  assert.deepEqual(historyRoutes(), ["home", "detail"]);
+  assert.equal(history.entries[0].hash, "#/");
+  assert.equal(history.entries[0].state.params.forceReload, undefined);
+  assert.equal(Router.pendingDeepLink, null);
+  assert.equal(home.mounts.length, 0);
+
+  history.back();
+  await history.whenSettled();
+  await flushNavigation();
+  assert.equal(Router.getCurrent(), "home");
+  assert.equal(testLocation.hash, "#/");
+
+  // The link is used once; later trips Home stay Home.
+  await Router.navigate("home");
+  assert.equal(Router.getCurrent(), "home");
+});
+
+test("a link followed while the app is open opens its screen and Back returns", async () => {
+  const home = makeScreen("home");
+  const detail = makeDetailScreen();
+  resetRouter({ home, detail });
+  Router.init();
+  await Router.navigate("home");
+
+  history.followHashLink("#/detail/movie/tt0000003");
+  await history.whenSettled();
+  await flushNavigation();
+  assert.equal(Router.getCurrent(), "detail");
+  assert.equal(history.state.route, "detail");
+  assert.equal(history.state.__nuvioHistory.index, 1);
+
+  history.back();
+  await history.whenSettled();
+  await flushNavigation();
+  assert.equal(Router.getCurrent(), "home");
 });
