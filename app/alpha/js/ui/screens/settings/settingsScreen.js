@@ -68,6 +68,7 @@ import { SupabaseApi } from "../../../data/remote/supabase/supabaseApi.js";
 import { Platform } from "../../../platform/index.js";
 import {
   getBrowserExternalPlayerPlatform,
+  getBrowserExternalPlayerName,
   getBrowserExternalPlayerOptions,
   getBrowserExternalPlayerPreference,
   getBrowserExternalPlayerStoreUrl
@@ -75,7 +76,11 @@ import {
 
 function externalPlayerLabel(id) {
   if (id === "chooser") return t("external_player_android_chooser", {}, "Ask each time (Open with…)");
-  return { lenna: "Lenna", outplayer: "Outplayer", infuse: "Infuse", vlc: "VLC" }[id] || t("common.disabled", {}, "Disabled");
+  if (id === "copylink") return t("quick_setup_player_copylink", {}, "Copy the link");
+  if (id === "vlc" && getBrowserExternalPlayerPlatform() === "other") {
+    return t("quick_setup_player_vlc_desktop", {}, "VLC (playlist file)");
+  }
+  return getBrowserExternalPlayerName(id) || t("common.disabled", {}, "Disabled");
 }
 import {
   OFFLINE_PLAYBACK_TARGETS,
@@ -7447,7 +7452,7 @@ export const SettingsScreen = {
           })()
             ? (() => {
                 const player = getBrowserExternalPlayerPreference(model.player.browserExternalPlayer);
-                const playerName = externalPlayerLabel(player);
+                const playerName = getBrowserExternalPlayerName(player) || externalPlayerLabel(player);
                 return this.renderActionRow({
                   focusKey: `playback:getExternalPlayer:${player}`,
                   title: `Get ${playerName}`,

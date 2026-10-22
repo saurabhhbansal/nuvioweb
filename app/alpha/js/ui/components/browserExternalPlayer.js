@@ -17,7 +17,12 @@ const EXTERNAL_PLAYER_IDS = Object.freeze({
   OUTPLAYER: "outplayer",
   // Android only: an intent without a package, so the system "Open with" sheet
   // lists every installed video app instead of one hard-coded player.
-  CHOOSER: "chooser"
+  CHOOSER: "chooser",
+  // Desktop. VLC and mpv register no web link there, so "vlc" on a desktop
+  // means a playlist file the system opens with its default player.
+  POTPLAYER: "potplayer",
+  IINA: "iina",
+  COPY_LINK: "copylink"
 });
 
 const PLATFORM_PLAYERS = Object.freeze({
@@ -25,6 +30,66 @@ const PLATFORM_PLAYERS = Object.freeze({
   android: Object.freeze([EXTERNAL_PLAYER_IDS.CHOOSER, EXTERNAL_PLAYER_IDS.VLC]),
   other: Object.freeze([])
 });
+
+// Desktop players, by operating system. Only these open from a web link:
+// PotPlayer (potplayer://) on Windows, IINA (iina://) and Infuse (infuse://)
+// on a Mac. Everything else gets the playlist file or the copied link.
+const DESKTOP_PLAYERS = Object.freeze({
+  windows: Object.freeze([EXTERNAL_PLAYER_IDS.VLC, EXTERNAL_PLAYER_IDS.POTPLAYER, EXTERNAL_PLAYER_IDS.COPY_LINK]),
+  mac: Object.freeze([
+    EXTERNAL_PLAYER_IDS.IINA,
+    EXTERNAL_PLAYER_IDS.INFUSE,
+    EXTERNAL_PLAYER_IDS.VLC,
+    EXTERNAL_PLAYER_IDS.COPY_LINK
+  ]),
+  other: Object.freeze([EXTERNAL_PLAYER_IDS.VLC, EXTERNAL_PLAYER_IDS.COPY_LINK])
+});
+
+const DESKTOP_STORE_URLS = Object.freeze({
+  vlc: "https://www.videolan.org/vlc/",
+  iina: "https://iina.io/",
+  infuse: "https://apps.apple.com/app/infuse-video-player/id1136220934"
+});
+
+const PLAYER_NAMES = Object.freeze({
+  lenna: "Lenna",
+  outplayer: "Outplayer",
+  infuse: "Infuse",
+  vlc: "VLC",
+  potplayer: "PotPlayer",
+  iina: "IINA"
+});
+
+/** Display name of a player that has one; "" for the chooser, copy link and disabled. */
+export function getBrowserExternalPlayerName(player) {
+  return PLAYER_NAMES[normalizeBrowserExternalPlayer(player)] || "";
+}
+
+/** "windows", "mac" or "other" for a desktop browser. Only meaningful when the platform is "other". */
+export function getBrowserDesktopSystem(runtime = globalThis) {
+  const navigator = runtime?.navigator || {};
+  const platform = String(navigator.userAgentData?.platform || navigator.platform || "");
+  const userAgent = runtimeUserAgent(runtime);
+  if (/^win/i.test(platform) || /windows/i.test(userAgent)) return "windows";
+  if (/^mac/i.test(platform) || /macintosh|mac os x/i.test(userAgent)) return "mac";
+  return "other";
+}
+
+function platformPlayers(platform, runtime = globalThis) {
+  if (platform === "other") return DESKTOP_PLAYERS[getBrowserDesktopSystem(runtime)] || DESKTOP_PLAYERS.other;
+  return PLATFORM_PLAYERS[platform] || [];
+}
+
+/**
+ * Desktop players that are a browser action rather than a link: the playlist
+ * file and the copied link. The hand-off dialog performs these itself.
+ */
+export function getBrowserExternalPlayerDelivery(player, platform = getBrowserExternalPlayerPlatform()) {
+  const id = normalizeBrowserExternalPlayer(player);
+  if (id === EXTERNAL_PLAYER_IDS.COPY_LINK) return "copy";
+  if (platform === "other" && id === EXTERNAL_PLAYER_IDS.VLC) return "playlist";
+  return "launch";
+}
 
 const IOS_APP_STORE_URLS = Object.freeze({
   lenna: "https://apps.apple.com/app/lenna-video-library-player/id6502967807",
@@ -73,7 +138,7 @@ export function normalizeBrowserExternalPlayer(value) {
 
 export function getBrowserExternalPlayerOptions(runtime = globalThis) {
   const platform = getBrowserExternalPlayerPlatform(runtime);
-  return [EXTERNAL_PLAYER_IDS.DISABLED, ...(PLATFORM_PLAYERS[platform] || [])];
+  return [EXTERNAL_PLAYER_IDS.DISABLED, ...platformPlayers(platform, runtime)];
 }
 
 /**
@@ -86,16 +151,20 @@ export function getBrowserExternalPlayerOptions(runtime = globalThis) {
  * unknown id becomes disabled, so an iPhone-only choice never starts routing
  * streams out of the browser there.
  */
-export function migrateBrowserExternalPlayerPreference(value, platform = getBrowserExternalPlayerPlatform()) {
+export function migrateBrowserExternalPlayerPreference(
+  value,
+  platform = getBrowserExternalPlayerPlatform(),
+  runtime = globalThis
+) {
   const id = String(value || "").trim().toLowerCase();
   if (!id || id === EXTERNAL_PLAYER_IDS.DISABLED) return EXTERNAL_PLAYER_IDS.DISABLED;
-  if ((PLATFORM_PLAYERS[platform] || []).includes(id)) return id;
+  if (platformPlayers(platform, runtime).includes(id)) return id;
   if (platform === "ios") return EXTERNAL_PLAYER_IDS.LENNA;
   return EXTERNAL_PLAYER_IDS.DISABLED;
 }
 
 export function getBrowserExternalPlayerPreference(stored, runtime = globalThis) {
-  return migrateBrowserExternalPlayerPreference(stored, getBrowserExternalPlayerPlatform(runtime));
+  return migrateBrowserExternalPlayerPreference(stored, getBrowserExternalPlayerPlatform(runtime), runtime);
 }
 
 
@@ -183,6 +252,18 @@ export function buildAndroidIntentUrl({ mediaUrl, title = "", packageName = "", 
 }
 
 // No package: Android shows its "Open with" sheet for every installed video app.
+// PotPlayer takes the whole stream address after its scheme.
+export function buildPotPlayerLaunchUrl({ mediaUrl } = {}) {
+  if (!isTransferableExternalMediaUrl(mediaUrl)) return "";
+  // The parsed form, so PotPlayer reads the same address the check accepted.
+  return `potplayer://${new URL(mediaUrl).href}`;
+}
+
+export function buildIinaLaunchUrl({ mediaUrl } = {}) {
+  if (!isTransferableExternalMediaUrl(mediaUrl)) return "";
+  return `iina://weblink?url=${encodeURIComponent(mediaUrl)}`;
+}
+
 export function buildAndroidChooserLaunchUrl({ mediaUrl, title = "" } = {}) {
   return buildAndroidIntentUrl({ mediaUrl, title });
 }
@@ -226,6 +307,17 @@ export function buildBrowserExternalPlayerLaunch({ player, platform, mediaUrl, t
   if (platform === "ios" && selectedPlayer === EXTERNAL_PLAYER_IDS.OUTPLAYER) {
     const href = buildOutplayerLaunchUrl({ mediaUrl, externalReturnToken, externalReturnOrigin, externalReturnMethod, resumePositionSeconds, knownDurationMs });
     return href ? { href, storeUrl: IOS_APP_STORE_URLS.outplayer } : null;
+  }
+  // A desktop player only opens on the system it exists for.
+  if (platform === "other" && !platformPlayers("other").includes(selectedPlayer)) return null;
+  if (platform === "other" && selectedPlayer === EXTERNAL_PLAYER_IDS.POTPLAYER) {
+    return { href: buildPotPlayerLaunchUrl({ mediaUrl }) };
+  }
+  if (platform === "other" && selectedPlayer === EXTERNAL_PLAYER_IDS.IINA) {
+    return { href: buildIinaLaunchUrl({ mediaUrl }), storeUrl: DESKTOP_STORE_URLS.iina };
+  }
+  if (platform === "other" && selectedPlayer === EXTERNAL_PLAYER_IDS.INFUSE) {
+    return { href: buildInfuseLaunchUrl({ mediaUrl, title, subtitleUrl, resumePositionSeconds }), storeUrl: DESKTOP_STORE_URLS.infuse };
   }
   if (platform === "android" && selectedPlayer === EXTERNAL_PLAYER_IDS.VLC) {
     const href = buildAndroidVlcLaunchUrl({ mediaUrl, title });
@@ -307,6 +399,7 @@ export function getBrowserExternalPlayerStoreUrl({ player, platform } = {}) {
   const selectedPlayer = normalizeBrowserExternalPlayer(player);
   if (platform === "ios") return IOS_APP_STORE_URLS[selectedPlayer] || "";
   if (platform === "android" && selectedPlayer === EXTERNAL_PLAYER_IDS.VLC) return ANDROID_VLC_STORE_URL;
+  if (platform === "other") return DESKTOP_STORE_URLS[selectedPlayer] || "";
   return "";
 }
 

@@ -4,6 +4,8 @@ import {
   assessBrowserExternalHandoff,
   copyBrowserExternalStreamLink,
   downloadBrowserExternalPlaylist,
+  getBrowserExternalPlayerDelivery,
+  getBrowserExternalPlayerName,
   getBrowserExternalPlayerPlatform,
   getBrowserExternalPlayerStoreUrl,
   getManualBrowserExternalPlayerOptions
@@ -13,11 +15,14 @@ function t(key, params = {}, fallback = key) {
   return I18n.t(key, params, { fallback });
 }
 
-const PLAYER_NAMES = { lenna: "Lenna", outplayer: "Outplayer", infuse: "Infuse", vlc: "VLC" };
-
-function playerButtonLabel(player) {
+function playerButtonLabel(player, delivery) {
   if (player === "chooser") return t("external_player_open_with", {}, "Open with…");
-  return t("external_player_open_in", { player: PLAYER_NAMES[player] }, `Open in ${PLAYER_NAMES[player]}`);
+  if (delivery === "copy") return t("external_player_copy_link", {}, "Copy link");
+  const name = getBrowserExternalPlayerName(player);
+  if (delivery === "playlist") {
+    return t("external_player_open_playlist", { player: name }, `Open in ${name} (playlist file)`);
+  }
+  return t("external_player_open_in", { player: name }, `Open in ${name}`);
 }
 
 // One primary action per platform, everything else secondary. The chooser stays
@@ -33,9 +38,10 @@ export function showBrowserExternalPlayerDialog({
   const needsHeaders = assessment.code === "headers-required";
   const blocked = !assessment.allowed;
   const platform = getBrowserExternalPlayerPlatform();
-  const launchable = platform === "other"
-    ? []
-    : players.filter((id) => id === "chooser" || PLAYER_NAMES[id]);
+  const launchable = players.filter(
+    (id) => id === "chooser" || id === "copylink" || getBrowserExternalPlayerName(id)
+  );
+  const delivery = (player) => getBrowserExternalPlayerDelivery(player, platform);
   const previousFocus = document.activeElement;
   let status;
   const report = (text) => { if (status) status.textContent = text; };
@@ -56,7 +62,21 @@ export function showBrowserExternalPlayerDialog({
     onAction
   });
 
-  const launchButtons = launchable.map((player, index) => action(playerButtonLabel(player), index === 0, () => {
+  const downloadPlaylist = () => {
+    const context = currentContext();
+    if (context) report(downloadBrowserExternalPlaylist(context)
+      ? t("external_player_download_done", {}, "Playlist downloaded. It contains the stream link; delete it when done.")
+      : t("external_player_download_failed", {}, "Could not download the playlist. Copy the link instead."));
+  };
+  const copyLink = async () => {
+    const context = currentContext();
+    if (context) report(await copyBrowserExternalStreamLink(context)
+      ? t("external_player_copy_done", {}, "Link copied. Paste it into your player's network stream option.")
+      : t("external_player_copy_failed", {}, "Could not copy the link. Clipboard access may be blocked."));
+  };
+  const launchButtons = launchable.map((player, index) => action(playerButtonLabel(player, delivery(player)), index === 0, () => {
+    if (delivery(player) === "playlist") return downloadPlaylist();
+    if (delivery(player) === "copy") return copyLink();
     const context = currentContext();
     if (!context) return;
     let requested = false;
@@ -65,19 +85,11 @@ export function showBrowserExternalPlayerDialog({
       ? t("external_player_open_requested", {}, "Opening… If nothing opened, install the app or copy the link.")
       : t("external_player_open_failed", {}, "Could not open the player. Copy the link instead."));
   }));
-  const downloadButton = platform === "other" ? [action(t("external_player_download_m3u", {}, "Download .m3u"), true, () => {
-    const context = currentContext();
-    if (context) report(downloadBrowserExternalPlaylist(context)
-      ? t("external_player_download_done", {}, "Playlist downloaded. It contains the stream link; delete it when done.")
-      : t("external_player_download_failed", {}, "Could not download the playlist. Copy the link instead."));
-  })] : [];
-  const copyButton = action(t("external_player_copy_link", {}, "Copy link"), false, async () => {
-    const context = currentContext();
-    if (context) report(await copyBrowserExternalStreamLink(context)
-      ? t("external_player_copy_done", {}, "Link copied. Paste it into your player's network stream option.")
-      : t("external_player_copy_failed", {}, "Could not copy the link. Clipboard access may be blocked."));
-  });
-  const buttons = [...launchButtons, ...downloadButton, copyButton];
+  // Copy link is always on offer, as its own choice or as the last resort.
+  const copyButton = launchable.includes("copylink")
+    ? []
+    : [action(t("external_player_copy_link", {}, "Copy link"), launchButtons.length === 0, copyLink)];
+  const buttons = [...launchButtons, ...copyButton];
 
   let dialog;
   let dismissed = false;
@@ -94,8 +106,8 @@ export function showBrowserExternalPlayerDialog({
   });
   dialog = new NuvioDialog({
     title: t("external_player_title", {}, "Open in another player"),
-    subtitle: platform === "other" && !blocked
-      ? t("external_player_desktop_hint", {}, "Open the .m3u with VLC or mpv")
+    subtitle: !blocked && launchable.some((player) => delivery(player) === "playlist")
+      ? t("external_player_desktop_hint", {}, "The playlist file opens in VLC, or whichever player opens .m3u files")
       : "",
     panelClassName: "desktop-external-player-dialog external-handoff-dialog",
     actionsClassName: "desktop-external-player-actions",
@@ -125,7 +137,8 @@ export function showBrowserExternalPlayerDialog({
           link.href = href;
           link.target = "_blank";
           link.rel = "noopener noreferrer";
-          link.textContent = t("external_player_get", { player: PLAYER_NAMES[player] }, `Get ${PLAYER_NAMES[player]}`);
+          const name = getBrowserExternalPlayerName(player);
+          link.textContent = t("external_player_get", { player: name }, `Get ${name}`);
           row.appendChild(link);
         });
         content.appendChild(row);
