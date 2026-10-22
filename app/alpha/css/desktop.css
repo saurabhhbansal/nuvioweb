@@ -1762,6 +1762,40 @@ html.desktop-browser {
   opacity: 0.58;
 }
 
+.desktop-browser #account .desktop-auth-signup {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  text-align: center;
+}
+
+.desktop-browser #account .desktop-auth-signup-prompt,
+.desktop-browser #account .desktop-auth-signup-hint {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.72);
+  font: 400 13px/1.4 inherit;
+}
+
+.desktop-browser #account .desktop-auth-signup-link {
+  display: inline-block;
+  margin: 10px 0 8px;
+  padding: 8px 20px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 999px;
+  color: #fff;
+  font: 600 14px/1.35 inherit;
+  text-decoration: none;
+}
+
+.desktop-browser #account .desktop-auth-signup-link:hover {
+  border-color: #fff;
+}
+
+.desktop-browser #account .desktop-auth-signup-link:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
 .desktop-browser #account .desktop-auth-guest {
   width: 100%;
   margin-top: 12px;
