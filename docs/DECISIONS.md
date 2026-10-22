@@ -1,6 +1,6 @@
 # Decisions
 
-Updated 2026-10-21. Only decisions still in force are listed. Older records are in [docs/archive](archive/).
+Updated 2026-10-22. Only decisions still in force are listed. Older records are in [docs/archive](archive/).
 
 | ID | Decision | Why |
 | --- | --- | --- |
@@ -17,6 +17,8 @@ Updated 2026-10-21. Only decisions still in force are listed. Older records are 
 | ADR-017 | Neutral client (2026-10-21) | Like Stremio, the repo never ships or names third-party scraper providers. Users install their own sources |
 | ADR-018 | Evidence is green CI plus a short PR note (2026-10-21) | No evidence or receipt files in the repo |
 | ADR-019 | Bring your own proxy (2026-10-22) | The project runs no shared, public or donor proxy. Users may set their own proxy URL for plugins. See [PLUGIN_PROXY_DECISION](PLUGIN_PROXY_DECISION.md) |
+| ADR-020 | No error reporting or telemetry (2026-10-22) | Users report problems as GitHub issues. A source that fails to play offers "Export redacted diagnostics" (no URLs or tokens) to attach. No third-party error service and no opt-in collection |
+| ADR-021 | Production is a separate Cloudflare Pages project, `nuvioweb`, on a custom domain (2026-10-22) | `nuvioweb-preview` stays for testing. Production deploys only tagged releases by hand. The owner is never a visible operator: no names or personal details in the site, docs or domain setup, and WHOIS privacy on the domain. See [DEPLOY_PRODUCTION](DEPLOY_PRODUCTION.md) |
 
 ## Notes
 
