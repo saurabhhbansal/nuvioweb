@@ -65,11 +65,12 @@ test("header diagnosis coexists with the real blocked-handoff dialog and export 
   const dialog = page.getByRole("dialog");
   await expect(dialog).toBeVisible();
   await expect(dialog.getByRole("status")).toContainText("requires request headers");
-  // Explanation only: URL-only launch/copy/download must remain unavailable.
-  await expect(dialog.getByRole("button")).toHaveCount(1);
+  // URL-only launch/copy/download stay visible but disabled.
+  await expect(dialog).toContainText("Needs headers");
+  await expect(dialog.locator("button:not([disabled])")).toHaveCount(1);
   await expect(overlay).toContainText("Reason: header-required");
   await expect(exported).toHaveCount(1);
-  await dialog.getByRole("button", { name: "Cancel / stay in Nuvio", exact: true }).click();
+  await dialog.getByRole("button", { name: "Cancel", exact: true }).click();
   await expect(dialog).toHaveCount(0);
   await expect(overlay).toHaveAttribute("aria-hidden", "false");
   await external.focus();

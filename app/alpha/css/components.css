@@ -21153,6 +21153,26 @@ html[data-card-depth="true"][data-card-depth-trailers="true"] .detail-trailer-ca
 .external-handoff-installs { display: flex; flex-wrap: wrap; gap: 16px; }
 .external-handoff-installs a { color: var(--color-text-primary, #fff); text-decoration: underline; }
 .external-handoff-installs a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+.external-handoff-badge {
+  display: inline-block;
+  margin: 0 0 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(255, 196, 0, 0.18);
+  color: #ffd45c;
+  font-size: 13px;
+  font-weight: 600;
+}
+.desktop-external-player-actions .nuvio-dialog-button.external-handoff-primary {
+  background: #fff;
+  border-color: #fff;
+  color: #111;
+  font-weight: 600;
+}
+.desktop-external-player-actions .nuvio-dialog-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
 
 /* Compact external-player return dialogs must also be styled in installed PWAs,
    where the desktop-browser selector is intentionally absent. */

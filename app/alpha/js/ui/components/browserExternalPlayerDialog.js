@@ -1,4 +1,5 @@
 import { NuvioDialog } from "./nuvioDialog.js";
+import { I18n } from "../../i18n/index.js";
 import {
   assessBrowserExternalHandoff,
   copyBrowserExternalStreamLink,
@@ -8,10 +9,19 @@ import {
   getManualBrowserExternalPlayerOptions
 } from "./browserExternalPlayer.js";
 
-const PLAYER_NAMES = { infuse: "Infuse (8.4.7+)", vlc: "VLC" };
+function t(key, params = {}, fallback = key) {
+  return I18n.t(key, params, { fallback });
+}
 
-// Deliberately keep the chooser after delivery: a browser cannot detect whether
-// the app exists, opened, fetched the URL, or actually played it.
+const PLAYER_NAMES = { lenna: "Lenna", outplayer: "Outplayer", infuse: "Infuse", vlc: "VLC" };
+
+function playerButtonLabel(player) {
+  if (player === "chooser") return t("external_player_open_with", {}, "Open with…");
+  return t("external_player_open_in", { player: PLAYER_NAMES[player] }, `Open in ${PLAYER_NAMES[player]}`);
+}
+
+// One primary action per platform, everything else secondary. The chooser stays
+// open after delivery: a browser cannot tell whether the app opened or played.
 export function showBrowserExternalPlayerDialog({
   getContext,
   onLaunch,
@@ -20,52 +30,55 @@ export function showBrowserExternalPlayerDialog({
 }) {
   const initial = getContext();
   const assessment = assessBrowserExternalHandoff(initial || {});
+  const needsHeaders = assessment.code === "headers-required";
+  const blocked = !assessment.allowed;
   const platform = getBrowserExternalPlayerPlatform();
+  const launchable = platform === "other"
+    ? []
+    : players.filter((id) => id === "chooser" || PLAYER_NAMES[id]);
   const previousFocus = document.activeElement;
   let status;
   const report = (text) => { if (status) status.textContent = text; };
   const currentContext = () => {
     const current = getContext();
     if (!current || current.mediaUrl !== initial?.mediaUrl || current.subtitleUrl !== initial?.subtitleUrl) {
-      report("The selected stream changed. Cancel and open this menu again.");
+      report(t("external_player_stream_changed", {}, "The selected stream changed. Close this and open it again."));
       return null;
     }
     const check = assessBrowserExternalHandoff(current);
-    if (!check.allowed) { report(check.reason); return null; }
+    if (!check.allowed) { report(blockedMessage(check)); return null; }
     return current;
   };
-  const action = (label, onAction) => ({ label, className: "desktop-external-player-choice", onAction });
-  const buttons = assessment.allowed ? [
-    ...players.filter((id) => PLAYER_NAMES[id]).map((player) => action(`Open in ${PLAYER_NAMES[player]}`, () => {
-      const context = currentContext();
-      if (!context) return;
-      try {
-        const requested = onLaunch?.(player, context) === true;
-        report(requested
-          ? "Open requested, not confirmed playback. If nothing opened, use Player setup or copy the link. Return to this tab manually; progress is not automatic."
-          : "Could not request opening the player. Use Player setup or copy the link; you can stay in Nuvio.");
-      } catch (_) {
-        report("Could not request opening the player. Use Player setup or copy the link.");
-      }
-    })),
-    ...(platform === "other" ? [action("Download .m3u playlist", () => {
-      const context = currentContext();
-      if (context) report(downloadBrowserExternalPlaylist(context)
-        ? "Playlist download requested. Open it in an installed player such as VLC. This does not confirm playback; progress stays manual. Delete the file when finished: it contains the full stream URL."
-        : "Could not download the playlist. Try Copy stream link instead.");
-    })] : []),
-    action("Copy stream link", async () => {
-      const context = currentContext();
-      if (context) report(await copyBrowserExternalStreamLink(context)
-        ? "Stream link copied. Paste it into your installed player's Open network stream control. Clear the clipboard when finished. Playback and progress are not confirmed."
-        : "Could not copy the stream link. Clipboard access may be unavailable or denied.");
-    }),
-    action("Player setup / nothing opened?", () => {
-      report(platform === "other"
-        ? "Install a player such as VLC, then open the downloaded .m3u file or paste the link into Open network stream. No protocol handler is assumed. Return here manually to continue in Nuvio."
-        : "Install your chosen app using its link below, then retry Open. Your browser may ask permission or report a missing app. No app is detected automatically. Return here manually to continue in Nuvio.");
-    })
-  ] : [];
+  const action = (label, primary, onAction) => ({
+    label,
+    disabled: blocked,
+    className: `desktop-external-player-choice ${primary ? "external-handoff-primary" : "external-handoff-secondary"}`,
+    onAction
+  });
+
+  const launchButtons = launchable.map((player, index) => action(playerButtonLabel(player), index === 0, () => {
+    const context = currentContext();
+    if (!context) return;
+    let requested = false;
+    try { requested = onLaunch?.(player, context) === true; } catch (_) { requested = false; }
+    report(requested
+      ? t("external_player_open_requested", {}, "Opening… If nothing opened, install the app or copy the link.")
+      : t("external_player_open_failed", {}, "Could not open the player. Copy the link instead."));
+  }));
+  const downloadButton = platform === "other" ? [action(t("external_player_download_m3u", {}, "Download .m3u"), true, () => {
+    const context = currentContext();
+    if (context) report(downloadBrowserExternalPlaylist(context)
+      ? t("external_player_download_done", {}, "Playlist downloaded. It contains the stream link; delete it when done.")
+      : t("external_player_download_failed", {}, "Could not download the playlist. Copy the link instead."));
+  })] : [];
+  const copyButton = action(t("external_player_copy_link", {}, "Copy link"), false, async () => {
+    const context = currentContext();
+    if (context) report(await copyBrowserExternalStreamLink(context)
+      ? t("external_player_copy_done", {}, "Link copied. Paste it into your player's network stream option.")
+      : t("external_player_copy_failed", {}, "Could not copy the link. Clipboard access may be blocked."));
+  });
+  const buttons = [...launchButtons, ...downloadButton, copyButton];
+
   let dialog;
   let dismissed = false;
   const finish = () => {
@@ -75,45 +88,47 @@ export function showBrowserExternalPlayerDialog({
     onDismiss?.();
   };
   buttons.push({
-    label: "Cancel / stay in Nuvio",
+    label: t("common.cancel", {}, "Cancel"),
     className: "desktop-external-player-cancel",
     onAction: () => dialog.destroy({ afterExit: finish })
   });
   dialog = new NuvioDialog({
-    title: "Open in another player",
-    subtitle: assessment.allowed
-      ? "A native player may handle formats this browser cannot. Install it first; 4K, Dolby Vision and Atmos depend on the app, device and output."
-      : "This source cannot use the URL-only hand-off.",
+    title: t("external_player_title", {}, "Open in another player"),
+    subtitle: platform === "other" && !blocked
+      ? t("external_player_desktop_hint", {}, "Open the .m3u with VLC or mpv")
+      : "",
     panelClassName: "desktop-external-player-dialog external-handoff-dialog",
     actionsClassName: "desktop-external-player-actions",
     content: () => {
       const content = document.createElement("div");
       content.className = "external-handoff-details";
+      if (needsHeaders) {
+        const badge = document.createElement("span");
+        badge.className = "external-handoff-badge";
+        badge.textContent = t("external_player_needs_headers", {}, "Needs headers");
+        content.appendChild(badge);
+      }
       status = document.createElement("p");
       status.setAttribute("role", "status");
-      status.textContent = assessment.allowed
-        ? "The player, clipboard or playlist receives the full stream URL, which may grant provider access. Browser cookies and request headers are not transferred. Return to this tab manually; progress is not automatic."
-        : assessment.reason;
+      status.textContent = blocked
+        ? blockedMessage(assessment)
+        : t("external_player_link_only", {}, "Only the stream link is sent. Return here when you're done.");
       content.appendChild(status);
-      if (assessment.allowed) {
-        const limits = document.createElement("p");
-        limits.textContent = platform === "ios"
-          ? "VLC is free; Infuse may require Pro. Infuse can receive subtitle/resume details; VLC and copy carry only the video URL."
-          : "Video URL only: subtitles and resume are not transferred. Install a player such as the free VLC app.";
-        content.appendChild(limits);
-      }
-      if (assessment.allowed && players.length) {
-        const installs = document.createElement("p");
-        installs.className = "external-handoff-installs";
-        players.filter((id) => PLAYER_NAMES[id]).forEach((player) => {
+      const installs = blocked ? [] : launchable
+        .map((player) => ({ player, href: getBrowserExternalPlayerStoreUrl({ player, platform }) }))
+        .filter((entry) => entry.href);
+      if (installs.length) {
+        const row = document.createElement("p");
+        row.className = "external-handoff-installs";
+        installs.forEach(({ player, href }) => {
           const link = document.createElement("a");
-          link.href = getBrowserExternalPlayerStoreUrl({ player, platform });
+          link.href = href;
           link.target = "_blank";
           link.rel = "noopener noreferrer";
-          link.textContent = `Get ${PLAYER_NAMES[player]}`;
-          installs.appendChild(link);
+          link.textContent = t("external_player_get", { player: PLAYER_NAMES[player] }, `Get ${PLAYER_NAMES[player]}`);
+          row.appendChild(link);
         });
-        content.appendChild(installs);
+        content.appendChild(row);
       }
       return content;
     },
@@ -121,4 +136,10 @@ export function showBrowserExternalPlayerDialog({
     onDismiss: finish
   }).mount(document.body);
   return dialog;
+}
+
+function blockedMessage(assessment) {
+  return assessment.code === "headers-required"
+    ? t("external_player_headers_blocked", {}, "This source requires request headers, which external players can't receive. Pick another source.")
+    : t("external_player_invalid_url", {}, "This link can't be opened outside the browser. Pick another source.");
 }

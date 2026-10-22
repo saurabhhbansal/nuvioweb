@@ -171,8 +171,12 @@ export class NuvioDialog {
         const accessibleLabel = btn.ariaLabel || btn.label;
         if (accessibleLabel) el.setAttribute("aria-label", accessibleLabel);
         if (btn.title || btn.label) el.title = btn.title || btn.label;
+        if (btn.disabled) {
+          el.disabled = true;
+          el.setAttribute("aria-disabled", "true");
+        }
         el.addEventListener("click", () => {
-          if (btn.onAction) btn.onAction();
+          if (!btn.disabled && btn.onAction) btn.onAction();
         });
         actions.appendChild(el);
         this._buttonEls.push(el);
@@ -250,9 +254,21 @@ export class NuvioDialog {
     }
   }
 
-  _focusIndex(i) {
+  _focusIndex(i, direction = 1) {
     if (this._buttonEls.length === 0) return;
-    const clamped = Math.max(0, Math.min(i, this._buttonEls.length - 1));
+    let clamped = Math.max(0, Math.min(i, this._buttonEls.length - 1));
+    // Disabled buttons stay visible but are skipped by remote/arrow focus.
+    while (this.buttons[clamped]?.disabled) {
+      const next = clamped + direction;
+      if (next < 0 || next >= this._buttonEls.length) {
+        if (this._focusedIndex != null && !this.buttons[this._focusedIndex]?.disabled) return;
+        const firstEnabled = this.buttons.findIndex((btn) => !btn?.disabled);
+        if (firstEnabled < 0) return;
+        clamped = firstEnabled;
+        break;
+      }
+      clamped = next;
+    }
     this._focusedIndex = clamped;
     this._buttonEls.forEach((el, idx) => {
       el.classList.toggle("focused", idx === clamped);
@@ -309,7 +325,7 @@ export class NuvioDialog {
       }
       e.preventDefault();
       e.stopPropagation();
-      this._focusIndex(this._focusedIndex - 1);
+      this._focusIndex(this._focusedIndex - 1, -1);
       return;
     }
 
@@ -320,7 +336,7 @@ export class NuvioDialog {
         return;
       }
       const btn = this.buttons[this._focusedIndex];
-      if (btn?.onAction) btn.onAction();
+      if (!btn?.disabled && btn?.onAction) btn.onAction();
       return;
     }
   }

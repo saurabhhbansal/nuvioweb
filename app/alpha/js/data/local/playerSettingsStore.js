@@ -65,9 +65,9 @@ const DEFAULTS = {
   streamReuseLastLinkEnabled: false,
   streamReuseLastLinkCacheHours: 24,
   streamAutoPlayTimeoutSeconds: 3,
-  // Apple browser users without a stored preference receive the verified
-  // Lenna path; platform-specific consumers keep Android on its own options.
-  browserExternalPlayer: "lenna",
+  // Playback stays in the browser until someone picks a player (Settings or
+  // Quick setup). Lenna is recommended there on iPhone, not assumed here.
+  browserExternalPlayer: "disabled",
   externalPlayerProgress: "automatic",
   // A downloaded file can be played in Nuvio or handed to another app, and the
   // handoff costs a second copy of the file, so the choice is never assumed.
@@ -166,7 +166,7 @@ function normalizeNextEpisodeThresholdMode(value) {
 
 function normalizeBrowserExternalPlayer(value) {
   const normalized = String(value || "").trim().toLowerCase();
-  return ["disabled", "outplayer", "lenna", "infuse", "vlc"].includes(normalized) ? normalized : "disabled";
+  return ["disabled", "outplayer", "lenna", "infuse", "vlc", "chooser"].includes(normalized) ? normalized : "disabled";
 }
 
 function normalizeExternalPlayerProgress(value) {

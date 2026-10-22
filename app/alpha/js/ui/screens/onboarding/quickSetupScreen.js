@@ -23,6 +23,7 @@ import {
   getBrowserExternalPlayerOptions,
   getBrowserExternalPlayerPlatform,
   getBrowserExternalPlayerStoreUrl,
+  migrateBrowserExternalPlayerPreference,
   normalizeBrowserExternalPlayer
 } from "../../components/browserExternalPlayer.js";
 import {
@@ -59,6 +60,7 @@ const PLAYER_LABELS = {
 };
 
 function playerLabel(id) {
+  if (id === "chooser") return t("external_player_android_chooser", {}, "Ask each time (Open with…)");
   return PLAYER_LABELS[id] || t("quick_setup_player_builtin", {}, "Nuvio's own player");
 }
 
@@ -85,10 +87,10 @@ export const QuickSetupScreen = {
     const settings = PlayerSettingsStore.get();
     this.platform = getBrowserExternalPlayerPlatform();
     const offered = getBrowserExternalPlayerOptions();
-    const stored = normalizeBrowserExternalPlayer(settings.browserExternalPlayer);
-    // The stored player may be one this platform cannot offer -- the default is
-    // Lenna, which exists on iOS and nowhere else -- and a choice nobody can see
-    // would leave the step looking like nothing is chosen.
+    // The stored player may be one this platform cannot offer (an iPhone app
+    // saved on another device), and a choice nobody can see would leave the
+    // step looking like nothing is chosen.
+    const stored = migrateBrowserExternalPlayerPreference(settings.browserExternalPlayer, this.platform);
     this.player = offered.includes(stored) ? stored : offered[0] || "disabled";
     this.progressMode = settings.externalPlayerProgress === "manual" ? "manual" : "automatic";
     this.offlineSync = settings.syncOfflineProgress === true;
@@ -220,7 +222,7 @@ export const QuickSetupScreen = {
                     aria-pressed="${selected ? "true" : "false"}">
               <span class="quick-setup-option-label">${escapeHtml(playerLabel(id))}</span>
               ${
-                id === "lenna"
+                id === "lenna" || id === "chooser"
                   ? `<span class="quick-setup-badge">${escapeHtml(t("quick_setup_player_recommended", {}, "Recommended"))}</span>`
                   : ""
               }

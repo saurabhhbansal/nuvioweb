@@ -29,8 +29,10 @@ test("bundled desktop player offers explicit playlist/copy, responsive explanati
   await page.mouse.move(640, 700);
   await page.getByRole("button", { name: "Open in another player", exact: true }).click();
   const dialog = page.getByRole("dialog");
-  await expect(dialog).toContainText("Browser cookies and request headers are not transferred");
-  await expect(dialog.getByRole("button", { name: /^Open in / })).toHaveCount(0);
+  await expect(dialog).toContainText("Only the stream link is sent");
+  await expect(dialog).toContainText("Open the .m3u with VLC or mpv");
+  await expect(dialog.getByRole("button", { name: /^Open (in|with)/ })).toHaveCount(0);
+  await expect(dialog.locator(".external-handoff-primary")).toHaveText("Download .m3u");
   for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 }]) {
     await page.setViewportSize(viewport);
     const metrics = await dialog.locator(".external-handoff-dialog").evaluate((node) => ({
@@ -45,23 +47,21 @@ test("bundled desktop player offers explicit playlist/copy, responsive explanati
   }
   const [download] = await Promise.all([
     page.waitForEvent("download"),
-    dialog.getByRole("button", { name: "Download .m3u playlist", exact: true }).click()
+    dialog.getByRole("button", { name: "Download .m3u", exact: true }).click()
   ]);
   expect(download.suggestedFilename()).toBe("nuvio-stream.m3u");
   const playlist = await readFile(await download.path(), "utf8");
   const playingUrl = await page.locator("video").evaluate((video) => video.currentSrc);
   expect(playingUrl).toBe(`${provider}/media/procedural-vp8-opus.webm`);
   expect(playlist).toBe(`#EXTM3U\n${playingUrl}\n`);
-  await expect(dialog.getByRole("status")).toContainText("does not confirm playback");
-  await dialog.getByRole("button", { name: "Player setup / nothing opened?", exact: true }).click();
-  await expect(dialog.getByRole("status")).toContainText("No protocol handler is assumed");
-  await dialog.getByRole("button", { name: "Cancel / stay in Nuvio", exact: true }).click();
+  await expect(dialog.getByRole("status")).toContainText("Playlist downloaded");
+  await dialog.getByRole("button", { name: "Cancel", exact: true }).click();
   await expect(dialog).toHaveCount(0);
   await expect(page.locator("#player")).toBeVisible();
   expect(sidecars).toEqual([]);
 });
 
-test("bundled iPhone touch More panel opens VLC chooser instead of consuming a video gesture", async ({ browser }) => {
+test("bundled iPhone touch More panel opens the iPhone player chooser instead of consuming a video gesture", async ({ browser }) => {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1" });
   try {
     await context.route("**/*", route => ["http://127.0.0.1:4371", provider].includes(new URL(route.request().url()).origin) ? route.continue() : route.abort());
@@ -76,8 +76,11 @@ test("bundled iPhone touch More panel opens VLC chooser instead of consuming a v
     await page.locator('[data-action="more"]').tap();
     await page.getByRole("button", { name: "Open in another player", exact: true }).tap();
     const dialog = page.getByRole("dialog");
-    await expect(dialog.getByRole("button", { name: "Open in VLC", exact: true })).toBeVisible();
-    await dialog.getByRole("button", { name: "Cancel / stay in Nuvio", exact: true }).tap();
+    await expect(dialog.locator(".external-handoff-primary")).toHaveText("Open in Lenna");
+    for (const name of ["Open in Outplayer", "Open in Infuse", "Open in VLC", "Copy link"]) {
+      await expect(dialog.getByRole("button", { name, exact: true })).toBeVisible();
+    }
+    await dialog.getByRole("button", { name: "Cancel", exact: true }).tap();
     await expect(dialog).toHaveCount(0);
     expect(await page.evaluate(() => localStorage.getItem("nuvioExternalPlaybackHandoff"))).toBeNull();
   } finally { await context.close(); }
@@ -108,9 +111,10 @@ for (const scenario of ["basic", "startup-header-required"]) {
     const dialog = page.getByRole("dialog");
     if (scenario === "startup-header-required") {
       await expect(dialog.getByRole("status")).toContainText("requires request headers");
-      await expect(dialog.getByRole("button")).toHaveCount(1);
-    } else await expect(dialog.getByRole("button", { name: "Download .m3u playlist", exact: true })).toBeVisible();
-    await dialog.getByRole("button", { name: "Cancel / stay in Nuvio", exact: true }).click();
+      await expect(dialog).toContainText("Needs headers");
+      await expect(dialog.locator("button:not([disabled])")).toHaveCount(1);
+    } else await expect(dialog.getByRole("button", { name: "Download .m3u", exact: true })).toBeVisible();
+    await dialog.getByRole("button", { name: "Cancel", exact: true }).click();
     await expect(dialog).toHaveCount(0);
     await expect(overlay).toHaveAttribute("aria-hidden", "false");
     await overlay.getByRole("button", { name: "Go Back", exact: true }).click();
@@ -141,7 +145,11 @@ for (const location of ["source", "subtitle"]) {
     const dialog = page.getByRole("dialog");
     await expect(dialog.getByRole("status")).toContainText("requires request headers");
     await expect(dialog).not.toContainText("DISPOSABLE-SECRET");
-    await expect(dialog.getByRole("button")).toHaveCount(1);
+    await expect(dialog).toContainText("Needs headers");
+    for (const name of ["Download .m3u", "Copy link"]) {
+      await expect(dialog.getByRole("button", { name, exact: true })).toBeDisabled();
+    }
+    await expect(dialog.locator("button:not([disabled])")).toHaveCount(1);
     await page.keyboard.press("Escape");
     await expect(dialog).toHaveCount(0);
     expect(await page.evaluate(() => localStorage.getItem("nuvioExternalPlaybackHandoff"))).toBeNull();
@@ -155,10 +163,10 @@ test("chooser rechecks changed sources and reports actual clipboard denial", asy
     document.execCommand = () => false;
   });
   const dialog = page.getByRole("dialog");
-  await dialog.getByRole("button", { name: "Copy stream link", exact: true }).click();
+  await dialog.getByRole("button", { name: "Copy link", exact: true }).click();
   await expect(dialog.getByRole("status")).toContainText("Could not copy");
   await page.evaluate(() => { globalThis.__handoffScreen.activePlaybackUrl = "https://media.fixture.invalid/changed.mkv"; });
-  await dialog.getByRole("button", { name: "Download .m3u playlist", exact: true }).click();
+  await dialog.getByRole("button", { name: "Download .m3u", exact: true }).click();
   await expect(dialog.getByRole("status")).toContainText("selected stream changed");
 });
 
@@ -183,10 +191,11 @@ for (const platform of ["ios", "android"]) {
       }, { sourceRoot, mediaUrl });
       expect(routed).toBe(true);
       const dialog = page.getByRole("dialog");
-      await expect(dialog.getByRole("button", { name: "Open in VLC", exact: true })).toBeVisible();
-      await expect(dialog.getByRole("button", { name: /Lenna|Outplayer|nPlayer/ })).toHaveCount(0);
+      // The saved player is the primary action; the platform's others stay secondary.
+      await expect(dialog.locator(".external-handoff-primary")).toHaveText("Open in VLC");
+      await expect(dialog.getByRole("button", { name: platform === "ios" ? "Open in Lenna" : "Open with…", exact: true })).toBeVisible();
       expect(await page.evaluate(() => localStorage.getItem("nuvioExternalPlaybackHandoff"))).toBeNull();
-      await dialog.getByRole("button", { name: "Cancel / stay in Nuvio", exact: true }).click();
+      await dialog.getByRole("button", { name: "Cancel", exact: true }).click();
       await expect(dialog).toHaveCount(0);
       expect(await page.evaluate(() => localStorage.getItem("nuvioExternalPlaybackHandoff"))).toBeNull();
       // Builder + chooser capture only. Deliberately avoid claiming an installed
@@ -206,9 +215,13 @@ for (const platform of ["ios", "android"]) {
       expect(captured.gesture).toBe(true);
       if (platform === "ios") expect(new URL(captured.href).searchParams.get("url")).toBe(mediaUrl);
       else expect(captured.href).toContain("package=org.videolan.vlc;action=android.intent.action.VIEW;");
-      await expect(dialog.getByRole("status")).toContainText("not confirmed playback");
-      await dialog.getByRole("button", { name: "Player setup / nothing opened?", exact: true }).click();
-      await expect(dialog.getByRole("status")).toContainText("No app is detected automatically");
+      await expect(dialog.getByRole("status")).toContainText("If nothing opened");
+      if (platform === "android") {
+        await expect(dialog.locator(".external-handoff-primary")).toHaveText("Open with…");
+        await dialog.getByRole("button", { name: "Open with…", exact: true }).click();
+        const chooser = await page.evaluate(() => globalThis.__capturedLaunch);
+        expect(chooser.href).toMatch(/^intent:\/\/media\.fixture\.invalid:8443\/original\.mkv\?signature=disposable%2Fcanary&part=2#Intent;scheme=https;action=android\.intent\.action\.VIEW;type=video\/\*;end$/);
+      }
       await page.keyboard.press("Escape");
       await expect(dialog).toHaveCount(0);
     });

@@ -2971,4 +2971,23 @@
     <string name="sidecar_trakt_unavailable">Trakt sign-in and refresh are unavailable on this site. Continue without Trakt, or use a site with a configured Trakt integration.</string>
     <string name="sidecar_debrid_unavailable">TorBox playback and TorBox/Premiumize sign-in are unavailable on this site. Choose a direct compatible add-on source.</string>
     <string name="sidecar_site_unavailable">Unavailable on this site</string>
+    <string name="external_player_title">Open in another player</string>
+    <string name="external_player_open_with">Open with…</string>
+    <string name="external_player_open_in">Open in %1$s</string>
+    <string name="external_player_get">Get %1$s</string>
+    <string name="external_player_android_chooser">Ask each time (Open with…)</string>
+    <string name="external_player_download_m3u">Download .m3u</string>
+    <string name="external_player_copy_link">Copy link</string>
+    <string name="external_player_desktop_hint">Open the .m3u with VLC or mpv</string>
+    <string name="external_player_needs_headers">Needs headers</string>
+    <string name="external_player_link_only">Only the stream link is sent. Return here when you're done.</string>
+    <string name="external_player_open_requested">Opening… If nothing opened, install the app or copy the link.</string>
+    <string name="external_player_open_failed">Could not open the player. Copy the link instead.</string>
+    <string name="external_player_download_done">Playlist downloaded. It contains the stream link; delete it when done.</string>
+    <string name="external_player_download_failed">Could not download the playlist. Copy the link instead.</string>
+    <string name="external_player_copy_done">Link copied. Paste it into your player's network stream option.</string>
+    <string name="external_player_copy_failed">Could not copy the link. Clipboard access may be blocked.</string>
+    <string name="external_player_stream_changed">The selected stream changed. Close this and open it again.</string>
+    <string name="external_player_headers_blocked">This source requires request headers, which external players can't receive. Pick another source.</string>
+    <string name="external_player_invalid_url">This link can't be opened outside the browser. Pick another source.</string>
 </resources>
