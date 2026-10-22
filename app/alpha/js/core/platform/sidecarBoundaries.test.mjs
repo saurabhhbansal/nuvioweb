@@ -38,7 +38,10 @@ function runtime(enabled = false) {
 }
 const context = { itemId: "fixture:original", itemType: "movie" };
 
-test("disabled Trakt cannot probe, start, poll, refresh or expose a saved token", async () => {
+test("disabled Trakt cannot probe, start, poll, refresh or expose a saved token", async (t) => {
+  // A site with neither a Trakt client id nor a bridge.
+  globalThis.__NUVIO_ENV__.TRAKT_CLIENT_ID = "";
+  t.after(() => { globalThis.__NUVIO_ENV__.TRAKT_CLIENT_ID = "fixture-public-client"; });
   const original = globalThis.fetch;
   const calls = [];
   globalThis.fetch = async (...args) => {

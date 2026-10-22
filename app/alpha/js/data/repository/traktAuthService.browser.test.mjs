@@ -122,32 +122,29 @@ test("a multi-day token stays valid after one day without refreshing through the
   assert.equal(await TraktAuthService.getValidAccessToken(), "still-valid");
 });
 
-test("credential push and pull preserve the provider lifetime, including an actual one-day token", async (t) => {
+test("tracker credentials never reach the account record the native apps share", async (t) => {
   storage.clear();
   const { AuthManager } = await import("../../core/auth/authManager.js");
   const { SupabaseApi } = await import("../remote/supabase/supabaseApi.js");
   const { TraktCredentialSyncService } = await import("../../core/profile/traktCredentialSyncService.js");
+  const { SimklCredentialSyncService } = await import("../../core/profile/simklCredentialSyncService.js");
   const originalAuth = Object.getOwnPropertyDescriptor(AuthManager, "isAuthenticated");
   Object.defineProperty(AuthManager, "isAuthenticated", { get: () => true, configurable: true });
   t.after(() => {
     if (originalAuth) Object.defineProperty(AuthManager, "isAuthenticated", originalAuth);
     else delete AuthManager.isAuthenticated;
   });
-  let remoteCredential;
-  t.mock.method(SupabaseApi, "rpc", async (name, params) => {
-    if (name === "sync_push_provider_credentials") {
-      remoteCredential = params.p_credentials[0].credential_json;
-      return null;
-    }
-    assert.equal(name, "sync_pull_provider_credentials");
-    return [{ provider: "trakt", credential_json: remoteCredential }];
+  const rpc = t.mock.method(SupabaseApi, "rpc", async () => {
+    assert.fail("no provider credential may be pushed, pulled or deleted");
   });
-  for (const expiresIn of [3600, 86400, 604800, 1209600]) {
-    TraktAuthStore.saveToken({ access_token: "access", refresh_token: "refresh", expires_in: expiresIn }, 1);
-    assert.equal(await TraktCredentialSyncService.pushCurrentToRemote(1), true);
-    assert.equal(remoteCredential.expires_in, expiresIn);
-    TraktAuthStore.clearAuth(1);
-    assert.equal(await TraktCredentialSyncService.pullFromRemote(1), true);
-    assert.equal(TraktAuthStore.get(1).expiresIn, expiresIn);
+  TraktAuthStore.saveToken({ access_token: "access", refresh_token: "refresh", expires_in: 3600 }, 1);
+  for (const service of [TraktCredentialSyncService, SimklCredentialSyncService]) {
+    assert.equal(await service.pushCurrentToRemote(1), false);
+    assert.equal(await service.pullFromRemote(1), false);
+    // A disconnect here must not delete the native apps' connection.
+    assert.equal(await service.deleteRemote(1), false);
   }
+  assert.equal(await TraktCredentialSyncService.pushStateToRemote(TraktAuthStore.get(1), 1), false);
+  assert.equal(rpc.mock.callCount(), 0);
+  assert.equal(TraktAuthStore.get(1).accessToken, "access");
 });

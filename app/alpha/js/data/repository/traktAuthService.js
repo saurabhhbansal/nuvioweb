@@ -8,6 +8,8 @@ const API_VERSION = "2";
 const DEFAULT_API_URL = "https://api.trakt.tv";
 const REFRESH_LEEWAY_SECONDS = 60;
 const BROWSER_AUTH_BRIDGE_BASE_PATH = "/api/trakt";
+// Trakt's own answer for apps that show a code instead of redirecting back.
+const DEVICE_REDIRECT_URI = "urn:ietf:wg:oauth:2.0:oob";
 let browserBridgeStatus = "unknown";
 
 function apiBaseUrl() {
@@ -37,8 +39,40 @@ async function readResponseBody(response) {
   }
 }
 
+// The sign-in requests the bridge would make, made from the browser instead.
+// Trakt accepts them cross-origin and needs only the public client id.
+function directAuthRequest(path, body = {}) {
+  if (path === "/device/code") return ["/oauth/device/code", { client_id: TRAKT_CLIENT_ID }];
+  if (path === "/device/token") {
+    return ["/oauth/device/token", { code: String(body.code || ""), client_id: TRAKT_CLIENT_ID }];
+  }
+  if (path === "/refresh") {
+    return [
+      "/oauth/token",
+      {
+        refresh_token: String(body.refresh_token || ""),
+        client_id: TRAKT_CLIENT_ID,
+        redirect_uri: DEVICE_REDIRECT_URI,
+        grant_type: "refresh_token"
+      }
+    ];
+  }
+  return null;
+}
+
 async function requestBrowserBridge(path, { method = "POST", body = null } = {}) {
   requireSidecarCapability("traktAuth");
+  if (!getSidecarCapabilities().traktBridge) {
+    const direct = directAuthRequest(path, body || {});
+    if (!direct) throw new Error("Unsupported Trakt sign-in request");
+    const response = await fetch(`${apiBaseUrl()}${direct[0]}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify(direct[1]),
+      cache: "no-store"
+    });
+    return { response, payload: await readResponseBody(response) };
+  }
   const response = await fetch(`${BROWSER_AUTH_BRIDGE_BASE_PATH}${path}`, {
     method,
     headers: body == null ? undefined : { "Content-Type": "application/json" },
@@ -52,6 +86,11 @@ async function ensureBrowserAuthBridge() {
   if (!getSidecarCapabilities().traktAuth) {
     browserBridgeStatus = "unavailable";
     return false;
+  }
+  // No bridge to ask: signing in directly needs nothing but the client id.
+  if (!getSidecarCapabilities().traktBridge) {
+    browserBridgeStatus = TRAKT_CLIENT_ID ? "available" : "unavailable";
+    return browserBridgeStatus === "available";
   }
   try {
     const { response, payload } = await requestBrowserBridge("/health", { method: "GET" });

@@ -41,13 +41,41 @@ export function applyTmdbKey(properties, key) {
   return properties.replace(/^TMDB_API_KEY=.*$/m, `TMDB_API_KEY=${value}`);
 }
 
+// Trakt and Simkl sign in from the browser with a public client id, which is
+// public by design (it is in every request the page makes). The deployer passes
+// them as NUVIO_TRAKT_CLIENT_ID and NUVIO_SIMKL_CLIENT_ID; empty leaves the
+// service off on this site. Never a client secret.
+const TRACKER_CLIENT_ID_KEYS = Object.freeze({ trakt: "TRAKT_CLIENT_ID", simkl: "SIMKL_CLIENT_ID" });
+
+export function applyTrackerClientIds(properties, ids = {}) {
+  let next = properties;
+  for (const [service, key] of Object.entries(TRACKER_CLIENT_ID_KEYS)) {
+    const value = String(ids[service] ?? "").trim();
+    if (!value) continue;
+    if (!/^[A-Za-z0-9]{16,128}$/.test(value)) throw new Error(`The ${service} client id must be 16 to 128 letters and digits`);
+    const line = new RegExp(`^${key}=.*$`, "m");
+    if (!line.test(next)) throw new Error(`build.properties has no ${key} line`);
+    next = next.replace(line, `${key}=${value}`);
+  }
+  return next;
+}
+
+function trackerClientIdsFromEnv() {
+  return { trakt: process.env.NUVIO_TRAKT_CLIENT_ID, simkl: process.env.NUVIO_SIMKL_CLIENT_ID };
+}
+
 async function buildPropertiesPath() {
   const committed = join(root,"deploy/cloudflare/build.properties");
   const keyFile = String(process.env.NUVIO_TMDB_API_KEY_FILE || "").trim();
-  if (!keyFile) return { path: committed, cleanup: async () => {} };
+  const ids = trackerClientIdsFromEnv();
+  if (!keyFile && !String(ids.trakt || "").trim() && !String(ids.simkl || "").trim()) {
+    return { path: committed, cleanup: async () => {} };
+  }
   const dir = await mkdtemp(join(tmpdir(),"nuvio-preview-"));
   const path = join(dir,"build.properties");
-  await writeFile(path, applyTmdbKey(await readFile(committed,"utf8"), await readFile(keyFile,"utf8")), { mode: 0o600 });
+  let properties = await readFile(committed,"utf8");
+  if (keyFile) properties = applyTmdbKey(properties, await readFile(keyFile,"utf8"));
+  await writeFile(path, applyTrackerClientIds(properties, ids), { mode: 0o600 });
   return { path, cleanup: () => rm(dir,{ recursive: true, force: true }) };
 }
 

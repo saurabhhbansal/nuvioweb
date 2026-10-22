@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { applyTmdbKey, validatePublicConfig } from "./prepare-static-preview.mjs";
+import { applyTmdbKey, applyTrackerClientIds, validatePublicConfig } from "./prepare-static-preview.mjs";
 
 const publicValues = {NUVIO_ENABLE_TRAKT_BRIDGE:"false",NUVIO_ENABLE_DEBRID_BRIDGE:"false",NUVIO_ENABLE_EXTERNAL_RETURN_BRIDGE:"false",NUVIO_SUPABASE_URL:"https://api.nuvio.tv",NUVIO_SUPABASE_ANON_KEY:"sb_publishable_1Clq8rlTVACkdcZuqr6_AD__xUUC_EN",NUVIO_SUPABASE_FALLBACK_URL:""};
 const config = (values) => `var values = ${JSON.stringify(values,null,2)};`;
@@ -28,4 +28,20 @@ test("TMDB key comes from a private file and must look like a v3 key",()=>{
   assert.throws(()=>applyTmdbKey(props, "short"),/32-character/);
   assert.throws(()=>applyTmdbKey(props, `${key}\nTRAKT_CLIENT_ID=x`),/32-character/);
   assert.throws(()=>applyTmdbKey("NUVIO_SUPABASE_URL=x\n", key),/no TMDB_API_KEY/);
+});
+
+test("tracker client ids fill their lines, stay off when empty and reject anything that is not an id", () => {
+  const props = "TMDB_API_KEY=\nTRAKT_CLIENT_ID=\nSIMKL_CLIENT_ID=\n";
+  const trakt = "a".repeat(64);
+  const simkl = "B1".repeat(32);
+  assert.equal(applyTrackerClientIds(props, {}), props);
+  assert.equal(applyTrackerClientIds(props, { trakt: "  " }), props);
+  assert.equal(
+    applyTrackerClientIds(props, { trakt: `${trakt}\n`, simkl }),
+    `TMDB_API_KEY=\nTRAKT_CLIENT_ID=${trakt}\nSIMKL_CLIENT_ID=${simkl}\n`
+  );
+  for (const bad of ["short", "x".repeat(200), `${trakt}\nNUVIO_ENABLE_TRAKT_BRIDGE=true`, "id with spaces 12345"]) {
+    assert.throws(() => applyTrackerClientIds(props, { trakt: bad }), /client id/);
+  }
+  assert.throws(() => applyTrackerClientIds("TMDB_API_KEY=\n", { simkl }), /no SIMKL_CLIENT_ID line/);
 });
