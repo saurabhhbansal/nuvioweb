@@ -8,6 +8,9 @@ import {
   buildLennaLaunchUrl,
   buildOutplayerLaunchUrl,
   copyBrowserExternalStreamLink,
+  getBrowserDesktopSystem,
+  getBrowserExternalPlayerDelivery,
+  getBrowserExternalPlayerName,
   getBrowserExternalPlayerOptions,
   getManualBrowserExternalPlayerOptions,
   getBrowserExternalPlayerPlatform,
@@ -22,6 +25,8 @@ import {
 const ios = { navigator: { userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0)", platform: "iPhone", maxTouchPoints: 5 } };
 const android = { navigator: { userAgent: "Mozilla/5.0 (Linux; Android 15)", platform: "Linux armv8l" } };
 const desktop = { navigator: { userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64)", platform: "Win32", maxTouchPoints: 0 } };
+const mac = { navigator: { userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)", platform: "MacIntel", maxTouchPoints: 0 } };
+const linux = { navigator: { userAgent: "Mozilla/5.0 (X11; Linux x86_64)", platform: "Linux x86_64" } };
 
 function createHandoffRuntime() {
   const values = new Map();
@@ -46,7 +51,45 @@ test("external player options are platform-aware", () => {
   assert.deepEqual(getBrowserExternalPlayerOptions(android), ["disabled", "chooser", "vlc"]);
   assert.deepEqual(getManualBrowserExternalPlayerOptions(android), ["chooser", "vlc"]);
   assert.equal(getBrowserExternalPlayerPlatform(desktop), "other");
-  assert.deepEqual(getBrowserExternalPlayerOptions(desktop), ["disabled"]);
+  assert.equal(getBrowserDesktopSystem(desktop), "windows");
+  assert.deepEqual(getBrowserExternalPlayerOptions(desktop), ["disabled", "vlc", "potplayer", "copylink"]);
+  assert.equal(getBrowserExternalPlayerPlatform(mac), "other");
+  assert.equal(getBrowserDesktopSystem(mac), "mac");
+  assert.deepEqual(getBrowserExternalPlayerOptions(mac), ["disabled", "iina", "infuse", "vlc", "copylink"]);
+  assert.deepEqual(getBrowserExternalPlayerOptions(linux), ["disabled", "vlc", "copylink"]);
+  assert.deepEqual(getManualBrowserExternalPlayerOptions(linux), ["vlc", "copylink"]);
+});
+
+test("desktop players open by link, playlist file or copied link", () => {
+  const mediaUrl = "https://media.example/video%20file.mp4?token=a&b=c";
+  assert.equal(
+    buildBrowserExternalPlayerLaunch({ player: "potplayer", platform: "other", mediaUrl }).href,
+    `potplayer://${mediaUrl}`
+  );
+  assert.equal(
+    buildBrowserExternalPlayerLaunch({ player: "iina", platform: "other", mediaUrl }).href,
+    `iina://weblink?url=${encodeURIComponent(mediaUrl)}`
+  );
+  assert.match(
+    buildBrowserExternalPlayerLaunch({ player: "infuse", platform: "other", mediaUrl }).href,
+    /^infuse:\/\/x-callback-url\/play\?url=/
+  );
+  // VLC and Copy link are browser actions on desktop, never a link.
+  assert.equal(buildBrowserExternalPlayerLaunch({ player: "vlc", platform: "other", mediaUrl }), null);
+  assert.equal(buildBrowserExternalPlayerLaunch({ player: "copylink", platform: "other", mediaUrl }), null);
+  assert.equal(getBrowserExternalPlayerDelivery("vlc", "other"), "playlist");
+  assert.equal(getBrowserExternalPlayerDelivery("vlc", "android"), "launch");
+  assert.equal(getBrowserExternalPlayerDelivery("copylink", "other"), "copy");
+  assert.equal(getBrowserExternalPlayerDelivery("iina", "other"), "launch");
+  // Local and blob addresses never leave the browser.
+  assert.equal(buildBrowserExternalPlayerLaunch({ player: "potplayer", platform: "other", mediaUrl: "blob:https://nuvio.tv/id" }), null);
+  assert.equal(buildBrowserExternalPlayerLaunch({ player: "iina", platform: "other", mediaUrl: "file:///video.mp4" }), null);
+  // Desktop-only players stay off phones.
+  assert.equal(buildBrowserExternalPlayerLaunch({ player: "potplayer", platform: "android", mediaUrl }), null);
+  assert.equal(getBrowserExternalPlayerName("iina"), "IINA");
+  assert.equal(getBrowserExternalPlayerName("copylink"), "");
+  assert.equal(getBrowserExternalPlayerStoreUrl({ player: "iina", platform: "other" }), "https://iina.io/");
+  assert.equal(getBrowserExternalPlayerStoreUrl({ player: "potplayer", platform: "other" }), "");
 });
 
 test("external handoff rejects non-transferable local URLs", () => {

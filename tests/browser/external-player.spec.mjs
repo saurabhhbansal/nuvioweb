@@ -30,9 +30,9 @@ test("bundled desktop player offers explicit playlist/copy, responsive explanati
   await page.getByRole("button", { name: "Open in another player", exact: true }).click();
   const dialog = page.getByRole("dialog");
   await expect(dialog).toContainText("Only the stream link is sent");
-  await expect(dialog).toContainText("Open the .m3u with VLC or mpv");
-  await expect(dialog.getByRole("button", { name: /^Open (in|with)/ })).toHaveCount(0);
-  await expect(dialog.locator(".external-handoff-primary")).toHaveText("Download .m3u");
+  await expect(dialog).toContainText("The playlist file opens in VLC");
+  await expect(dialog.locator(".external-handoff-primary")).toHaveText("Open in VLC (playlist file)");
+  await expect(dialog.getByRole("button", { name: "Copy link", exact: true })).toHaveCount(1);
   for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 }]) {
     await page.setViewportSize(viewport);
     const metrics = await dialog.locator(".external-handoff-dialog").evaluate((node) => ({
@@ -47,7 +47,7 @@ test("bundled desktop player offers explicit playlist/copy, responsive explanati
   }
   const [download] = await Promise.all([
     page.waitForEvent("download"),
-    dialog.getByRole("button", { name: "Download .m3u", exact: true }).click()
+    dialog.getByRole("button", { name: "Open in VLC (playlist file)", exact: true }).click()
   ]);
   expect(download.suggestedFilename()).toBe("nuvio-stream.m3u");
   const playlist = await readFile(await download.path(), "utf8");
@@ -113,7 +113,7 @@ for (const scenario of ["basic", "startup-header-required"]) {
       await expect(dialog.getByRole("status")).toContainText("requires request headers");
       await expect(dialog).toContainText("Needs headers");
       await expect(dialog.locator("button:not([disabled])")).toHaveCount(1);
-    } else await expect(dialog.getByRole("button", { name: "Download .m3u", exact: true })).toBeVisible();
+    } else await expect(dialog.getByRole("button", { name: "Open in VLC (playlist file)", exact: true })).toBeVisible();
     await dialog.getByRole("button", { name: "Cancel", exact: true }).click();
     await expect(dialog).toHaveCount(0);
     await expect(overlay).toHaveAttribute("aria-hidden", "false");
@@ -146,7 +146,7 @@ for (const location of ["source", "subtitle"]) {
     await expect(dialog.getByRole("status")).toContainText("requires request headers");
     await expect(dialog).not.toContainText("DISPOSABLE-SECRET");
     await expect(dialog).toContainText("Needs headers");
-    for (const name of ["Download .m3u", "Copy link"]) {
+    for (const name of ["Open in VLC (playlist file)", "Copy link"]) {
       await expect(dialog.getByRole("button", { name, exact: true })).toBeDisabled();
     }
     await expect(dialog.locator("button:not([disabled])")).toHaveCount(1);
@@ -166,9 +166,25 @@ test("chooser rechecks changed sources and reports actual clipboard denial", asy
   await dialog.getByRole("button", { name: "Copy link", exact: true }).click();
   await expect(dialog.getByRole("status")).toContainText("Could not copy");
   await page.evaluate(() => { globalThis.__handoffScreen.activePlaybackUrl = "https://media.fixture.invalid/changed.mkv"; });
-  await dialog.getByRole("button", { name: "Download .m3u", exact: true }).click();
+  await dialog.getByRole("button", { name: "Open in VLC (playlist file)", exact: true }).click();
   await expect(dialog.getByRole("status")).toContainText("selected stream changed");
 });
+
+for (const desktop of [
+  { name: "Windows", userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140.0 Safari/537.36", players: ["Open in VLC (playlist file)", "Open in PotPlayer", "Copy link"] },
+  { name: "Mac", userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 Version/18.0 Safari/605.1.15", players: ["Open in IINA", "Open in Infuse", "Open in VLC (playlist file)", "Copy link"] }
+]) {
+  test.describe(`${desktop.name} emulated desktop chooser, NOT installed-app interoperability`, () => {
+    test.use({ userAgent: desktop.userAgent });
+    test(`offers the ${desktop.name} players in order`, async ({ page }) => {
+      await mountSourcePlayer(page, {});
+      const dialog = page.getByRole("dialog");
+      await expect(dialog.locator(".desktop-external-player-choice")).toHaveText(desktop.players);
+      await page.keyboard.press("Escape");
+      await expect(dialog).toHaveCount(0);
+    });
+  });
+}
 
 for (const platform of ["ios", "android"]) {
   test.describe(`${platform} emulated browser seam, NOT installed-app interoperability`, () => {

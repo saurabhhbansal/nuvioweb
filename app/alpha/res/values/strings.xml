@@ -428,6 +428,9 @@
     <string name="quick_setup_player_recommended">Recommended</string>
     <string name="quick_setup_player_get">Get</string>
     <string name="quick_setup_player_builtin">Nuvio’s own player</string>
+    <string name="quick_setup_player_copylink">Copy the link</string>
+    <string name="quick_setup_player_vlc_desktop">VLC (playlist file)</string>
+    <string name="quick_setup_player_desktop_note">PotPlayer, IINA and Infuse open straight from Nuvio. VLC opens a small playlist file, and Copy the link works with any player.</string>
     <string name="quick_setup_progress_title">Bringing progress back</string>
     <string name="quick_setup_progress_body">Automatic only works if you leave the external player by its own Close button.</string>
     <string name="quick_setup_progress_automatic">Automatic</string>
@@ -2980,9 +2983,9 @@
     <string name="external_player_open_in">Open in %1$s</string>
     <string name="external_player_get">Get %1$s</string>
     <string name="external_player_android_chooser">Ask each time (Open with…)</string>
-    <string name="external_player_download_m3u">Download .m3u</string>
+    <string name="external_player_open_playlist">Open in %1$s (playlist file)</string>
     <string name="external_player_copy_link">Copy link</string>
-    <string name="external_player_desktop_hint">Open the .m3u with VLC or mpv</string>
+    <string name="external_player_desktop_hint">The playlist file opens in VLC, or whichever player opens .m3u files</string>
     <string name="external_player_needs_headers">Needs headers</string>
     <string name="external_player_link_only">Only the stream link is sent. Return here when you're done.</string>
     <string name="external_player_open_requested">Opening… If nothing opened, install the app or copy the link.</string>

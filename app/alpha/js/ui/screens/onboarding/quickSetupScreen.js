@@ -20,6 +20,7 @@ import { Router } from "../../navigation/router.js";
 import { ScreenUtils } from "../../navigation/screen.js";
 import {
   getBrowserExternalPlayerCapabilities,
+  getBrowserExternalPlayerName,
   getBrowserExternalPlayerOptions,
   getBrowserExternalPlayerPlatform,
   getBrowserExternalPlayerStoreUrl,
@@ -52,16 +53,11 @@ function escapeHtml(value = "") {
     .replace(/'/g, "&#39;");
 }
 
-const PLAYER_LABELS = {
-  lenna: "Lenna",
-  outplayer: "Outplayer",
-  infuse: "Infuse",
-  vlc: "VLC"
-};
-
-function playerLabel(id) {
+function playerLabel(id, platform) {
   if (id === "chooser") return t("external_player_android_chooser", {}, "Ask each time (Open with…)");
-  return PLAYER_LABELS[id] || t("quick_setup_player_builtin", {}, "Nuvio's own player");
+  if (id === "copylink") return t("quick_setup_player_copylink", {}, "Copy the link");
+  if (id === "vlc" && platform === "other") return t("quick_setup_player_vlc_desktop", {}, "VLC (playlist file)");
+  return getBrowserExternalPlayerName(id) || t("quick_setup_player_builtin", {}, "Nuvio's own player");
 }
 
 // The button says where it goes before it is pressed. The Apple mark on iOS,
@@ -206,7 +202,15 @@ export const QuickSetupScreen = {
               "On iPhone and iPad an external player is recommended: it plays what the browser cannot. Lenna is the pick because it has a built-in subtitle search."
             )
           )}</p>`
-        : "";
+        : this.platform === "other"
+          ? `<p class="quick-setup-note">${escapeHtml(
+              t(
+                "quick_setup_player_desktop_note",
+                {},
+                "PotPlayer, IINA and Infuse open straight from Nuvio. VLC opens a small playlist file, and Copy the link works with any player."
+              )
+            )}</p>`
+          : "";
 
     const cards = options
       .map((id) => {
@@ -220,7 +224,7 @@ export const QuickSetupScreen = {
             <button class="quick-setup-option-choose focusable" type="button"
                     data-action="choosePlayer" data-player="${escapeHtml(id)}"
                     aria-pressed="${selected ? "true" : "false"}">
-              <span class="quick-setup-option-label">${escapeHtml(playerLabel(id))}</span>
+              <span class="quick-setup-option-label">${escapeHtml(playerLabel(id, this.platform))}</span>
               ${
                 id === "lenna" || id === "chooser"
                   ? `<span class="quick-setup-badge">${escapeHtml(t("quick_setup_player_recommended", {}, "Recommended"))}</span>`
