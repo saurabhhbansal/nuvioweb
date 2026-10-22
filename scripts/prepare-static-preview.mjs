@@ -57,13 +57,19 @@ export async function preparePreview() {
   if (process.versions.node !== pinnedNode.replace(/^v/,"")) throw new Error(`Use pinned Node ${pinnedNode} before staging`);
   // Ignored dist may belong to an earlier commit. Always rebuild from this clean
   // revision rather than attaching current matching-source links to stale bytes.
-  execFileSync(process.execPath,["scripts/build.mjs"],{
-    cwd:join(root,"app/alpha"),
-    env:{...process.env,NUVIO_LOCAL_PROPERTIES:join(root,"deploy/cloudflare/build.properties")},
-    stdio:"inherit"
-  });
+  const properties = await buildPropertiesPath();
+  try {
+    execFileSync(process.execPath,["scripts/build.mjs"],{
+      cwd:join(root,"app/alpha"),
+      env:{...process.env,NUVIO_LOCAL_PROPERTIES:properties.path},
+      stdio:"inherit"
+    });
+  } finally {
+    await properties.cleanup();
+  }
   const source = join(root,"app/alpha/dist");
-  validatePublicConfig(await readFile(join(source,"nuvio.env.js"),"utf8"));
+  const publicConfig = validatePublicConfig(await readFile(join(source,"nuvio.env.js"),"utf8"));
+  if (process.env.NUVIO_TMDB_API_KEY_FILE && !publicConfig.TMDB_API_KEY) throw new Error("TMDB key file was given but the build has no TMDB_API_KEY");
   const files = await readdir(source,{recursive:true,withFileTypes:true});
   for (const entry of files) {
     if (entry.isSymbolicLink()) throw new Error("Preview must not contain symlinks");
