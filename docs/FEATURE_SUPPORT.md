@@ -15,10 +15,28 @@ Updated 2026-10-22. "Tested" means covered by automated tests in CI, mostly Chro
 | Failure explanations | Shown on playback failure; names the real cause when known (debrid, headers, HTTP status, format) | Unknown causes are labelled unknown. Optional details and diagnostics export contain no URLs or tokens |
 | External player hand-off | Android: system "Open with" chooser or VLC. iPhone: Lenna, Outplayer, Infuse or VLC. Desktop: .m3u download or Copy link. Mobile launches unverified on real devices | Sources that need request headers are labelled "Needs headers" and cannot be handed off by URL |
 | PWA install and offline shell | Installable; pinch-zoom allowed. Precaches the app shell and English (other languages cache when used). New versions show an "Update ready – Reload" prompt instead of reloading. Offline notice; saved Library stays visible offline. Tested in Chromium | Install and update unverified on a real iPhone or Android device. No manifest screenshots yet |
-| JS plugins | Nuvio plugin repositories run in a browser Web Worker; per-scraper on/off; optional user proxy | Verified with an original fixture plugin only; real repos on desktop Chrome and iPhone are unverified. Sites that block browsers show "Needs proxy"; header-locked streams show "Needs headers". See [proxy decision](PLUGIN_PROXY_DECISION.md) |
+| JS plugins | Nuvio plugin repositories run in a browser Web Worker; per-scraper on/off; optional user proxy. Tested in CI with an original fixture plugin; the owner checked real repositories on desktop Edge and iPhone | Sites that block browsers (CORS) show "Needs proxy" and need the user's own proxy; most plugins do. Header-locked streams show "Needs headers". See [proxy decision](PLUGIN_PROXY_DECISION.md) |
 | Links and reload | Home, Search, Library, Settings, a title and its source list have their own address (`#/detail/movie/tt…`). Reloading stays on the screen, a shared title link opens it after sign-in and profile choice, and Back works. Tested in Chromium | The address holds content IDs only, so a search term or the exact Settings section is not kept. The player reloads to its source list. Reload after iOS removes the app from memory unverified on a real iPhone |
 | Supported browsers | Built for Chrome/Edge 100+ and Safari/iOS 15+. Screens load on first use; the shell, fonts and every screen are precached, so offline still opens them. Tested in Chromium | Older browsers show a start-up error screen instead of the app. Safari 15 and a real iPhone are unverified |
-| Sidecar features (Trakt sign-in, debrid bridges, external-player return) | Off on the public preview; Settings explains why and hides external-player progress options | Need a server; not planned for the MVP |
+| Sidecar features (Trakt sign-in, debrid bridges, external-player return) | Off on the public site; Settings explains why and hides external-player progress options | Need a server. Static hosting has no server-side debrid bridge, and none is planned |
+| Problem reports | No telemetry. Users open a GitHub issue; a source that fails to start offers "Export redacted diagnostics" (no URLs or tokens) to attach | App start-up errors and other screens have no export button |
+
+## By platform
+
+| Platform | What works | Unverified or limited |
+| --- | --- | --- |
+| Desktop Chrome and Edge | The features in the status table, within their limits. CI runs Chromium; the owner used plugins on Edge | Edge is not in CI. HEVC, Dolby Vision and MKV depend on the OS and hardware |
+| iPhone Safari and the Home Screen app | The same app, built for Safari/iOS 15+. External hand-off offers Lenna, Outplayer, Infuse or VLC. The owner checked plugins with real repositories | Sign-in, playback, install, update, offline and app launches on a real iPhone are unverified until the release walkthrough. Safari 15 untested |
+| Android Chrome | Same app as desktop Chrome; external hand-off through the system "Open with" chooser or VLC | Not yet tested on a real device: install, playback and hand-off are unverified until the release walkthrough |
+
+## Known limits
+
+- **No server-side debrid bridge.** The site is static, so debrid sign-in and resolving need a server we do not run. Sources that need one fail with an explanation.
+- **Header-bound sources ("Needs headers").** Browsers cannot send custom headers with media requests, so these sources stay selectable but usually fail in the browser. The URL-only external hand-off cannot pass headers either, so it refuses them. Pick another source.
+- **Plugins blocked by CORS** need a proxy the user runs and sets in Settings. The project runs none.
+- **Codecs and containers.** See the browser limits below: HEVC, Dolby Vision, MKV, TrueHD and DTS often fail in browsers. Use an external player for those.
+- **Modern browsers only.** The build targets Chrome/Edge 100+ and Safari/iOS 15+; older browsers show a start-up error screen.
+- **Latin-only bundled font.** The self-hosted Inter font covers Latin scripts. Other scripts use the system font. The optional DM Sans and Open Sans themes load from Google Fonts when chosen.
 
 ## Browser limits users may hit
 
