@@ -97,7 +97,13 @@ test("Android and desktop never turn an iPhone-only preference into an automatic
   assert.equal(migrateBrowserExternalPlayerPreference("outplayer", "android"), "disabled");
   assert.equal(migrateBrowserExternalPlayerPreference("vlc", "android"), "vlc");
   assert.equal(migrateBrowserExternalPlayerPreference("chooser", "android"), "chooser");
-  assert.equal(migrateBrowserExternalPlayerPreference("vlc", "other"), "disabled");
+  const windows = { navigator: { userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64)", platform: "Win32" } };
+  assert.equal(migrateBrowserExternalPlayerPreference("lenna", "other", windows), "disabled");
+  assert.equal(migrateBrowserExternalPlayerPreference("chooser", "other", windows), "disabled");
+  // Desktop VLC is the playlist file, so a saved VLC choice is kept.
+  assert.equal(migrateBrowserExternalPlayerPreference("vlc", "other", windows), "vlc");
+  // A Mac-only player is not carried to Windows.
+  assert.equal(migrateBrowserExternalPlayerPreference("iina", "other", windows), "disabled");
   const iphone = { navigator: { userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0)", platform: "iPhone", maxTouchPoints: 5 } };
   assert.equal(getBrowserExternalPlayerPreference("chooser", iphone), "lenna");
 });

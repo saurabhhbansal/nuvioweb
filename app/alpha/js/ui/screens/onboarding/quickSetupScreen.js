@@ -19,7 +19,9 @@ import { I18n } from "../../../i18n/index.js";
 import { Router } from "../../navigation/router.js";
 import { ScreenUtils } from "../../navigation/screen.js";
 import {
+  getBrowserDesktopSystem,
   getBrowserExternalPlayerCapabilities,
+  getBrowserExternalPlayerName,
   getBrowserExternalPlayerOptions,
   getBrowserExternalPlayerPlatform,
   getBrowserExternalPlayerStoreUrl,
@@ -45,16 +47,33 @@ function escapeHtml(value = "") {
     .replace(/'/g, "&#39;");
 }
 
-const PLAYER_LABELS = {
-  lenna: "Lenna",
-  outplayer: "Outplayer",
-  infuse: "Infuse",
-  vlc: "VLC"
-};
+function desktopPlayerNote(system) {
+  if (system === "windows") {
+    return t(
+      "quick_setup_player_desktop_note_windows",
+      {},
+      "PotPlayer opens straight from Nuvio. VLC opens a small playlist file, and Copy the link works with any player."
+    );
+  }
+  if (system === "mac") {
+    return t(
+      "quick_setup_player_desktop_note_mac",
+      {},
+      "IINA and Infuse open straight from Nuvio. VLC opens a small playlist file, and Copy the link works with any player."
+    );
+  }
+  return t(
+    "quick_setup_player_desktop_note",
+    {},
+    "VLC opens a small playlist file, and Copy the link works with any player."
+  );
+}
 
-function playerLabel(id) {
+function playerLabel(id, platform) {
   if (id === "chooser") return t("external_player_android_chooser", {}, "Ask each time (Open with…)");
-  return PLAYER_LABELS[id] || t("quick_setup_player_builtin", {}, "Nuvio's own player");
+  if (id === "copylink") return t("quick_setup_player_copylink", {}, "Copy the link");
+  if (id === "vlc" && platform === "other") return t("quick_setup_player_vlc_desktop", {}, "VLC (playlist file)");
+  return getBrowserExternalPlayerName(id) || t("quick_setup_player_builtin", {}, "Nuvio's own player");
 }
 
 // The button says where it goes before it is pressed. The Apple mark on iOS,
@@ -108,6 +127,9 @@ export const QuickSetupScreen = {
   // sense once a player that can report progress has been chosen, and the
   // notification question only where notifications are possible at all.
   steps() {
+    // Desktop hand-offs never report back, so there is no progress or return
+    // question to ask there.
+    if (this.platform === "other") return ["player", "offlineSync"];
     const capabilities = getBrowserExternalPlayerCapabilities(this.player);
     return selectQuickSetupSteps({
       callbackMode: capabilities.callbackMode,
@@ -196,7 +218,11 @@ export const QuickSetupScreen = {
               "On iPhone and iPad an external player is recommended: it plays what the browser cannot. Lenna is the pick because it has a built-in subtitle search."
             )
           )}</p>`
-        : "";
+        : this.platform === "other"
+          ? `<p class="quick-setup-note">${escapeHtml(
+              desktopPlayerNote(getBrowserDesktopSystem())
+            )}</p>`
+          : "";
 
     const cards = options
       .map((id) => {
@@ -210,7 +236,7 @@ export const QuickSetupScreen = {
             <button class="quick-setup-option-choose focusable" type="button"
                     data-action="choosePlayer" data-player="${escapeHtml(id)}"
                     aria-pressed="${selected ? "true" : "false"}">
-              <span class="quick-setup-option-label">${escapeHtml(playerLabel(id))}</span>
+              <span class="quick-setup-option-label">${escapeHtml(playerLabel(id, this.platform))}</span>
               ${
                 id === "lenna" || id === "chooser"
                   ? `<span class="quick-setup-badge">${escapeHtml(t("quick_setup_player_recommended", {}, "Recommended"))}</span>`
