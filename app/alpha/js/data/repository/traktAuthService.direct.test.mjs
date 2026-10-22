@@ -123,3 +123,15 @@ test("direct refresh rotates the token, and a revoked refresh signs out on this 
   assert.equal(TraktAuthStore.isAuthenticated(), false);
   assert.ok(calls.every((call) => !call.url.startsWith("/api/")));
 });
+
+test("disconnecting in direct mode signs out here and calls nothing remote", async (t) => {
+  storage.clear();
+  TraktAuthStore.saveToken({ access_token: "access", refresh_token: "refresh", expires_in: 3600 });
+  const { SupabaseApi } = await import("../remote/supabase/supabaseApi.js");
+  const rpc = t.mock.method(SupabaseApi, "rpc", async () => assert.fail("no account call on disconnect"));
+  const calls = mockFetch(t, ({ url }) => assert.fail(`Unexpected request: ${url}`));
+  await TraktAuthService.disconnect();
+  assert.equal(TraktAuthStore.isAuthenticated(), false);
+  assert.equal(rpc.mock.callCount(), 0);
+  assert.deepEqual(calls, []);
+});

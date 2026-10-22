@@ -21,7 +21,7 @@ The steps below are the manual fallback.
 
 Register each app once under the project's name, not a person's:
 
-- **Trakt** ([trakt.tv/oauth/applications](https://trakt.tv/oauth/applications)): set the redirect URI to `urn:ietf:wg:oauth:2.0:oob`, and list every site origin under JavaScript (CORS) origins: `https://nuvioweb.xyz`, `https://www.nuvioweb.xyz` and `https://nuvioweb-preview.pages.dev`.
+- **Trakt** ([trakt.tv/oauth/applications](https://trakt.tv/oauth/applications)): set the redirect URI to `urn:ietf:wg:oauth:2.0:oob`, and list every site origin under JavaScript (CORS) origins: `https://nuvioweb.xyz`, `https://www.nuvioweb.xyz` and `https://nuvioweb-preview.pages.dev`. Per-deployment preview addresses (`<hash>.nuvioweb-preview.pages.dev`) are not listed, so test Trakt on the main preview address. Trakt's docs say never to send a client secret from a website, so the app needs none.
 - **Simkl** ([simkl.com/settings/developer](https://simkl.com/settings/developer/)): any redirect URI; sign-in uses a PIN.
 
 Sign-ins stay on the device. They are not shared with the Nuvio account, because the native Nuvio apps use their own Trakt and Simkl apps and a token from this site would break their connection.
