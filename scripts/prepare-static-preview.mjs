@@ -1,4 +1,5 @@
-import { cp, mkdir, readFile, readdir, writeFile } from "node:fs/promises";
+import { cp, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import { resolve, relative, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
@@ -28,6 +29,27 @@ const noticePaths = [
   "libbitsub/LICENSE", "libbitsub/pkg/LICENSE", "core-js/LICENSE", "jszip/LICENSE.markdown",
   "pako/LICENSE", "lie/license.md", "immediate/LICENSE.txt", "setimmediate/LICENSE.txt"
 ];
+
+// The public TMDB key ships in the browser bundle like any client key, but it
+// is kept out of git: the deployer keeps it in a private file and points
+// NUVIO_TMDB_API_KEY_FILE at it. Only a plain v3 key (32 letters/digits) is accepted.
+export function applyTmdbKey(properties, key) {
+  const value = String(key ?? "").trim();
+  if (!value) return properties;
+  if (!/^[A-Za-z0-9]{32}$/.test(value)) throw new Error("NUVIO_TMDB_API_KEY_FILE must hold a 32-character TMDB v3 API key");
+  if (!/^TMDB_API_KEY=.*$/m.test(properties)) throw new Error("build.properties has no TMDB_API_KEY line");
+  return properties.replace(/^TMDB_API_KEY=.*$/m, `TMDB_API_KEY=${value}`);
+}
+
+async function buildPropertiesPath() {
+  const committed = join(root,"deploy/cloudflare/build.properties");
+  const keyFile = String(process.env.NUVIO_TMDB_API_KEY_FILE || "").trim();
+  if (!keyFile) return { path: committed, cleanup: async () => {} };
+  const dir = await mkdtemp(join(tmpdir(),"nuvio-preview-"));
+  const path = join(dir,"build.properties");
+  await writeFile(path, applyTmdbKey(await readFile(committed,"utf8"), await readFile(keyFile,"utf8")), { mode: 0o600 });
+  return { path, cleanup: () => rm(dir,{ recursive: true, force: true }) };
+}
 
 export async function preparePreview() {
   if (execFileSync("git",["status","--porcelain"],{cwd:root,encoding:"utf8"}).trim()) throw new Error("Commit preview source before staging so matching source is available");

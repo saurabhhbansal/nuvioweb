@@ -2,6 +2,20 @@
 
 The dev preview is the Cloudflare Pages project `nuvioweb-preview`, at https://nuvioweb-preview.pages.dev. It is a static site: no Functions, Workers, bindings or paid features. Do not create other projects, custom domains or billing changes.
 
+## Usual way: GitHub Actions
+
+Run the **Deploy preview** workflow ([preview-deploy.yml](../.github/workflows/preview-deploy.yml)) from the Actions tab on `main`. It stages and uploads exactly as below. It needs three repository secrets, set by the owner:
+
+- `TMDB_API_KEY`: the public TMDB v3 key. Plugins need it to look up titles. It ships in the browser bundle like any client key, but it is never committed.
+- `CLOUDFLARE_API_TOKEN`: a token limited to Cloudflare Pages: Edit.
+- `CLOUDFLARE_ACCOUNT_ID`: the account that owns `nuvioweb-preview`.
+
+The steps below are the manual fallback.
+
+## TMDB key
+
+`build.properties` keeps `TMDB_API_KEY` empty. To bake the key in, put it in a private file outside the repo and set `NUVIO_TMDB_API_KEY_FILE=<path>` when running `preview:stage`. Staging accepts only a 32-character v3 key.
+
 ## 1. Stage
 
 Use pinned Node 22.23.1 and a clean, committed checkout (the merged `main` commit you want to ship).

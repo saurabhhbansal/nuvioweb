@@ -1,0 +1,59 @@
+name: Deploy preview
+
+# Manual only: builds main and uploads it to the nuvioweb-preview Pages project.
+# Secrets (set by the owner, never committed):
+#   TMDB_API_KEY            public TMDB v3 key baked into the browser bundle
+#   CLOUDFLARE_API_TOKEN    token limited to Cloudflare Pages: Edit
+#   CLOUDFLARE_ACCOUNT_ID   account that owns nuvioweb-preview
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: preview-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Build and upload preview
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version-file: .node-version
+      - name: Install dependencies
+        run: |
+          HUSKY=0 npm ci --prefix app/alpha --no-audit --no-fund
+          npm ci --no-audit --no-fund
+      - name: Write TMDB key to a private file
+        env:
+          TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+        run: |
+          test -n "$TMDB_API_KEY" || { echo "TMDB_API_KEY secret is not set"; exit 1; }
+          umask 077
+          printf '%s' "$TMDB_API_KEY" > "$RUNNER_TEMP/tmdb.key"
+      - name: Stage preview
+        env:
+          NUVIO_TMDB_API_KEY_FILE: ${{ runner.temp }}/tmdb.key
+        run: npm run preview:stage
+      - name: Upload to Cloudflare Pages
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          commit="$(git rev-parse HEAD)"
+          npx --yes wrangler@4.151.3 pages deploy "dist/preview/$commit" \
+            --project-name nuvioweb-preview --branch main \
+            --commit-hash "$commit" --commit-dirty=false
+      - name: Remove key file
+        if: always()
+        run: rm -f "$RUNNER_TEMP/tmdb.key"
