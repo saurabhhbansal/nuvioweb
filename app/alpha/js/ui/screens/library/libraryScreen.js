@@ -992,12 +992,9 @@ export const LibraryScreen = {
     if (this.isDownloadedView()) {
       return `<div id="libraryContentAreaMount">${this.renderDownloadedLibraryContent()}</div>`;
     }
-    // Saved and Cloud are both lists of things that live elsewhere. Offline,
-    // their artwork cannot load and none of them can be opened, so the shelf
-    // filled with grey rectangles is worse than an empty one: it offers
-    // seventeen titles and delivers none. Downloaded is untouched -- that shelf
-    // is exactly what still works.
-    if (isBrowserOfflineNow()) {
+    // Saved comes from this device's own copy of the library, so it stays on
+    // screen offline. Cloud is fetched live and has nothing to show offline.
+    if (isBrowserOfflineNow() && state.viewMode === LIBRARY_VIEW_MODE.CLOUD) {
       return `<div id="libraryContentAreaMount">${this.renderOfflineEmptyState()}</div>`;
     }
     if (state.viewMode === LIBRARY_VIEW_MODE.CLOUD) {
@@ -1594,9 +1591,9 @@ export const LibraryScreen = {
         )}</h3>
         <p class="library-empty-subtitle">${escapeHtml(
           t(
-            "library_offline_subtitle",
+            "library_offline_cloud_subtitle",
             {},
-            "Saved and Cloud need a connection. Downloaded titles are still here."
+            "Cloud needs a connection. Saved and Downloaded titles are still here."
           )
         )}</p>
       </section>

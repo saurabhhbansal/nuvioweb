@@ -1,15 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import {
-  hasActivePlayback,
-  shouldReloadForNewWorker,
-  watchServiceWorkerTakeover
-} from "./serviceWorkerReload.js";
+import { activateWaitingWorker, watchForWaitingWorker } from "./serviceWorkerReload.js";
 
-function fakeServiceWorker() {
+function emitter(extra = {}) {
   const listeners = new Map();
   return {
-    controller: null,
+    ...extra,
     addEventListener(type, handler) {
       listeners.set(type, [...(listeners.get(type) || []), handler]);
     },
@@ -20,9 +16,7 @@ function fakeServiceWorker() {
       );
     },
     emit(type) {
-      for (const handler of listeners.get(type) || []) {
-        handler({ type });
-      }
+      for (const handler of listeners.get(type) || []) handler({ type });
     },
     listenerCount(type) {
       return (listeners.get(type) || []).length;
@@ -30,106 +24,73 @@ function fakeServiceWorker() {
   };
 }
 
-function fakeDocument(media) {
-  return {
-    querySelectorAll(selector) {
-      assert.equal(selector, "video, audio");
-      return media;
-    }
-  };
+function fakeWorker(state = "installing") {
+  const worker = emitter({ state, messages: [] });
+  worker.postMessage = (message) => worker.messages.push(message);
+  return worker;
 }
 
-test("a page that was never controlled does not reload on the first install", () => {
-  assert.equal(shouldReloadForNewWorker({ hadController: false }), false);
+test("a worker already waiting when the page loads is offered once", () => {
+  const waiting = fakeWorker("installed");
+  const registration = emitter({ waiting });
+  const offered = [];
+  watchForWaitingWorker(registration, { controller: {} }, (worker) => offered.push(worker));
+  assert.deepEqual(offered, [waiting]);
 });
 
-test("a controlled page reloads once for the worker that replaces its own", () => {
-  assert.equal(shouldReloadForNewWorker({ hadController: true }), true);
+test("a worker that finishes installing while the page is open is offered", () => {
+  const registration = emitter({ waiting: null, installing: null });
+  const offered = [];
+  watchForWaitingWorker(registration, { controller: {} }, (worker) => offered.push(worker));
+
+  const installing = fakeWorker();
+  registration.installing = installing;
+  registration.emit("updatefound");
+  assert.equal(offered.length, 0, "nothing to offer until it has installed");
+
+  installing.state = "installed";
+  registration.waiting = installing;
+  installing.emit("statechange");
+  installing.emit("statechange");
+  assert.deepEqual(offered, [installing]);
 });
 
-test("the reload is refused while media is playing, so a fix never stops playback", () => {
-  assert.equal(shouldReloadForNewWorker({ hadController: true, playbackActive: true }), false);
+test("the first install, with no controller to replace, offers nothing", () => {
+  const registration = emitter({ waiting: fakeWorker("installed") });
+  const offered = [];
+  watchForWaitingWorker(registration, { controller: null }, (worker) => offered.push(worker));
+  assert.equal(offered.length, 0);
 });
 
-test("the reload never repeats, even if the worker changes again", () => {
-  assert.equal(shouldReloadForNewWorker({ hadController: true, reloading: true }), false);
-});
-
-test("playing media counts as active playback and paused or ended media does not", () => {
-  assert.equal(hasActivePlayback(fakeDocument([{ paused: true, ended: false }])), false);
-  assert.equal(hasActivePlayback(fakeDocument([{ paused: false, ended: true }])), false);
-  assert.equal(hasActivePlayback(fakeDocument([{ paused: false, ended: false }])), true);
-});
-
-test("a document without media elements has nothing playing", () => {
-  assert.equal(hasActivePlayback({}), false);
-  assert.equal(hasActivePlayback(undefined), false);
-});
-
-test("takeover reloads exactly once, and only when the page was already controlled", () => {
+test("nothing reloads until the user accepts, then reload follows the takeover", () => {
+  const serviceWorker = emitter({ controller: {} });
+  const waiting = fakeWorker("installed");
   let reloads = 0;
-  const controlled = fakeServiceWorker();
-  watchServiceWorkerTakeover(controlled, {
-    hadController: true,
-    reload: () => {
-      reloads += 1;
-    },
-    documentRef: fakeDocument([])
+
+  // Being offered an update changes nothing on its own.
+  serviceWorker.emit("controllerchange");
+  assert.equal(reloads, 0);
+
+  activateWaitingWorker(serviceWorker, waiting, () => {
+    reloads += 1;
   });
+  assert.deepEqual(waiting.messages, [{ type: "SKIP_WAITING" }]);
+  assert.equal(reloads, 0, "reload waits for the new worker to take control");
 
-  controlled.emit("controllerchange");
-  controlled.emit("controllerchange");
-
+  serviceWorker.emit("controllerchange");
+  serviceWorker.emit("controllerchange");
   assert.equal(reloads, 1);
 });
 
-test("a first controller taking over never reloads the page", () => {
-  let reloads = 0;
-  const fresh = fakeServiceWorker();
-  watchServiceWorkerTakeover(fresh, {
-    hadController: false,
-    reload: () => {
-      reloads += 1;
-    },
-    documentRef: fakeDocument([])
-  });
-
-  fresh.emit("controllerchange");
-
-  assert.equal(reloads, 0);
+test("teardown detaches the update listener", () => {
+  const registration = emitter({ waiting: null });
+  const stop = watchForWaitingWorker(registration, { controller: {} }, () => {});
+  assert.equal(registration.listenerCount("updatefound"), 1);
+  stop();
+  assert.equal(registration.listenerCount("updatefound"), 0);
 });
 
-test("a takeover during playback waits instead of interrupting it", () => {
-  let reloads = 0;
-  const worker = fakeServiceWorker();
-  const playing = fakeDocument([{ paused: false, ended: false }]);
-  watchServiceWorkerTakeover(worker, {
-    hadController: true,
-    reload: () => {
-      reloads += 1;
-    },
-    documentRef: playing
-  });
-
-  worker.emit("controllerchange");
-
-  assert.equal(reloads, 0);
-});
-
-test("the returned teardown detaches the listener", () => {
-  const worker = fakeServiceWorker();
-  const teardown = watchServiceWorkerTakeover(worker, {
-    hadController: true,
-    reload: () => {},
-    documentRef: fakeDocument([])
-  });
-
-  assert.equal(worker.listenerCount("controllerchange"), 1);
-  teardown();
-  assert.equal(worker.listenerCount("controllerchange"), 0);
-});
-
-test("an environment without a service worker is left alone", () => {
-  assert.doesNotThrow(() => watchServiceWorkerTakeover(null, { hadController: true })());
-  assert.doesNotThrow(() => watchServiceWorkerTakeover({}, { hadController: true })());
+test("missing service worker support is left alone", () => {
+  assert.doesNotThrow(() => watchForWaitingWorker(null, null, () => {})());
+  assert.doesNotThrow(() => activateWaitingWorker(null, null, () => {}));
 });

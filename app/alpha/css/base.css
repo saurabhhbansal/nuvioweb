@@ -72,9 +72,12 @@ body {
   min-height: 0;
 }
 
+/* 100dvh follows the mobile browser bars; 100vh is the fallback for engines
+   without dynamic viewport units. */
 #app {
   width: 100vw;
   height: 100vh;
+  height: 100dvh;
   overflow: hidden;
 }
 
@@ -82,6 +85,7 @@ body {
   display: none;
   width: 100vw;
   height: 100vh;
+  height: 100dvh;
 }
 
 .row {
@@ -106,6 +110,62 @@ body {
   box-shadow: 0 0 0 2px rgba(245, 249, 255, 0.9);
 }
 
-*:focus {
-  outline: none !important;
+/* Rings only for keyboard focus. TV/remote focus keeps its own `.focused`
+   class styling, and the focusable/button rules in components.css still opt
+   those elements out of the native ring. */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus-color);
+  outline-offset: 2px;
+}
+
+/* Containers focused from script (tabindex="-1") are not controls. */
+[tabindex="-1"]:focus-visible {
+  outline: none;
+}
+
+/* Browser-only notices: "Update ready" and offline. */
+.app-sw-update-toast,
+.app-offline-notice {
+  position: fixed;
+  z-index: 2147483000;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: calc(100vw - 32px);
+  box-sizing: border-box;
+  border-radius: 12px;
+  background: #1d1f24;
+  color: #f5f5f5;
+  font-size: 14px;
+  line-height: 1.35;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
+}
+
+.app-sw-update-toast {
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 6px 6px 16px;
+}
+
+.app-sw-update-toast-button {
+  min-height: 44px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 8px;
+  background: #fff;
+  color: #111;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.app-offline-notice {
+  top: calc(8px + env(safe-area-inset-top));
+  padding: 6px 14px;
+  pointer-events: none;
 }

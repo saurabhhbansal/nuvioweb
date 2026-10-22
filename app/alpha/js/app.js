@@ -16,7 +16,8 @@ import { renderAppShell } from "./bootstrap/renderAppShell.js";
 import { renderAddonRemotePage } from "./bootstrap/renderAddonRemotePage.js";
 import { preloadStreamBadgeImages } from "./ui/screens/stream/streamScreen.js";
 import { warmStreamingLibs } from "./runtime/loadStreamingLibs.js";
-import { watchServiceWorkerTakeover } from "./core/update/serviceWorkerReload.js";
+import { activateWaitingWorker, watchForWaitingWorker } from "./core/update/serviceWorkerReload.js";
+import { showServiceWorkerUpdateToast } from "./ui/components/appUpdatePrompt.js";
 import { Platform } from "./platform/index.js";
 import { LocalStore } from "./core/storage/localStore.js";
 import { I18n } from "./i18n/index.js";
@@ -54,14 +55,22 @@ if (
   /^https?:$/.test(globalThis.location?.protocol || "") &&
   !["localhost", "127.0.0.1", "::1"].includes(globalThis.location?.hostname || "")
 ) {
-  // Remembered before registering: a page that was already controlled is being
-  // replaced by a newer worker, which is the only case worth reloading for.
-  const hadServiceWorkerController = Boolean(globalThis.navigator.serviceWorker.controller);
-  globalThis.navigator.serviceWorker.register("./sw.js").catch(() => {});
-  watchServiceWorkerTakeover(globalThis.navigator.serviceWorker, {
-    hadController: hadServiceWorkerController,
-    reload: () => globalThis.location.reload()
-  });
+  const serviceWorker = globalThis.navigator.serviceWorker;
+  serviceWorker
+    .register("./sw.js")
+    .then((registration) => {
+      // A new build waits until the user chooses to reload.
+      watchForWaitingWorker(registration, serviceWorker, (worker) => {
+        showServiceWorkerUpdateToast({
+          onReload: () => activateWaitingWorker(serviceWorker, worker, () => globalThis.location.reload())
+        });
+      });
+    })
+    .catch(() => {});
+  // Only English is precached; keep the active language available offline too.
+  serviceWorker.ready
+    .then((registration) => registration.active?.postMessage({ type: "CACHE_LOCALE", locale: I18n.getLocale() }))
+    .catch(() => {});
 }
 
 // beforeinstallprompt fires once, early. Catching it here rather than in the
@@ -514,10 +523,8 @@ window.addEventListener("error", (event) => {
   console.warn("Unhandled runtime error", event.error);
 });
 
+// A stray rejection (often a request failing offline) is logged, not fatal:
+// startup failures that matter reach renderFatalError through bootstrap().catch.
 window.addEventListener("unhandledrejection", (event) => {
-  if (!appShellRendered) {
-    renderFatalError(event?.reason);
-    return;
-  }
   console.warn("Unhandled promise rejection", event?.reason);
 });

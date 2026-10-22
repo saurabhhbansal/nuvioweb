@@ -46,9 +46,14 @@ test("Service Worker asks the network for runtime config before anything else", 
   // Never installed into the app shell: a redeployed container writes a new
   // nuvio.env.js, and a copy precached at install would keep pointing the app
   // at the backend the previous deployment used.
-  assert.doesNotMatch(serviceWorker, /"\.\/nuvio\.env\.js"/);
+  const appShell = serviceWorker.slice(
+    serviceWorker.indexOf("const APP_SHELL = ["),
+    serviceWorker.indexOf("];", serviceWorker.indexOf("const APP_SHELL = ["))
+  );
+  assert.ok(appShell.length > 0, "the app shell list was not found");
+  assert.doesNotMatch(appShell, /nuvio\.env\.js/);
 
-  const handler = serviceWorker.slice(serviceWorker.indexOf('url.pathname === "/nuvio.env.js"'));
+  const handler = serviceWorker.slice(serviceWorker.indexOf("url.pathname === ENV_PATH"));
   const block = handler.slice(0, handler.indexOf('request.mode === "navigate"'));
   // The network is asked first and its answer always wins, so the running
   // container's values are what the page gets.
@@ -66,7 +71,7 @@ test("Service Worker asks the network for runtime config before anything else", 
 test("Service Worker falls back to the last runtime config when offline", async () => {
   const serviceWorker = await readFile(new URL("../sw.js", import.meta.url), "utf8");
 
-  const handler = serviceWorker.slice(serviceWorker.indexOf('url.pathname === "/nuvio.env.js"'));
+  const handler = serviceWorker.slice(serviceWorker.indexOf("url.pathname === ENV_PATH"));
   const block = handler.slice(0, handler.indexOf('request.mode === "navigate"'));
   assert.match(block, /\.catch\(/, "a failed fetch must be handled, not left to fail");
   assert.match(block, /caches\.match\(request/);

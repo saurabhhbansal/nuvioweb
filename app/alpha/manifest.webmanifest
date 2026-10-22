@@ -1,10 +1,14 @@
 {
   "name": "Nuvio",
   "short_name": "Nuvio",
+  "description": "Browse your Nuvio library and add-ons, and play in the browser or an external player.",
+  "lang": "en",
+  "dir": "ltr",
   "id": "./",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
+  "orientation": "any",
   "background_color": "#0d0d0d",
   "theme_color": "#0d0d0d",
   "icons": [

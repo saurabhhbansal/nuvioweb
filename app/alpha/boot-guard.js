@@ -89,8 +89,8 @@
     return typeof previousOnError === "function" ? previousOnError.apply(window, arguments) : false;
   };
 
-  window.addEventListener?.("unhandledrejection", function onBootRejection(event) {
-    var reason = event && event.reason;
-    if (active) showError("Something went wrong while the application was starting.", reason && (reason.stack || reason.message) ? reason.stack || reason.message : reason, "BOOT-PROMISE");
-  });
+  // Unhandled promise rejections are not fatal here. Plenty of them during boot
+  // are a sync or network call failing offline, which the app recovers from;
+  // a blank "could not start" screen for those hid a working app. Startup
+  // files that fail to load still fail through scriptFailed/loadScript.
 })(window, document);

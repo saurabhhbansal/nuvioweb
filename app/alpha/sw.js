@@ -1,7 +1,9 @@
 const CACHE_NAME = "nuvio-app-shell-__NUVIO_APP_VERSION__";
+// Every translation file the build found. Only English is precached (it is the
+// fallback for every key); the others are cached the first time they are used.
 const LOCALE_ASSETS = __NUVIO_LOCALE_ASSETS__;
+const DEFAULT_LOCALE_ASSETS = LOCALE_ASSETS.filter((entry) => /^\.\/res\/values\/[^/]+$/.test(entry));
 const APP_SHELL = [
-  "./",
   "./index.html",
   "./boot-guard.js",
   "./assets/runtime/legacy-features.js",
@@ -39,8 +41,18 @@ const APP_SHELL = [
   "./assets/icons/ic_player_back.svg",
   "./assets/icons/ic_player_more.svg",
   "./assets/libs/qrcode-generator.js",
-  ...LOCALE_ASSETS
+  ...DEFAULT_LOCALE_ASSETS
 ];
+
+// Relative entries resolve against the worker's own URL, so a deploy under a
+// sub-path (example.com/app/) matches its own files and nothing else.
+function scopedPath(entry) {
+  return new URL(entry, self.location.href).pathname;
+}
+
+const APP_SHELL_PATHS = new Set(APP_SHELL.map(scopedPath));
+const LOCALE_PATHS = new Set(LOCALE_ASSETS.map(scopedPath));
+const ENV_PATH = scopedPath("./nuvio.env.js");
 
 const GOOGLE_FONT_ORIGINS = new Set(["https://fonts.googleapis.com", "https://fonts.gstatic.com"]);
 const MATERIAL_ICONS_STYLESHEET = "https://fonts.googleapis.com/icon?family=Material+Icons";
@@ -107,10 +119,31 @@ async function cacheMaterialIconAssets() {
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    cacheAppShell()
-      .then(cacheMaterialIconAssets)
-      .then(() => self.skipWaiting())
+    // No skipWaiting here: an open page keeps the build it started with until
+    // the user taps "Reload" in the update prompt, which sends SKIP_WAITING.
+    cacheAppShell().then(cacheMaterialIconAssets)
   );
+});
+
+function cacheLocale(locale) {
+  const normalized = String(locale || "").trim().toLowerCase();
+  if (!/^[a-z]{2,3}(?:-[a-z0-9]{2,8})?$/.test(normalized)) return Promise.resolve();
+  const prefix = `./res/values-${normalized}/`;
+  const entries = LOCALE_ASSETS.filter((entry) => entry.startsWith(prefix));
+  if (!entries.length) return Promise.resolve();
+  return caches
+    .open(CACHE_NAME)
+    .then((cache) => cache.addAll(entries.map((entry) => new Request(entry, { cache: "reload" }))))
+    .catch(() => {});
+}
+
+self.addEventListener("message", (event) => {
+  const data = event.data || {};
+  if (data.type === "SKIP_WAITING") {
+    self.skipWaiting();
+  } else if (data.type === "CACHE_LOCALE") {
+    event.waitUntil?.(cacheLocale(data.locale));
+  }
 });
 
 self.addEventListener("activate", (event) => {
@@ -161,7 +194,7 @@ self.addEventListener("fetch", (event) => {
   // SUPABASE_URL turns every cloud call into a relative URL, answered by
   // whatever served the page with a 404, for the rest of that page's life and
   // with no way back. So the last copy that was fetched stands in.
-  if (url.pathname === "/nuvio.env.js") {
+  if (url.pathname === ENV_PATH) {
     event.respondWith(
       fetch(request)
         .then((response) => {
@@ -181,13 +214,17 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(fetch(request).catch(() => caches.match("./index.html")));
     return;
   }
-  if (!APP_SHELL.some((entry) => url.pathname.endsWith(entry.replace(/^\.\//, "")))) return;
+  // Exact paths only. Anything not listed (add-on data, images, new files)
+  // goes to the network as if there were no worker.
+  if (!APP_SHELL_PATHS.has(url.pathname) && !LOCALE_PATHS.has(url.pathname)) return;
   event.respondWith(
     caches.match(request, { ignoreSearch: true }).then((cached) => {
       if (cached) return cached;
       return fetch(request).then((response) => {
         if (response.ok) {
-          void caches.open(CACHE_NAME).then((cache) => cache.put(request, response.clone()));
+          // Clone now: once the page starts reading the body it can't be copied.
+          const copy = response.clone();
+          void caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
         }
         return response;
       });

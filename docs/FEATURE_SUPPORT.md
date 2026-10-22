@@ -14,7 +14,7 @@ Updated 2026-10-22. "Tested" means covered by automated tests in CI, mostly Chro
 | Native video, HLS, DASH | Plays in Chromium; legal fixtures tested for play, pause, seek, resume and subtitles | Firefox/WebKit run on demand only. 4K, HDR and high-frame-rate output unverified |
 | Failure explanations | Shown on playback failure; names the real cause when known (debrid, headers, HTTP status, format) | Unknown causes are labelled unknown. Optional details and diagnostics export contain no URLs or tokens |
 | External player hand-off | Android: system "Open with" chooser or VLC. iPhone: Lenna, Outplayer, Infuse or VLC. Desktop: .m3u download or Copy link. Mobile launches unverified on real devices | Sources that need request headers are labelled "Needs headers" and cannot be handed off by URL |
-| PWA install and offline shell | Service worker, update and offline shell tested in Chromium | Mobile fixes in #165 |
+| PWA install and offline shell | Installable; pinch-zoom allowed. Precaches the app shell and English (other languages cache when used). New versions show an "Update ready – Reload" prompt instead of reloading. Offline notice; saved Library stays visible offline. Tested in Chromium | Install and update unverified on a real iPhone or Android device. No manifest screenshots yet |
 | JS plugins | Original URL-template plugins only | Running Nuvio JS plugins in the browser is #166 |
 | Sidecar features (Trakt sign-in, debrid bridges, external-player return) | Off on the public preview; Settings explains why and hides external-player progress options | Need a server; not planned for the MVP |
 
