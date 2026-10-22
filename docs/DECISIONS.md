@@ -16,6 +16,7 @@ Updated 2026-10-21. Only decisions still in force are listed. Older records are 
 | ADR-016 | Roadmap lives in GitHub milestones (2026-10-21) | [Milestones](https://github.com/saurabhhbansal/nuvioweb/milestones) replace tracker files and progress ledgers |
 | ADR-017 | Neutral client (2026-10-21) | Like Stremio, the repo never ships or names third-party scraper providers. Users install their own sources |
 | ADR-018 | Evidence is green CI plus a short PR note (2026-10-21) | No evidence or receipt files in the repo |
+| ADR-019 | Bring your own proxy (2026-10-22) | The project runs no shared, public or donor proxy. Users may set their own proxy URL for plugins. See [PLUGIN_PROXY_DECISION](PLUGIN_PROXY_DECISION.md) |
 
 ## Notes
 
