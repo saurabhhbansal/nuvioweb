@@ -30,13 +30,6 @@ import {
   enableBrowserPushReturn,
   getBrowserPushReturnState
 } from "../../components/browserPushReturn.js";
-import {
-  copyAutomationShortcutTarget,
-  getAutomationReturnAvailability,
-  openAutomationShortcut,
-  openAutomationTutorial,
-  renderAutomationReturnGuide
-} from "../../components/browserAutomationReturn.js";
 import { selectQuickSetupSteps, selectReturnMethodsOffered } from "./quickSetupSteps.js";
 
 function t(key, params = {}, fallback = key) {
@@ -99,7 +92,6 @@ export const QuickSetupScreen = {
     this.initialProgressMode = this.progressMode;
     this.initialOfflineSync = this.offlineSync;
     this.initialReturnMethod = this.returnMethod;
-    this.automationAvailability = getAutomationReturnAvailability();
 
     // Asking about a notification the browser cannot deliver is a step that
     // wastes the one thing this flow is spending: attention.
@@ -121,7 +113,6 @@ export const QuickSetupScreen = {
       callbackMode: capabilities.callbackMode,
       automaticProgress: capabilities.automaticProgress && getSidecarCapabilities().externalReturn,
       pushState: this.pushState?.state,
-      automationAvailability: this.automationAvailability,
       progressMode: getSidecarCapabilities().externalReturn ? this.progressMode : "manual"
     });
   },
@@ -129,7 +120,6 @@ export const QuickSetupScreen = {
   returnMethodsOffered() {
     return selectReturnMethodsOffered({
       pushState: this.pushState?.state,
-      automationAvailability: this.automationAvailability,
       progressMode: getSidecarCapabilities().externalReturn ? this.progressMode : "manual"
     });
   },
@@ -479,31 +469,6 @@ export const QuickSetupScreen = {
   renderReturnStep() {
     const offered = this.returnMethodsOffered();
     const modes = [];
-    // The Automation goes first where it exists: it is the recommendation, and
-    // on iOS it is also the one that works without a relay or a permission.
-    if (offered.includes("automation")) {
-      const needsInstall = this.automationAvailability === "needs-install";
-      modes.push({
-        id: "automation",
-        label: t("quick_setup_return_automation", {}, "A Shortcut automation"),
-        body: t(
-          "quick_setup_return_automation_body",
-          {},
-          "Closing the external player is the only tap. iOS opens Nuvio from there by itself, with no notification to find."
-        ),
-        badge: needsInstall
-          ? t("quick_setup_return_needs_install_badge", {}, "Needs installing")
-          : t("quick_setup_return_recommended", {}, "Recommended on iPhone"),
-        // A recommendation wears the accent the person chose in Appearance, the
-        // way the player step's does. Only the unmet precondition stays grey.
-        badgeNeutral: needsInstall,
-        // The guide is a page of steps with pictures. Choosing this option
-        // should say what it is, not bury the next button under a tutorial
-        // nobody has asked for yet.
-        detailCollapsed: true,
-        detail: renderAutomationReturnGuide({ availability: this.automationAvailability })
-      });
-    }
     if (offered.includes("notification")) {
       modes.push({
         id: "notification",
@@ -604,25 +569,8 @@ export const QuickSetupScreen = {
       return;
     }
     if (action === "chooseReturnMethod") {
-      this.returnMethod = node.dataset.mode === "automation" ? "automation" : "notification";
+      this.returnMethod = "notification";
       this.render();
-      return;
-    }
-    if (action === "addReturnShortcut") {
-      openAutomationShortcut();
-      return;
-    }
-    if (action === "copyReturnShortcutTarget") {
-      // The address stays on screen, so a clipboard the browser will not give
-      // us costs a tap rather than the step.
-      const copied = await copyAutomationShortcutTarget();
-      node.textContent = copied
-        ? t("automation_return_copied", {}, "Copied")
-        : t("automation_return_copy_address", {}, "Copy");
-      return;
-    }
-    if (action === "openReturnTutorial") {
-      openAutomationTutorial();
       return;
     }
     if (action === "enableNotifications") {
