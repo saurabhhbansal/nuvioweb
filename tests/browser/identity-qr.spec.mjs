@@ -68,10 +68,16 @@ async function installQrFixture(context, { qrImageUrl = null, holdExchange = fal
       return json({ access_token: anonymousToken, refresh_token: "fixture-anonymous-refresh" });
     }
     if (operation === "start_tv_login_session") {
-      requests.push({ operation });
+      const redirect = String(request.postDataJSON()?.p_redirect_base_url || "");
+      requests.push({ operation, redirect });
+      // Mirrors the live service: only a "/tv-login" base is accepted and the
+      // approval link is built from it.
+      if (!redirect.includes("/tv-login")) {
+        return json({ code: "P0001", message: "Invalid TV login redirect base URL" }, 400);
+      }
       return json([{
         code: "fixture-qr-code",
-        qr_content: "https://nuvioweb.example.invalid/qr/fixture",
+        web_url: `${redirect}?code=fixture-qr-code`,
         qr_image_url: qrImageUrl,
         expires_at_millis: Date.now() + expiresIn,
         poll_interval_seconds: 1
@@ -166,6 +172,14 @@ test("a missing upstream image is rendered locally from the login URL", async ({
   const fixture = await installQrFixture(context, { qrImageUrl: null });
   await openQrScreen(page);
   await expect(page.locator("#qr-container canvas.qr-image-canvas")).toBeVisible();
+  expect(fixture.requests.filter((entry) => entry.operation === "start_tv_login_session").map((entry) => entry.redirect)).toEqual(["https://nuvio.tv/tv-login"]);
+  const link = page.locator("#qr-login-link a");
+  await expect(link).toBeVisible();
+  expect(await link.evaluate((anchor) => ({ href: anchor.href, target: anchor.target, rel: anchor.rel }))).toEqual({
+    href: "https://nuvio.tv/tv-login?code=fixture-qr-code",
+    target: "_blank",
+    rel: "noopener noreferrer"
+  });
   await expect(page.locator('#profileSelection .profile-card[data-profile-id="1"]')).toBeVisible({ timeout: 15000 });
   expect(fixture.externalRendererRequests()).toBe(0);
   expect(fixture.unexpected).toEqual([]);

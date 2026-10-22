@@ -32,7 +32,13 @@ if (!globalThis.__NUVIO_ENV__) {
 export const SUPABASE_URL = String(runtimeEnv.NUVIO_SUPABASE_URL || "").trim();
 export const SUPABASE_ANON_KEY = String(runtimeEnv.NUVIO_SUPABASE_ANON_KEY || "").trim();
 export const SUPABASE_FALLBACK_URL = String(runtimeEnv.NUVIO_SUPABASE_FALLBACK_URL || "").trim();
-export const TV_LOGIN_WEB_BASE_URL = String(runtimeEnv.TV_LOGIN_WEB_BASE_URL || "").trim();
+// Nuvio's approval page. The server only accepts a redirect base that contains
+// "/tv-login" and builds the QR link as `<base>?code=<code>`; this site has no
+// such page, so the default is the one Nuvio's own TV clients use.
+export const DEFAULT_TV_LOGIN_WEB_BASE_URL = "https://nuvio.tv/tv-login";
+export const TV_LOGIN_WEB_BASE_URL = String(
+  runtimeEnv.TV_LOGIN_WEB_BASE_URL || DEFAULT_TV_LOGIN_WEB_BASE_URL
+).trim();
 export const YOUTUBE_PROXY_URL = String(
   runtimeEnv.YOUTUBE_PROXY_URL || "youtube-proxy.html"
 ).trim();
