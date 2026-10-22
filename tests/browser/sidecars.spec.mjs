@@ -170,6 +170,7 @@ test("actual browser client boundaries use manual return and never request disab
   expect(result).toEqual({
     capabilities: {
       traktAuth: false,
+      traktBridge: false,
       debrid: false,
       externalReturn: false,
       nativeMedia: false,
