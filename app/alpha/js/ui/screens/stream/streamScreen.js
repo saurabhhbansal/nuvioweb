@@ -288,10 +288,10 @@ function getStreamHeadline(stream = {}) {
     String(value || "").trim()
   );
   if (!primary) {
-    return stream.addonName || "Unknown source";
+    return stream.addonName || t("stream_unknown_source", {}, "Unknown source");
   }
   const firstLine = String(primary).split(/\r?\n/)[0].trim();
-  return firstLine || stream.addonName || "Unknown source";
+  return firstLine || stream.addonName || t("stream_unknown_source", {}, "Unknown source");
 }
 
 function getStreamQuality(stream = {}) {
@@ -619,7 +619,10 @@ export const StreamScreen = {
         tmdbId: this.params?.tmdbId || null,
         traktId: this.params?.traktId || null,
         originalItemId: this.params?.originalItemId || null,
-        fallbackTitle: this.params?.itemTitle || this.params?.playerTitle || "Untitled",
+        fallbackTitle:
+          this.params?.itemTitle ||
+          this.params?.playerTitle ||
+          t("stream_title_untitled", {}, "Untitled"),
         returnToSearchOnBack: Boolean(this.params?.returnToSearchOnBack),
         returnHomeOnBack: Boolean(
           !this.params?.returnToSearchOnBack && (this.params?.returnHomeOnBack || fallbackToHome)
@@ -1753,7 +1756,7 @@ export const StreamScreen = {
     const title = String(
       this.params?.itemTitle ||
         this.params?.playerTitle ||
-        (this.titleMetaPending ? "" : "Untitled")
+        (this.titleMetaPending ? "" : t("stream_title_untitled", {}, "Untitled"))
     );
     const subtitle = isSeries
       ? String(this.params?.episodeTitle || this.params?.playerSubtitle || "").trim()
@@ -3079,7 +3082,10 @@ export const StreamScreen = {
         this.params?.season && this.params?.episode
           ? `S${this.params.season}E${this.params.episode}`
           : null,
-      playerTitle: this.params?.itemTitle || this.params?.playerTitle || "Untitled",
+      playerTitle:
+        this.params?.itemTitle ||
+        this.params?.playerTitle ||
+        t("stream_title_untitled", {}, "Untitled"),
       playerSubtitle: this.params?.episodeTitle || this.params?.playerSubtitle || "",
       playerEpisodeTitle: this.params?.episodeTitle || "",
       playerReleaseYear: this.params?.year || "",
