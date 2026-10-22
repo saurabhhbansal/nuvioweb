@@ -465,6 +465,8 @@ export const AuthQrSignInScreen = {
     QrLoginService.cancelAttempt();
     this.activeAttemptId = null;
     this.stopIntervals();
+    // The link and QR carry the one-time code; drop them with the attempt.
+    this.clearQr();
     if (this.refreshButton) {
       this.refreshButton.onclick = null;
       this.refreshButton = null;

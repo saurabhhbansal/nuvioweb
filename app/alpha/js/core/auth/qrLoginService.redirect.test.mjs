@@ -10,6 +10,15 @@ globalThis.__NUVIO_ENV__ = {
   TV_LOGIN_WEB_BASE_URL: "https://nuvioweb.example.invalid"
 };
 const { QrLoginService } = await import("./qrLoginService.js");
+const { defaultTvLoginWebBaseUrl } = await import("../../config.js");
+
+test("only the hosted Nuvio backend defaults to Nuvio's approval page", () => {
+  assert.equal(defaultTvLoginWebBaseUrl("https://api.nuvio.tv"), "https://nuvio.tv/tv-login");
+  assert.equal(defaultTvLoginWebBaseUrl("https://api.nuvio.tv/"), "https://nuvio.tv/tv-login");
+  for (const backend of ["https://sync.example.invalid", "https://api.nuvio.tv.example.invalid", "", null, "not a url"]) {
+    assert.equal(defaultTvLoginWebBaseUrl(backend), "", String(backend));
+  }
+});
 
 function storage(entries = {}) {
   const values = new Map(Object.entries(entries));
@@ -37,7 +46,7 @@ test("an invalid configured approval page sends no QR start request", async () =
   };
   try {
     assert.equal(await QrLoginService.start(), null);
-    assert.match(QrLoginService.getLastError(), /Missing redirect_base_url configuration/);
+    assert.match(QrLoginService.getLastError(), /Invalid TV login redirect base URL in configuration/);
     assert.deepEqual(calls, []);
   } finally {
     QrLoginService.cancelAttempt();

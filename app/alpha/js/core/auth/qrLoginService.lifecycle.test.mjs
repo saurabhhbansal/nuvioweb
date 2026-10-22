@@ -5,9 +5,10 @@ const fixtureOrigin = "https://identity.fixture.invalid";
 globalThis.__NUVIO_ENV__ = {
   NUVIO_SUPABASE_URL: fixtureOrigin,
   NUVIO_SUPABASE_ANON_KEY: "fixture-public-key",
-  NUVIO_SUPABASE_FALLBACK_URL: ""
+  NUVIO_SUPABASE_FALLBACK_URL: "",
+  TV_LOGIN_WEB_BASE_URL: "https://nuvio.tv/tv-login"
 };
-const { QrLoginService, isSafeQrImageUrl, resolveTvLoginRedirectBase } = await import("./qrLoginService.js");
+const { QrLoginService, isSafeQrImageUrl, resolveTvLoginRedirectBase, expectedQrLoginUrl } = await import("./qrLoginService.js");
 const { AuthManager } = await import("./authManager.js");
 const { SessionStore } = await import("../storage/sessionStore.js");
 const { AuthState } = await import("./authState.js");
@@ -353,7 +354,7 @@ test("a start error is redacted for the device nonce", async () => {
   }
 });
 
-test("QR start sends Nuvio's approval page, never the page the app is served from", async () => {
+test("QR start sends the configured approval page, never the page the app is served from", async () => {
   const originalWindow = globalThis.window;
   globalThis.window = { location: { protocol: "https:", origin: "https://nuvioweb.example.invalid" } };
   const redirects = [];
@@ -386,6 +387,31 @@ test("QR start sends Nuvio's approval page, never the page the app is served fro
   } finally {
     globalThis.window = originalWindow;
   }
+});
+
+test("a start response pointing anywhere but the requested approval page yields no login URL", async () => {
+  for (const webUrl of [
+    "https://elsewhere.example.invalid/tv-login?code=SYNTH1",
+    "https://nuvio.tv/other?code=SYNTH1",
+    "http://nuvio.tv/tv-login?code=SYNTH1",
+    "https://user:pass@nuvio.tv/tv-login?code=SYNTH1",
+    "javascript:alert(1)"
+  ]) {
+    await withSession(anonymousSession(), async (url) => {
+      if (url.endsWith("/rest/v1/rpc/start_tv_login_session")) {
+        return json([{ code: "SYNTH1", web_url: webUrl, expires_at: new Date(Date.now() + 300000).toISOString() }]);
+      }
+      throw new Error(`unexpected request ${url}`);
+    }, async () => {
+      const started = await QrLoginService.start();
+      assert.ok(started, webUrl);
+      assert.equal(started.loginUrl, null, webUrl);
+      assert.equal(started.code, "SYNTH1");
+    });
+  }
+  assert.equal(expectedQrLoginUrl("https://nuvio.tv/tv-login/?code=A", "https://nuvio.tv/tv-login"), "https://nuvio.tv/tv-login/?code=A");
+  assert.equal(expectedQrLoginUrl("https://nuvio.tv/tv-login?code=A#x", "https://nuvio.tv/tv-login"), null);
+  assert.equal(expectedQrLoginUrl("https://nuvio.tv/tv-login?code=A", null), null);
 });
 
 test("the QR redirect base must be an HTTPS /tv-login page without query, fragment or credentials", () => {

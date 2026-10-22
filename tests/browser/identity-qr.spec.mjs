@@ -24,7 +24,7 @@ function deferred() {
   return { promise, resolve };
 }
 
-async function installQrFixture(context, { qrImageUrl = null, holdExchange = false, holdOwner = false, holdPoll = false, pollStatus = "approved", expiresIn = 600000 } = {}) {
+async function installQrFixture(context, { qrImageUrl = null, webUrl = null, holdExchange = false, holdOwner = false, holdPoll = false, pollStatus = "approved", expiresIn = 600000 } = {}) {
   const requests = [];
   const unexpected = [];
   const exchangeGate = holdExchange ? gate() : null;
@@ -77,7 +77,7 @@ async function installQrFixture(context, { qrImageUrl = null, holdExchange = fal
       }
       return json([{
         code: "fixture-qr-code",
-        web_url: `${redirect}?code=fixture-qr-code`,
+        web_url: webUrl || `${redirect}?code=fixture-qr-code`,
         qr_image_url: qrImageUrl,
         expires_at_millis: Date.now() + expiresIn,
         poll_interval_seconds: 1
@@ -182,6 +182,24 @@ test("a missing upstream image is rendered locally from the login URL", async ({
   });
   await expect(page.locator('#profileSelection .profile-card[data-profile-id="1"]')).toBeVisible({ timeout: 15000 });
   expect(fixture.externalRendererRequests()).toBe(0);
+  expect(fixture.unexpected).toEqual([]);
+});
+
+test("a start response pointing at another site shows neither a QR nor a link", async ({ context, page }) => {
+  const fixture = await installQrFixture(context, { webUrl: "https://elsewhere.example.invalid/tv-login?code=fixture-qr-code" });
+  await openQrScreen(page);
+  await expect(page.locator('#qr-container [data-state="unavailable"]')).toBeVisible();
+  expect(await page.locator("#qr-container canvas, #qr-container img").count()).toBe(0);
+  expect(await page.locator("#qr-login-link a").count()).toBe(0);
+  expect(fixture.unexpected).toEqual([]);
+});
+
+test("leaving the QR screen removes the code-bearing link", async ({ context, page }) => {
+  const fixture = await installQrFixture(context, { pollStatus: "pending" });
+  await openQrScreen(page);
+  await expect(page.locator("#qr-login-link a")).toBeVisible();
+  await page.locator("#qr-back-btn").click();
+  expect(await page.locator("#qr-login-link a").count()).toBe(0);
   expect(fixture.unexpected).toEqual([]);
 });
 

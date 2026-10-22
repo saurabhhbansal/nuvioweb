@@ -66,8 +66,29 @@ export function resolveTvLoginRedirectBase(value) {
 }
 
 function buildRedirectCandidates() {
+  if (!TV_LOGIN_WEB_BASE_URL) return [];
   const base = resolveTvLoginRedirectBase(TV_LOGIN_WEB_BASE_URL);
-  return base ? [base] : [];
+  if (!base) {
+    // Set but unusable: say so, rather than look like it was never set.
+    throw new Error("Invalid TV login redirect base URL in configuration");
+  }
+  return [base];
+}
+
+// The QR and link may only point at the approval page this client asked for.
+// Anything else in the response (another host or path) is dropped.
+export function expectedQrLoginUrl(loginUrl, redirectBase) {
+  if (!loginUrl || !redirectBase) return null;
+  try {
+    const url = new URL(String(loginUrl));
+    const base = new URL(redirectBase);
+    if (url.username || url.password || url.hash) return null;
+    if (url.origin !== base.origin) return null;
+    if (url.pathname.replace(/\/+$/, "") !== base.pathname.replace(/\/+$/, "")) return null;
+    return url.href;
+  } catch {
+    return null;
+  }
 }
 
 function toEpochMillis(session) {
@@ -461,14 +482,14 @@ export const QrLoginService = {
       if (!hasQrAuthConfig()) {
         throw new Error("QR auth is not configured");
       }
-      assertAttemptOwned(attempt);
-      await ensureQrSessionAuthenticated({ attempt });
-      assertAttemptOwned(attempt);
-      deviceNonce = generateDeviceNonce();
       const redirectCandidates = buildRedirectCandidates();
       if (!redirectCandidates.length) {
         throw new Error("Missing redirect_base_url configuration");
       }
+      assertAttemptOwned(attempt);
+      await ensureQrSessionAuthenticated({ attempt });
+      assertAttemptOwned(attempt);
+      deviceNonce = generateDeviceNonce();
 
       let session = null;
       let lastStartError = null;
@@ -516,7 +537,7 @@ export const QrLoginService = {
       assertAttemptOwned(attempt);
       return {
         code: session.code,
-        loginUrl: session.qr_content || session.web_url || null,
+        loginUrl: expectedQrLoginUrl(session.qr_content || session.web_url, redirectCandidates[0]),
         qrImageUrl: session.qr_image_url || null,
         expiresAt: attempt.expiresAt,
         pollIntervalSeconds: Number(session.poll_interval_seconds || 3),
