@@ -25,7 +25,7 @@ test("missing optional public integration values are empty and do not block runt
   assert.equal(env.PREMIUMIZE_CLIENT_ID, "");
   assert.equal(env.SIMKL_CLIENT_ID, "");
   assert.equal(env.TRAKT_CLIENT_ID, "");
-  assert.equal(env.SIMKL_APP_NAME, "nuvio");
+  assert.equal(env.SIMKL_APP_NAME, "nuvioweb");
 });
 
 test("container runtime allowlist includes Premiumize but excludes Trakt server configuration", async () => {
