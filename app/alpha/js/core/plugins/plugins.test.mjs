@@ -7,7 +7,7 @@ import { createPluginCache } from "./pluginCache.js";
 import { buildProxyRequest, createPluginFetch, DEFAULT_PLUGIN_USER_AGENT, isBlockedTarget, NeedsProxyError, normalizeProxyUrl } from "./pluginNetwork.js";
 import { isRepoUrl, isTemplateUrl, manifestUrlFor, parseManifest, scraperKey } from "./pluginRepo.js";
 import { createPluginRepoLoader } from "./pluginRepoLoader.js";
-import { createAxiosShim, pluginHostGlobals, runScraperCode } from "./pluginSandbox.js";
+import { createAxiosShim, normalizeSettingsLayout, pluginHostGlobals, runScraperCode, runSettingsCode } from "./pluginSandbox.js";
 import { runScraperInWorker } from "./pluginWorkerClient.js";
 import { createPluginRuntime, normalizeSources } from "../player/pluginRuntime.js";
 
@@ -358,4 +358,63 @@ test("rows from the worker are cleaned again on the main thread", async () => {
   const [group] = await runtime.execute({ tmdbId: "603", mediaType: "movie" });
   assert.equal(group.streams.length, 200);
   assert.ok(group.streams.every((stream) => stream.url.startsWith("https://") && stream.name.length <= 200));
+});
+
+test("plugin settings forms use the desktop app's layout format", () => {
+  const layout = normalizeSettingsLayout([
+    { type: "header", label: "Account" },
+    { type: "info", description: "Paste the token from your account page." },
+    { type: "text", key: "uiToken", label: "Token", isPassword: true, placeholder: "token" },
+    { type: "toggle", key: "hd", label: "HD only", defaultValue: true },
+    { type: "select", key: "region", label: "Region", options: ["us", { label: "Europe", value: "eu" }], defaultValue: "eu" },
+    { type: "text", key: "uiToken", label: "Duplicate" },
+    { type: "select", key: "empty", options: [] },
+    { type: "script", key: "x" },
+    { type: "text", label: "No key" }
+  ]);
+  assert.deepEqual(layout.map((field) => field.type), ["header", "info", "text", "toggle", "select"]);
+  assert.equal(layout[2].isPassword, true);
+  assert.equal(layout[3].defaultValue, true);
+  assert.deepEqual(layout[4].options, [{ label: "us", value: "us" }, { label: "Europe", value: "eu" }]);
+  assert.equal(layout[4].defaultValue, "eu");
+  assert.deepEqual(normalizeSettingsLayout("nope"), []);
+});
+
+test("the sandbox asks a plugin for its settings form, from module.exports or a global", async () => {
+  const exported = `module.exports = { getStreams() { return []; }, onSettings() { return [{ type: "text", key: "uiToken", label: "Token" }]; } };`;
+  assert.deepEqual((await runSettingsCode({ code: exported })).map((field) => field.key), ["uiToken"]);
+  const globalStyle = `function getStreams() { return []; } async function onSettings() { return [{ type: "toggle", key: "hd", label: "HD", defaultValue: SCRAPER_ID === "ex" }]; }`;
+  const [toggle] = await runSettingsCode({ code: globalStyle, globals: pluginHostGlobals({ scraperId: "ex" }) });
+  assert.equal(toggle.defaultValue, true);
+  assert.deepEqual(await runSettingsCode({ code: `function getStreams() { return []; }` }), []);
+});
+
+test("runtime saves per-plugin settings and passes them to the plugin when it runs", async () => {
+  const store = memoryStore();
+  const calls = [];
+  const runtime = createPluginRuntime({
+    store,
+    loader: createPluginRepoLoader({ cache: createPluginCache({ idb: null }), fetchImpl: fixtureFetch(), appOrigin: APP_ORIGIN }),
+    runScraper: async (request) => {
+      calls.push(request);
+      return request.mode === "settings"
+        ? { ok: true, streams: [], layout: [{ type: "text", key: "uiToken", label: "Token" }] }
+        : { ok: true, streams: [] };
+    }
+  });
+  runtime.saveSources([{ id: "repo", name: "Example", url: REPO, enabled: true }]);
+  const key = scraperKey(REPO, "example-source");
+  assert.deepEqual(runtime.getScraperSettings(key), {});
+  runtime.setScraperSettings(key, { uiToken: "abc", hd: true, ignored: undefined, nested: { a: 1 } });
+  assert.deepEqual(runtime.getScraperSettings(key), { uiToken: "abc", hd: true});
+
+  const [repo] = await runtime.describeSources();
+  const scraper = repo.scrapers.find((entry) => entry.key === key);
+  // The fixture plugin has no onSettings, so it is never run to ask.
+  assert.deepEqual(await runtime.getSettingsLayout(scraper), []);
+  assert.equal(calls.length, 0);
+
+  await runtime.execute({ tmdbId: "603", mediaType: "movie", tmdbApiKey: "app-key" });
+  const run = calls.find((request) => request.mode !== "settings");
+  assert.deepEqual(run.host, { scraperId: "example-source", settings: { uiToken: "abc", hd: true}, tmdbApiKey: "app-key" });
 });

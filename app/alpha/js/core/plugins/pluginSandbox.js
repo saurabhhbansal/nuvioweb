@@ -125,22 +125,91 @@ export async function runScraperCode({ code, args = [], modules = {}, fetchImpl,
   }
 }
 
-async function runScraperCodeInner({ code, args, modules, fetchImpl, consoleImpl }) {
+function loadPluginModule({ code, modules, fetchImpl, consoleImpl }) {
   const module = { exports: {} };
   const require = createRequire(modules);
   const hidden = HIDDEN_GLOBALS.map(() => undefined);
   const factory = new Function(
     "module", "exports", "require", "fetch", "console", ...HIDDEN_GLOBALS,
-    `${String(code || "")}\n;return typeof getStreams === "function" ? getStreams : undefined;`
+    `${String(code || "")}
+;return {` +
+      ` getStreams: typeof getStreams === "function" ? getStreams : undefined,` +
+      ` onSettings: typeof onSettings === "function" ? onSettings : undefined };`
   );
-  const globalGetStreams = factory(module, module.exports, require, fetchImpl, consoleImpl, ...hidden);
-  const getStreams =
-    (typeof module.exports?.getStreams === "function" && module.exports.getStreams) ||
-    (typeof module.exports === "function" && module.exports) ||
-    globalGetStreams;
+  const globals = factory(module, module.exports, require, fetchImpl, consoleImpl, ...hidden) || {};
+  const exported = module.exports;
+  return {
+    getStreams:
+      (typeof exported?.getStreams === "function" && exported.getStreams) ||
+      (typeof exported === "function" && exported) ||
+      globals.getStreams,
+    onSettings: (typeof exported?.onSettings === "function" && exported.onSettings) || globals.onSettings
+  };
+}
+
+async function runScraperCodeInner({ code, args, modules, fetchImpl, consoleImpl }) {
+  const { getStreams } = loadPluginModule({ code, modules, fetchImpl, consoleImpl });
   if (typeof getStreams !== "function") {
     throw new Error("Scraper does not export getStreams");
   }
   const raw = await getStreams(...args);
   return cleanPluginStreams(raw);
+}
+
+const SETTING_TYPES = new Set(["header", "info", "text", "toggle", "select"]);
+const MAX_SETTINGS = 50;
+
+function settingText(value, max = 200) {
+  return value == null ? "" : String(value).slice(0, max);
+}
+
+// The settings form a plugin describes with onSettings(), in the desktop
+// app's format. Anything unrecognised is dropped.
+export function normalizeSettingsLayout(raw) {
+  if (!Array.isArray(raw)) return [];
+  const seen = new Set();
+  return raw
+    .slice(0, MAX_SETTINGS)
+    .map((item) => {
+      const type = String(item?.type || "").toLowerCase();
+      if (!SETTING_TYPES.has(type)) return null;
+      const field = { type, label: settingText(item.label || item.title), description: settingText(item.description, 500) };
+      if (type === "header" || type === "info") return field.label || field.description ? field : null;
+      const key = settingText(item.key, 80).trim();
+      if (!key || seen.has(key)) return null;
+      seen.add(key);
+      field.key = key;
+      if (type === "text") {
+        field.placeholder = settingText(item.placeholder);
+        field.isPassword = item.isPassword === true;
+        field.defaultValue = settingText(item.defaultValue, 2000);
+      } else if (type === "toggle") {
+        field.defaultValue = item.defaultValue === true || item.defaultValue === "true";
+      } else {
+        field.options = (Array.isArray(item.options) ? item.options : [])
+          .slice(0, 100)
+          .map((option) =>
+            option && typeof option === "object"
+              ? { label: settingText(option.label ?? option.value), value: settingText(option.value ?? option.label) }
+              : { label: settingText(option), value: settingText(option) }
+          )
+          .filter((option) => option.value !== "");
+        if (!field.options.length) return null;
+        field.defaultValue = settingText(item.defaultValue ?? field.options[0].value);
+      }
+      return field;
+    })
+    .filter(Boolean);
+}
+
+// The plugin's settings form, or [] when it has none.
+export async function runSettingsCode({ code, modules = {}, fetchImpl, consoleImpl = console, globals = null }) {
+  const restoreGlobals = globals ? applyGlobals(globals) : () => {};
+  try {
+    const { onSettings } = loadPluginModule({ code, modules, fetchImpl, consoleImpl });
+    if (typeof onSettings !== "function") return [];
+    return normalizeSettingsLayout(await onSettings());
+  } finally {
+    restoreGlobals();
+  }
 }

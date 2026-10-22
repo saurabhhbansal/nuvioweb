@@ -43,6 +43,8 @@ export function createDesktopPluginManager({ requestRender } = {}) {
     proxyToken: "",
     proxyError: "",
     removeTarget: null,
+    settingsLayouts: new Map(),
+    settingsTarget: null,
     statusMessage: "",
     statusTone: "",
     syncInFlight: null,
@@ -67,6 +69,54 @@ export function createDesktopPluginManager({ requestRender } = {}) {
     const repos = await PluginManager.describePluginSources({ force });
     state.details = new Map(repos.map((repo) => [repo.source.id, repo]));
     state.scrapers = repos.flatMap((repo) => repo.scrapers);
+    void detectSettings();
+  };
+
+  // Finds which plugins have their own settings form, a few at a time, and
+  // shows a Settings button on those.
+  const detectSettings = async () => {
+    const pending = state.scrapers.filter((scraper) => !state.settingsLayouts.has(scraper.key));
+    let next = 0;
+    const lane = async () => {
+      while (next < pending.length) {
+        const scraper = pending[next++];
+        let layout = [];
+        try {
+          layout = await PluginManager.getScraperSettingsLayout(scraper);
+        } catch {}
+        state.settingsLayouts.set(scraper.key, layout);
+        if (layout.length) await rerender();
+      }
+    };
+    await Promise.all(Array.from({ length: Math.min(4, pending.length) }, lane));
+  };
+
+  const openSettings = (scraper) => {
+    const layout = state.settingsLayouts.get(scraper?.key) || [];
+    if (!layout.length) return;
+    const saved = PluginManager.getScraperSettings(scraper.key);
+    const values = {};
+    layout.forEach((field) => {
+      if (field.key) values[field.key] = Object.prototype.hasOwnProperty.call(saved, field.key) ? saved[field.key] : field.defaultValue;
+    });
+    state.settingsTarget = { scraper, layout, values };
+    void rerender();
+  };
+
+  const saveSettings = async (form) => {
+    const target = state.settingsTarget;
+    if (!target) return;
+    const values = {};
+    target.layout.forEach((field, index) => {
+      if (!field.key) return;
+      const input = form?.querySelector?.(`#desktop-plugin-setting-${index}`);
+      if (!input) return;
+      values[field.key] = field.type === "toggle" ? Boolean(input.checked) : String(input.value ?? "");
+    });
+    PluginManager.setScraperSettings(target.scraper.key, values);
+    state.settingsTarget = null;
+    setStatus(t("plugin_settings_saved", { name: target.scraper.name }, `${target.scraper.name} settings saved on this device.`), "success");
+    await rerender();
   };
 
   const syncSources = async () => {
@@ -198,6 +248,7 @@ export function createDesktopPluginManager({ requestRender } = {}) {
           <span class="desktop-plugin-toggle-label">${escapeHtml(scraper.name)}</span>
         </label>
         ${label ? `<span class="desktop-plugin-count">${escapeHtml(label)}</span>` : ""}
+        ${state.settingsLayouts.get(scraper.key)?.length ? `<button class="desktop-plugin-action" type="button" data-plugin-settings-open="${index}">${escapeHtml(t("plugin_settings", {}, "Settings"))}</button>` : ""}
       </li>
     `;
   };
@@ -227,6 +278,57 @@ export function createDesktopPluginManager({ requestRender } = {}) {
           <button class="desktop-plugin-action desktop-plugin-action-danger" type="button" data-plugin-source-remove="${index}">${escapeHtml(t("plugin_remove", {}, "Remove"))}</button>
         </div>
       </article>
+    `;
+  };
+
+  const renderSettingField = (field, index) => {
+    const id = `desktop-plugin-setting-${index}`;
+    const value = state.settingsTarget.values[field.key];
+    const description = field.description ? `<p class="desktop-plugin-setting-description">${escapeHtml(field.description)}</p>` : "";
+    if (field.type === "header") return `<h3 class="desktop-plugin-setting-header">${escapeHtml(field.label)}</h3>${description}`;
+    if (field.type === "info") {
+      const gap = field.label && field.description ? " " : "";
+      return `<p class="desktop-plugin-setting-info">${escapeHtml(field.label)}${gap}${escapeHtml(field.description)}</p>`;
+    }
+    if (field.type === "toggle") {
+      const checked = value === true || value === "true" ? "checked" : "";
+      return `<div class="desktop-plugin-field">
+          <label class="desktop-plugin-toggle">
+            <input id="${id}" type="checkbox" ${checked} />
+            <span class="desktop-plugin-toggle-track" aria-hidden="true"><span></span></span>
+            <span class="desktop-plugin-toggle-label">${escapeHtml(field.label || field.key)}</span>
+          </label>${description}
+        </div>`;
+    }
+    const label = `<label class="desktop-plugin-input-label" for="${id}">${escapeHtml(field.label || field.key)}</label>`;
+    if (field.type === "select") {
+      const options = field.options
+        .map((option) => `<option value="${escapeHtml(option.value)}" ${String(value) === option.value ? "selected" : ""}>${escapeHtml(option.label)}</option>`)
+        .join("");
+      return `<div class="desktop-plugin-field">${label}<select id="${id}" class="desktop-plugin-input">${options}</select>${description}</div>`;
+    }
+    const type = field.isPassword ? "password" : "text";
+    return `<div class="desktop-plugin-field">${label}<input id="${id}" class="desktop-plugin-input" type="${type}" autocomplete="off" placeholder="${escapeHtml(field.placeholder)}" value="${escapeHtml(value ?? "")}" />${description}</div>`;
+  };
+
+  const renderSettingsDialog = () => {
+    const target = state.settingsTarget;
+    if (!target) return "";
+    const name = target.scraper.name;
+    return `
+      <div class="desktop-plugin-dialog-backdrop" data-plugin-settings-backdrop>
+        <section class="desktop-plugin-dialog" role="dialog" aria-modal="true" aria-labelledby="desktop-plugin-settings-title">
+          <h2 id="desktop-plugin-settings-title">${escapeHtml(t("plugin_settings_title", { name }, `${name} settings`))}</h2>
+          <p>${escapeHtml(t("plugin_settings_note", {}, "Saved on this device and passed only to this plugin."))}</p>
+          <form class="desktop-plugin-form" data-plugin-settings-form>
+            <div class="desktop-plugin-form-fields">${target.layout.map(renderSettingField).join("")}</div>
+            <div class="desktop-plugin-dialog-actions">
+              <button class="desktop-plugin-action" type="button" data-plugin-settings-cancel>${escapeHtml(t("plugin_cancel", {}, "Cancel"))}</button>
+              <button class="desktop-plugin-primary-action" type="submit">${escapeHtml(t("plugin_proxy_save", {}, "Save"))}</button>
+            </div>
+          </form>
+        </section>
+      </div>
     `;
   };
 
@@ -332,6 +434,7 @@ export function createDesktopPluginManager({ requestRender } = {}) {
             </form>
           </section>
           ${renderConfirmation()}
+          ${renderSettingsDialog()}
         </div>
       `;
     },
@@ -374,6 +477,23 @@ export function createDesktopPluginManager({ requestRender } = {}) {
           void rerender();
         });
       });
+      container.querySelectorAll("[data-plugin-settings-open]").forEach((node) => {
+        node.addEventListener("click", () => openSettings(state.scrapers[Number(node.dataset.pluginSettingsOpen)]));
+      });
+      container.querySelector("[data-plugin-settings-form]")?.addEventListener("submit", (event) => {
+        event.preventDefault();
+        void saveSettings(event.currentTarget);
+      });
+      container.querySelector("[data-plugin-settings-cancel]")?.addEventListener("click", () => {
+        state.settingsTarget = null;
+        void rerender();
+      });
+      container.querySelector("[data-plugin-settings-backdrop]")?.addEventListener("click", (event) => {
+        if (event.target === event.currentTarget) {
+          state.settingsTarget = null;
+          void rerender();
+        }
+      });
       container.querySelector("[data-plugin-remove-cancel]")?.addEventListener("click", () => {
         state.removeTarget = null;
         void rerender();
@@ -388,9 +508,10 @@ export function createDesktopPluginManager({ requestRender } = {}) {
     },
 
     async handleKeyDown(event) {
-      if (event?.key === "Escape" && state.removeTarget) {
+      if (event?.key === "Escape" && (state.removeTarget || state.settingsTarget)) {
         event.preventDefault();
         state.removeTarget = null;
+        state.settingsTarget = null;
         await rerender();
         return true;
       }
