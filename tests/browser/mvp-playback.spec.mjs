@@ -62,7 +62,8 @@ test("guest installs a legal add-on, saves its item, uses player controls and re
   const audio = page.locator("#playerAudioDialog");
   await expect(audio).toBeVisible();
   const audioDescription = await audio.innerText();
-  await expect(audio.locator(".player-dialog-empty")).toHaveText("No audio tracks available.");
+  // Chromium has no HTMLMediaElement.audioTracks, so a single file cannot be switched; the picker says so.
+  await expect(audio.locator(".player-dialog-empty")).toContainText("can't list or switch the audio tracks inside a single video file");
   await page.keyboard.press("Escape");
   await testInfo.attach("before-player-back", { body: JSON.stringify(await page.evaluate(() => ({ current: window.__NUVIO_CURRENT_ROUTE__, history: history.state, length: history.length }))), contentType: "application/json" });
   const expectedStreamIndex = await page.evaluate(() => history.state?.__nuvioHistory?.previousIndex);
