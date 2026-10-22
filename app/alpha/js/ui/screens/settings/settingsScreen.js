@@ -3714,7 +3714,9 @@ export const SettingsScreen = {
       this.accountSyncOverview = null;
       this.accountSyncOverviewPromise = null;
       this.accountSyncOverviewLoaded = false;
-      await this.render();
+      // Sign-out has already left Settings for the start screen; drawing
+      // Settings again would only paint behind (or over) it.
+      if (Router.getCurrentScreen() === this) await this.render();
     });
 
     return `

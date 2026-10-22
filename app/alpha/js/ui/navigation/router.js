@@ -931,6 +931,46 @@ export const Router = {
     }
   },
 
+  // Signing out ends the session every open screen was built for. None of
+  // them may stay mounted underneath the sign-in screen (inert, still holding
+  // the old account's data and the page scroll lock), the in-app Back stack
+  // must not lead back into them, and the address bar must not keep naming
+  // one: a reload would reopen it for whoever signs in next.
+  //
+  // When no session was in use (a stale one found at startup, a failed
+  // sign-in on the sign-in screen) and none of its screens are open, a link
+  // someone opened is kept for after they sign in.
+  resetForSignOut({ sessionEnded = true } = {}) {
+    const hadSessionScreens =
+      sessionEnded ||
+      this.suspendedRouteStack.length > 0 ||
+      Boolean(this.current && !NON_BACKSTACK_ROUTES.has(this.current));
+    try {
+      while (this.suspendedRouteStack.length) {
+        try {
+          this.releaseTopSuspendedLayer({ cleanup: true });
+        } catch (error) {
+          console.warn("Failed to release a screen after sign-out", error?.name || "error");
+        }
+      }
+    } finally {
+      this.stack = [];
+      this.settlePreviousRouteBack(false);
+      RouteStateStore.clearAll();
+      if (hadSessionScreens) {
+        this.pendingDeepLink = null;
+        try {
+          const location = window?.location;
+          if (location?.hash && typeof window.history?.replaceState === "function") {
+            window.history.replaceState(window.history.state, "", `${location.pathname}${location.search}`);
+          }
+        } catch (_) {
+          // The URL is cosmetic here; sign-out must not depend on it.
+        }
+      }
+    }
+  },
+
   // Back and Forward are the same question: does the entry we just landed on
   // still have its screen alive? Searching the whole stack (not just its top)
   // means a multi-entry jump -- the browser's own history menu, or several
