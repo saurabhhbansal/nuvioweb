@@ -14,7 +14,9 @@ jobs:
     # Job name is a required status check on main; keep it unchanged.
     name: Chromium application smoke
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    # Installing Chromium and its system packages alone can take nine minutes on
+    # a slow runner, which left the tests themselves no time at all.
+    timeout-minutes: 25
     env:
       HUSKY: "0"
     steps:
