@@ -39,11 +39,12 @@ function createHandoffRuntime() {
 
 test("external player options are platform-aware", () => {
   assert.equal(getBrowserExternalPlayerPlatform(ios), "ios");
-  assert.deepEqual(getBrowserExternalPlayerOptions(ios), ["disabled", "infuse", "vlc"]);
-  assert.deepEqual(getManualBrowserExternalPlayerOptions(ios), ["infuse", "vlc"]);
+  assert.deepEqual(getBrowserExternalPlayerOptions(ios), ["disabled", "lenna", "outplayer", "infuse", "vlc"]);
+  assert.deepEqual(getManualBrowserExternalPlayerOptions(ios), ["lenna", "outplayer", "infuse", "vlc"]);
   assert.equal(getBrowserExternalPlayerStoreUrl({ player: "outplayer", platform: "ios" }), "https://apps.apple.com/app/outplayer/id1449923287");
   assert.equal(getBrowserExternalPlayerPlatform(android), "android");
-  assert.deepEqual(getBrowserExternalPlayerOptions(android), ["disabled", "vlc"]);
+  assert.deepEqual(getBrowserExternalPlayerOptions(android), ["disabled", "chooser", "vlc"]);
+  assert.deepEqual(getManualBrowserExternalPlayerOptions(android), ["chooser", "vlc"]);
   assert.equal(getBrowserExternalPlayerPlatform(desktop), "other");
   assert.deepEqual(getBrowserExternalPlayerOptions(desktop), ["disabled"]);
 });

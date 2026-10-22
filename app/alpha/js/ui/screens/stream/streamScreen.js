@@ -67,8 +67,9 @@ import { renderLoadingIndicator } from "../../components/loadingIndicator.js";
 import {
   getBrowserExternalPlayerOptions,
   getBrowserExternalPlayerPlatform,
+  getBrowserExternalPlayerPreference,
+  getManualBrowserExternalPlayerOptions,
   launchBrowserExternalPlayer,
-  normalizeBrowserExternalPlayer,
   prepareBrowserExternalPlaybackLaunch
 } from "../../components/browserExternalPlayer.js";
 import { resolveExternalHandoffMediaUrl } from "../../components/externalHandoffMediaUrl.js";
@@ -2857,10 +2858,10 @@ export const StreamScreen = {
 
   async routeSelectedStream(selected, context = {}) {
     if (!Environment.isBrowser() || context.offlineObjectUrl) return false;
-    const player = normalizeBrowserExternalPlayer(PlayerSettingsStore.get().browserExternalPlayer);
+    const preferred = getBrowserExternalPlayerPreference(PlayerSettingsStore.get().browserExternalPlayer);
     // Preferences never silently leave the browser, and a stored phone choice
     // must not resolve a provider link on a platform that cannot launch it.
-    if (player === "disabled" || !getBrowserExternalPlayerOptions().includes(player)) return false;
+    if (preferred === "disabled" || !getBrowserExternalPlayerOptions().includes(preferred)) return false;
     const loadToken = this.loadToken;
     const resolveToken = (this.externalPlayerResolveToken || 0) + 1;
     this.externalPlayerResolveToken = resolveToken;
@@ -2874,11 +2875,12 @@ export const StreamScreen = {
     const itemType = normalizeType(this.params?.itemType);
     this.externalPlayerChooserDialog?.destroy?.();
     this.externalPlayerChooserDialog = showBrowserExternalPlayerDialog({
-      players: [player],
+      // The saved player is the primary button; the others stay one tap away.
+      players: [preferred, ...getManualBrowserExternalPlayerOptions().filter((id) => id !== preferred)],
       getContext: () => this.loadToken === loadToken && this.externalPlayerResolveToken === resolveToken
         ? { mediaUrl, source: selected } : null,
       onDismiss: () => { this.externalPlayerChooserDialog = null; },
-      onLaunch: () => {
+      onLaunch: (player) => {
         if (this.loadToken !== loadToken || this.externalPlayerResolveToken !== resolveToken) return false;
         const prepared = prepareBrowserExternalPlaybackLaunch({
           player,

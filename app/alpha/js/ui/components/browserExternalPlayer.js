@@ -14,7 +14,16 @@ const EXTERNAL_PLAYER_IDS = Object.freeze({
   LENNA: "lenna",
   INFUSE: "infuse",
   VLC: "vlc",
-  OUTPLAYER: "outplayer"
+  OUTPLAYER: "outplayer",
+  // Android only: an intent without a package, so the system "Open with" sheet
+  // lists every installed video app instead of one hard-coded player.
+  CHOOSER: "chooser"
+});
+
+const PLATFORM_PLAYERS = Object.freeze({
+  ios: Object.freeze([EXTERNAL_PLAYER_IDS.LENNA, EXTERNAL_PLAYER_IDS.OUTPLAYER, EXTERNAL_PLAYER_IDS.INFUSE, EXTERNAL_PLAYER_IDS.VLC]),
+  android: Object.freeze([EXTERNAL_PLAYER_IDS.CHOOSER, EXTERNAL_PLAYER_IDS.VLC]),
+  other: Object.freeze([])
 });
 
 const IOS_APP_STORE_URLS = Object.freeze({
@@ -32,7 +41,8 @@ const EXTERNAL_PLAYER_CAPABILITIES = Object.freeze({
   [EXTERNAL_PLAYER_IDS.OUTPLAYER]: Object.freeze({ automaticProgress: true, resume: true, callbackMode: "progress", verified: true }),
   [EXTERNAL_PLAYER_IDS.INFUSE]: Object.freeze({ automaticProgress: true, resume: true, callbackMode: "progress", verified: true }),
   [EXTERNAL_PLAYER_IDS.LENNA]: Object.freeze({ automaticProgress: true, resume: true, callbackMode: "progress", verified: true, manualFallbackOnInvalid: true }),
-  [EXTERNAL_PLAYER_IDS.VLC]: Object.freeze({ automaticProgress: false, resume: false, callbackMode: "return-only", verified: false })
+  [EXTERNAL_PLAYER_IDS.VLC]: Object.freeze({ automaticProgress: false, resume: false, callbackMode: "return-only", verified: false }),
+  [EXTERNAL_PLAYER_IDS.CHOOSER]: Object.freeze({ automaticProgress: false, resume: false, callbackMode: "none", verified: false })
 });
 
 export function getBrowserExternalPlayerCapabilities(player) {
@@ -63,15 +73,29 @@ export function normalizeBrowserExternalPlayer(value) {
 
 export function getBrowserExternalPlayerOptions(runtime = globalThis) {
   const platform = getBrowserExternalPlayerPlatform(runtime);
-  if (platform === "ios") {
-    // Keep inherited Lenna/Outplayer builders for compatibility, but do not
-    // advertise contracts we could not establish from player-owned documentation.
-    return [EXTERNAL_PLAYER_IDS.DISABLED, EXTERNAL_PLAYER_IDS.INFUSE, EXTERNAL_PLAYER_IDS.VLC];
-  }
-  if (platform === "android") {
-    return [EXTERNAL_PLAYER_IDS.DISABLED, EXTERNAL_PLAYER_IDS.VLC];
-  }
-  return [EXTERNAL_PLAYER_IDS.DISABLED];
+  return [EXTERNAL_PLAYER_IDS.DISABLED, ...(PLATFORM_PLAYERS[platform] || [])];
+}
+
+/**
+ * Maps a saved preference onto a player this platform can open.
+ * An explicit "disabled" stays disabled. Lenna and Outplayer were hidden on
+ * iPhone for a while; a saved choice of either is honoured again. On iPhone an
+ * id with no player there (such as Android's chooser) means the person asked
+ * for an external player, so it becomes Lenna, the recommended one; the
+ * hand-off dialog still asks before anything opens. On Android and desktop an
+ * unknown id becomes disabled, so an iPhone-only choice never starts routing
+ * streams out of the browser there.
+ */
+export function migrateBrowserExternalPlayerPreference(value, platform = getBrowserExternalPlayerPlatform()) {
+  const id = String(value || "").trim().toLowerCase();
+  if (!id || id === EXTERNAL_PLAYER_IDS.DISABLED) return EXTERNAL_PLAYER_IDS.DISABLED;
+  if ((PLATFORM_PLAYERS[platform] || []).includes(id)) return id;
+  if (platform === "ios") return EXTERNAL_PLAYER_IDS.LENNA;
+  return EXTERNAL_PLAYER_IDS.DISABLED;
+}
+
+export function getBrowserExternalPlayerPreference(stored, runtime = globalThis) {
+  return migrateBrowserExternalPlayerPreference(stored, getBrowserExternalPlayerPlatform(runtime));
 }
 
 
@@ -140,16 +164,31 @@ function buildIosVlcReturnLaunchUrl({ mediaUrl, subtitleUrl = "", externalReturn
   return `vlc-x-callback://x-callback-url/stream?${query.toString()}`;
 }
 
-export function buildAndroidVlcLaunchUrl({ mediaUrl } = {}) {
+// Chrome's intent syntax keeps the source URL as ACTION_VIEW data. Preserve
+// authority (including port), encoded paths and signed query bytes. Reject raw
+// fragments: encoding them would change the HTTP request, while embedding them
+// would make the Intent delimiter contract ambiguous. Extra values are
+// percent-encoded so a title cannot add or end Intent fields.
+export function buildAndroidIntentUrl({ mediaUrl, title = "", packageName = "", fallbackUrl = "" } = {}) {
   if (!isTransferableExternalMediaUrl(mediaUrl) || String(mediaUrl).includes("#")) return "";
   const parsed = new URL(String(mediaUrl));
-  // Chrome's documented intent syntax keeps the source URL as ACTION_VIEW data
-  // while restricting resolution to VLC's official Android package.
-  // Preserve authority (including port), encoded paths and signed query bytes.
-  // Reject raw fragments: encoding them would change the HTTP request, while
-  // embedding them would make the Intent delimiter contract ambiguous.
   const data = String(mediaUrl).slice(parsed.protocol.length);
-  return `intent:${data}#Intent;scheme=${parsed.protocol.slice(0, -1)};package=org.videolan.vlc;action=android.intent.action.VIEW;type=video/*;S.browser_fallback_url=${encodeURIComponent(ANDROID_VLC_STORE_URL)};end`;
+  const fields = [`scheme=${parsed.protocol.slice(0, -1)}`];
+  if (packageName) fields.push(`package=${packageName}`);
+  fields.push("action=android.intent.action.VIEW", "type=video/*");
+  const cleanTitle = String(title || "").trim();
+  if (cleanTitle) fields.push(`S.title=${encodeURIComponent(cleanTitle)}`);
+  if (fallbackUrl) fields.push(`S.browser_fallback_url=${encodeURIComponent(fallbackUrl)}`);
+  return `intent:${data}#Intent;${fields.join(";")};end`;
+}
+
+// No package: Android shows its "Open with" sheet for every installed video app.
+export function buildAndroidChooserLaunchUrl({ mediaUrl, title = "" } = {}) {
+  return buildAndroidIntentUrl({ mediaUrl, title });
+}
+
+export function buildAndroidVlcLaunchUrl({ mediaUrl, title = "" } = {}) {
+  return buildAndroidIntentUrl({ mediaUrl, title, packageName: "org.videolan.vlc", fallbackUrl: ANDROID_VLC_STORE_URL });
 }
 
 // Outplayer's scheme carries no duration, so the shared launch options bring one
@@ -189,8 +228,12 @@ export function buildBrowserExternalPlayerLaunch({ player, platform, mediaUrl, t
     return href ? { href, storeUrl: IOS_APP_STORE_URLS.outplayer } : null;
   }
   if (platform === "android" && selectedPlayer === EXTERNAL_PLAYER_IDS.VLC) {
-    const href = buildAndroidVlcLaunchUrl({ mediaUrl });
+    const href = buildAndroidVlcLaunchUrl({ mediaUrl, title });
     return href ? { href, storeUrl: ANDROID_VLC_STORE_URL } : null;
+  }
+  if (platform === "android" && selectedPlayer === EXTERNAL_PLAYER_IDS.CHOOSER) {
+    const href = buildAndroidChooserLaunchUrl({ mediaUrl, title });
+    return href ? { href, storeUrl: "" } : null;
   }
   return null;
 }

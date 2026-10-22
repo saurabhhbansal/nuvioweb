@@ -69,9 +69,14 @@ import { Platform } from "../../../platform/index.js";
 import {
   getBrowserExternalPlayerPlatform,
   getBrowserExternalPlayerOptions,
-  getBrowserExternalPlayerStoreUrl,
-  normalizeBrowserExternalPlayer
+  getBrowserExternalPlayerPreference,
+  getBrowserExternalPlayerStoreUrl
 } from "../../components/browserExternalPlayer.js";
+
+function externalPlayerLabel(id) {
+  if (id === "chooser") return t("external_player_android_chooser", {}, "Ask each time (Open with…)");
+  return { lenna: "Lenna", outplayer: "Outplayer", infuse: "Infuse", vlc: "VLC" }[id] || t("common.disabled", {}, "Disabled");
+}
 import {
   OFFLINE_PLAYBACK_TARGETS,
   normalizeOfflinePlaybackTarget
@@ -6828,22 +6833,13 @@ export const SettingsScreen = {
       this.actionMap.set("playback:externalPlayer", () => {
         const options = getBrowserExternalPlayerOptions().map((id) => ({
           id,
-          label:
-            id === "outplayer"
-              ? "Outplayer"
-              : id === "lenna"
-              ? "Lenna"
-              : id === "infuse"
-                ? "Infuse"
-                : id === "vlc"
-                  ? "VLC"
-                  : t("common.disabled", {}, "Disabled")
-          , subtitle: id === "lenna" ? "Recommended" : ""
+          label: externalPlayerLabel(id),
+          subtitle: id === "lenna" || id === "chooser" ? t("quick_setup_player_recommended", {}, "Recommended") : ""
         }));
         this.openOptionDialog({
           title: "Play with external player",
           options,
-          selectedId: normalizeBrowserExternalPlayer(PlayerSettingsStore.get().browserExternalPlayer),
+          selectedId: getBrowserExternalPlayerPreference(PlayerSettingsStore.get().browserExternalPlayer),
           returnFocusKey: "playback:externalPlayer",
           onSelect: (option) => PlayerSettingsStore.set({ browserExternalPlayer: option.id })
         });
@@ -7432,31 +7428,22 @@ export const SettingsScreen = {
                 focusKey: "playback:externalPlayer",
                 title: "Play with external player",
                 subtitle: "Choose the default player used after selecting a compatible stream.",
-                value:
-                  normalizeBrowserExternalPlayer(model.player.browserExternalPlayer) === "lenna"
-                    ? "Lenna"
-                    : normalizeBrowserExternalPlayer(model.player.browserExternalPlayer) === "outplayer"
-                      ? "Outplayer"
-                      : normalizeBrowserExternalPlayer(model.player.browserExternalPlayer) === "infuse"
-                      ? "Infuse"
-                      : normalizeBrowserExternalPlayer(model.player.browserExternalPlayer) === "vlc"
-                        ? "VLC"
-                        : t("common.disabled", {}, "Disabled"),
+                value: externalPlayerLabel(getBrowserExternalPlayerPreference(model.player.browserExternalPlayer)),
                 classes: "settings-playback-external-player-row"
               })
             : ""
         }
         ${
           isDesktopBrowser && (() => {
-            const player = normalizeBrowserExternalPlayer(model.player.browserExternalPlayer);
+            const player = getBrowserExternalPlayerPreference(model.player.browserExternalPlayer);
             return player !== "disabled" && Boolean(getBrowserExternalPlayerStoreUrl({
               player,
               platform: getBrowserExternalPlayerPlatform()
             }));
           })()
             ? (() => {
-                const player = normalizeBrowserExternalPlayer(model.player.browserExternalPlayer);
-                const playerName = player === "outplayer" ? "Outplayer" : player === "lenna" ? "Lenna" : player === "infuse" ? "Infuse" : "VLC";
+                const player = getBrowserExternalPlayerPreference(model.player.browserExternalPlayer);
+                const playerName = externalPlayerLabel(player);
                 return this.renderActionRow({
                   focusKey: `playback:getExternalPlayer:${player}`,
                   title: `Get ${playerName}`,
