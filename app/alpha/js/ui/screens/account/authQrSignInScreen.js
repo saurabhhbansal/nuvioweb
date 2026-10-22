@@ -54,6 +54,7 @@ export const AuthQrSignInScreen = {
 
             <div id="qr-container" class="qr-code-frame"></div>
             <div id="qr-code-text" class="qr-code-text"></div>
+            <div id="qr-login-link" class="qr-login-link"></div>
             <div id="qr-status" class="qr-status">${I18n.t("auth.qr.waitingApproval")}</div>
             <div class="qr-actions">
               <button type="button" id="qr-refresh-btn" class="qr-action-btn qr-action-btn-primary focusable" data-action="refresh">${I18n.t("auth.qr.refresh")}</button>
@@ -172,11 +173,28 @@ export const AuthQrSignInScreen = {
     }
 
     codeText.innerText = I18n.t("auth.qr.codeLabel", { code });
+
+    // On a computer the scanning phone is optional: the same approval page
+    // opens in a new tab. Only an HTTPS address from the server is linked.
+    const linkSlot = this.container?.querySelector("#qr-login-link");
+    if (linkSlot) {
+      linkSlot.replaceChildren();
+      if (isSafeQrLoginUrl(loginUrl) && new URL(loginUrl).protocol === "https:") {
+        const link = document.createElement("a");
+        link.className = "qr-login-link-anchor";
+        link.href = loginUrl;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.textContent = I18n.t("auth_qr_open_link", {}, { fallback: "Open the sign-in page" });
+        linkSlot.appendChild(link);
+      }
+    }
   },
 
   clearQr() {
     const qrContainer = this.container?.querySelector("#qr-container");
     const codeText = this.container?.querySelector("#qr-code-text");
+    this.container?.querySelector("#qr-login-link")?.replaceChildren();
     if (qrContainer) {
       qrContainer.replaceChildren();
     }
@@ -447,6 +465,8 @@ export const AuthQrSignInScreen = {
     QrLoginService.cancelAttempt();
     this.activeAttemptId = null;
     this.stopIntervals();
+    // The link and QR carry the one-time code; drop them with the attempt.
+    this.clearQr();
     if (this.refreshButton) {
       this.refreshButton.onclick = null;
       this.refreshButton = null;

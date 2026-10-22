@@ -42,44 +42,53 @@ function generateDeviceNonce() {
   return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
-function resolveRedirectBaseUrl() {
-  if (TV_LOGIN_WEB_BASE_URL) {
-    return TV_LOGIN_WEB_BASE_URL;
-  }
-  if (typeof window !== "undefined") {
-    const protocol = String(window.location?.protocol || "");
-    if (protocol === "http:" || protocol === "https:") {
-      return window.location.origin;
-    }
-  }
-  return TV_LOGIN_WEB_BASE_URL;
-}
-
-function extractOrigin(url) {
+// The approval page the QR code points at. Nuvio rejects any base without
+// "/tv-login" and appends "?code=..." itself, so the page this app is served
+// from (which has no approval page) is never a valid fallback.
+export function resolveTvLoginRedirectBase(value) {
+  const text = String(value || "").trim();
+  if (!text) return null;
+  let url;
   try {
-    return new URL(url).origin;
+    url = new URL(text);
   } catch {
     return null;
   }
+  if (url.username || url.password || url.search || url.hash || text.includes("?") || text.includes("#")) {
+    return null;
+  }
+  const secure = url.protocol === "https:" ||
+    (url.protocol === "http:" && ["127.0.0.1", "localhost"].includes(url.hostname));
+  if (!secure) return null;
+  const path = url.pathname.replace(/\/+$/, "");
+  if (!/\/tv-login$/.test(path)) return null;
+  return `${url.origin}${path}`;
 }
 
 function buildRedirectCandidates() {
-  const candidates = [];
-  const base = resolveRedirectBaseUrl();
-  if (base) {
-    candidates.push(base);
-    if (base.endsWith("/")) {
-      candidates.push(base.slice(0, -1));
-    } else {
-      candidates.push(`${base}/`);
-    }
-    const origin = extractOrigin(base);
-    if (origin) {
-      candidates.push(origin);
-      candidates.push(`${origin}/`);
-    }
+  if (!TV_LOGIN_WEB_BASE_URL) return [];
+  const base = resolveTvLoginRedirectBase(TV_LOGIN_WEB_BASE_URL);
+  if (!base) {
+    // Set but unusable: say so, rather than look like it was never set.
+    throw new Error("Invalid TV login redirect base URL in configuration");
   }
-  return Array.from(new Set(candidates.filter(Boolean)));
+  return [base];
+}
+
+// The QR and link may only point at the approval page this client asked for.
+// Anything else in the response (another host or path) is dropped.
+export function expectedQrLoginUrl(loginUrl, redirectBase) {
+  if (!loginUrl || !redirectBase) return null;
+  try {
+    const url = new URL(String(loginUrl));
+    const base = new URL(redirectBase);
+    if (url.username || url.password || url.hash) return null;
+    if (url.origin !== base.origin) return null;
+    if (url.pathname.replace(/\/+$/, "") !== base.pathname.replace(/\/+$/, "")) return null;
+    return url.href;
+  } catch {
+    return null;
+  }
 }
 
 function toEpochMillis(session) {
@@ -473,14 +482,14 @@ export const QrLoginService = {
       if (!hasQrAuthConfig()) {
         throw new Error("QR auth is not configured");
       }
-      assertAttemptOwned(attempt);
-      await ensureQrSessionAuthenticated({ attempt });
-      assertAttemptOwned(attempt);
-      deviceNonce = generateDeviceNonce();
       const redirectCandidates = buildRedirectCandidates();
       if (!redirectCandidates.length) {
         throw new Error("Missing redirect_base_url configuration");
       }
+      assertAttemptOwned(attempt);
+      await ensureQrSessionAuthenticated({ attempt });
+      assertAttemptOwned(attempt);
+      deviceNonce = generateDeviceNonce();
 
       let session = null;
       let lastStartError = null;
@@ -528,7 +537,7 @@ export const QrLoginService = {
       assertAttemptOwned(attempt);
       return {
         code: session.code,
-        loginUrl: session.qr_content || session.web_url || null,
+        loginUrl: expectedQrLoginUrl(session.qr_content || session.web_url, redirectCandidates[0]),
         qrImageUrl: session.qr_image_url || null,
         expiresAt: attempt.expiresAt,
         pollIntervalSeconds: Number(session.poll_interval_seconds || 3),

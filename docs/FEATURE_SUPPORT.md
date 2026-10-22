@@ -6,7 +6,7 @@ Updated 2026-10-23. "Tested" means covered by automated tests in CI, mostly Chro
 
 | Feature | Status | Limits |
 | --- | --- | --- |
-| Sign in with Nuvio, refresh, sign out | Works; tested with mocks and fixtures. Startup survives server errors and retries when back online | QR sign-in unsupported (provider rejects the redirect). Natural token expiry on real accounts not observed |
+| Sign in with Nuvio, refresh, sign out | Works; tested with mocks and fixtures. Startup survives server errors and retries when back online. QR sign-in shows a code for Nuvio's approval page and, on a computer, a link to open it; the QR start was checked against the live service | QR approval with a real account unverified. Natural token expiry on real accounts not observed |
 | Profiles, library, watch progress sync | Works; Library changes queue in a saved outbox and retry on startup, reconnect and the sync cycle | Same-item edits on two devices: last write wins. No cross-tab coordination. See [sync policy](LIBRARY_SYNC_POLICY.md) |
 | Guest mode | Works; tested | Data stays on this device |
 | HTTP/Stremio add-ons | Install by URL, catalogs, details, sources, subtitles; tested with a fixture add-on | Each add-on must allow browser CORS |

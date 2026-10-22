@@ -169,6 +169,21 @@ button:focus-visible {
   font-weight: 500;
 }
 
+.qr-login-link {
+  margin: 0;
+  text-align: center;
+}
+
+.qr-login-link:empty {
+  display: none;
+}
+
+.qr-login-link-anchor {
+  color: var(--text-color);
+  font-size: 15px;
+  text-decoration: underline;
+}
+
 .qr-status {
   width: 100%;
   margin: 0;
