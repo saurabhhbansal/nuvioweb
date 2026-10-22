@@ -1,7 +1,7 @@
 // Explains, in plain words, why the audio picker has nothing (or only one
 // track) to offer. Switching itself lives in PlayerController.
 
-const ADAPTIVE_ENGINES = new Set(["hls.js", "dash.js"]);
+const ADAPTIVE_ENGINES = new Set(["hls.js", "dash.js", "native-hls", "native-dash"]);
 
 export const AUDIO_AVAILABILITY_MESSAGES = {
   loading: "Loading audio tracks...",
@@ -14,7 +14,8 @@ export const AUDIO_AVAILABILITY_MESSAGES = {
 
 /**
  * @param {object} input
- * @param {string} [input.playbackEngine] "hls.js", "dash.js", "native-file" or "none".
+ * @param {string} [input.playbackEngine] "hls.js", "dash.js", "native-hls", "native-dash", "native-file" or "none".
+ * @param {boolean} [input.adaptiveSource] The source URL or type is an HLS/DASH manifest.
  * @param {boolean} [input.nativeTrackListAvailable] The video element exposes `audioTracks`.
  * @param {number} [input.trackCount] Tracks the picker can list.
  * @param {boolean} [input.loading] An adaptive manifest is still being read.
@@ -23,11 +24,12 @@ export const AUDIO_AVAILABILITY_MESSAGES = {
 export function describeAudioTrackAvailability({
   playbackEngine = "none",
   nativeTrackListAvailable = false,
+  adaptiveSource = false,
   trackCount = 0,
   loading = false
 } = {}) {
   const count = Math.max(0, Number(trackCount) || 0);
-  const adaptive = ADAPTIVE_ENGINES.has(String(playbackEngine || ""));
+  const adaptive = Boolean(adaptiveSource) || ADAPTIVE_ENGINES.has(String(playbackEngine || ""));
   if (count >= 2) {
     return { kind: "switchable", message: "" };
   }

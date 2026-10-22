@@ -3554,14 +3554,13 @@ export const PlayerScreen = {
   },
 
   getAudioTrackAvailability(trackCount = 0) {
+    const adaptiveSource = !trackCount && this.isCurrentSourceAdaptiveManifest();
     return describeAudioTrackAvailability({
       playbackEngine: PlayerController.playbackEngine,
       nativeTrackListAvailable: Boolean(this.getVideoAudioTrackList()),
+      adaptiveSource,
       trackCount,
-      loading:
-        !trackCount &&
-        this.isCurrentSourceAdaptiveManifest() &&
-        Boolean(this.manifestLoading || this.trackDiscoveryInProgress)
+      loading: adaptiveSource && Boolean(this.manifestLoading || this.trackDiscoveryInProgress)
     });
   },
 

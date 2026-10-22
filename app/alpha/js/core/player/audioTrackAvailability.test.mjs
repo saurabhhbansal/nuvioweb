@@ -45,10 +45,25 @@ test("a single file in a browser with audioTracks but none listed says none", ()
 });
 
 test("adaptive streams without alternate audio do not blame the browser", () => {
-  for (const playbackEngine of ["hls.js", "dash.js"]) {
-    const result = describeAudioTrackAvailability({ playbackEngine, trackCount: 0 });
-    assert.equal(result.kind, "adaptive-none");
-    assert.doesNotMatch(result.message, /browser/);
+  for (const playbackEngine of ["hls.js", "dash.js", "native-hls", "native-dash"]) {
+    for (const nativeTrackListAvailable of [false, true]) {
+      const result = describeAudioTrackAvailability({
+        playbackEngine,
+        nativeTrackListAvailable,
+        trackCount: 0
+      });
+      assert.equal(result.kind, "adaptive-none");
+      assert.doesNotMatch(result.message, /browser/);
+    }
+  }
+});
+
+test("a manifest URL counts as adaptive before or after an engine is attached", () => {
+  for (const playbackEngine of ["none", "native-file"]) {
+    assert.equal(
+      describeAudioTrackAvailability({ playbackEngine, adaptiveSource: true, trackCount: 0 }).kind,
+      "adaptive-none"
+    );
   }
 });
 
