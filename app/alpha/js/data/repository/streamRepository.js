@@ -1,4 +1,5 @@
 import { safeApiCall } from "../../core/network/safeApiCall.js";
+import { getEffectiveTmdbApiKey } from "../local/tmdbSettingsStore.js";
 import { describeSource } from "../../core/streams/sourceCapabilities.js";
 import { addonRepository } from "./addonRepository.js";
 import { StreamApi } from "../remote/api/streamApi.js";
@@ -171,11 +172,11 @@ class StreamRepository {
 
     const pluginTask = (async () => {
       try {
-        const pluginStreams = await this.getPluginStreams(type, videoId, options);
+        // Each plugin's group is shown as soon as that plugin finishes.
         const preparedPluginStreams = [];
-        for (const group of pluginStreams) {
+        await this.getPluginStreams(type, videoId, options, async (group) => {
           preparedPluginStreams.push(await prepareDebridGroup(group));
-        }
+        });
         return preparedPluginStreams;
       } catch (error) {
         console.warn("Plugin stream fetch failed", error);
@@ -193,7 +194,7 @@ class StreamRepository {
     return { status: "success", data: [...addonsWithStreams, ...pluginStreams] };
   }
 
-  async getPluginStreams(type, videoId, options = {}) {
+  async getPluginStreams(type, videoId, options = {}, onGroup = null) {
     const mediaType = type === "series" ? "tv" : type;
     const tmdbLookupId = String(options?.itemId || videoId || "").trim();
     // Plugins need a TMDB id. The enrichment toggle only controls metadata, so
@@ -204,14 +205,7 @@ class StreamRepository {
       return [];
     }
 
-    const pluginResults = await PluginManager.executeScrapersStreaming({
-      tmdbId,
-      mediaType,
-      season: options?.season ?? null,
-      episode: options?.episode ?? null
-    });
-
-    return pluginResults.map((result) => ({
+    const toGroup = (result) => ({
       sourceProviderId: result.sourceId || result.sourceName || null,
       addonName: result.sourceName,
       addonLogo: null,
@@ -232,7 +226,17 @@ class StreamRepository {
           addonName: result.sourceName || null
         }
       }))
-    }));
+    });
+
+    const pluginResults = await PluginManager.executeScrapersStreaming({
+      tmdbId,
+      mediaType,
+      season: options?.season ?? null,
+      episode: options?.episode ?? null,
+      tmdbApiKey: getEffectiveTmdbApiKey(),
+      onGroup: typeof onGroup === "function" ? (result) => onGroup(toGroup(result)) : null
+    });
+    return pluginResults.map(toGroup);
   }
 
   buildStreamUrl(baseUrl, type, videoId) {

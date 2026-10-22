@@ -37,6 +37,15 @@ Nuvio JS plugins scrape third-party web pages. In a browser, many of those reque
 
 [deploy/plugin-proxy/worker.js](../deploy/plugin-proxy/worker.js) is a restricted reference script for people who want to run a proxy **for themselves**. It needs a token, only forwards to an allowlist of hosts, rate-limits per token and refuses large responses. The project never deploys it.
 
-### Proxy contract
+### Proxy contract (v2)
 
-`GET <proxy>?url=<encoded target>&headers=<encoded JSON object>` with `Authorization: Bearer <token>` when the user set one. The proxy returns the upstream status and body and adds `Access-Control-Allow-Origin`. It must reject targets outside its allowlist and private network addresses.
+`GET|POST <proxy>?v=2&u=<base64url target>&h=<base64url JSON headers>[&r=manual]`, with `Authorization: Bearer <token>` when the user set one.
+
+- The target and headers are base64url-encoded. A plain URL or user-agent string in the query string trips CDN firewalls in front of a proxy, and they answer without CORS headers, which the browser reports only as "Failed to fetch".
+- The app adds a desktop browser `User-Agent` when the plugin sets none, as the desktop app does.
+- The proxy follows redirects itself, re-checking every hop, unless `r=manual`. It returns **200** with the upstream body and three headers, all listed in `Access-Control-Expose-Headers`:
+  - `x-proxy-status`: the upstream status;
+  - `x-proxy-final-url`: the URL after redirects;
+  - `x-proxy-headers`: base64url JSON of the upstream headers, with `set-cookie` as a list.
+- Any other status is the proxy's own refusal or failure, and the plugin sees a failed fetch.
+- The proxy must reject targets outside its allowlist and private network addresses, and must refuse audio and video.

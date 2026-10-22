@@ -81,7 +81,51 @@ export function createRequire(modules = {}) {
   };
 }
 
-export async function runScraperCode({ code, args = [], modules = {}, fetchImpl, consoleImpl = console }) {
+// Globals the desktop app defines before running a plugin. Set on the global
+// object (not passed as parameters) so a plugin that declares its own
+// `const TMDB_API_KEY` still parses; restored afterwards for in-process runs.
+export function pluginHostGlobals({ scraperId = "", settings = {}, tmdbApiKey = "" } = {}) {
+  const scope = globalThis;
+  const globals = {
+    SCRAPER_ID: String(scraperId || ""),
+    SCRAPER_SETTINGS: settings && typeof settings === "object" ? settings : {},
+    global: scope,
+    window: scope
+  };
+  if (tmdbApiKey) globals.TMDB_API_KEY = String(tmdbApiKey);
+  return globals;
+}
+
+function applyGlobals(globals) {
+  const scope = globalThis;
+  const saved = Object.keys(globals).map((key) => [key, Object.getOwnPropertyDescriptor(scope, key)]);
+  Object.entries(globals).forEach(([key, value]) => {
+    // Keep a global the environment already has (a worker's own `self`-style
+    // names); only fill what is missing, as the desktop shim does.
+    if (key === "global" || key === "window") {
+      if (typeof scope[key] === "undefined") scope[key] = value;
+      return;
+    }
+    scope[key] = value;
+  });
+  return () => {
+    saved.forEach(([key, descriptor]) => {
+      if (descriptor) Object.defineProperty(scope, key, descriptor);
+      else delete scope[key];
+    });
+  };
+}
+
+export async function runScraperCode({ code, args = [], modules = {}, fetchImpl, consoleImpl = console, globals = null }) {
+  const restoreGlobals = globals ? applyGlobals(globals) : () => {};
+  try {
+    return await runScraperCodeInner({ code, args, modules, fetchImpl, consoleImpl });
+  } finally {
+    restoreGlobals();
+  }
+}
+
+async function runScraperCodeInner({ code, args, modules, fetchImpl, consoleImpl }) {
   const module = { exports: {} };
   const require = createRequire(modules);
   const hidden = HIDDEN_GLOBALS.map(() => undefined);

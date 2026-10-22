@@ -4,10 +4,10 @@ import test from "node:test";
 import { load } from "cheerio/slim";
 import CryptoJS from "crypto-js";
 import { createPluginCache } from "./pluginCache.js";
-import { buildProxyRequest, createPluginFetch, isBlockedTarget, NeedsProxyError, normalizeProxyUrl } from "./pluginNetwork.js";
+import { buildProxyRequest, createPluginFetch, DEFAULT_PLUGIN_USER_AGENT, isBlockedTarget, NeedsProxyError, normalizeProxyUrl } from "./pluginNetwork.js";
 import { isRepoUrl, isTemplateUrl, manifestUrlFor, parseManifest, scraperKey } from "./pluginRepo.js";
 import { createPluginRepoLoader } from "./pluginRepoLoader.js";
-import { createAxiosShim, runScraperCode } from "./pluginSandbox.js";
+import { createAxiosShim, pluginHostGlobals, runScraperCode } from "./pluginSandbox.js";
 import { runScraperInWorker } from "./pluginWorkerClient.js";
 import { createPluginRuntime, normalizeSources } from "../player/pluginRuntime.js";
 
@@ -113,18 +113,86 @@ test("direct CORS or network failures become needs-proxy, cookies are never sent
   assert.equal(calls.at(-1).init.credentials, "omit");
 });
 
-test("with a proxy set, requests go to the proxy with the target and headers", async () => {
+const b64url = (text) => Buffer.from(text, "utf8").toString("base64url");
+const unb64url = (text) => Buffer.from(String(text), "base64url").toString("utf8");
+
+// A v2 proxy reply: 200 with the upstream status, final URL and headers in x-proxy-*.
+function proxyReply(body, { status = 200, finalUrl = "", headers = {} } = {}) {
+  const meta = new Map([
+    ["x-proxy-status", String(status)],
+    ["x-proxy-final-url", finalUrl],
+    ["x-proxy-headers", b64url(JSON.stringify(headers))]
+  ]);
+  return { ok: true, status: 200, headers: { get: (name) => meta.get(String(name).toLowerCase()) ?? null }, arrayBuffer: async () => new TextEncoder().encode(body).buffer };
+}
+
+test("with a proxy set, the target and headers travel base64url encoded (contract v2)", async () => {
   const calls = [];
   const proxy = { url: "https://proxy.example.invalid/fetch", token: "user-proxy-token" };
-  const pluginFetch = createPluginFetch({ fetchImpl: async (url, init) => (calls.push({ url, init }), textResponse("ok")), proxy, appOrigin: APP_ORIGIN });
-  await pluginFetch("https://media.example.invalid/a", { headers: { Referer: "https://media.example.invalid/" } });
+  const pluginFetch = createPluginFetch({ fetchImpl: async (url, init) => (calls.push({ url, init }), proxyReply("ok")), proxy, appOrigin: APP_ORIGIN });
+  await pluginFetch("https://media.example.invalid/a?s=Title%3A%202024", { headers: { Referer: "https://media.example.invalid/" } });
   const sent = new URL(calls[0].url);
   assert.equal(sent.origin + sent.pathname, "https://proxy.example.invalid/fetch");
-  assert.equal(sent.searchParams.get("url"), "https://media.example.invalid/a");
-  assert.deepEqual(JSON.parse(sent.searchParams.get("headers")), { Referer: "https://media.example.invalid/" });
+  assert.equal(sent.searchParams.get("v"), "2");
+  assert.equal(sent.searchParams.get("url"), null, "no plain target in the query string");
+  assert.equal(unb64url(sent.searchParams.get("u")), "https://media.example.invalid/a?s=Title%3A%202024");
+  assert.doesNotMatch(calls[0].url, /Mozilla|media.example/, "nothing a CDN firewall can match on");
+  assert.deepEqual(JSON.parse(unb64url(sent.searchParams.get("h"))), {
+    Referer: "https://media.example.invalid/",
+    "User-Agent": DEFAULT_PLUGIN_USER_AGENT
+  });
   assert.equal(calls[0].init.headers.Authorization, "Bearer user-proxy-token");
   assert.equal(calls[0].init.credentials, "omit");
   assert.equal(buildProxyRequest(proxy, "https://a.example/").init.method, "GET");
+  const own = JSON.parse(unb64url(new URL(buildProxyRequest(proxy, "https://a.example/", { headers: { "user-agent": "Custom" } }).url).searchParams.get("h")));
+  assert.deepEqual(own, { "user-agent": "Custom" }, "a plugin's own user agent wins");
+  assert.equal(new URL(buildProxyRequest(proxy, "https://a.example/", { redirect: "manual" }).url).searchParams.get("r"), "manual");
+});
+
+test("proxied responses look like the desktop app's: upstream status, final URL, all headers", async () => {
+  const proxy = { url: "https://proxy.example.invalid/", token: "" };
+  const replies = [
+    proxyReply("{\"title\":\"A\"}", { status: 200, finalUrl: "https://media.example.invalid/final", headers: { "content-type": "application/json", "set-cookie": ["a=1", "b=2"] } }),
+    proxyReply("<html>", { status: 302, finalUrl: "https://media.example.invalid/x", headers: { location: "https://media.example.invalid/y" } }),
+    proxyReply("not json", { status: 404 })
+  ];
+  const pluginFetch = createPluginFetch({ fetchImpl: async () => replies.shift(), proxy, appOrigin: APP_ORIGIN });
+  const first = await pluginFetch("https://media.example.invalid/start");
+  assert.equal(first.status, 200);
+  assert.equal(first.ok, true);
+  assert.equal(first.url, "https://media.example.invalid/final");
+  assert.equal(first.headers.get("Content-Type"), "application/json");
+  assert.deepEqual(first.headers.getSetCookie(), ["a=1", "b=2"]);
+  assert.deepEqual(await first.json(), { title: "A" });
+  const manual = await pluginFetch("https://media.example.invalid/x", { redirect: "manual" });
+  assert.equal(manual.status, 302);
+  assert.equal(manual.headers.get("location"), "https://media.example.invalid/y");
+  const missing = await pluginFetch("https://media.example.invalid/z");
+  assert.equal(missing.ok, false);
+  assert.equal(await missing.json(), null, "json() resolves to null on a non-JSON body, like the desktop app");
+});
+
+test("a proxy refusal (no x-proxy-status) is a failed fetch", async () => {
+  const proxy = { url: "https://proxy.example.invalid/", token: "wrong" };
+  const refusal = { ok: false, status: 401, headers: { get: () => null }, arrayBuffer: async () => new ArrayBuffer(0) };
+  const pluginFetch = createPluginFetch({ fetchImpl: async () => refusal, proxy, appOrigin: APP_ORIGIN });
+  await assert.rejects(pluginFetch("https://media.example.invalid/a"), /Plugin proxy error 401/);
+});
+
+test("plugins get the desktop host globals, and a plugin's own const TMDB_API_KEY still parses", async () => {
+  const globals = pluginHostGlobals({ scraperId: "example", settings: { quality: "1080p" }, tmdbApiKey: "app-key" });
+  const readsHost = `function getStreams() {
+    return [{ url: "https://media.example.invalid/v.m3u8", title: [SCRAPER_ID, SCRAPER_SETTINGS.quality, TMDB_API_KEY, typeof window, typeof global].join("|") }];
+  }`;
+  const [hostStream] = await runScraperCode({ code: readsHost, fetchImpl: async () => textResponse(""), globals });
+  assert.equal(hostStream.title, "example|1080p|app-key|object|object");
+  assert.equal(typeof globalThis.SCRAPER_ID, "undefined", "globals are removed after an in-process run");
+  assert.equal(typeof globalThis.TMDB_API_KEY, "undefined");
+
+  const ownKey = `const TMDB_API_KEY = "plugin-key";
+  function getStreams() { return [{ url: "https://media.example.invalid/v.m3u8", title: TMDB_API_KEY }]; }`;
+  const [ownStream] = await runScraperCode({ code: ownKey, fetchImpl: async () => textResponse(""), globals });
+  assert.equal(ownStream.title, "plugin-key");
 });
 
 test("proxy URL must be https (or a proxy on this machine) without query or credentials", () => {

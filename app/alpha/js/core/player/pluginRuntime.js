@@ -136,7 +136,8 @@ export function createPluginRuntime({
       );
     },
 
-    async execute({ tmdbId, mediaType, season = null, episode = null } = {}) {
+    // onGroup receives each plugin's streams as soon as that plugin finishes.
+    async execute({ tmdbId, mediaType, season = null, episode = null, tmdbApiKey = "", onGroup = null } = {}) {
       const type = mediaType === "series" ? "tv" : mediaType;
       if (!tmdbId || (type !== "movie" && type !== "tv")) return [];
       const proxy = this.getProxySettings();
@@ -149,7 +150,12 @@ export function createPluginRuntime({
         let result;
         try {
           const code = await getLoader().loadScraperCode(scraper, { proxy: proxy.url ? proxy : null });
-          result = await runScraper({ code, args, proxy: proxy.url ? proxy : null });
+          result = await runScraper({
+            code,
+            args,
+            proxy: proxy.url ? proxy : null,
+            host: { scraperId: scraper.id, settings: {}, tmdbApiKey }
+          });
         } catch (error) {
           result = { ok: false, streams: [], needsProxy: false, error: String(error?.message || error) };
         }
@@ -161,7 +167,13 @@ export function createPluginRuntime({
           at: Date.now()
         });
         if (!result.streams.length) return null;
-        return { sourceId: scraper.key, sourceName: scraper.name, streams: mapPluginStreams(scraper, result.streams) };
+        const group = { sourceId: scraper.key, sourceName: scraper.name, streams: mapPluginStreams(scraper, result.streams) };
+        if (typeof onGroup === "function") {
+          try {
+            await onGroup(group);
+          } catch {}
+        }
+        return group;
       });
       return groups.filter(Boolean);
     }
