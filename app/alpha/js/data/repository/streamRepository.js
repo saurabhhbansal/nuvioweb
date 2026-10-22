@@ -196,8 +196,11 @@ class StreamRepository {
   async getPluginStreams(type, videoId, options = {}) {
     const mediaType = type === "series" ? "tv" : type;
     const tmdbLookupId = String(options?.itemId || videoId || "").trim();
-    const tmdbId = await TmdbService.ensureTmdbId(tmdbLookupId, type);
+    // Plugins need a TMDB id. The enrichment toggle only controls metadata, so
+    // it must not switch plugins off.
+    const tmdbId = await TmdbService.ensureTmdbId(tmdbLookupId, type, { requireEnabled: false });
     if (!tmdbId) {
+      if (PluginManager.pluginsEnabled) console.warn("Plugins skipped: no TMDB id (is a TMDB API key configured?)");
       return [];
     }
 
