@@ -20,7 +20,7 @@ function headersFor(path) {
 }
 // Loopback-only test control. This server is never part of the deploy artifact.
 let revision = 0;
-const types = { ".html":"text/html", ".js":"application/javascript", ".css":"text/css", ".json":"application/json", ".webmanifest":"application/manifest+json", ".xml":"application/xml", ".svg":"image/svg+xml", ".png":"image/png", ".wasm":"application/wasm" };
+const types = { ".html":"text/html", ".js":"application/javascript", ".css":"text/css", ".json":"application/json", ".webmanifest":"application/manifest+json", ".xml":"application/xml", ".svg":"image/svg+xml", ".png":"image/png", ".wasm":"application/wasm", ".woff2":"font/woff2" };
 const app = http.createServer(async (request,response) => {
   try {
     const path = decodeURIComponent(new URL(request.url,"http://127.0.0.1:4371").pathname);

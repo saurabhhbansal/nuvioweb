@@ -25,6 +25,8 @@ test("real worker replaces a stale cached shell and refreshes runtime config", a
   const oldCache = await page.evaluate(async () => (await caches.keys()).find((key) => key.endsWith("-fixture-0")));
   expect(oldCache).toBeTruthy();
   expect(await page.evaluate(async (key) => (await (await caches.open(key)).match("/app.bundle.js")).text(), oldCache)).toContain("__NUVIO_PWA_APP__=0");
+  // Code-split screens are precached too, so they open offline.
+  expect(await page.evaluate(async (key) => (await (await caches.open(key)).keys()).some((request) => /\/chunks\/playerScreen-[^/]+\.js$/.test(request.url)), oldCache)).toBe(true);
 
   await request.post("/__test/build?revision=1");
   // An active old worker intentionally keeps the old shell until an update activates.

@@ -18,7 +18,7 @@ const manifest = JSON.parse(await readFile(join(artifact,"preview-manifest.json"
 const revision = manifest.revision;
 
 async function checkServedFiles() {
-  for (const path of ["index.html","app.bundle.js","sw.js","nuvio.env.js","SOURCE.txt","LICENSE.txt","UPSTREAM_SOURCES.md","third-party/dashjs/dist/dash.all.min.js.LICENSE.txt","third-party/core-js/LICENSE","third-party/jszip/LICENSE.markdown"]) {
+  for (const path of ["index.html","app.bundle.js","sw.js","nuvio.env.js","SOURCE.txt","LICENSE.txt","UPSTREAM_SOURCES.md","third-party/dashjs/dist/dash.all.min.js.LICENSE.txt","assets/fonts/Inter-OFL.txt","assets/fonts/MaterialIcons-LICENSE.txt","third-party/jszip/LICENSE.markdown"]) {
     const response = await fetch(`${origin}/${path}`,{signal:AbortSignal.timeout(20000)});
     assert.equal(response.status,200,path);
     const bytes = Buffer.from(await response.arrayBuffer());

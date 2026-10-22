@@ -24,7 +24,7 @@ export function getSidecarCapabilities(runtime = globalThis) {
     ...Object.fromEntries(
       Object.entries(flagKeys).map(([feature, key]) => [
         feature,
-        Object.hasOwn(flags, key) && flags[key] === "true"
+        Object.prototype.hasOwnProperty.call(flags, key) && flags[key] === "true"
       ])
     ),
     nativeMedia: false
@@ -32,7 +32,7 @@ export function getSidecarCapabilities(runtime = globalThis) {
 }
 
 export function sidecarUnavailableMessage(feature) {
-  return Object.hasOwn(messages, feature)
+  return Object.prototype.hasOwnProperty.call(messages, feature)
     ? messages[feature]
     : "This integration is unavailable on this site.";
 }

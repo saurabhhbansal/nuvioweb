@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import test from "node:test";
 import { buildRuntimeEnvScript, normalizeEnvProperties } from "./envProperties.mjs";
 
@@ -93,8 +93,19 @@ test("an unloaded runtime config announces itself", async () => {
 // empty, and an empty SUPABASE_URL turns each cloud call into a relative path
 // the page's own host answers with a 404 -- for the life of that page, with no
 // way back, and looking exactly like a backend that is down.
+// The app bundle is split into an entry and chunks; together they are what ships.
+async function readBuiltApp() {
+  const dist = new URL("../dist/", import.meta.url);
+  const chunks = (await readdir(new URL("chunks/", dist))).filter((name) => name.endsWith(".js"));
+  const parts = await Promise.all([
+    readFile(new URL("app.bundle.js", dist), "utf8"),
+    ...chunks.map((name) => readFile(new URL(`chunks/${name}`, dist), "utf8"))
+  ]);
+  return parts.join("\n");
+}
+
 test("the bundle carries the configuration it was built with", async () => {
-  const bundle = await readFile(new URL("../dist/app.bundle.js", import.meta.url), "utf8");
+  const bundle = await readBuiltApp();
 
   assert.doesNotMatch(
     bundle,
@@ -112,7 +123,7 @@ test("the bundle carries the configuration it was built with", async () => {
 // allowlist that kept server-only values out of nuvio.env.js has to hold for
 // the bundle too -- it is served to every browser just the same.
 test("no server-only secret reaches the bundle", async () => {
-  const bundle = await readFile(new URL("../dist/app.bundle.js", import.meta.url), "utf8");
+  const bundle = await readBuiltApp();
 
   ["TRAKT_CLIENT_SECRET", "TRAKT_REDIRECT_URI", "NUVIO_WEB_PUSH_PRIVATE_KEY"].forEach((key) => {
     assert.doesNotMatch(bundle, new RegExp(key), `${key} must never be built into the bundle`);

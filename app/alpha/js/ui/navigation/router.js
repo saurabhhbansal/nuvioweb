@@ -1,32 +1,7 @@
 import { HomeScreen } from "../screens/home/homeScreen.js";
-import { PlayerScreen } from "../screens/player/playerScreen.js";
 import { AccountScreen } from "../screens/account/accountScreen.js";
-import { AuthQrSignInScreen } from "../screens/account/authQrSignInScreen.js";
 import { AuthSignInScreen } from "../screens/account/authSignInScreen.js";
-import { SyncCodeScreen } from "../screens/account/syncCodeScreen.js";
 import { ProfileSelectionScreen } from "../../core/profile/profileSelectionScreen.js";
-import { MetaDetailsScreen } from "../screens/detail/metaDetailsScreen.js";
-import { LibraryScreen } from "../screens/library/libraryScreen.js";
-import { SearchScreen } from "../screens/search/searchScreen.js";
-import { DiscoverScreen } from "../screens/search/discoverScreen.js";
-import { SettingsScreen, SettingsSectionScreen } from "../screens/settings/settingsScreen.js";
-import { ConsoleDebugScreen } from "../screens/debug/consoleDebugScreen.js";
-import { TraktScreen } from "../screens/trakt/traktScreen.js";
-import { SupportersContributorsScreen } from "../screens/supporters/supportersContributorsScreen.js";
-import { EssentialAddonSetupScreen } from "../screens/onboarding/essentialAddonSetupScreen.js";
-import { QuickSetupScreen } from "../screens/onboarding/quickSetupScreen.js";
-import { LicensesAttributionsScreen } from "../screens/settings/licensesAttributionsScreen.js";
-import { PluginScreen } from "../screens/plugin/pluginScreen.js";
-import { PluginsScreen } from "../screens/plugin/pluginsScreen.js";
-import { CatalogOrderScreen } from "../screens/plugin/catalogOrderScreen.js";
-import { StreamScreen } from "../screens/stream/streamScreen.js";
-import { CastDetailScreen } from "../screens/cast/castDetailScreen.js";
-import { CatalogSeeAllScreen } from "../screens/catalog/catalogSeeAllScreen.js";
-import { FolderDetailScreen } from "../screens/collection/folderDetailScreen.js";
-import {
-  CollectionEditorScreen,
-  CollectionFolderEditorScreen
-} from "../screens/collection/collectionEditorScreen.js";
 import { Platform } from "../../platform/index.js";
 import { ProfileManager } from "../../core/profile/profileManager.js";
 import { RouteStateStore } from "./routeStateStore.js";
@@ -46,6 +21,69 @@ import { bindBrowserPullToRefresh } from "../components/browserPullToRefresh.js"
 const ROUTER_PERF_DEBUG = Boolean(
   globalThis.__NUVIO_DEBUG_ROUTER_PERF__ || globalThis.__NUVIO_DEBUG_HOME_PERF__
 );
+
+// Every other screen is its own chunk, fetched the first time its route opens,
+// so a first load only downloads and parses what sign-in, profiles and Home
+// need. Each loader resolves to the screen object the route mounts.
+const LAZY_ROUTES = {
+  player: () => import("../screens/player/playerScreen.js").then((m) => m.PlayerScreen),
+  authQrSignIn: () =>
+    import("../screens/account/authQrSignInScreen.js").then((m) => m.AuthQrSignInScreen),
+  syncCode: () => import("../screens/account/syncCodeScreen.js").then((m) => m.SyncCodeScreen),
+  essentialAddonSetup: () =>
+    import("../screens/onboarding/essentialAddonSetupScreen.js").then(
+      (m) => m.EssentialAddonSetupScreen
+    ),
+  quickSetup: () =>
+    import("../screens/onboarding/quickSetupScreen.js").then((m) => m.QuickSetupScreen),
+  detail: () => import("../screens/detail/metaDetailsScreen.js").then((m) => m.MetaDetailsScreen),
+  library: () => import("../screens/library/libraryScreen.js").then((m) => m.LibraryScreen),
+  search: () => import("../screens/search/searchScreen.js").then((m) => m.SearchScreen),
+  discover: () => import("../screens/search/discoverScreen.js").then((m) => m.DiscoverScreen),
+  settings: () => import("../screens/settings/settingsScreen.js").then((m) => m.SettingsScreen),
+  // The section page Settings opens from its index: a route of its own, with
+  // its own screen instance, so Back is the browser's Back and the page being
+  // returned to is still mounted where the router left it.
+  settingsSection: () =>
+    import("../screens/settings/settingsScreen.js").then((m) => m.SettingsSectionScreen),
+  debugConsole: () =>
+    import("../screens/debug/consoleDebugScreen.js").then((m) => m.ConsoleDebugScreen),
+  trakt: () => import("../screens/trakt/traktScreen.js").then((m) => m.TraktScreen),
+  supportersContributors: () =>
+    import("../screens/supporters/supportersContributorsScreen.js").then(
+      (m) => m.SupportersContributorsScreen
+    ),
+  licensesAttributions: () =>
+    import("../screens/settings/licensesAttributionsScreen.js").then(
+      (m) => m.LicensesAttributionsScreen
+    ),
+  plugin: () => import("../screens/plugin/pluginScreen.js").then((m) => m.PluginScreen),
+  plugins: () => import("../screens/plugin/pluginsScreen.js").then((m) => m.PluginsScreen),
+  catalogOrder: () =>
+    import("../screens/plugin/catalogOrderScreen.js").then((m) => m.CatalogOrderScreen),
+  stream: () => import("../screens/stream/streamScreen.js").then((m) => m.StreamScreen),
+  castDetail: () => import("../screens/cast/castDetailScreen.js").then((m) => m.CastDetailScreen),
+  catalogSeeAll: () =>
+    import("../screens/catalog/catalogSeeAllScreen.js").then((m) => m.CatalogSeeAllScreen),
+  folderDetail: () =>
+    import("../screens/collection/folderDetailScreen.js").then((m) => m.FolderDetailScreen),
+  collectionEdit: () =>
+    import("../screens/collection/collectionEditorScreen.js").then(
+      (m) => m.CollectionEditorScreen
+    ),
+  collectionFolderEdit: () =>
+    import("../screens/collection/collectionEditorScreen.js").then(
+      (m) => m.CollectionFolderEditorScreen
+    )
+};
+
+// The screen a route usually leads to, fetched in the background once the
+// route has mounted so the next tap does not wait on the network.
+const NEXT_ROUTE_PRELOADS = {
+  home: "detail",
+  detail: "stream",
+  stream: "player"
+};
 
 function routerPerfNow() {
   return typeof performance !== "undefined" && typeof performance.now === "function"
@@ -206,38 +244,68 @@ export const Router = {
   // sign-in and profile flow first reaches Home, then opened over it.
   pendingDeepLink: null,
 
+  // Screens already loaded, by route. The rest are listed in LAZY_ROUTES and
+  // land here the first time ensureRoute() fetches them.
   routes: {
     home: HomeScreen,
-    player: PlayerScreen,
     account: AccountScreen,
-    authQrSignIn: AuthQrSignInScreen,
     authSignIn: AuthSignInScreen,
-    syncCode: SyncCodeScreen,
-    profileSelection: ProfileSelectionScreen,
-    essentialAddonSetup: EssentialAddonSetupScreen,
-    quickSetup: QuickSetupScreen,
-    detail: MetaDetailsScreen,
-    library: LibraryScreen,
-    search: SearchScreen,
-    discover: DiscoverScreen,
-    settings: SettingsScreen,
-    // The section page Settings opens from its index: a route of its own, with
-    // its own screen instance, so Back is the browser's Back and the page being
-    // returned to is still mounted where the router left it.
-    settingsSection: SettingsSectionScreen,
-    debugConsole: ConsoleDebugScreen,
-    trakt: TraktScreen,
-    supportersContributors: SupportersContributorsScreen,
-    licensesAttributions: LicensesAttributionsScreen,
-    plugin: PluginScreen,
-    plugins: PluginsScreen,
-    catalogOrder: CatalogOrderScreen,
-    stream: StreamScreen,
-    castDetail: CastDetailScreen,
-    catalogSeeAll: CatalogSeeAllScreen,
-    folderDetail: FolderDetailScreen,
-    collectionEdit: CollectionEditorScreen,
-    collectionFolderEdit: CollectionFolderEditorScreen
+    profileSelection: ProfileSelectionScreen
+  },
+  routeLoads: {},
+
+  isKnownRoute(routeName) {
+    return (
+      Boolean(routeName && this.routes[routeName]) ||
+      Object.prototype.hasOwnProperty.call(LAZY_ROUTES, routeName)
+    );
+  },
+
+  // Resolves to the route's screen, fetching its chunk the first time. A failed
+  // fetch (offline before the chunk was cached) is forgotten so a later
+  // navigation tries again.
+  async ensureRoute(routeName) {
+    if (this.routes[routeName]) {
+      return this.routes[routeName];
+    }
+    if (!Object.prototype.hasOwnProperty.call(LAZY_ROUTES, routeName)) {
+      return null;
+    }
+    if (!this.routeLoads[routeName]) {
+      this.routeLoads[routeName] = LAZY_ROUTES[routeName]().catch((error) => {
+        delete this.routeLoads[routeName];
+        throw error;
+      });
+    }
+    const screen = await this.routeLoads[routeName];
+    if (!this.routes[routeName]) {
+      this.routes[routeName] = screen;
+      // Taken before the screen first runs, exactly as for the eager routes.
+      this.captureRoutePrototypes();
+    }
+    return this.routes[routeName];
+  },
+
+  preloadRoute(routeName) {
+    if (!routeName || this.routes[routeName]) {
+      return;
+    }
+    void this.ensureRoute(routeName).catch(() => {});
+  },
+
+  // Left for an idle moment so it never competes with the screen just shown.
+  scheduleNextRoutePreload(routeName) {
+    const next = NEXT_ROUTE_PRELOADS[routeName];
+    // Only in a real page: test doubles of the DOM would import whole screens.
+    if (!next || this.routes[next] || typeof globalThis.HTMLElement !== "function") {
+      return;
+    }
+    const run = () => this.preloadRoute(next);
+    if (typeof globalThis.requestIdleCallback === "function") {
+      globalThis.requestIdleCallback(run, { timeout: 4000 });
+    } else {
+      setTimeout(run, 1500)?.unref?.();
+    }
   },
 
   getRouteStateKey(routeName, params = {}) {
@@ -367,7 +435,7 @@ export const Router = {
         this.settlePreviousRouteBack(false);
         return;
       }
-      const hasValidHistoryTarget = Boolean(state?.route && this.routes[state.route]);
+      const hasValidHistoryTarget = Boolean(state?.route && this.isKnownRoute(state.route));
       const departingBrowserHistoryIndex = this.browserHistoryIndex;
       this.browserHistoryIndex = getNuvioHistoryIndex(state);
       this.browserHistoryProvenance = getNuvioHistoryProvenance(state);
@@ -457,7 +525,7 @@ export const Router = {
       return null;
     }
     const link = parseRouteHash(window?.location?.hash || "");
-    return link && link.route !== "home" && this.routes[link.route] ? link : null;
+    return link && link.route !== "home" && this.isKnownRoute(link.route) ? link : null;
   },
 
   // The hash this entry should show, or null to leave the address bar as it
@@ -951,6 +1019,21 @@ export const Router = {
     const skipStackPush = Boolean(options?.skipStackPush);
     const replaceHistory = Boolean(options?.replaceHistory);
     const targetParams = params || {};
+    const navigationToken = {};
+    this.latestNavigation = navigationToken;
+
+    if (!this.routes[routeName] && this.isKnownRoute(routeName)) {
+      try {
+        await this.ensureRoute(routeName);
+      } catch (error) {
+        console.error("Route failed to load:", routeName, error);
+        return;
+      }
+      // Another navigation began while this screen's chunk was downloading.
+      if (this.latestNavigation !== navigationToken) {
+        return;
+      }
+    }
 
     if (!this.routes[routeName]) {
       setBrowserRouteTitle("");
@@ -1109,6 +1192,7 @@ export const Router = {
     if (this.current !== routeName || this.currentParams !== targetParams) {
       return;
     }
+    this.scheduleNextRoutePreload(routeName);
 
     const pullRefreshHandler = Platform.isBrowser()
       ? getBrowserPullRefreshHandler(routeName, Screen)
@@ -1162,7 +1246,7 @@ export const Router = {
     const historyState = window?.history?.state || null;
     const targetRoute = String(historyState?.route || "");
 
-    if (targetRoute && this.routes[targetRoute]) {
+    if (targetRoute && this.isKnownRoute(targetRoute)) {
       const previous = this.stack[this.stack.length - 1];
       const previousRoute = typeof previous === "string" ? previous : previous?.route;
       if (previousRoute === targetRoute) {

@@ -7,6 +7,31 @@ const FONT_STACKS = {
   OPEN_SANS: '"Open Sans", "Segoe UI", Arial, sans-serif'
 };
 
+// Inter ships with the app (css/base.css). The other two choices are fetched
+// from Google Fonts only once someone picks them, so nobody else pays for them.
+const OPTIONAL_FONT_STYLESHEETS = {
+  DM_SANS:
+    "https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap",
+  OPEN_SANS:
+    "https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap"
+};
+
+function ensureOptionalFontStylesheet(fontKey) {
+  const href = OPTIONAL_FONT_STYLESHEETS[fontKey];
+  if (!href || typeof document === "undefined" || !document.head?.appendChild) {
+    return;
+  }
+  const id = `nuvio-font-${fontKey.toLowerCase()}`;
+  if (document.getElementById?.(id)) {
+    return;
+  }
+  const link = document.createElement("link");
+  link.id = id;
+  link.rel = "stylesheet";
+  link.href = href;
+  document.head.appendChild(link);
+}
+
 // Cached once at module load so the theme can retain its capability fallback.
 const SUPPORTS_CSS_VARS =
   typeof window !== "undefined" &&
@@ -154,9 +179,11 @@ export const ThemeManager = {
       document.documentElement.style.setProperty(key, value);
     });
 
+    const fontKey = String(theme.fontFamily || "INTER").toUpperCase();
+    ensureOptionalFontStylesheet(fontKey);
     document.documentElement.style.setProperty(
       "--app-font-family",
-      FONT_STACKS[String(theme.fontFamily || "INTER").toUpperCase()] || FONT_STACKS.INTER
+      FONT_STACKS[fontKey] || FONT_STACKS.INTER
     );
     document.documentElement.style.setProperty("color-scheme", "dark");
 

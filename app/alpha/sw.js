@@ -3,17 +3,18 @@ const CACHE_NAME = "nuvio-app-shell-__NUVIO_APP_VERSION__";
 // fallback for every key); the others are cached the first time they are used.
 const LOCALE_ASSETS = __NUVIO_LOCALE_ASSETS__;
 const DEFAULT_LOCALE_ASSETS = LOCALE_ASSETS.filter((entry) => /^\.\/res\/values\/[^/]+$/.test(entry));
+// Every code-split chunk of the app bundle, written by the build. All of them
+// are precached so a screen first opened offline still loads.
+const APP_CHUNKS = __NUVIO_APP_CHUNKS__;
 const APP_SHELL = [
   "./index.html",
   "./boot-guard.js",
-  "./assets/runtime/legacy-features.js",
-  "./core-js.bundle.js",
   "./app.bundle.js",
   "./css/base.css",
-  "./css/layout.css",
   "./css/components.css",
-  "./css/themes.css",
   "./css/desktop.css",
+  "./assets/fonts/inter-latin-var.woff2",
+  "./assets/fonts/material-icons-subset.woff2",
   "./manifest.webmanifest",
   "./assets/brand/nuvio-favicon.png",
   "./assets/brand/app_logo_wordmark.png",
@@ -41,7 +42,8 @@ const APP_SHELL = [
   "./assets/icons/ic_player_back.svg",
   "./assets/icons/ic_player_more.svg",
   "./assets/libs/qrcode-generator.js",
-  ...DEFAULT_LOCALE_ASSETS
+  ...DEFAULT_LOCALE_ASSETS,
+  ...APP_CHUNKS
 ];
 
 // Relative entries resolve against the worker's own URL, so a deploy under a
@@ -55,7 +57,6 @@ const LOCALE_PATHS = new Set(LOCALE_ASSETS.map(scopedPath));
 const ENV_PATH = scopedPath("./nuvio.env.js");
 
 const GOOGLE_FONT_ORIGINS = new Set(["https://fonts.googleapis.com", "https://fonts.gstatic.com"]);
-const MATERIAL_ICONS_STYLESHEET = "https://fonts.googleapis.com/icon?family=Material+Icons";
 
 // The cache name follows the build, so each build installs into an empty cache
 // -- but filling it is where the new build was being lost. `addAll` fetches
@@ -86,42 +87,11 @@ async function cacheGoogleFont(request) {
   }
 }
 
-async function cacheMaterialIconAssets() {
-  try {
-    const cache = await caches.open(CACHE_NAME);
-    const stylesheetRequest = new Request(MATERIAL_ICONS_STYLESHEET);
-    const response = await fetch(stylesheetRequest);
-    if (!response.ok) return;
-    await cache.put(stylesheetRequest, response.clone());
-    const stylesheet = await response.text();
-    const fontUrls = [...stylesheet.matchAll(/url\(([^)]+)\)/g)]
-      .map((match) => match[1].trim().replace(/^['"]|['"]$/g, ""))
-      .filter((url) => {
-        try {
-          return new URL(url).origin === "https://fonts.gstatic.com";
-        } catch {
-          return false;
-        }
-      });
-    await Promise.all(
-      fontUrls.map(async (fontUrl) => {
-        const fontRequest = new Request(fontUrl);
-        const fontResponse = await fetch(fontRequest);
-        if (fontResponse.ok || fontResponse.type === "opaque") {
-          await cache.put(fontRequest, fontResponse);
-        }
-      })
-    );
-  } catch {
-    // The shell remains installable if the optional icon font is temporarily unavailable.
-  }
-}
-
 self.addEventListener("install", (event) => {
   event.waitUntil(
     // No skipWaiting here: an open page keeps the build it started with until
     // the user taps "Reload" in the update prompt, which sends SKIP_WAITING.
-    cacheAppShell().then(cacheMaterialIconAssets)
+    cacheAppShell()
   );
 });
 

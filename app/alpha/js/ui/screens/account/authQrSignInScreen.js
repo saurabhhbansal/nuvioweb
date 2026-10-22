@@ -6,26 +6,13 @@ import { ScreenUtils } from "../../navigation/screen.js";
 import { AuthManager } from "../../../core/auth/authManager.js";
 import { I18n } from "../../../i18n/index.js";
 import { Platform } from "../../../platform/index.js";
+import { continueWithoutAccount, GUEST_QR_BYPASS_KEY } from "./continueWithoutAccount.js";
+
+export { continueWithoutAccount };
 
 let pollInterval = null;
 let countdownInterval = null;
 let activeQrSessionId = 0;
-const GUEST_QR_BYPASS_KEY = "skipAuthQrGate";
-
-// Shared by QR and browser email sign-in. This deliberately keeps the existing
-// guest route and storage flags in one place rather than creating a second guest flow.
-export function continueWithoutAccount() {
-  LocalStore.set("hasSeenAuthQrOnFirstLaunch", true);
-  LocalStore.set(GUEST_QR_BYPASS_KEY, true);
-  Router.navigate(
-    "home",
-    {},
-    {
-      replaceHistory: true,
-      skipStackPush: true
-    }
-  );
-}
 
 export const AuthQrSignInScreen = {
   async mount({ onboardingMode = false } = {}) {

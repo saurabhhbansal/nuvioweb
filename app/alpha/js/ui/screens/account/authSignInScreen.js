@@ -3,7 +3,7 @@ import { ScreenUtils } from "../../navigation/screen.js";
 import { AuthManager } from "../../../core/auth/authManager.js";
 import { I18n } from "../../../i18n/index.js";
 import { Platform } from "../../../platform/index.js";
-import { continueWithoutAccount } from "./authQrSignInScreen.js";
+import { continueWithoutAccount } from "./continueWithoutAccount.js";
 import {
   dismissInstallOffer,
   renderInstallBanner,

@@ -161,7 +161,10 @@ test("each Settings route owns its own screen instance", async () => {
     source,
     /export const SettingsSectionScreen =\s*createScreenPrototype\(SettingsScreen\)/
   );
-  assert.match(routerSource, /settingsSection: SettingsSectionScreen/);
+  assert.match(
+    routerSource,
+    /settingsSection: \(\) =>\s*import\("\.\.\/screens\/settings\/settingsScreen\.js"\)\.then\(\(m\) => m\.SettingsSectionScreen\)/
+  );
 });
 
 test("each Settings container binds its own listeners, so both pages stay clickable", async () => {

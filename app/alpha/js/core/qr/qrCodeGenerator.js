@@ -1,5 +1,38 @@
 // js/core/qr/qrCodeGenerator.js
 
+// The QR library is a classic script that defines a global. It used to be a
+// render-blocking tag in index.html; now only the screens that draw a QR code
+// import this module, and the module waits for the script before it finishes
+// loading, so generate() can stay synchronous for its callers.
+const QR_LIBRARY_URL = "assets/libs/qrcode-generator.js";
+
+function loadQrLibrary() {
+  // Only a real DOM can run the script; test doubles of document never fire
+  // onload and would leave every importer waiting.
+  if (
+    typeof globalThis.qrcode === "function" ||
+    typeof document === "undefined" ||
+    typeof globalThis.HTMLScriptElement !== "function" ||
+    !document.head
+  ) {
+    return Promise.resolve();
+  }
+  return new Promise((resolve) => {
+    const script = document.createElement("script");
+    script.src = QR_LIBRARY_URL;
+    script.async = true;
+    // A failed load leaves generate() throwing, which every caller handles.
+    script.onload = () => resolve();
+    script.onerror = () => {
+      script.remove();
+      resolve();
+    };
+    document.head.appendChild(script);
+  });
+}
+
+await loadQrLibrary();
+
 export const QrCodeGenerator = {
   generate(canvas, content, size = 512) {
     const qr = qrcode(0, "M");

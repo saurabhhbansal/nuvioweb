@@ -1733,11 +1733,13 @@ export const PlayerController = {
       this.currentPlaybackMediaSourceType ||
       this.resolveRuntimeSourceType(this.guessMediaMimeType(url)) ||
       null;
-    const preferredEngine = forceEngine || this.choosePlaybackEngine(url, sourceType, itemType);
-    await this.ensureAdaptiveLibrariesForSource(sourceType, preferredEngine);
+    // hls.js and dash.js load on first playback, and choosing an engine asks
+    // whether they are available, so they have to be loaded before the choice.
+    await this.ensureAdaptiveLibrariesForSource(sourceType);
     if (!this.isPlaybackRequestActive(playToken, requestedUrl)) {
       return;
     }
+    const preferredEngine = forceEngine || this.choosePlaybackEngine(url, sourceType, itemType);
     this.rememberPlaybackEngineAttempt(this.currentPlaybackUrl, preferredEngine, {
       reset: !forceEngine
     });

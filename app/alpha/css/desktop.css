@@ -14463,34 +14463,6 @@ body.desktop-browser {
   }
 }
 
-/* Avatar picker: a tile that cannot outgrow its cell.
-   ------------------------------------------------------------------
-   The browser grid sizes a tile from its column and squares it with
-   aspect-ratio. Two capability fallbacks break that, and both were written for
-   the TV panel and never revisited here: `no-css-math` pins the tile to 160px,
-   which cannot fit an 85px column, and `no-aspect-ratio` leaves `height: auto`
-   with nothing to square it, so the tile takes the image's own height. Either
-   one puts a tile taller than its row into the grid, and the rows run into each
-   other -- worst in All, which simply has the most rows to collide.
-
-   A square that fits the narrowest column the grid will make. The fallback path
-   is reached only by browsers without min() or aspect-ratio, where a slightly
-   smaller tile costs nothing and an overlapping one costs the picker. */
-.desktop-browser.no-css-math .profile-avatar-tile,
-.desktop-browser.no-aspect-ratio .profile-avatar-tile {
-  width: 68px;
-  height: 68px;
-  max-width: 68px;
-  margin: 0 auto;
-  aspect-ratio: auto;
-}
-
-.desktop-browser.no-css-math .profile-editor-avatar-grid {
-  gap: 12px;
-  max-height: 300px;
-  padding: 4px;
-}
-
 /* Profile Options, sized for the screen it is on.
    ------------------------------------------------------------------
    The shared dialog's defaults are a television's: 48px padding, a 32px
