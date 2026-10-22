@@ -1,6 +1,7 @@
 import { AuthManager } from "../auth/authManager.js";
 import { SupabaseApi } from "../../data/remote/supabase/supabaseApi.js";
 import { PluginRuntime } from "../player/pluginRuntime.js";
+import { isRepoUrl } from "../plugins/pluginRepo.js";
 import { ProfileManager } from "./profileManager.js";
 import { SyncHydrationState, SyncPullResult } from "./syncHydrationState.js";
 
@@ -65,14 +66,16 @@ function sourceIdFromUrl(url, index) {
 function mapRemoteRowsToSources(rows = []) {
   return (rows || [])
     .map((row, index) => {
-      const url = row.url || row.url_template || row.urlTemplate || "";
-      if (!url) {
+      // Only repository URLs are plugins; URL templates written by older
+      // web builds are ignored rather than shown as fake streams.
+      const url = String(row.url || "").trim();
+      if (!isRepoUrl(url)) {
         return null;
       }
       return {
         id: sourceIdFromUrl(url, index),
         name: row.name || `Plugin ${index + 1}`,
-        urlTemplate: url,
+        url,
         enabled: row.enabled !== false
       };
     })
@@ -80,7 +83,19 @@ function mapRemoteRowsToSources(rows = []) {
 }
 
 function sourceKey(source = {}) {
-  return String(source.urlTemplate || "").trim();
+  return String(source.url || "").trim();
+}
+
+// Rows the account may receive: real repository URLs only, never templates.
+export function buildPushRows(sources = []) {
+  return (sources || [])
+    .filter((source) => isRepoUrl(source?.url))
+    .map((source, index) => ({
+      url: String(source.url).trim(),
+      name: source.name || `Plugin ${index + 1}`,
+      enabled: source.enabled !== false,
+      sort_order: index
+    }));
 }
 
 function mergeSources(localSources = [], remoteSources = []) {
@@ -198,22 +213,23 @@ export const PluginSyncService = {
         console.info("[Sync] plugins automatic push blocked", { hydration: SyncHydrationState.get(syncContext, "plugins") });
         return false;
       }
-      const sources = readLocalSources();
+      // Pull-only by default: the account list is only rewritten after the
+      // user changed plugins on this device.
+      const pendingKeys = [String(resolveProfileId()), String(profileId)];
+      if (automatic && !pendingKeys.some((key) => pendingLocalChanges.has(key))) {
+        return false;
+      }
+      const pushRows = buildPushRows(readLocalSources());
       try {
         await SupabaseApi.rpc(
           PUSH_RPC,
           {
             p_profile_id: profileId,
-            p_plugins: sources.map((source, index) => ({
-              url: source.urlTemplate,
-              name: source.name || `Plugin ${index + 1}`,
-              enabled: source.enabled !== false,
-              sort_order: index
-            }))
+            p_plugins: pushRows
           },
           true
         );
-        pendingLocalChanges.delete(String(profileId));
+        pendingKeys.forEach((key) => pendingLocalChanges.delete(key));
         return true;
       } catch (rpcError) {
         if (!shouldTryLegacyTable(rpcError)) {
@@ -222,14 +238,7 @@ export const PluginSyncService = {
       }
 
       const ownerId = await AuthManager.getEffectiveUserId();
-      const rows = sources.map((source, index) => ({
-        user_id: ownerId,
-        profile_id: profileId,
-        url: source.urlTemplate,
-        name: source.name || `Plugin ${index + 1}`,
-        enabled: source.enabled !== false,
-        sort_order: index
-      }));
+      const rows = pushRows.map((row) => ({ user_id: ownerId, profile_id: profileId, ...row }));
       await SupabaseApi.delete(
         TABLE,
         `user_id=eq.${encodeURIComponent(ownerId)}&profile_id=eq.${profileId}`,
@@ -242,7 +251,7 @@ export const PluginSyncService = {
           await SupabaseApi.upsert(TABLE, rows, null, true);
         }
       }
-      pendingLocalChanges.delete(String(profileId));
+      pendingKeys.forEach((key) => pendingLocalChanges.delete(key));
       return true;
     } catch (error) {
       console.warn("Plugin sync push failed", error);

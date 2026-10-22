@@ -4,7 +4,7 @@ import { runInNewContext } from "node:vm";
 
 const dist = new URL("../app/alpha/dist/", import.meta.url);
 const assets = [
-  "index.html", "app.bundle.js", "core-js.bundle.js", "sw.js", "nuvio.env.js",
+  "index.html", "app.bundle.js", "core-js.bundle.js", "plugin-worker.bundle.js", "sw.js", "nuvio.env.js",
   "manifest.webmanifest", "assets/libs/hls.min.js", "assets/libs/dash.all.min.js",
   "assets/libs/libbitsub_bg.wasm", "assets/libs/hls.js.LICENSE",
   "assets/libs/dashjs.LICENSE.md", "assets/libs/libbitsub.LICENSE"

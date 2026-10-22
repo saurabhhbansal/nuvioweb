@@ -10520,6 +10520,21 @@ html.desktop-browser {
   outline-offset: 2px;
 }
 
+.desktop-browser .settings-shell .desktop-plugin-scrapers {
+  display: grid;
+  gap: 6px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.desktop-browser .settings-shell .desktop-plugin-scraper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .desktop-browser .settings-shell .desktop-plugin-empty {
   margin: 0;
   padding: 22px;

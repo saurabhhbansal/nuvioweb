@@ -1,0 +1,27 @@
+{
+  "name": "Example Plugin Repository",
+  "version": "1.0.0",
+  "scrapers": [
+    {
+      "id": "example-source",
+      "name": "Example Source",
+      "version": "1.0.0",
+      "filename": "example-source.js",
+      "supportedTypes": ["movie", "tv"],
+      "enabled": true
+    },
+    {
+      "id": "example-tv-only",
+      "name": "Example Series Source",
+      "version": "1.0.0",
+      "filename": "example-source.js",
+      "supportedTypes": ["tv"],
+      "enabled": false
+    },
+    {
+      "id": "elsewhere",
+      "name": "Cross-origin code is refused",
+      "filename": "https://other.example.invalid/code.js"
+    }
+  ]
+}
