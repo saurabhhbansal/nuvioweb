@@ -29,6 +29,17 @@ test("the sign-in screen offers Sign up on nuvio.tv with a come-back hint", asyn
   );
 });
 
+test("Sign up is reachable by keyboard and opens from Enter", async ({ page, context }) => {
+  await page.goto("/");
+  const link = page.locator("#account .desktop-auth-signup-link");
+  await page.locator("#account .desktop-auth-guest").focus();
+  await page.keyboard.press("Tab");
+  await expect(link).toBeFocused();
+  const [popup] = await Promise.all([context.waitForEvent("page"), page.keyboard.press("Enter")]);
+  await popup.waitForLoadState("domcontentloaded");
+  expect(popup.url()).toBe(signUpUrl);
+});
+
 test("Sign up opens nuvio.tv in a new tab without a handle back to this page or any token", async ({ page, context }) => {
   await page.goto("/");
   const [popup] = await Promise.all([

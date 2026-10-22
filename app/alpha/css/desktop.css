@@ -1773,7 +1773,10 @@ html.desktop-browser {
 .desktop-browser #account .desktop-auth-signup-hint {
   margin: 0;
   color: rgba(255, 255, 255, 0.72);
-  font: 400 13px/1.4 inherit;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.4;
 }
 
 .desktop-browser #account .desktop-auth-signup-link {
@@ -1783,7 +1786,10 @@ html.desktop-browser {
   border: 1px solid rgba(255, 255, 255, 0.4);
   border-radius: 999px;
   color: #fff;
-  font: 600 14px/1.35 inherit;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.35;
   text-decoration: none;
 }
 

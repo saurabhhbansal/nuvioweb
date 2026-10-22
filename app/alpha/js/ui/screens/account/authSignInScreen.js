@@ -10,8 +10,8 @@ import {
   requestInstall
 } from "../../components/browserInstallPrompt.js";
 
-// Nuvio's own sign-up page. Its `next` parameter only moves within nuvio.tv,
-// so there is no way back to this site: it opens in a new tab and the person
+// Nuvio's own sign-up page. Its `next` parameter only moves within nuvio.tv
+// (checked 2026-10-23, issue #200), so there is no way back to this site: it opens in a new tab and the person
 // returns here to sign in.
 export const NUVIO_SIGN_UP_URL = "https://nuvio.tv/account/signup";
 
