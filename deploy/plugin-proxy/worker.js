@@ -1,5 +1,6 @@
 // Reference plugin request proxy (Cloudflare Workers module syntax).
-// NOT deployed. See docs/PLUGIN_PROXY_DECISION.md before running it anywhere.
+// For running a proxy for yourself only. The project never deploys or hosts it.
+// See docs/PLUGIN_PROXY_DECISION.md.
 //
 // Restrictions, all required:
 // - PROXY_TOKENS: comma-separated bearer tokens; requests without one are rejected.

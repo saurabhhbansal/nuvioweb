@@ -27,24 +27,16 @@ Nuvio JS plugins scrape third-party web pages. In a browser, many of those reque
 - **Terms:** every provider makes the account holder responsible for what flows through it, and most name infringing content as grounds for suspension. Plugins are user-supplied and often scrape gray-area sites, so a shared proxy would put the owner's account (and name) between those sites and every user.
 - **Abuse:** even restricted to hosts declared by installed plugins, anyone can publish a plugin that declares any host. The allowlist limits accidents, not a determined abuser. The proxy's IP also gets blocked by target sites quickly when shared.
 
-## Recommendation
+## Decision
 
-**A free shared proxy is not viable.** Instead:
+**The project does not run a shared or public proxy, and will not offer one to donors or anyone else.** No free tier can carry it, and whoever operates it carries the legal and abuse exposure. Decided by the owner on 2026-10-22.
 
-1. **User-configured proxy URL** (built in this change, off by default). Users who need it point the app at their own proxy. The app sends the target URL and headers; the proxy is never sent Nuvio tokens.
-2. **Owner-run, token-gated proxy for donors** (later, small scale). One instance per few hundred users, a personal token per donor, rate limits and a host allowlist. Add servers only if demand grows. This is a manual, invite-style service, not an open endpoint.
-3. **Without a proxy,** plugins still run directly in the browser. Requests that fail because of CORS or network errors are marked "Needs proxy", and streams that need headers keep the existing "Needs headers" label.
+1. **Bring your own proxy.** Users who need one set their own proxy URL in Settings (off by default). The app sends the target URL and headers; the proxy is never sent Nuvio tokens.
+2. **Without a proxy,** plugins still run directly in the browser. Requests that fail because of CORS or network errors are marked "Needs proxy", and streams that need headers keep the existing "Needs headers" label.
+3. **Never relay video.** Header-locked streams stay "Needs headers" or go to an external player.
 
-A restricted reference script lives at [deploy/plugin-proxy/worker.js](../deploy/plugin-proxy/worker.js). It is not deployed, needs a token, only forwards to an allowlist of hosts and rate-limits per token.
+[deploy/plugin-proxy/worker.js](../deploy/plugin-proxy/worker.js) is a restricted reference script for people who want to run a proxy **for themselves**. It needs a token, only forwards to an allowlist of hosts, rate-limits per token and refuses large responses. The project never deploys it.
 
 ### Proxy contract
 
 `GET <proxy>?url=<encoded target>&headers=<encoded JSON object>` with `Authorization: Bearer <token>` when the user set one. The proxy returns the upstream status and body and adds `Access-Control-Allow-Origin`. It must reject targets outside its allowlist and private network addresses.
-
-## Open questions for the owner
-
-1. **Legal exposure:** are you comfortable being the visible operator of a proxy that user-installed scrapers use, even token-gated for donors? Does taking donations change that in your jurisdiction?
-2. **Takedowns:** who receives and answers abuse or DMCA notices for the donor proxy, and within what time? Do we log enough (token, host, time; never content) to act on one?
-3. **Allowlist source:** should the donor proxy allow only hosts you approve, or any host a plugin declares? The second is easier but weaker.
-4. **Video:** confirm the donor proxy never relays video segments, so header-locked streams stay "Needs headers" or go to an external player.
-5. **Provider:** if you run it, which host (Oracle VM or a paid Workers plan) and who holds the account credentials?
