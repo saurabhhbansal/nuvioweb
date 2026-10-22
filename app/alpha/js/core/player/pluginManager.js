@@ -28,6 +28,26 @@ export const PluginManager = {
     PluginRuntime.setSourceEnabled(sourceId, enabled);
   },
 
+  loadPluginManifest(url) {
+    return PluginRuntime.loadManifest(url);
+  },
+
+  describePluginSources(options) {
+    return PluginRuntime.describeSources(options);
+  },
+
+  setScraperEnabled(key, enabled) {
+    PluginRuntime.setScraperEnabled(key, enabled);
+  },
+
+  getProxySettings() {
+    return PluginRuntime.getProxySettings();
+  },
+
+  setProxySettings(settings) {
+    PluginRuntime.setProxySettings(settings);
+  },
+
   async executeScrapersStreaming({ tmdbId, mediaType, season = null, episode = null } = {}) {
     if (!this.pluginsEnabled) {
       return [];

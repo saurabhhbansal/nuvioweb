@@ -13,7 +13,7 @@ Updated 2026-10-21.
 
 - Manifests, catalog data, stream metadata, subtitles and plugin code are untrusted input.
 - Rendered text is escaped. Stream metadata cannot inject markup.
-- JS plugins must run sandboxed, with time, memory, output and network limits and no access to app tokens. Browser plugin execution is being reworked in #166.
+- JS plugins run in a separate Web Worker per scraper run, with a timeout, capped output, no cookies, no access to localStorage tokens, and no requests to this app, loopback or local-network addresses. The worker is same-origin, so this is not a full sandbox; see [proxy decision](PLUGIN_PROXY_DECISION.md).
 - Source URLs handed to an external player are the user's choice. NuvioWeb does not rewrite, proxy or relay them.
 
 ## Build and hosting

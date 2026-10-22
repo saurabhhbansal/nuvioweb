@@ -484,6 +484,23 @@ async function buildBundle() {
   console.log("bundle build complete");
 }
 
+// Plugin scrapers run in their own Web Worker with cheerio and crypto-js
+// bundled in; the main bundle never evaluates plugin code.
+async function buildPluginWorkerBundle() {
+  console.log("building plugin worker bundle...");
+  await build({
+    entryPoints: [path.join(rootDir, "js/core/plugins/pluginWorker.js")],
+    outfile: path.join(distDir, "plugin-worker.bundle.js"),
+    bundle: true,
+    minify: !debugBundle,
+    format: "iife",
+    platform: "browser",
+    target: [`chrome${browserCompatibilityPolicy.chromiumVersion}`],
+    legalComments: "linked",
+    logOverride: { "require-resolve-not-external": "silent" }
+  });
+}
+
 async function collectLocaleAssets(directory, relativeDirectory = "") {
   const entries = await readdir(directory, { withFileTypes: true });
   const assets = [];
@@ -562,6 +579,7 @@ async function runBuild() {
 
     // js bundle processing (final step to ensure all transformations are applied correctly and we end up with a single, minified bundle file)
     await buildBundle();
+    await buildPluginWorkerBundle();
 
     const sourceIndex = await readFile(path.join(rootDir, "index.html"), "utf8");
     // The bundle carries no build in its name: versioned here, a reload asks for
