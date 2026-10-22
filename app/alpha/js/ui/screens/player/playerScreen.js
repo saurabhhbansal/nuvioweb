@@ -1,4 +1,5 @@
 import { diagnosePlaybackFailure, exportPlaybackDiagnostic } from "../../../core/player/failureDiagnostics.js";
+import { diagnosticExplanation, diagnosticNextAction } from "./failureDiagnosticText.js";
 import { PlayerController } from "../../../core/player/playerController.js";
 import {
   audioTrackLabelConflictsWithCodec,
@@ -376,6 +377,10 @@ const SKIP_INTRO_COUNTDOWN_MS = 10000;
 
 function t(key, params = {}, fallback = key) {
   return I18n.t(key, params, { fallback });
+}
+
+function playerMuteLabel(muted) {
+  return muted ? t("player_unmute", {}, "Unmute") : t("player_mute", {}, "Mute");
 }
 
 function buildIndexedLabel(baseLabel, index) {
@@ -4495,17 +4500,17 @@ export const PlayerScreen = {
     const externalPlayerAvailable =
       this.canOpenInExternalPlayer() && !this.isCompactBrowserPlayerToolbar();
     return `
-      <div class="player-desktop-playback-tools" aria-label="Playback controls">
+      <div class="player-desktop-playback-tools" aria-label="${escapeHtml(t("player_playback_controls", {}, "Playback controls"))}">
         <button class="player-desktop-tool-button" type="button" tabindex="-1" data-player-desktop-action="mute"
-                title="${escapeHtml(muted ? "Unmute" : "Mute")}" aria-label="${escapeHtml(muted ? "Unmute" : "Mute")}">
+                title="${escapeHtml(playerMuteLabel(muted))}" aria-label="${escapeHtml(playerMuteLabel(muted))}">
           <img class="player-desktop-tool-icon" data-player-desktop-mute-icon src="assets/icons/${muted ? "ic_player_volume_muted.svg" : "ic_player_volume.svg"}" alt="" aria-hidden="true" />
         </button>
         <input class="player-desktop-volume" type="range" min="0" max="100" step="1"
-               value="${volumePercent}" data-player-desktop-volume aria-label="Volume" />
+               value="${volumePercent}" data-player-desktop-volume aria-label="${escapeHtml(t("player_volume", {}, "Volume"))}" />
         ${
           pictureInPictureAvailable
             ? `<button class="player-desktop-tool-button" type="button" tabindex="-1" data-player-desktop-action="picture-in-picture"
-                  title="Enter Picture-in-Picture" aria-label="Enter Picture-in-Picture">
+                  title="${escapeHtml(t("player_pip_enter", {}, "Enter Picture-in-Picture"))}" aria-label="${escapeHtml(t("player_pip_enter", {}, "Enter Picture-in-Picture"))}">
                 <img class="player-desktop-tool-icon" src="assets/icons/ic_player_picture_in_picture.svg" alt="" aria-hidden="true" />
               </button>`
             : ""
@@ -4513,13 +4518,13 @@ export const PlayerScreen = {
         ${
           externalPlayerAvailable
             ? `<button class="player-desktop-tool-button" type="button" tabindex="-1" data-player-desktop-action="external-player"
-                  title="Open in another player" aria-label="Open in another player">
+                  title="${escapeHtml(t("external_player_title", {}, "Open in another player"))}" aria-label="${escapeHtml(t("external_player_title", {}, "Open in another player"))}">
                 <img class="player-desktop-tool-icon" src="assets/icons/ic_player_external.svg" alt="" aria-hidden="true" />
               </button>`
             : ""
         }
         <button class="player-desktop-tool-button" type="button" tabindex="-1" data-player-desktop-action="fullscreen"
-                title="Enter fullscreen" aria-label="Enter fullscreen">
+                title="${escapeHtml(t("player_fullscreen_enter", {}, "Enter fullscreen"))}" aria-label="${escapeHtml(t("player_fullscreen_enter", {}, "Enter fullscreen"))}">
           <img class="player-desktop-tool-icon player-desktop-fullscreen-icon" data-player-desktop-fullscreen-icon src="assets/icons/ic_player_fullscreen.svg" alt="" aria-hidden="true" />
         </button>
       </div>
@@ -4609,21 +4614,23 @@ export const PlayerScreen = {
     if (!handoff?.progressContext?.itemId || this.externalPlaybackReturnDialog) return false;
     let submitting = false;
     const title =
-      handoff.progressContext.episodeTitle || handoff.progressContext.title || "this title";
+      handoff.progressContext.episodeTitle ||
+      handoff.progressContext.title ||
+      t("external_player_return_this_title", {}, "this title");
     const close = () => {
       this.externalPlaybackReturnDialog?.destroy?.();
       this.externalPlaybackReturnDialog = null;
     };
     const consume = () => clearExternalPlaybackHandoff();
     this.externalPlaybackReturnDialog = new NuvioDialog({
-      title: "How did your playback go?",
+      title: t("external_player_return_title", {}, "How did your playback go?"),
       subtitle: title,
       widthVw: 32,
       panelClassName: "desktop-external-player-dialog",
       actionsClassName: "desktop-external-player-actions desktop-external-player-manual-actions",
       buttons: [
         {
-          label: "Keep current progress",
+          label: t("external_player_return_keep", {}, "Keep current progress"),
           className: "desktop-external-player-manual-keep",
           onAction: () => {
             consume();
@@ -4631,7 +4638,7 @@ export const PlayerScreen = {
           }
         },
         {
-          label: "Set playback position",
+          label: t("external_player_return_set_position", {}, "Set playback position"),
           className: "desktop-external-player-manual-set",
           onAction: () => {
             close();
@@ -4639,7 +4646,7 @@ export const PlayerScreen = {
           }
         },
         {
-          label: "Mark as finished",
+          label: t("external_player_return_finish", {}, "Mark as finished"),
           className: "desktop-external-player-primary desktop-external-player-manual-finish",
           onAction: async () => {
             if (submitting) return;
@@ -4650,12 +4657,14 @@ export const PlayerScreen = {
             });
             if (!applied) {
               submitting = false;
-              this.showAspectToast("Could not mark as finished");
+              this.showAspectToast(
+                t("external_player_return_finish_failed", {}, "Could not mark as finished")
+              );
               return;
             }
             consume();
             close();
-            this.showAspectToast("Marked as finished");
+            this.showAspectToast(t("external_player_return_finished", {}, "Marked as finished"));
           }
         }
       ],
@@ -4705,8 +4714,11 @@ export const PlayerScreen = {
     const content = () => {
       const wrapper = document.createElement("div");
       wrapper.className = "desktop-external-player-choice-copy";
-      const runtime = formatExternalPlaybackDuration(manualDurationMs) || "Unknown";
-      wrapper.innerHTML = `<small>Runtime: ${runtime}</small>`;
+      const runtime =
+        formatExternalPlaybackDuration(manualDurationMs) || t("type_unknown", {}, "Unknown");
+      const runtimeLine = document.createElement("small");
+      runtimeLine.textContent = t("external_player_position_runtime", [runtime], `Runtime: ${runtime}`);
+      wrapper.appendChild(runtimeLine);
       const fields = document.createElement("div");
       fields.className = "desktop-external-player-time-fields";
       ["HH", "MM", "SS"].forEach((label, index) => {
@@ -4719,7 +4731,11 @@ export const PlayerScreen = {
         input.setAttribute("data-nuvio-dialog-preserve-deletion", "");
         input.setAttribute(
           "aria-label",
-          label === "HH" ? "Hours" : label === "MM" ? "Minutes" : "Seconds"
+          label === "HH"
+            ? t("external_player_position_hours", {}, "Hours")
+            : label === "MM"
+              ? t("external_player_position_minutes", {}, "Minutes")
+              : t("external_player_position_seconds", {}, "Seconds")
         );
         input.addEventListener("focus", () => {
           if (input.value.length >= 2) input.select();
@@ -4756,14 +4772,14 @@ export const PlayerScreen = {
       this.externalPlaybackPositionDialog = null;
     };
     this.externalPlaybackPositionDialog = new NuvioDialog({
-      title: "Set playback position",
+      title: t("external_player_return_set_position", {}, "Set playback position"),
       content,
       widthVw: 32,
       panelClassName: "desktop-external-player-dialog",
       actionsClassName: "desktop-external-player-actions",
       buttons: [
         {
-          label: "Save",
+          label: t("action_save", {}, "Save"),
           onAction: async () => {
             if (submitting) return;
             const result = updateSaveState({ showError: true });
@@ -4780,16 +4796,22 @@ export const PlayerScreen = {
               if (!applied) throw new Error("Progress was not applied");
               clearExternalPlaybackHandoff();
               close();
-              this.showAspectToast("Playback position saved");
+              this.showAspectToast(t("external_player_position_saved", {}, "Playback position saved"));
             } catch (_) {
               submitting = false;
-              if (error) error.textContent = "Could not save playback position. Try again.";
+              if (error) {
+                error.textContent = t(
+                  "external_player_position_save_failed",
+                  {},
+                  "Could not save playback position. Try again."
+                );
+              }
               updateSaveState();
             }
           }
         },
         {
-          label: "Back",
+          label: t("common.back", {}, "Back"),
           onAction: () => {
             close();
             this.showExternalPlaybackManualFallback(handoff);
@@ -5415,11 +5437,13 @@ export const PlayerScreen = {
     const fullscreen = this.isDesktopPlayerFullscreen();
     const pictureInPictureAvailable = this.isDesktopPictureInPictureSupported();
     const pictureInPictureActive = this.isDesktopPlayerPictureInPicture();
-    const muteLabel = muted ? "Unmute" : "Mute";
-    const fullscreenLabel = fullscreen ? "Exit fullscreen" : "Enter fullscreen";
+    const muteLabel = playerMuteLabel(muted);
+    const fullscreenLabel = fullscreen
+      ? t("player_fullscreen_exit", {}, "Exit fullscreen")
+      : t("player_fullscreen_enter", {}, "Enter fullscreen");
     const pictureInPictureLabel = pictureInPictureActive
-      ? "Exit Picture-in-Picture"
-      : "Enter Picture-in-Picture";
+      ? t("player_pip_exit", {}, "Exit Picture-in-Picture")
+      : t("player_pip_enter", {}, "Enter Picture-in-Picture");
     tools.forEach((toolRoot) => {
       const muteButton = toolRoot.querySelector("[data-player-desktop-action='mute']");
       const muteIcon = toolRoot.querySelector("[data-player-desktop-mute-icon]");
@@ -5840,7 +5864,7 @@ export const PlayerScreen = {
     // Show the cause the caller named (debrid, headers, HTTP, codec). The
     // diagnostic report is a fallback and an optional details/export block.
     this.startupErrorMessage =
-      String(message || "").trim() || this.startupFailureDiagnostic.explanation;
+      String(message || "").trim() || diagnosticExplanation(this.startupFailureDiagnostic, t);
     this.startupErrorMediaCode = Number(mediaErrorCode || 0);
     this.startupErrorDetails = this.getPlaybackErrorDetailLines({
           mediaErrorCode,
@@ -6081,17 +6105,17 @@ export const PlayerScreen = {
         `
             : ""
         }
-        ${this.startupFailureDiagnostic ? `<p class="player-startup-error-next-action">${escapeHtml(this.startupFailureDiagnostic.nextAction.label)}</p>` : ""}
+        ${this.startupFailureDiagnostic ? `<p class="player-startup-error-next-action">${escapeHtml(diagnosticNextAction(this.startupFailureDiagnostic, t))}</p>` : ""}
         <div class="player-startup-error-actions">
           <button class="player-startup-error-button focusable focused" type="button" tabindex="0" data-player-error-action="back">
             ${escapeHtml(t("player_go_back", {}, "Go Back"))}
           </button>
           ${this.canOpenInExternalPlayer() ? `
             <button class="player-startup-error-button focusable" type="button" tabindex="0" data-player-error-action="external-player">
-              Open in another player
+              ${escapeHtml(t("external_player_title", {}, "Open in another player"))}
             </button>
           ` : ""}
-          ${this.startupFailureExport ? `<a class="player-startup-error-button focusable" download="nuvio-playback-diagnostic.json" href="data:application/json;charset=utf-8,${encodeURIComponent(this.startupFailureExport)}" data-diagnostic-export>Export redacted diagnostics</a>` : ""}
+          ${this.startupFailureExport ? `<a class="player-startup-error-button focusable" download="nuvio-playback-diagnostic.json" href="data:application/json;charset=utf-8,${encodeURIComponent(this.startupFailureExport)}" data-diagnostic-export>${escapeHtml(t("player_export_diagnostics", {}, "Export redacted diagnostics"))}</a>` : ""}
         </div>
       </div>
     `;
@@ -8834,13 +8858,13 @@ export const PlayerScreen = {
       <div class="player-mobile-more-title">${escapeHtml(t("player_more_actions_title", {}, "More Actions"))}</div>
       <div class="player-mobile-more-actions" role="group" aria-label="${escapeHtml(t("player_more_actions_title", {}, "More Actions"))}">
         <button class="player-mobile-more-action player-mobile-more-icon-action" type="button" tabindex="-1" data-player-desktop-action="mute"
-                title="${escapeHtml(muted ? "Unmute" : "Mute")}" aria-label="${escapeHtml(muted ? "Unmute" : "Mute")}">
+                title="${escapeHtml(playerMuteLabel(muted))}" aria-label="${escapeHtml(playerMuteLabel(muted))}">
           <img class="player-desktop-tool-icon" data-player-desktop-mute-icon src="assets/icons/${muted ? "ic_player_volume_muted.svg" : "ic_player_volume.svg"}" alt="" aria-hidden="true" />
         </button>
         ${
           pictureInPictureAvailable
             ? `<button class="player-mobile-more-action player-mobile-more-icon-action" type="button" tabindex="-1" data-player-desktop-action="picture-in-picture"
-                  title="Enter Picture-in-Picture" aria-label="Enter Picture-in-Picture">
+                  title="${escapeHtml(t("player_pip_enter", {}, "Enter Picture-in-Picture"))}" aria-label="${escapeHtml(t("player_pip_enter", {}, "Enter Picture-in-Picture"))}">
                 <img class="player-desktop-tool-icon" src="assets/icons/ic_player_picture_in_picture.svg" alt="" aria-hidden="true" />
               </button>`
             : ""
@@ -8848,7 +8872,7 @@ export const PlayerScreen = {
         ${
           this.canOpenInExternalPlayer()
             ? `<button class="player-mobile-more-action player-mobile-more-icon-action" type="button" tabindex="-1" data-player-desktop-action="external-player"
-                  title="Open in another player" aria-label="Open in another player">
+                  title="${escapeHtml(t("external_player_title", {}, "Open in another player"))}" aria-label="${escapeHtml(t("external_player_title", {}, "Open in another player"))}">
                 <img class="player-desktop-tool-icon" src="assets/icons/ic_player_external.svg" alt="" aria-hidden="true" />
               </button>`
             : ""

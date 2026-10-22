@@ -15,6 +15,18 @@ function t(key, params = {}, fallback = key) {
   return I18n.t(key, params, { fallback });
 }
 
+// The device hint comes from core in English; show it in the user's language.
+const SOURCE_HINT_KEYS = {
+  "headers-required": "external_player_needs_headers",
+  expired: "stream_source_hint_expired"
+};
+
+function translateSourceHint(hint) {
+  if (!hint) return null;
+  const key = SOURCE_HINT_KEYS[hint.reason];
+  return key ? { ...hint, label: t(key, {}, hint.label) } : hint;
+}
+
 function escapeHtml(value = "") {
   return String(value || "")
     .replaceAll("&", "&amp;")
@@ -81,9 +93,9 @@ function getSourceHeadline(stream = {}) {
   const primary = [stream.name, stream.title, stream.description].find((value) =>
     String(value || "").trim()
   );
-  if (!primary) return stream.addonName || "Unknown source";
+  if (!primary) return stream.addonName || t("stream_unknown_source", {}, "Unknown source");
   const firstLine = String(primary).split(/\r?\n/)[0].trim();
-  return firstLine || stream.addonName || "Unknown source";
+  return firstLine || stream.addonName || t("stream_unknown_source", {}, "Unknown source");
 }
 
 function getSourceQuality(stream = {}) {
@@ -170,7 +182,7 @@ export function normalizeSourceForDisplay(
     normalizeAddonLogoUrl(source.addonLogo) || resolveAddonLogo(addonName, addonLogoLookup);
   const displayAddonLogoUrl = getCachedAddonLogoDisplayUrl(addonLogoUrl) || addonLogoUrl;
   const descriptionLines = getSourceDescriptionLines(source);
-  const sourceHint = assessSourceForDevice(stream);
+  const sourceHint = translateSourceHint(assessSourceForDevice(stream));
   const filename = String(source.behaviorHints?.filename || "").trim();
   return {
     source,
@@ -195,5 +207,5 @@ export function renderBrowserSourceCardContent(model = {}) {
   const addonIdentity = model.showAddonLogo
     ? `<div class="stream-route-card-side"><div class="stream-route-addon-badge">${model.addonLogoUrl ? `<img src="${escapeHtml(model.addonLogoUrl)}" alt="${escapeHtml(model.addonName || "Addon")}" decoding="async" loading="lazy" referrerpolicy="no-referrer" /><span hidden>${escapeHtml(model.addonBadgeLabel || "A")}</span>` : `<span>${escapeHtml(model.addonBadgeLabel || "A")}</span>`}</div><div class="stream-route-addon-name" title="${escapeHtml(model.addonName || "Addon")}">${escapeHtml(model.addonName || "Addon")}</div></div>`
     : "";
-  return `<div class="stream-route-card-copy"><div class="stream-route-card-heading">${escapeHtml(model.headline || "Unknown source")}</div>${model.topBadges || ""}${!badges ? `<div class="stream-route-card-quality">${escapeHtml(model.quality || "Auto")}</div>` : ""}${(model.descriptionLines || []).map((line, index) => `<div class="stream-route-card-line${index > 0 ? " secondary" : ""}" title="${escapeHtml(line)}">${escapeHtml(line)}</div>`).join("")}${model.bottomBadges || ""}${model.sourceHint ? `<span class="stream-route-source-hint" data-source-hint="${escapeHtml(model.sourceHint.reason)}">${escapeHtml(model.sourceHint.label)}</span>` : ""}</div>${addonIdentity}`;
+  return `<div class="stream-route-card-copy"><div class="stream-route-card-heading">${escapeHtml(model.headline || t("stream_unknown_source", {}, "Unknown source"))}</div>${model.topBadges || ""}${!badges ? `<div class="stream-route-card-quality">${escapeHtml(model.quality || t("common.auto", {}, "Auto"))}</div>` : ""}${(model.descriptionLines || []).map((line, index) => `<div class="stream-route-card-line${index > 0 ? " secondary" : ""}" title="${escapeHtml(line)}">${escapeHtml(line)}</div>`).join("")}${model.bottomBadges || ""}${model.sourceHint ? `<span class="stream-route-source-hint" data-source-hint="${escapeHtml(model.sourceHint.reason)}">${escapeHtml(model.sourceHint.label)}</span>` : ""}</div>${addonIdentity}`;
 }

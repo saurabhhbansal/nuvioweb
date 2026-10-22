@@ -5229,7 +5229,7 @@ export const SettingsScreen = {
       ${this.renderSectionHeader(SECTION_META.find((item) => item.id === "plugins"))}
       <div class="settings-group-card settings-group-card-fill">
         <div class="settings-empty-state settings-empty-state-plugins">
-          <p class="settings-plugin-soon-text">Plugin support is coming soon.</p>
+          <p class="settings-plugin-soon-text">${escapeHtml(t("settings.plugins.comingSoon", {}, "Plugin support is coming soon."))}</p>
         </div>
       </div>
     `;
@@ -5297,7 +5297,11 @@ export const SettingsScreen = {
                 ? this.renderCollapsibleRow({
                     focusKey: "contentDiscovery:plugins",
                     title: t("plugin_title", {}, "Plugins"),
-                    subtitle: "Add custom stream source URL templates.",
+                    subtitle: t(
+                      "settings.contentDiscovery.pluginsSubtitle",
+                      {},
+                      "Manage repositories and stream providers"
+                    ),
                     expanded: Boolean(this.desktopPluginExpanded),
                     bodyHtml: this.desktopPluginExpanded ? this.desktopPluginManager?.render() || "" : "",
                     classes: "settings-collapsible-plugin"

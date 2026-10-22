@@ -8773,17 +8773,21 @@ export const HomeScreen = {
       profile: this.sidebarProfile
     });
     const reconnectMessage = this.browserOfflineHomeRecoverable
-      ? "Back online — pull down to refresh."
-      : "Reconnect to the internet and pull down to refresh to restore online content.";
+      ? t("home_offline_back_online", {}, "Back online — pull down to refresh.")
+      : t(
+          "home_offline_reconnect",
+          {},
+          "Reconnect to the internet and pull down to refresh to restore online content."
+        );
     this.container.innerHTML = `
       <div class="home-shell home-screen-shell home-offline-shell desktop-navigation-enabled">
         ${rootNavigation}
         <main class="home-main home-screen-main">
           <section class="home-offline-state" aria-live="polite">
             <span class="material-icons" aria-hidden="true">cloud_off</span>
-            <h1>You're offline</h1>
-            <p>Downloaded movies and episodes are still available.</p>
-            <button type="button" class="home-offline-downloads-action focusable" data-action="openOfflineDownloads">Open Downloads</button>
+            <h1>${escapeHtml(t("library_offline_title", {}, "You’re offline"))}</h1>
+            <p>${escapeHtml(t("home_offline_subtitle", {}, "Downloaded movies and episodes are still available."))}</p>
+            <button type="button" class="home-offline-downloads-action focusable" data-action="openOfflineDownloads">${escapeHtml(t("home_offline_open_downloads", {}, "Open Downloads"))}</button>
             <p class="home-offline-reconnect">${escapeHtml(reconnectMessage)}</p>
           </section>
         </main>

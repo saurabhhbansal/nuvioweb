@@ -31,7 +31,7 @@ export const AuthQrSignInScreen = {
       <div class="qr-layout">
         ${
           this.isDesktopBrowser
-            ? '<button type="button" id="qr-browser-back-btn" class="desktop-qr-back-button" aria-label="Back to sign in"><span class="material-icons" aria-hidden="true">chevron_left</span><span>Back</span></button>'
+            ? `<button type="button" id="qr-browser-back-btn" class="desktop-qr-back-button" aria-label="${I18n.t("auth_qr_back_to_sign_in", {}, { fallback: "Back to sign in" })}"><span class="material-icons" aria-hidden="true">chevron_left</span><span>${I18n.t("auth_qr_back", {}, { fallback: "Back" })}</span></button>`
             : ""
         }
         <section class="qr-left-panel">
