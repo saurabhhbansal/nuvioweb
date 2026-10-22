@@ -2,6 +2,7 @@ import { LocalStore } from "../storage/localStore.js";
 import { createPluginCache } from "../plugins/pluginCache.js";
 import { normalizeProxyUrl } from "../plugins/pluginNetwork.js";
 import { isRepoUrl, scraperKey } from "../plugins/pluginRepo.js";
+import { normalizeSettingsLayout } from "../plugins/pluginSandbox.js";
 import { createPluginRepoLoader } from "../plugins/pluginRepoLoader.js";
 import { mapPluginStreams } from "../plugins/pluginStreams.js";
 import { runScraperInWorker } from "../plugins/pluginWorkerClient.js";
@@ -10,6 +11,10 @@ const SOURCES_KEY = "pluginSources";
 const SCRAPER_STATE_KEY = "pluginScraperState";
 const SCRAPER_STATUS_KEY = "pluginScraperStatus";
 const PROXY_KEY = "pluginProxy";
+// Per-plugin settings from each plugin's own settings form, by scraper key.
+// Saved on this device only, like the desktop app; they may hold tokens.
+const SCRAPER_SETTINGS_KEY = "pluginScraperSettings";
+const MAX_SETTING_VALUE = 4000;
 const MAX_PARALLEL_SCRAPERS = 4;
 
 // Sources are plugin repositories. Older builds stored URL templates under
@@ -100,6 +105,40 @@ export function createPluginRuntime({
       store.set(SCRAPER_STATE_KEY, { ...state, [key]: Boolean(enabled) });
     },
 
+    getScraperSettings(key) {
+      const all = store.get(SCRAPER_SETTINGS_KEY, {}) || {};
+      const saved = all[key];
+      return saved && typeof saved === "object" && !Array.isArray(saved) ? { ...saved } : {};
+    },
+
+    // Keeps only plain values (text, true/false, numbers), trimmed to size.
+    setScraperSettings(key, values = {}) {
+      const clean = {};
+      Object.entries(values || {}).forEach(([name, value]) => {
+        if (typeof value === "boolean" || typeof value === "number") clean[String(name)] = value;
+        else if (typeof value === "string") clean[String(name)] = value.slice(0, MAX_SETTING_VALUE);
+      });
+      const all = store.get(SCRAPER_SETTINGS_KEY, {}) || {};
+      store.set(SCRAPER_SETTINGS_KEY, { ...all, [key]: clean });
+    },
+
+    // The plugin's own settings form ([] when it has none). Only plugins whose
+    // code mentions onSettings are run to ask.
+    async getSettingsLayout(scraper) {
+      if (!scraper?.codeUrl) return [];
+      const proxy = this.getProxySettings();
+      const code = await getLoader().loadScraperCode(scraper, { proxy: proxy.url ? proxy : null });
+      if (!/\bonSettings\b/.test(code)) return [];
+      const result = await runScraper({
+        code,
+        args: [],
+        mode: "settings",
+        proxy: proxy.url ? proxy : null,
+        host: { scraperId: scraper.id, settings: this.getScraperSettings(scraper.key) }
+      });
+      return result.ok ? normalizeSettingsLayout(result.layout) : [];
+    },
+
     getScraperStatus(key) {
       return (store.get(SCRAPER_STATUS_KEY, {}) || {})[key] || null;
     },
@@ -154,7 +193,7 @@ export function createPluginRuntime({
             code,
             args,
             proxy: proxy.url ? proxy : null,
-            host: { scraperId: scraper.id, settings: {}, tmdbApiKey }
+            host: { scraperId: scraper.id, settings: this.getScraperSettings(scraper.key), tmdbApiKey }
           });
         } catch (error) {
           result = { ok: false, streams: [], needsProxy: false, error: String(error?.message || error) };

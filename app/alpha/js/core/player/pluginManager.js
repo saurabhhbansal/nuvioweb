@@ -44,6 +44,18 @@ export const PluginManager = {
     PluginRuntime.setScraperEnabled(key, enabled);
   },
 
+  getScraperSettings(key) {
+    return PluginRuntime.getScraperSettings(key);
+  },
+
+  setScraperSettings(key, values) {
+    PluginRuntime.setScraperSettings(key, values);
+  },
+
+  getScraperSettingsLayout(scraper) {
+    return PluginRuntime.getSettingsLayout(scraper);
+  },
+
   getProxySettings() {
     return PluginRuntime.getProxySettings();
   },

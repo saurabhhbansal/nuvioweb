@@ -3011,6 +3011,10 @@
     <string name="plugin_remove">Remove</string>
     <string name="plugin_remove_body">This removes the repository from this profile.</string>
     <string name="plugin_remove_title">Remove %1$s?</string>
+    <string name="plugin_settings">Settings</string>
+    <string name="plugin_settings_title">%1$s settings</string>
+    <string name="plugin_settings_note">Saved on this device and passed only to this plugin.</string>
+    <string name="plugin_settings_saved">%1$s settings saved on this device.</string>
     <string name="plugin_repo_add_failed">Unable to add that repository.</string>
     <string name="plugin_repo_disabled">Repository disabled.</string>
     <string name="plugin_repo_enabled">Repository enabled.</string>

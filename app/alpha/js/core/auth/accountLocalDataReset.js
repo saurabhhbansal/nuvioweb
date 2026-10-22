@@ -36,6 +36,7 @@ const ACCOUNT_LOCAL_STORAGE_KEYS = new Set([
   "manualSyncCode",
   "pluginSources",
   "pluginsEnabled",
+  "pluginScraperSettings",
   "pluginState:migrationComplete",
   "nuvioSyncBackoffState"
 ]);
