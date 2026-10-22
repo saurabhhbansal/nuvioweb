@@ -372,10 +372,20 @@ async function selectProfile(page, profileId) {
   await expectNonemptyLibrary(page, profileId);
 }
 
+// The route once its navigation has committed, or null while one is in flight.
+const settledRoute = (page) =>
+  page.evaluate(() => {
+    const route = history.state?.route || null;
+    return route && window.__NUVIO_CURRENT_ROUTE__ === route ? route : null;
+  });
+
 async function openLibrary(page) {
-  await expect.poll(() => page.evaluate(() => history.state?.route)).toMatch(/^(home|quickSetup)$/);
+  await expect.poll(() => settledRoute(page)).toMatch(/^(home|quickSetup|library|detail)$/);
   if (await page.locator(".quick-setup-skip").isVisible()) await page.locator(".quick-setup-skip").click();
-  await page.getByRole("button", { name: "Library", exact: true }).click();
+  // A reload comes back to the screen it was on (Library or a title) once
+  // startup finishes.
+  await expect.poll(() => settledRoute(page)).toMatch(/^(home|library|detail)$/);
+  if ((await settledRoute(page)) !== "library") await page.getByRole("button", { name: "Library", exact: true }).click();
   await expect(page.locator("#library")).toBeVisible();
 }
 
@@ -748,7 +758,7 @@ test("offline reload cannot complete a new server-valid sync or introduce foreig
   expect(fixture.abortedIdentityRequests()).toBeGreaterThan(0);
   expect(snapshot.library.every((item) => item.contentId.includes("-b") || item.contentId.includes("-b-"))).toBe(true);
   expect(snapshot.watched.every((item) => item.contentId.includes("-b") || item.contentId.includes("-b-"))).toBe(true);
-  expect(route === null || route === "profileSelection" || route === "home" || route === "quickSetup").toBe(true);
+  expect(route === null || route === "profileSelection" || route === "home" || route === "quickSetup" || route === "library").toBe(true);
   expect(fixture.unexpected).toEqual([]);
 });
 
