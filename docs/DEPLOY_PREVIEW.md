@@ -10,7 +10,23 @@ Run the **Deploy preview** workflow ([preview-deploy.yml](../.github/workflows/p
 - `CLOUDFLARE_API_TOKEN`: a token limited to Cloudflare Pages: Edit.
 - `CLOUDFLARE_ACCOUNT_ID`: the account that owns `nuvioweb-preview`.
 
+Two more are optional. Without them Trakt or Simkl shows as unavailable:
+
+- `TRAKT_CLIENT_ID`: the Client ID of a Trakt app. Sign-in runs in the browser and needs no client secret, so never add one.
+- `SIMKL_CLIENT_ID`: the Client ID of a Simkl app.
+
 The steps below are the manual fallback.
+
+## Trakt and Simkl apps
+
+Register each app once under the project's name, not a person's:
+
+- **Trakt** ([trakt.tv/oauth/applications](https://trakt.tv/oauth/applications)): set the redirect URI to `urn:ietf:wg:oauth:2.0:oob`, and list every site origin under JavaScript (CORS) origins: `https://nuvioweb.xyz`, `https://www.nuvioweb.xyz` and `https://nuvioweb-preview.pages.dev`.
+- **Simkl** ([simkl.com/settings/developer](https://simkl.com/settings/developer/)): any redirect URI; sign-in uses a PIN.
+
+Sign-ins stay on the device. They are not shared with the Nuvio account, because the native Nuvio apps use their own Trakt and Simkl apps and a token from this site would break their connection.
+
+For a manual stage, set `NUVIO_TRAKT_CLIENT_ID` and `NUVIO_SIMKL_CLIENT_ID` when running `preview:stage`.
 
 ## TMDB key
 

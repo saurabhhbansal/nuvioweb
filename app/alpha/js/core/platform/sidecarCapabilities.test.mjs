@@ -16,6 +16,7 @@ test("only explicit public true flags permit fixed sidecar attempts; native medi
     const runtime = { __NUVIO_ENV__: Object.fromEntries(flags.map((key) => [key, value])) };
     assert.deepEqual(getSidecarCapabilities(runtime), {
       traktAuth: false,
+      traktBridge: false,
       debrid: false,
       externalReturn: false,
       nativeMedia: false
@@ -27,13 +28,27 @@ test("only explicit public true flags permit fixed sidecar attempts; native medi
     }),
     {
       traktAuth: true,
+      traktBridge: true,
       debrid: true,
       externalReturn: true,
       nativeMedia: false
     }
   );
-  const inherited = Object.create({ NUVIO_ENABLE_TRAKT_BRIDGE: "true" });
+  const inherited = Object.create({ NUVIO_ENABLE_TRAKT_BRIDGE: "true", TRAKT_CLIENT_ID: "inherited" });
   assert.equal(getSidecarCapabilities({ __NUVIO_ENV__: inherited }).traktAuth, false);
+});
+
+test("a public Trakt client id alone permits direct browser sign-in, without the bridge", () => {
+  const direct = getSidecarCapabilities({ __NUVIO_ENV__: { TRAKT_CLIENT_ID: "public-client" } });
+  assert.equal(direct.traktAuth, true);
+  assert.equal(direct.traktBridge, false);
+  for (const value of ["", "   ", undefined, null]) {
+    assert.equal(getSidecarCapabilities({ __NUVIO_ENV__: { TRAKT_CLIENT_ID: value } }).traktAuth, false);
+  }
+  const bridged = getSidecarCapabilities({
+    __NUVIO_ENV__: { TRAKT_CLIENT_ID: "public-client", NUVIO_ENABLE_TRAKT_BRIDGE: "true" }
+  });
+  assert.equal(bridged.traktBridge, true);
 });
 
 test("unavailable guards produce bounded actionable messages without configuration or credential echoes", () => {

@@ -15,7 +15,10 @@ const runtimeEnv = globalThis.__NUVIO_ENV__ || buildEnv;
 export const SIDECAR_DEPLOYMENT_FLAGS = Object.freeze({
   NUVIO_ENABLE_TRAKT_BRIDGE: runtimeEnv.NUVIO_ENABLE_TRAKT_BRIDGE || "false",
   NUVIO_ENABLE_DEBRID_BRIDGE: runtimeEnv.NUVIO_ENABLE_DEBRID_BRIDGE || "false",
-  NUVIO_ENABLE_EXTERNAL_RETURN_BRIDGE: runtimeEnv.NUVIO_ENABLE_EXTERNAL_RETURN_BRIDGE || "false"
+  NUVIO_ENABLE_EXTERNAL_RETURN_BRIDGE: runtimeEnv.NUVIO_ENABLE_EXTERNAL_RETURN_BRIDGE || "false",
+  // Not a sidecar: Trakt sign-in runs straight from the browser once a public
+  // client id is configured. Read here so the capability check sees it.
+  TRAKT_CLIENT_ID: runtimeEnv.TRAKT_CLIENT_ID || ""
 });
 
 if (!globalThis.__NUVIO_ENV__) {
