@@ -4,6 +4,13 @@ import { TraktAuthStore } from "../../data/local/traktAuthStore.js";
 import { ProfileManager } from "./profileManager.js";
 import { getSyncClientId } from "../sync/syncClientIdentity.js";
 
+// Off in this fork. The Nuvio account keeps one tracker credential per profile,
+// with no record of which app it was issued to, and the native Nuvio apps read
+// the same record. This site signs in to Trakt and Simkl under its own app ids,
+// so a token it published there would break the native apps' connection, and a
+// disconnect here would delete theirs. Each device signs in for itself instead.
+export const SHARES_TRACKER_CREDENTIALS = false;
+
 const TRAKT_PROVIDER = "trakt";
 const PULL_RPC = "sync_pull_provider_credentials";
 const PUSH_RPC = "sync_push_provider_credentials";
@@ -114,11 +121,13 @@ async function withSyncLock(task) {
 
 export const TraktCredentialSyncService = {
   async pushCurrentToRemote(profileId = null) {
+    if (!SHARES_TRACKER_CREDENTIALS) return false;
     const resolvedProfileId = resolveProfileId(profileId);
     return this.pushStateToRemote(TraktAuthStore.get(resolvedProfileId), resolvedProfileId);
   },
 
   async pushStateToRemote(state = {}, profileId = null) {
+    if (!SHARES_TRACKER_CREDENTIALS) return false;
     return withSyncLock(async () => {
       try {
         if (!AuthManager.isAuthenticated) {
@@ -152,6 +161,7 @@ export const TraktCredentialSyncService = {
   },
 
   async pullFromRemote(profileId = null) {
+    if (!SHARES_TRACKER_CREDENTIALS) return false;
     return withSyncLock(async () => {
       try {
         if (!AuthManager.isAuthenticated) {
@@ -190,6 +200,7 @@ export const TraktCredentialSyncService = {
   },
 
   async deleteRemote(profileId = null) {
+    if (!SHARES_TRACKER_CREDENTIALS) return false;
     return withSyncLock(async () => {
       try {
         if (!AuthManager.isAuthenticated) {

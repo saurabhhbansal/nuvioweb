@@ -3,6 +3,8 @@ name: Deploy production
 # Manual only: builds one release tag and uploads it to the nuvioweb Pages project.
 # See docs/DEPLOY_PRODUCTION.md. Secrets (set by the owner, never committed):
 #   TMDB_API_KEY            public TMDB v3 key baked into the browser bundle
+#   TRAKT_CLIENT_ID         optional public Trakt app id; empty leaves Trakt off
+#   SIMKL_CLIENT_ID         optional public Simkl app id; empty leaves Simkl off
 #   CLOUDFLARE_API_TOKEN    token limited to Cloudflare Pages: Edit
 #   CLOUDFLARE_ACCOUNT_ID   account that owns the nuvioweb project
 on:
@@ -72,6 +74,8 @@ jobs:
       - name: Stage release
         env:
           NUVIO_TMDB_API_KEY_FILE: ${{ runner.temp }}/tmdb.key
+          NUVIO_TRAKT_CLIENT_ID: ${{ secrets.TRAKT_CLIENT_ID }}
+          NUVIO_SIMKL_CLIENT_ID: ${{ secrets.SIMKL_CLIENT_ID }}
         run: npm run preview:stage
       - name: Upload to Cloudflare Pages
         env:
