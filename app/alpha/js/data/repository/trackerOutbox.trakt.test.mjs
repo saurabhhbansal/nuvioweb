@@ -108,14 +108,35 @@ test("losing the network does not switch scrobbling off, and the last position w
   assert.deepEqual(readTrackerOutbox(), []);
 });
 
-test("a stop past the watched mark is not queued as a position", async (t) => {
+test("a stop past the watched mark offline is saved as a finish, not a position", async (t) => {
   storage.clear();
   clearTrackerOutbox();
   signIn();
   useNetwork(t, () => { throw new TypeError("Failed to fetch"); });
   TraktScrobbleService.stop({ contentId: "tt0111161", contentType: "movie", imdbId: "tt0111161", progressPercent: 95 });
   await settle();
-  assert.deepEqual(readTrackerOutbox(), []);
+  const saved = readTrackerOutbox();
+  assert.equal(saved.length, 1);
+  assert.equal(saved[0].kind, "history");
+  assert.equal(saved[0].key, "tt0111161::");
+  assert.ok(saved[0].payload.watchedAt > 0);
+  // Marking it watched saves under the same key, so only one finish goes out.
+  await watchedItemsRepository.mark({ contentId: "tt0111161", contentType: "movie" });
+  await settle();
+  assert.equal(readTrackerOutbox().filter((entry) => entry.kind === "history").length, 1);
+});
+
+test("un-watching drops a finish saved offline", async (t) => {
+  storage.clear();
+  clearTrackerOutbox();
+  signIn();
+  useNetwork(t, () => { throw new TypeError("Failed to fetch"); });
+  await watchedItemsRepository.mark({ contentId: "tt0068646", contentType: "movie" });
+  await settle();
+  assert.equal(readTrackerOutbox().length, 1);
+  await watchedItemsRepository.unmark("tt0068646");
+  await settle();
+  assert.equal(readTrackerOutbox().filter((entry) => entry.kind === "history").length, 0);
 });
 
 test("refusals still count toward giving up", async (t) => {

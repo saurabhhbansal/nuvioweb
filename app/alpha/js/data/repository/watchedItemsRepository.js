@@ -6,7 +6,13 @@ import { SimklAuthStore } from "../local/simklAuthStore.js";
 import { SimklSyncService } from "./simklSyncService.js";
 import { TraktAuthService, requestJson as traktRequestJson } from "./traktAuthService.js";
 import { ownsWatchProgress } from "./trackingWriteScope.js";
-import { deliverOrQueue, installTrackerOutboxFlush, registerTrackerSender } from "./trackerOutbox.js";
+import {
+  deliverOrQueue,
+  dropTrackerWrite,
+  installTrackerOutboxFlush,
+  registerTrackerSender,
+  trackerHistoryKey
+} from "./trackerOutbox.js";
 
 function activeProfileId() {
   return String(ProfileManager.getActiveProfileId() || "1");
@@ -81,7 +87,12 @@ function traktHistoryBody(item = {}) {
 
 async function writeTraktHistory(item, remove = false) {
   const token = await TraktAuthService.getValidAccessToken();
-  if (!token) throw new Error("Trakt is not connected");
+  if (!token) {
+    // Signed in but not refreshable right now (no network) is worth retrying.
+    throw Object.assign(new Error("Trakt is not connected"), {
+      retryable: TraktAuthService.isAuthenticated()
+    });
+  }
   const { response, payload } = await traktRequestJson(
     remove ? "/sync/history/remove" : "/sync/history",
     {
@@ -103,13 +114,13 @@ async function writeTraktHistory(item, remove = false) {
 // real time. See trackerOutbox.js.
 registerTrackerSender("trakt", "history", (item) => writeTraktHistory(item, false));
 registerTrackerSender("simkl", "history", (item) => SimklSyncService.markWatched(item));
-installTrackerOutboxFlush({ getProfileId: activeProfileId });
+installTrackerOutboxFlush();
 
 function sendWatchedToTracker(provider, item, send) {
   return deliverOrQueue({
     provider,
     kind: "history",
-    key: watchedKey(item),
+    key: trackerHistoryKey(item),
     payload: item,
     profileId: activeProfileId(),
     send
@@ -387,6 +398,15 @@ class WatchedItemsRepository {
         : [{ contentId, season: options?.season ?? null, episode: options?.episode ?? null }]
     );
     queueWatchedItemsCloudSync();
+    // A finish saved while offline must not be sent after this un-watch.
+    const unwatched = removedItems.length
+      ? removedItems
+      : [{ contentId, season: options?.season ?? null, episode: options?.episode ?? null }];
+    for (const provider of ["trakt", "simkl"]) {
+      unwatched.forEach((item) =>
+        dropTrackerWrite({ provider, kind: "history", key: trackerHistoryKey(item), profileId: pid })
+      );
+    }
     void deleteWatchedItemsFromCloud(removedItems).catch((error) => {
       console.warn("Watched items cloud delete failed", error);
     });

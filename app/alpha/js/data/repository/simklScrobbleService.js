@@ -8,7 +8,8 @@ import {
   enqueueTrackerWrite,
   flushTrackerOutbox,
   isRetryableTrackerFailure,
-  registerTrackerSender
+  registerTrackerSender,
+  trackerHistoryKey
 } from "./trackerOutbox.js";
 import { ProfileManager } from "../../core/profile/profileManager.js";
 
@@ -78,9 +79,43 @@ registerTrackerSender("simkl", "position", async (context) => {
   await simklRequest("/scrobble/pause", { method: "POST", body: buildPayload(context), retry: false });
 });
 
+// What a saved scrobble keeps: the ids and where playback got to. Nothing else
+// from the player is written to storage.
+function savedContext(context = {}) {
+  const keep = ["contentId", "videoId", "contentType", "imdbId", "tmdbId", "traktId", "title", "year",
+    "seasonNumber", "episodeNumber", "episodeTitle", "positionMs", "durationMs", "progressPercent"];
+  return Object.fromEntries(keep.filter((key) => context[key] != null).map((key) => [key, context[key]]));
+}
+
+// A stop past the watched mark is a finish. Offline it is saved as a history
+// entry with the time it happened -- the same entry, under the same key, that
+// marking it watched saves, so the two never both go out.
+function queueFailedScrobble(provider, action, context, profileId) {
+  if (action === "stop" && Number(context?.progressPercent || 0) >= WATCHED_THRESHOLD_PERCENT) {
+    const item = {
+      contentId: context.contentId,
+      contentType: context.contentType === "series" ? "series" : "movie",
+      season: context.contentType === "series" ? context.seasonNumber ?? null : null,
+      episode: context.contentType === "series" ? context.episodeNumber ?? null : null,
+      title: context.title || undefined,
+      year: context.year || undefined,
+      imdbId: context.imdbId || undefined,
+      tmdbId: context.tmdbId || undefined,
+      traktId: context.traktId || undefined,
+      videoId: context.videoId || undefined,
+      watchedAt: Date.now()
+    };
+    enqueueTrackerWrite({ provider: provider, kind: "history", key: trackerHistoryKey(item), payload: item, profileId });
+    return;
+  }
+  enqueueTrackerWrite({ provider: provider, kind: "position", key: positionKey(context), payload: savedContext(context), profileId });
+}
+
 async function send(action, context, { queueOnFailure = false } = {}) {
   if (!SimklAuthService.isAuthenticated() || failures >= 3) return;
   if (context.contentType === "series" && !Number(context.episodeNumber || 0)) return;
+  // Read before the request: the profile can change while it is in flight.
+  const profileId = String(ProfileManager.getActiveProfileId() || "1");
   try {
     await simklRequest(`/scrobble/${action}`, {
       method: "POST",
@@ -89,7 +124,6 @@ async function send(action, context, { queueOnFailure = false } = {}) {
     });
     failures = 0;
     lastAction = action === "stop" ? null : action;
-    const profileId = String(ProfileManager.getActiveProfileId() || "1");
     // What was just sent is newer than any position saved for this title.
     dropTrackerWrite({ provider: "simkl", kind: "position", key: positionKey(context), profileId });
     void flushTrackerOutbox({ profileId });
@@ -110,15 +144,7 @@ async function send(action, context, { queueOnFailure = false } = {}) {
   } catch (error) {
     // Only a refusal counts toward giving up; see TraktScrobbleService.
     if (isRetryableTrackerFailure(error)) {
-      if (queueOnFailure) {
-        enqueueTrackerWrite({
-          provider: "simkl",
-          kind: "position",
-          key: positionKey(context),
-          payload: context,
-          profileId: String(ProfileManager.getActiveProfileId() || "1")
-        });
-      }
+      if (queueOnFailure) queueFailedScrobble("simkl", action, context, profileId);
     } else {
       failures += 1;
     }
@@ -156,10 +182,7 @@ export const SimklScrobbleService = {
 
   stop(context) {
     clearStartTimer();
-    // A finish is not queued here: its history write is, with the real time.
-    void send("stop", context, {
-      queueOnFailure: Number(context?.progressPercent || 0) < WATCHED_THRESHOLD_PERCENT
-    });
+    void send("stop", context, { queueOnFailure: true });
     lastAction = null;
   },
 

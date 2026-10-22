@@ -6,7 +6,8 @@ import {
   enqueueTrackerWrite,
   flushTrackerOutbox,
   isRetryableTrackerFailure,
-  registerTrackerSender
+  registerTrackerSender,
+  trackerHistoryKey
 } from "./trackerOutbox.js";
 import { ProfileManager } from "../../core/profile/profileManager.js";
 
@@ -101,7 +102,14 @@ async function markAsWatchedLocally(context) {
 // with the HTTP status when Trakt does not accept it.
 async function postScrobble(action, context) {
   const accessToken = await TraktAuthService.getValidAccessToken();
-  if (!accessToken) return false;
+  if (!accessToken) {
+    // Still signed in, but the token could not be refreshed -- usually because
+    // there is no network. That is worth trying again; signed out is not.
+    if (TraktAuthService.isAuthenticated()) {
+      throw Object.assign(new Error("Trakt sign-in could not be refreshed"), { retryable: true });
+    }
+    return false;
+  }
   const { response } = await requestJson(`/scrobble/${action}`, {
     method: "POST",
     body: buildScrobblePayload(context),
@@ -125,6 +133,38 @@ registerTrackerSender("trakt", "position", async (context) => {
   if (!(await postScrobble("pause", context))) throw new Error("Trakt is not connected");
 });
 
+// What a saved scrobble keeps: the ids and where playback got to. Nothing else
+// from the player is written to storage.
+function savedContext(context = {}) {
+  const keep = ["contentId", "videoId", "contentType", "imdbId", "tmdbId", "traktId", "title", "year",
+    "seasonNumber", "episodeNumber", "episodeTitle", "positionMs", "durationMs", "progressPercent"];
+  return Object.fromEntries(keep.filter((key) => context[key] != null).map((key) => [key, context[key]]));
+}
+
+// A stop past the watched mark is a finish. Offline it is saved as a history
+// entry with the time it happened -- the same entry, under the same key, that
+// marking it watched saves, so the two never both go out.
+function queueFailedScrobble(provider, action, context, profileId) {
+  if (action === "stop" && Number(context?.progressPercent || 0) >= WATCHED_THRESHOLD_PERCENT) {
+    const item = {
+      contentId: context.contentId,
+      contentType: context.contentType === "series" ? "series" : "movie",
+      season: context.contentType === "series" ? context.seasonNumber ?? null : null,
+      episode: context.contentType === "series" ? context.episodeNumber ?? null : null,
+      title: context.title || undefined,
+      year: context.year || undefined,
+      imdbId: context.imdbId || undefined,
+      tmdbId: context.tmdbId || undefined,
+      traktId: context.traktId || undefined,
+      videoId: context.videoId || undefined,
+      watchedAt: Date.now()
+    };
+    enqueueTrackerWrite({ provider: provider, kind: "history", key: trackerHistoryKey(item), payload: item, profileId });
+    return;
+  }
+  enqueueTrackerWrite({ provider: provider, kind: "position", key: positionKey(context), payload: savedContext(context), profileId });
+}
+
 async function sendScrobbleRequest(action, context, { queueOnFailure = false } = {}) {
   if (consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
     return;
@@ -134,13 +174,14 @@ async function sendScrobbleRequest(action, context, { queueOnFailure = false } =
     return;
   }
 
+  // Read before the request: the profile can change while it is in flight.
+  const profileId = String(ProfileManager.getActiveProfileId() || "1");
   try {
     if (!(await postScrobble(action, context))) return;
     consecutiveFailures = 0;
     lastAction = action;
+    // What was just sent is newer than any position saved for this title, and
     // Trakt is reachable again, so anything saved while it was not can go.
-    const profileId = String(ProfileManager.getActiveProfileId() || "1");
-    // What was just sent is newer than any position saved for this title.
     dropTrackerWrite({ provider: "trakt", kind: "position", key: positionKey(context), profileId });
     void flushTrackerOutbox({ profileId });
 
@@ -152,15 +193,7 @@ async function sendScrobbleRequest(action, context, { queueOnFailure = false } =
     // counting it switched scrobbling off for the rest of the session, so
     // nothing was sent even after the network came back.
     if (isRetryableTrackerFailure(error)) {
-      if (queueOnFailure) {
-        enqueueTrackerWrite({
-          provider: "trakt",
-          kind: "position",
-          key: positionKey(context),
-          payload: context,
-          profileId: String(ProfileManager.getActiveProfileId() || "1")
-        });
-      }
+      if (queueOnFailure) queueFailedScrobble("trakt", action, context, profileId);
     } else {
       consecutiveFailures++;
     }
@@ -194,10 +227,7 @@ export const TraktScrobbleService = {
 
   stop(context) {
     clearStartTimer();
-    // A finish is not queued here: its history write is, with the real time.
-    void sendScrobbleRequest("stop", context, {
-      queueOnFailure: Number(context?.progressPercent || 0) < WATCHED_THRESHOLD_PERCENT
-    });
+    void sendScrobbleRequest("stop", context, { queueOnFailure: true });
     lastAction = null;
   },
 

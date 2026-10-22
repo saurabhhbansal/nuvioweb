@@ -11,6 +11,7 @@ globalThis.localStorage = {
 
 const {
   clearTrackerOutbox,
+  dropTrackerWrite,
   deliverOrQueue,
   enqueueTrackerWrite,
   flushTrackerOutbox,
@@ -95,8 +96,12 @@ test("a flush sends, keeps what still fails, drops refusals, and leaves other pr
   assert.equal(left.find((entry) => entry.key === "b").attempts, 0);
 
   traktDown = false;
+  // A failed write waits before its next try...
   await flushTrackerOutbox({ profileId: 1, runtime: online });
-  assert.deepEqual(sent.slice(1), [["trakt", "a"], ["trakt", "b"]]);
+  assert.deepEqual(sent, [["simkl", "c"], ["trakt", "b"]]);
+  // ...unless the network has just come back.
+  await flushTrackerOutbox({ profileId: 1, runtime: online, force: true });
+  assert.deepEqual(sent.slice(1), [["trakt", "b"], ["trakt", "a"]]);
   assert.deepEqual(readTrackerOutbox().map((entry) => entry.key), ["o"]);
 });
 
@@ -120,4 +125,48 @@ test("a write with no registered sender waits for one", async () => {
   enqueueTrackerWrite({ provider: "trakt", kind: "unknown-kind", key: "x", payload: {}, profileId: 1 });
   await flushTrackerOutbox({ profileId: 1, runtime: online });
   assert.equal(readTrackerOutbox().length, 1);
+});
+
+test("a saved write only goes out while its own profile is active", async () => {
+  clearTrackerOutbox();
+  const sent = [];
+  registerTrackerSender("simkl", "position", async (payload) => { sent.push(payload.id); });
+  enqueueTrackerWrite({ provider: "simkl", kind: "position", key: "p2", payload: { id: "profile-2" }, profileId: 2 });
+  localStorage.setItem("activeProfileId", JSON.stringify("1"));
+  await flushTrackerOutbox({ profileId: 2, runtime: online });
+  assert.deepEqual(sent, []);
+  localStorage.setItem("activeProfileId", JSON.stringify("2"));
+  await flushTrackerOutbox({ profileId: 2, runtime: online });
+  assert.deepEqual(sent, ["profile-2"]);
+  localStorage.removeItem("activeProfileId");
+});
+
+test("a write replaced while a flush is running is not sent", async () => {
+  clearTrackerOutbox();
+  const sent = [];
+  registerTrackerSender("trakt", "position", async (payload) => {
+    sent.push(payload.p);
+    // A newer report for the second title lands while this one is in flight.
+    if (payload.p === "first") dropTrackerWrite({ provider: "trakt", kind: "position", key: "two", profileId: 1 });
+  });
+  enqueueTrackerWrite({ provider: "trakt", kind: "position", key: "one", payload: { p: "first" }, profileId: 1 });
+  enqueueTrackerWrite({ provider: "trakt", kind: "position", key: "two", payload: { p: "stale" }, profileId: 1 });
+  await flushTrackerOutbox({ profileId: 1, runtime: online });
+  assert.deepEqual(sent, ["first"]);
+});
+
+test("over the cap, saved positions go before saved finishes", () => {
+  clearTrackerOutbox();
+  enqueueTrackerWrite({ provider: "trakt", kind: "history", key: "finish", payload: {}, profileId: 1, now: 1 });
+  for (let index = 0; index < 205; index += 1) {
+    enqueueTrackerWrite({ provider: "trakt", kind: "position", key: `p${index}`, payload: {}, profileId: 1, now: 2 + index });
+  }
+  const entries = readTrackerOutbox();
+  assert.equal(entries.length, 200);
+  assert.ok(entries.some((entry) => entry.key === "finish"));
+});
+
+test("a tracker's answer is believed even when the device says it is offline", () => {
+  assert.equal(isRetryableTrackerFailure(httpError(422), offline), false);
+  assert.equal(isRetryableTrackerFailure(Object.assign(new Error("refresh"), { retryable: true }), online), true);
 });

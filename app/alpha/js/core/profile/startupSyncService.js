@@ -327,7 +327,7 @@ export const StartupSyncService = {
           .finally(() => logSyncTiming("background-simkl-refresh", syncStartedAt));
         // Tracker writes saved while offline go out once sign-in state has settled.
         void Promise.allSettled([traktCredentialsTask, simklTask]).then(() =>
-          generation === lifecycleGeneration ? flushTrackerOutbox({ profileId: activeProfileId }) : null
+          generation === lifecycleGeneration ? flushTrackerOutbox({ profileId: activeProfileId, force: true }) : null
         );
         const watchedItemsTask = includeProfileScoped
           ? dispatchCurrent(() => WatchedItemsSyncService.pull())
