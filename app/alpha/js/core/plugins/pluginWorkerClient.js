@@ -2,12 +2,14 @@
 // a hard timeout, and termination whatever happens.
 
 export const PLUGIN_WORKER_URL = "./plugin-worker.bundle.js";
-export const DEFAULT_SCRAPER_TIMEOUT_MS = 20000;
+// Generous: some plugins chain several slow pages. Results still show as each
+// plugin finishes, so a slow one does not hold back the rest.
+export const DEFAULT_SCRAPER_TIMEOUT_MS = 45000;
 
 const defaultWorkerFactory = () => new Worker(PLUGIN_WORKER_URL);
 
 export function runScraperInWorker(
-  { code, args, proxy = null, timeoutMs = DEFAULT_SCRAPER_TIMEOUT_MS },
+  { code, args, proxy = null, host = null, timeoutMs = DEFAULT_SCRAPER_TIMEOUT_MS },
   { workerFactory = defaultWorkerFactory, appOrigin = globalThis.location?.origin || "" } = {}
 ) {
   return new Promise((resolve) => {
@@ -43,6 +45,6 @@ export function runScraperInWorker(
       event?.preventDefault?.();
       finish({ ok: false, streams: [], needsProxy: false, error: String(event?.message || "Worker error") });
     };
-    worker.postMessage({ code, args, proxy, appOrigin });
+    worker.postMessage({ code, args, proxy, appOrigin, host });
   });
 }

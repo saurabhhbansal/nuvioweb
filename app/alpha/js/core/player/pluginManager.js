@@ -4,8 +4,12 @@ import { PluginRuntime } from "./pluginRuntime.js";
 const PLUGINS_ENABLED_KEY = "pluginsEnabled";
 
 export const PluginManager = {
+  // Saved per device. Until the user flips it, plugins are on whenever the
+  // profile has a repository (repositories sync; this switch does not).
   get pluginsEnabled() {
-    return Boolean(LocalStore.get(PLUGINS_ENABLED_KEY, false));
+    const saved = LocalStore.get(PLUGINS_ENABLED_KEY, null);
+    if (typeof saved === "boolean") return saved;
+    return PluginRuntime.listSources().length > 0;
   },
 
   setPluginsEnabled(enabled) {
@@ -48,10 +52,10 @@ export const PluginManager = {
     PluginRuntime.setProxySettings(settings);
   },
 
-  async executeScrapersStreaming({ tmdbId, mediaType, season = null, episode = null } = {}) {
+  async executeScrapersStreaming({ tmdbId, mediaType, season = null, episode = null, tmdbApiKey = "", onGroup = null } = {}) {
     if (!this.pluginsEnabled) {
       return [];
     }
-    return PluginRuntime.execute({ tmdbId, mediaType, season, episode });
+    return PluginRuntime.execute({ tmdbId, mediaType, season, episode, tmdbApiKey, onGroup });
   }
 };

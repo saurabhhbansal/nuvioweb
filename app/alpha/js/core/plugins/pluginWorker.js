@@ -3,12 +3,12 @@
 import { load } from "cheerio/slim";
 import CryptoJS from "crypto-js";
 import { createPluginFetch } from "./pluginNetwork.js";
-import { createAxiosShim, runScraperCode } from "./pluginSandbox.js";
+import { createAxiosShim, pluginHostGlobals, runScraperCode } from "./pluginSandbox.js";
 
 const scope = globalThis;
 
 scope.onmessage = async (event) => {
-  const { code, args, proxy, appOrigin } = event.data || {};
+  const { code, args, proxy, appOrigin, host } = event.data || {};
   let needsProxy = false;
   const fetchImpl = createPluginFetch({
     fetchImpl: scope.fetch.bind(scope),
@@ -25,6 +25,7 @@ scope.onmessage = async (event) => {
       args,
       fetchImpl,
       consoleImpl: quiet,
+      globals: pluginHostGlobals(host || {}),
       modules: { cheerio: { load }, cryptoJs: CryptoJS, axios: createAxiosShim(fetchImpl) }
     });
     scope.postMessage({ ok: true, streams, needsProxy });
