@@ -9,6 +9,7 @@ Updated 2026-10-23. "Tested" means covered by automated tests in CI, mostly Chro
 | Sign in with Nuvio, refresh, sign out | Works; tested with mocks and fixtures. Startup survives server errors and retries when back online | QR sign-in unsupported (provider rejects the redirect). Natural token expiry on real accounts not observed |
 | Profiles, library, watch progress sync | Works; Library changes queue in a saved outbox and retry on startup, reconnect and the sync cycle | Same-item edits on two devices: last write wins. No cross-tab coordination. See [sync policy](LIBRARY_SYNC_POLICY.md) |
 | Guest mode | Works; tested | Data stays on this device |
+| Create a Nuvio account | A Sign up button on the sign-in screen opens nuvio.tv's sign-up page in a new tab; tested in Chromium | nuvio.tv has no way to send people back here afterwards, so they return to this tab and sign in |
 | HTTP/Stremio add-ons | Install by URL, catalogs, details, sources, subtitles; tested with a fixture add-on | Each add-on must allow browser CORS |
 | Source list | Keeps add-on order. A card shows at most one hint: "Needs headers" or "Link expired", from declared metadata. Every source stays selectable | No per-card playback prediction |
 | Native video, HLS, DASH | Plays in Chromium; legal fixtures tested for play, pause, seek, resume and subtitles | Firefox/WebKit run on demand only. 4K, HDR and high-frame-rate output unverified |
