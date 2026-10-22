@@ -33,9 +33,9 @@ export const AccountScreen = {
     }
   },
 
+  // The app's sign-out listener opens the right start screen for this device.
   async signOut() {
     await AuthManager.signOut();
-    Router.navigate("authQrSignIn");
   },
 
   render() {

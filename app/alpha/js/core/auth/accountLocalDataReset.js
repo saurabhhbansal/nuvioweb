@@ -99,8 +99,27 @@ export function registerAccountRuntimeResetHandler(handler) {
   return () => runtimeResetHandlers.delete(handler);
 }
 
-export async function resetAccountRuntimeState() {
-  await Promise.allSettled(Array.from(runtimeResetHandlers, (handler) => handler()));
+const RUNTIME_RESET_TIMEOUT_MS = 2000;
+
+// Sign-out waits on this, so it must always finish: a handler that throws is
+// contained, and one that never settles is left behind after the time limit.
+export async function resetAccountRuntimeState({ timeoutMs = RUNTIME_RESET_TIMEOUT_MS } = {}) {
+  const pending = Array.from(runtimeResetHandlers, (handler) => {
+    try {
+      return Promise.resolve(handler());
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  });
+  let timer = null;
+  const timeLimit = new Promise((resolve) => {
+    timer = setTimeout(resolve, timeoutMs);
+  });
+  try {
+    await Promise.race([Promise.allSettled(pending), timeLimit]);
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 export function clearAccountLocalData(

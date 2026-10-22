@@ -854,3 +854,92 @@ test("offline add-on fallback denial recognizes only the exact authenticated fix
   }, {origin: identityOrigin, access: token("B"), owner: accounts.A.owner});
   expect(fixture.unexpected).toEqual([{operation: "/rest/v1/tv_addons", method: "GET"}]);
 });
+
+// Sign-out state the page must be in: the start screen, nothing from the old
+// session still mounted (not even inert, underneath), no scroll lock and no
+// address-bar route that a reload would reopen for the next person.
+async function expectCleanSignedOutStart(page) {
+  await expect(page.locator("#desktop-auth-email")).toBeVisible({ timeout: 3000 });
+  await expect.poll(() => settledRoute(page)).toBe("authSignIn");
+  const state = await page.evaluate(() => ({
+    hash: location.hash,
+    inert: document.querySelectorAll("[inert]").length,
+    overflow: [document.documentElement.style.overflow, document.body.style.overflow],
+    oldLibraryInDom: document.body.innerHTML.includes("fixture-library-b"),
+    storage: ["access_token", "refresh_token", "savedLibraryItems", "profiles"].map((key) => localStorage.getItem(key))
+  }));
+  expect(state).toEqual({
+    hash: "",
+    inert: 0,
+    overflow: ["", ""],
+    oldLibraryInDom: false,
+    storage: [null, null, null, null]
+  });
+}
+
+for (const network of ["working", "failing", "hanging"]) {
+  test(`sign-out from the profile screen reaches a clean start screen with the network ${network}`, async ({ context, page }) => {
+    const fixture = await installIdentityFixture(context);
+    await page.goto("/");
+    await signIn(page, "B");
+    await expectLibrary(page, "B");
+    await page.getByRole("button", { name: "Profile", exact: true }).click();
+    await expect(page.locator('#profileSelection [data-action="sign-out"]')).toBeVisible();
+    let overriddenRequests = 0;
+    if (network !== "working") {
+      await context.route(`${identityOrigin}/**`, (route) => {
+        overriddenRequests += 1;
+        return network === "failing" ? route.abort("failed") : new Promise(() => {});
+      });
+    }
+    const requestsBefore = fixture.requests.length;
+    const unexpectedBefore = fixture.unexpected.length;
+    await page.locator('#profileSelection [data-action="sign-out"]').click();
+    await expectCleanSignedOutStart(page);
+    // Signing out asks nothing of the account server.
+    expect([overriddenRequests, fixture.requests.length - requestsBefore, fixture.unexpected.length - unexpectedBefore]).toEqual([0, 0, 0]);
+
+    // The start screen works, and a reload neither reopens the old Library
+    // nor brings back anything of the old account.
+    await page.reload();
+    await expectCleanSignedOutStart(page);
+    if (network === "working") {
+      await signIn(page, "A");
+      await expectLibrary(page, "A");
+    } else {
+      await page.locator('[data-action="continueGuest"]').click();
+      await expect.poll(() => settledRoute(page)).toMatch(/^(home|profileSelection)$/);
+      expect(await page.evaluate(() => document.body.innerHTML.includes("fixture-library-b"))).toBe(false);
+    }
+    expect(fixture.unexpected).toEqual([]);
+  });
+}
+
+test("sign-out from Settings reaches a clean start screen", async ({ context, page }) => {
+  const fixture = await installIdentityFixture(context);
+  await page.goto("/");
+  await signIn(page, "B");
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await page.locator('[data-section="account"]').first().click();
+  await expect(page.locator(".settings-account-signout-button")).toBeVisible();
+  const requestsBefore = fixture.requests.length;
+  const unexpectedBefore = fixture.unexpected.length;
+  await page.locator(".settings-account-signout-button").click();
+  await expectCleanSignedOutStart(page);
+  expect([fixture.requests.length - requestsBefore, fixture.unexpected.length - unexpectedBefore]).toEqual([0, 0]);
+});
+
+test("sign-out from the profile picker shown at startup clears the address bar it reopened", async ({ context, page }) => {
+  await installIdentityFixture(context, { nonempty: true, twoProfiles: true });
+  await page.goto("/");
+  await signIn(page, "B");
+  // With more than one profile a reload asks who is watching first, with the
+  // Library route still pending in the address bar.
+  await page.reload();
+  await expect.poll(() => settledRoute(page)).toBe("profileSelection");
+  expect(await page.evaluate(() => location.hash)).toBe("#/library");
+  await page.locator('#profileSelection [data-action="sign-out"]').click();
+  await expectCleanSignedOutStart(page);
+  await page.locator('[data-action="continueGuest"]').click();
+  await expect.poll(() => settledRoute(page)).toMatch(/^(home|profileSelection)$/);
+});

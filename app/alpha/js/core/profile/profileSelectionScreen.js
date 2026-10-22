@@ -621,9 +621,10 @@ export const ProfileSelectionScreen = {
     this.focusNativePinInput();
   },
 
+  // The app's sign-out listener resets navigation and opens the start screen;
+  // a second navigation from here would only race it.
   async signOutFromProfiles() {
     await AuthManager.signOut();
-    await Router.navigate("authSignIn", {}, { replaceHistory: true });
   },
 
   focusNativePinInput() {
