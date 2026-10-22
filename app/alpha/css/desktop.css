@@ -15498,7 +15498,7 @@ body.desktop-browser {
   border: 0;
   border-radius: 999px;
   background: var(--secondary-color);
-  color: #fff;
+  color: var(--on-secondary, #111);
   cursor: pointer;
   font: inherit;
   font-size: 15px;
@@ -15709,7 +15709,7 @@ body.desktop-browser {
   border: 0;
   border-radius: 999px;
   background: var(--secondary-color);
-  color: #fff;
+  color: var(--on-secondary, #111);
   cursor: pointer;
   font: inherit;
   font-size: 15px;
