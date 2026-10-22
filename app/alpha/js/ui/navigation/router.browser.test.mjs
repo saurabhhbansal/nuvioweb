@@ -134,6 +134,10 @@ const { Router } = await import("./router.js");
 const { RouteStateStore } = await import("./routeStateStore.js");
 
 const originalRoutes = Router.routes;
+// Lazily loaded by the router in the app; imported here so tests can extend them.
+const { MetaDetailsScreen } = await import("../screens/detail/metaDetailsScreen.js");
+const { StreamScreen } = await import("../screens/stream/streamScreen.js");
+const { PlayerScreen } = await import("../screens/player/playerScreen.js");
 const originalExitApp = Platform.exitApp;
 
 function makeScreen(name, options = {}) {
@@ -210,7 +214,7 @@ function makeFolderRouteStateScreen() {
 }
 
 function makeDetailScreen() {
-  const screen = Object.create(originalRoutes.detail);
+  const screen = Object.create(MetaDetailsScreen);
   screen.mounts = [];
   screen.seasonHoldMenu = null;
   screen.episodeHoldMenu = null;
@@ -260,7 +264,7 @@ function makeDeferredContinueWatchingDetailScreen() {
 }
 
 function makeStreamScreen() {
-  const screen = Object.create(originalRoutes.stream);
+  const screen = Object.create(StreamScreen);
   screen.mounts = [];
   screen.mount = async function mount(params, context) {
     this.params = params;
@@ -271,7 +275,7 @@ function makeStreamScreen() {
 }
 
 function makePlayerBackScreen() {
-  const screen = Object.create(originalRoutes.player);
+  const screen = Object.create(PlayerScreen);
   screen.mounts = [];
   screen.playerBackNavigationInProgress = false;
   screen.episodes = [];

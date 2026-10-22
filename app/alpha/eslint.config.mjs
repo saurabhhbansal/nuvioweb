@@ -11,8 +11,10 @@ const runtimeGlobals = {
   // Same shape: the service worker source carries this until build.mjs writes
   // the real locale list in its place.
   __NUVIO_LOCALE_ASSETS__: "readonly",
-  // assets/libs/qrcode-generator.js defines this, loaded by a script tag in
-  // index.html and precached by the service worker.
+  // And the list of code-split chunks it precaches.
+  __NUVIO_APP_CHUNKS__: "readonly",
+  // assets/libs/qrcode-generator.js defines this. js/core/qr/qrCodeGenerator.js
+  // loads it the first time a screen that draws a QR code is opened.
   qrcode: "readonly"
 };
 

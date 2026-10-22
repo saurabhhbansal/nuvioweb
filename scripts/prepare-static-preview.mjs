@@ -26,7 +26,7 @@ export function validatePublicConfig(source) {
 const root = fileURLToPath(new URL("../", import.meta.url));
 const noticePaths = [
   "hls.js/LICENSE", "dashjs/LICENSE.md", "dashjs/dist/dash.all.min.js.LICENSE.txt",
-  "libbitsub/LICENSE", "libbitsub/pkg/LICENSE", "core-js/LICENSE", "jszip/LICENSE.markdown",
+  "libbitsub/LICENSE", "libbitsub/pkg/LICENSE", "jszip/LICENSE.markdown",
   "pako/LICENSE", "lie/license.md", "immediate/LICENSE.txt", "setimmediate/LICENSE.txt"
 ];
 

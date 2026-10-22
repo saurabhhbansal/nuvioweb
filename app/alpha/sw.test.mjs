@@ -30,10 +30,12 @@ test("external playback push uses privacy-safe text and notification clicks focu
 // closes over. Asserting on the source text would pass on a `reload` written
 // anywhere in the file; this fails unless the entries actually carry it.
 const TEST_LOCALES = ["./res/values/strings.xml", "./res/values-de/strings.xml", "./res/values-fr/strings.xml"];
+const TEST_CHUNKS = ["./chunks/playerScreen-ABC123.js", "./chunks/chunk-DEF456.js"];
 
 async function loadServiceWorker({ scriptUrl = "https://example.test/sw.js" } = {}) {
   const source = (await readFile(new URL("./sw.js", import.meta.url), "utf8"))
     .replace("__NUVIO_LOCALE_ASSETS__", JSON.stringify(TEST_LOCALES))
+    .replace("__NUVIO_APP_CHUNKS__", JSON.stringify(TEST_CHUNKS))
     .replaceAll("__NUVIO_APP_VERSION__", "0.0.0-test");
 
   const cached = [];
@@ -63,7 +65,6 @@ async function loadServiceWorker({ scriptUrl = "https://example.test/sw.js" } = 
       this.cache = init.cache;
     }
   }
-  // The optional icon font is fetched during install behind its own try/catch.
   const fetchStub = async () => {
     throw new Error("no network in test");
   };
@@ -122,6 +123,21 @@ test("every precached app shell entry bypasses the HTTP cache", async () => {
     cached.some((request) => request.url === "./app.bundle.js"),
     "the application bundle is the entry this exists to keep current"
   );
+});
+
+test("install precaches every code-split chunk and the self-hosted fonts", async () => {
+  const cached = await runServiceWorkerInstall();
+  const urls = cached.map((request) => request.url);
+  for (const entry of [
+    ...TEST_CHUNKS,
+    "./assets/fonts/inter-latin-var.woff2",
+    "./assets/fonts/material-icons-subset.woff2"
+  ]) {
+    assert.ok(urls.includes(entry), `${entry} must be precached`);
+  }
+  const worker = await loadServiceWorker();
+  assert.equal(handles(worker, "https://example.test/chunks/playerScreen-ABC123.js"), true);
+  assert.equal(handles(worker, "https://example.test/chunks/unknown-000000.js"), false);
 });
 
 test("only listed paths are served from the cache, not every path under the scope", async () => {

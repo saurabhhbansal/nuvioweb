@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" class="no-flex-gap no-css-math no-backdrop-filter no-aspect-ratio">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -7,7 +7,6 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, viewport-fit=cover"
     />
-    <script src="assets/runtime/legacy-features.js"></script>
     <meta name="theme-color" content="#0d0d0d" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -18,23 +17,31 @@
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="apple-touch-icon" sizes="180x180" href="assets/brand/pwa-apple-touch-icon-180.png" />
 
+    <link
+      rel="preload"
+      href="assets/fonts/inter-latin-var.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
     <link rel="stylesheet" href="css/base.css?v=20260509s" />
-    <link rel="stylesheet" href="css/layout.css?v=20260509s" />
     <link rel="stylesheet" href="css/components.css?v=20260531supporters2" />
-    <link rel="stylesheet" href="css/themes.css?v=20260509s" />
     <link rel="stylesheet" href="css/desktop.css?v=20260821" />
   </head>
   <body>
     <script src="boot-guard.js"></script>
-    <script
-      src="core-js.bundle.js"
-      onerror="window.NuvioBootGuard && window.NuvioBootGuard.scriptFailed(this.src)"
-    ></script>
     <script src="nuvio.env.js"></script>
-
-    <script src="assets/libs/qrcode-generator.js"></script>
+    <script nomodule>
+      window.NuvioBootGuard &&
+        window.NuvioBootGuard.fail(
+          "This browser is too old for Nuvio. Use Chrome or Edge 100+, or Safari 15+.",
+          navigator.userAgent,
+          "BOOT-BROWSER"
+        );
+    </script>
 
     <script
+      type="module"
       src="app.bundle.js?v=20260531supporters2"
       onerror="window.NuvioBootGuard && window.NuvioBootGuard.scriptFailed(this.src)"
     ></script>

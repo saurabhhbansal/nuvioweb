@@ -17,6 +17,22 @@ test("built application starts and renders the signed-out form without an uncaug
   expect(failures).toEqual([]);
 });
 
+test("first load uses same-origin fonts and draws icons as glyphs, not words", async ({ page }) => {
+  const requests = [];
+  page.on("request", (request) => requests.push(request.url()));
+  await page.goto("/");
+  const icon = page.locator("#account .desktop-auth-input-icon").first();
+  await expect(icon).toBeVisible();
+  await page.evaluate(() => document.fonts.ready);
+  expect(await page.evaluate(() => document.fonts.check('24px "Material Icons"'))).toBe(true);
+  // "mail_outline" set as text is several times wider than it is tall.
+  const box = await icon.boundingBox();
+  expect(box.width).toBeLessThan(box.height * 2);
+  expect(requests.filter((url) => !url.startsWith("http://127.0.0.1:4371/"))).toEqual([]);
+  // Screens outside sign-in are not part of the first load.
+  expect(requests.some((url) => /\/chunks\/playerScreen-/.test(url))).toBe(false);
+});
+
 test("empty sign-in submits an actionable validation error", async ({ page }) => {
   await page.goto("/");
   await page.locator('.desktop-auth-submit').click();

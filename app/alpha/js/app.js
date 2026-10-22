@@ -14,8 +14,6 @@ import { ProviderCredentialSyncService } from "./core/profile/providerCredential
 import { ThemeManager } from "./ui/theme/themeManager.js";
 import { renderAppShell } from "./bootstrap/renderAppShell.js";
 import { renderAddonRemotePage } from "./bootstrap/renderAddonRemotePage.js";
-import { preloadStreamBadgeImages } from "./ui/screens/stream/streamScreen.js";
-import { warmStreamingLibs } from "./runtime/loadStreamingLibs.js";
 import { activateWaitingWorker, watchForWaitingWorker } from "./core/update/serviceWorkerReload.js";
 import { showServiceWorkerUpdateToast } from "./ui/components/appUpdatePrompt.js";
 import { Platform } from "./platform/index.js";
@@ -29,7 +27,6 @@ import { watchBrowserInstallAvailability } from "./ui/components/browserInstallP
 import { installBrowserFocusModality } from "./ui/navigation/browserFocusModality.js";
 import { installWatchProgressReconnectSync } from "./core/profile/watchProgressReconnect.js";
 import { dispatchOutplayerExplicitFinish } from "./ui/components/browserOutplayerFinishDispatch.js";
-import { PlayerScreen } from "./ui/screens/player/playerScreen.js";
 
 (function applyLegacyPatches() {
   const originalGetElementById = document.getElementById;
@@ -42,6 +39,12 @@ import { PlayerScreen } from "./ui/screens/player/playerScreen.js";
     globalThis.Node = { ELEMENT_NODE: 1 };
   }
 })();
+
+// The player screen is a chunk of its own; the external-playback return flow
+// only needs it once a handoff falls back to manual control.
+function loadPlayerScreen() {
+  return Router.ensureRoute("player");
+}
 
 const GUEST_QR_BYPASS_KEY = "skipAuthQrGate";
 const SIGNED_OUT_ALLOWED_ROUTES = new Set(["trakt"]);
@@ -216,9 +219,12 @@ async function enterWithLastProfile() {
     StartupSyncService.enableProfileScopedSync();
     criticalHydrationPromise = StartupSyncService.hydrateCriticalHome(activeProfile.id);
     detailWatchedEnrichmentService.invalidateAllCache();
-    void preloadStreamBadgeImages().catch((error) => {
-      console.warn("Stream badge image prerender failed", error);
-    });
+    // The stream screen is its own chunk; its badge prerender waits for it.
+    void import("./ui/screens/stream/streamScreen.js")
+      .then((module) => module.preloadStreamBadgeImages())
+      .catch((error) => {
+        console.warn("Stream badge image prerender failed", error);
+      });
   }
   const experienceRoute = activeProfile
     ? await resolveExperienceRoute(activeProfile.id, {
@@ -321,7 +327,6 @@ async function bootstrapApp() {
 
   ThemeManager.apply();
   I18n.apply();
-  warmStreamingLibs({ delayMs: 1400 });
 
   markBootStage("Restoring session");
   DeviceSessionRegistration.start();
@@ -435,8 +440,10 @@ async function bootstrapApp() {
       }
       return applied;
     },
-    onManualFallback: (handoff) => PlayerScreen.showExternalPlaybackManualFallback(handoff),
-    onManualFallbackResolved: () => PlayerScreen.dismissExternalPlaybackManualFallback?.()
+    onManualFallback: (handoff) =>
+      loadPlayerScreen().then((screen) => screen.showExternalPlaybackManualFallback(handoff)),
+    onManualFallbackResolved: () =>
+      loadPlayerScreen().then((screen) => screen.dismissExternalPlaybackManualFallback?.())
   });
   logStartupTiming("auth-bootstrap-complete", bootstrapStartedAt);
 }
