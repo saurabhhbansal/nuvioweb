@@ -1,6 +1,14 @@
 import { TraktAuthService, requestJson } from "./traktAuthService.js";
 import { WatchProgressSource } from "../local/traktSettingsStore.js";
 import { ownsWatchProgress } from "./trackingWriteScope.js";
+import {
+  dropTrackerWrite,
+  enqueueTrackerWrite,
+  flushTrackerOutbox,
+  isRetryableTrackerFailure,
+  registerTrackerSender
+} from "./trackerOutbox.js";
+import { ProfileManager } from "../../core/profile/profileManager.js";
 
 const START_DEBOUNCE_MS = 15000;
 const MAX_CONSECUTIVE_FAILURES = 3;
@@ -89,7 +97,35 @@ async function markAsWatchedLocally(context) {
   }
 }
 
-async function sendScrobbleRequest(action, context) {
+// Sends one scrobble. False when there is no signed-in Trakt account; throws
+// with the HTTP status when Trakt does not accept it.
+async function postScrobble(action, context) {
+  const accessToken = await TraktAuthService.getValidAccessToken();
+  if (!accessToken) return false;
+  const { response } = await requestJson(`/scrobble/${action}`, {
+    method: "POST",
+    body: buildScrobblePayload(context),
+    authorization: `Bearer ${accessToken}`
+  });
+  if (!response.ok) {
+    const error = new Error(`Trakt scrobble ${action} failed (${response.status})`);
+    error.status = response.status;
+    throw error;
+  }
+  return true;
+}
+
+function positionKey(context = {}) {
+  return `${context.contentId || ""}:${context.seasonNumber ?? ""}:${context.episodeNumber ?? ""}`;
+}
+
+// A position saved while Trakt was out of reach. Sent as a pause, which is how
+// Trakt records "stopped here"; it arrives stamped with the time it is sent.
+registerTrackerSender("trakt", "position", async (context) => {
+  if (!(await postScrobble("pause", context))) throw new Error("Trakt is not connected");
+});
+
+async function sendScrobbleRequest(action, context, { queueOnFailure = false } = {}) {
   if (consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
     return;
   }
@@ -99,36 +135,38 @@ async function sendScrobbleRequest(action, context) {
   }
 
   try {
-    const accessToken = await TraktAuthService.getValidAccessToken();
-    if (!accessToken) {
-      return;
+    if (!(await postScrobble(action, context))) return;
+    consecutiveFailures = 0;
+    lastAction = action;
+    // Trakt is reachable again, so anything saved while it was not can go.
+    const profileId = String(ProfileManager.getActiveProfileId() || "1");
+    // What was just sent is newer than any position saved for this title.
+    dropTrackerWrite({ provider: "trakt", kind: "position", key: positionKey(context), profileId });
+    void flushTrackerOutbox({ profileId });
+
+    if (action === "stop" && context.progressPercent >= WATCHED_THRESHOLD_PERCENT) {
+      await markAsWatchedLocally(context);
     }
-
-    const body = buildScrobblePayload(context);
-    const { response } = await requestJson(`/scrobble/${action}`, {
-      method: "POST",
-      body,
-      authorization: `Bearer ${accessToken}`
-    });
-
-    if (response.ok) {
-      consecutiveFailures = 0;
-      lastAction = action;
-
-      if (action === "stop" && context.progressPercent >= WATCHED_THRESHOLD_PERCENT) {
-        await markAsWatchedLocally(context);
+  } catch (error) {
+    // Only a refusal counts toward giving up. No network is not a refusal:
+    // counting it switched scrobbling off for the rest of the session, so
+    // nothing was sent even after the network came back.
+    if (isRetryableTrackerFailure(error)) {
+      if (queueOnFailure) {
+        enqueueTrackerWrite({
+          provider: "trakt",
+          kind: "position",
+          key: positionKey(context),
+          payload: context,
+          profileId: String(ProfileManager.getActiveProfileId() || "1")
+        });
       }
     } else {
       consecutiveFailures++;
-      console.warn(`[TraktScrobble] ${action} failed`, {
-        status: response.status,
-        failures: consecutiveFailures
-      });
     }
-  } catch (error) {
-    consecutiveFailures++;
-    console.warn(`[TraktScrobble] ${action} error`, {
-      error: error.message,
+    console.warn(`[TraktScrobble] ${action} failed`, {
+      status: error?.status || null,
+      error: error?.message,
       failures: consecutiveFailures
     });
   }
@@ -156,7 +194,10 @@ export const TraktScrobbleService = {
 
   stop(context) {
     clearStartTimer();
-    void sendScrobbleRequest("stop", context);
+    // A finish is not queued here: its history write is, with the real time.
+    void sendScrobbleRequest("stop", context, {
+      queueOnFailure: Number(context?.progressPercent || 0) < WATCHED_THRESHOLD_PERCENT
+    });
     lastAction = null;
   },
 
@@ -164,7 +205,7 @@ export const TraktScrobbleService = {
   // for the band a stop cannot carry without claiming the title is finished.
   reportPosition(context) {
     clearStartTimer();
-    void sendScrobbleRequest("pause", context);
+    void sendScrobbleRequest("pause", context, { queueOnFailure: true });
     lastAction = null;
   },
 

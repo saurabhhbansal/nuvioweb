@@ -17,6 +17,7 @@ import { HomeCatalogSettingsSyncService } from "./homeCatalogSettingsSyncService
 import { ThemeManager } from "../../ui/theme/themeManager.js";
 import { I18n } from "../../i18n/index.js";
 import { SyncHydrationState, SyncPullResult } from "./syncHydrationState.js";
+import { flushTrackerOutbox } from "../../data/repository/trackerOutbox.js";
 
 const SYNC_INTERVAL_MS = 120000;
 const ADDON_PUSH_DEBOUNCE_MS = 1000;
@@ -324,6 +325,10 @@ export const StartupSyncService = {
             return false;
           })
           .finally(() => logSyncTiming("background-simkl-refresh", syncStartedAt));
+        // Tracker writes saved while offline go out once sign-in state has settled.
+        void Promise.allSettled([traktCredentialsTask, simklTask]).then(() =>
+          generation === lifecycleGeneration ? flushTrackerOutbox({ profileId: activeProfileId }) : null
+        );
         const watchedItemsTask = includeProfileScoped
           ? dispatchCurrent(() => WatchedItemsSyncService.pull())
           : null;
