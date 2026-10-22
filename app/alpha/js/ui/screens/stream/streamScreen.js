@@ -3,6 +3,8 @@ import { subtitleReleaseName } from "../../../domain/model/subtitle.js";
 import { ScreenUtils } from "../../navigation/screen.js";
 import { streamRepository } from "../../../data/repository/streamRepository.js";
 import { addonRepository } from "../../../data/repository/addonRepository.js";
+import { metaRepository } from "../../../data/repository/metaRepository.js";
+import { buildStreamTitleParams } from "./streamTitleMeta.js";
 import { watchProgressRepository } from "../../../data/repository/watchProgressRepository.js";
 import { isWatchProgressInProgress } from "../../../domain/model/watchProgress.js";
 import { PlayerSettingsStore } from "../../../data/local/playerSettingsStore.js";
@@ -812,7 +814,9 @@ export const StreamScreen = {
       this.renderedMarkup = null;
     }
 
+    this.titleMetaPending = this.needsTitleMeta();
     this.render();
+    void this.loadMissingTitleMeta(token);
 
     if (restoringFromBack) {
       return;
@@ -822,6 +826,38 @@ export const StreamScreen = {
       return;
     }
     void this.loadStreams();
+  },
+
+  // A reload or shared link to `#/stream/...` carries IDs only, so the title,
+  // logo and backdrop the detail screen normally hands over are missing. Look
+  // them up through the same meta repository the detail screen uses, alongside
+  // the stream fetch rather than ahead of it.
+  needsTitleMeta(params = this.params) {
+    return Boolean(
+      params?.itemId && !String(params?.itemTitle || params?.playerTitle || "").trim()
+    );
+  },
+
+  async loadMissingTitleMeta(token) {
+    if (!this.needsTitleMeta()) {
+      this.titleMetaPending = false;
+      return;
+    }
+    let result = null;
+    try {
+      result = await metaRepository.getMetaFromAllAddons(this.params.itemType, this.params.itemId);
+    } catch (_) {
+      result = null;
+    }
+    if (token !== this.loadToken) {
+      return;
+    }
+    this.titleMetaPending = false;
+    const meta = result?.status === "success" ? result.data || null : null;
+    if (meta) {
+      this.params = { ...this.params, ...buildStreamTitleParams(meta, this.params) };
+    }
+    this.requestRender();
   },
 
   // The detail screen resolved this route in the background, so the picker has
@@ -1714,7 +1750,11 @@ export const StreamScreen = {
 
   getHeaderMeta() {
     const isSeries = normalizeType(this.params?.itemType) === "series";
-    const title = String(this.params?.itemTitle || this.params?.playerTitle || "Untitled");
+    const title = String(
+      this.params?.itemTitle ||
+        this.params?.playerTitle ||
+        (this.titleMetaPending ? "" : "Untitled")
+    );
     const subtitle = isSeries
       ? String(this.params?.episodeTitle || this.params?.playerSubtitle || "").trim()
       : String(this.params?.itemSubtitle || "").trim();

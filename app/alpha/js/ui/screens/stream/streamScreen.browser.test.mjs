@@ -19,14 +19,16 @@ async function loadStreamScreen() {
             ["player-settings", `export const PlayerSettingsStore = { get: () => globalThis.__NUVIO_TEST_PLAYER_SETTINGS__ || ({ streamReuseLastLinkEnabled: false, streamReuseLastLinkCacheHours: 24, streamAutoPlayTimeoutSeconds: 0 }) };`],
             ["stream-preferences", `export const StreamPreferencesStore = { getValid: () => null };`],
             ["addon-repository", `export const addonRepository = { getCachedInstalledAddons: () => [] };`],
-            ["badge-settings", `export const StreamBadgeSettingsStore = { snapshot: () => ({ showAddonLogo: false }) };`]
+            ["badge-settings", `export const StreamBadgeSettingsStore = { snapshot: () => ({ showAddonLogo: false }) };`],
+            ["meta-repository", `export const metaRepository = { getMetaFromAllAddons: (...args) => (globalThis.__NUVIO_TEST_META__ || (() => new Promise(() => {})))(...args) };`]
           ]);
           for (const [filter, path] of [
             [/router\.js$/, "router"],
             [/playerSettingsStore\.js$/, "player-settings"],
             [/streamPreferencesStore\.js$/, "stream-preferences"],
             [/addonRepository\.js$/, "addon-repository"],
-            [/streamBadgeSettingsStore\.js$/, "badge-settings"]
+            [/streamBadgeSettingsStore\.js$/, "badge-settings"],
+            [/metaRepository\.js$/, "meta-repository"]
           ]) {
             buildApi.onResolve({ filter }, () => ({ path, namespace: "test" }));
           }
@@ -69,6 +71,74 @@ test("StreamScreen mounts its browser route before loading sources", async () =>
     assert.equal(loaded, 1);
   } finally {
     StreamScreen.render = originalRender;
+    StreamScreen.loadStreams = originalLoadStreams;
+    if (originalDocument) {
+      globalThis.document = originalDocument;
+    } else {
+      delete globalThis.document;
+    }
+  }
+});
+
+test("StreamScreen opened from a link loads title meta without holding up sources", async () => {
+  const { StreamScreen } = await loadStreamScreen();
+  const originalDocument = globalThis.document;
+  const originalRender = StreamScreen.render;
+  const originalRequestRender = StreamScreen.requestRender;
+  const originalLoadStreams = StreamScreen.loadStreams;
+  const container = { style: { display: "none" } };
+  const lookups = [];
+  let resolveMeta;
+  let loaded = 0;
+  let rerendered = 0;
+  let titleAtFirstPaint = null;
+
+  globalThis.document = {
+    getElementById(id) {
+      return id === "stream" ? container : null;
+    }
+  };
+  globalThis.__NUVIO_TEST_META__ = (type, id) => {
+    lookups.push([type, id]);
+    return new Promise((resolve) => {
+      resolveMeta = resolve;
+    });
+  };
+  StreamScreen.render = function render() {
+    titleAtFirstPaint ??= this.getHeaderMeta().title;
+  };
+  StreamScreen.requestRender = () => {
+    rerendered += 1;
+  };
+  StreamScreen.loadStreams = async () => {
+    loaded += 1;
+  };
+
+  try {
+    await StreamScreen.mount({ itemId: "movie-id", itemType: "movie" });
+    // Sources start while the meta lookup is still pending.
+    assert.equal(loaded, 1);
+    assert.deepEqual(lookups, [["movie", "movie-id"]]);
+    assert.equal(titleAtFirstPaint, "");
+
+    resolveMeta({
+      status: "success",
+      data: { name: "Linked Film", logo: "logo.png", background: "bg.jpg", poster: "p.jpg" }
+    });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.equal(rerendered, 1);
+    assert.equal(StreamScreen.getHeaderMeta().title, "Linked Film");
+    assert.equal(StreamScreen.params.logo, "logo.png");
+    assert.equal(StreamScreen.getBackdropUrl(), "bg.jpg");
+
+    // Opened from the detail screen: the title is already there, no lookup.
+    lookups.length = 0;
+    await StreamScreen.mount({ itemId: "movie-id", itemType: "movie", itemTitle: "Given" });
+    assert.equal(lookups.length, 0);
+  } finally {
+    delete globalThis.__NUVIO_TEST_META__;
+    StreamScreen.render = originalRender;
+    StreamScreen.requestRender = originalRequestRender;
     StreamScreen.loadStreams = originalLoadStreams;
     if (originalDocument) {
       globalThis.document = originalDocument;
