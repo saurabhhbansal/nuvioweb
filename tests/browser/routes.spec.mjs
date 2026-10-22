@@ -78,3 +78,18 @@ test("a shared title link opens that title after the sign-in step", async ({ pag
   expect(new URL(page.url()).hash).toBe("#/");
   await expect(page.locator('#home .home-poster-card[data-item-id="fixture:original"]').first()).toBeVisible();
 });
+
+test("a shared source-list link shows the title, not Untitled", async ({ page }) => {
+  // The link holds IDs only; the screen looks the title up itself.
+  await page.goto("/#/stream/movie/fixture%3Aoriginal");
+  await continueAsGuest(page);
+  await expect(page.locator('[data-action="playStream"]').first()).toBeVisible();
+  const title = page.locator("#stream .stream-route-title");
+  await expect(title).toHaveText("Original Legal Fixture");
+  await expect(page.locator("#stream")).not.toContainText("Untitled");
+  await expect(page.locator("#stream .stream-route-backdrop")).toHaveAttribute(
+    "style",
+    /poster\.svg/
+  );
+  expect(new URL(page.url()).hash).toBe("#/stream/movie/fixture%3Aoriginal");
+});
