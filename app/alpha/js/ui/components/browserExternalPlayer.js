@@ -255,7 +255,8 @@ export function buildAndroidIntentUrl({ mediaUrl, title = "", packageName = "", 
 // PotPlayer takes the whole stream address after its scheme.
 export function buildPotPlayerLaunchUrl({ mediaUrl } = {}) {
   if (!isTransferableExternalMediaUrl(mediaUrl)) return "";
-  return `potplayer://${mediaUrl}`;
+  // The parsed form, so PotPlayer reads the same address the check accepted.
+  return `potplayer://${new URL(mediaUrl).href}`;
 }
 
 export function buildIinaLaunchUrl({ mediaUrl } = {}) {
@@ -307,6 +308,8 @@ export function buildBrowserExternalPlayerLaunch({ player, platform, mediaUrl, t
     const href = buildOutplayerLaunchUrl({ mediaUrl, externalReturnToken, externalReturnOrigin, externalReturnMethod, resumePositionSeconds, knownDurationMs });
     return href ? { href, storeUrl: IOS_APP_STORE_URLS.outplayer } : null;
   }
+  // A desktop player only opens on the system it exists for.
+  if (platform === "other" && !platformPlayers("other").includes(selectedPlayer)) return null;
   if (platform === "other" && selectedPlayer === EXTERNAL_PLAYER_IDS.POTPLAYER) {
     return { href: buildPotPlayerLaunchUrl({ mediaUrl }) };
   }

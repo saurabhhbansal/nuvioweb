@@ -60,20 +60,40 @@ test("external player options are platform-aware", () => {
   assert.deepEqual(getManualBrowserExternalPlayerOptions(linux), ["vlc", "copylink"]);
 });
 
+function withNavigator(navigator, run) {
+  const original = Object.getOwnPropertyDescriptor(globalThis, "navigator");
+  Object.defineProperty(globalThis, "navigator", { configurable: true, value: navigator });
+  try {
+    return run();
+  } finally {
+    if (original) Object.defineProperty(globalThis, "navigator", original);
+    else delete globalThis.navigator;
+  }
+}
+
 test("desktop players open by link, playlist file or copied link", () => {
   const mediaUrl = "https://media.example/video%20file.mp4?token=a&b=c";
-  assert.equal(
-    buildBrowserExternalPlayerLaunch({ player: "potplayer", platform: "other", mediaUrl }).href,
-    `potplayer://${mediaUrl}`
-  );
-  assert.equal(
-    buildBrowserExternalPlayerLaunch({ player: "iina", platform: "other", mediaUrl }).href,
-    `iina://weblink?url=${encodeURIComponent(mediaUrl)}`
-  );
-  assert.match(
-    buildBrowserExternalPlayerLaunch({ player: "infuse", platform: "other", mediaUrl }).href,
-    /^infuse:\/\/x-callback-url\/play\?url=/
-  );
+  withNavigator(desktop.navigator, () => {
+    assert.equal(
+      buildBrowserExternalPlayerLaunch({ player: "potplayer", platform: "other", mediaUrl }).href,
+      `potplayer://${mediaUrl}`
+    );
+    // A Mac player never builds a link on Windows.
+    assert.equal(buildBrowserExternalPlayerLaunch({ player: "iina", platform: "other", mediaUrl }), null);
+    assert.equal(buildBrowserExternalPlayerLaunch({ player: "potplayer", platform: "other", mediaUrl: "blob:https://nuvio.tv/id" }), null);
+  });
+  withNavigator(mac.navigator, () => {
+    assert.equal(
+      buildBrowserExternalPlayerLaunch({ player: "iina", platform: "other", mediaUrl }).href,
+      `iina://weblink?url=${encodeURIComponent(mediaUrl)}`
+    );
+    assert.match(
+      buildBrowserExternalPlayerLaunch({ player: "infuse", platform: "other", mediaUrl }).href,
+      /^infuse:\/\/x-callback-url\/play\?url=/
+    );
+    assert.equal(buildBrowserExternalPlayerLaunch({ player: "potplayer", platform: "other", mediaUrl }), null);
+    assert.equal(buildBrowserExternalPlayerLaunch({ player: "iina", platform: "other", mediaUrl: "file:///video.mp4" }), null);
+  });
   // VLC and Copy link are browser actions on desktop, never a link.
   assert.equal(buildBrowserExternalPlayerLaunch({ player: "vlc", platform: "other", mediaUrl }), null);
   assert.equal(buildBrowserExternalPlayerLaunch({ player: "copylink", platform: "other", mediaUrl }), null);
@@ -81,9 +101,6 @@ test("desktop players open by link, playlist file or copied link", () => {
   assert.equal(getBrowserExternalPlayerDelivery("vlc", "android"), "launch");
   assert.equal(getBrowserExternalPlayerDelivery("copylink", "other"), "copy");
   assert.equal(getBrowserExternalPlayerDelivery("iina", "other"), "launch");
-  // Local and blob addresses never leave the browser.
-  assert.equal(buildBrowserExternalPlayerLaunch({ player: "potplayer", platform: "other", mediaUrl: "blob:https://nuvio.tv/id" }), null);
-  assert.equal(buildBrowserExternalPlayerLaunch({ player: "iina", platform: "other", mediaUrl: "file:///video.mp4" }), null);
   // Desktop-only players stay off phones.
   assert.equal(buildBrowserExternalPlayerLaunch({ player: "potplayer", platform: "android", mediaUrl }), null);
   assert.equal(getBrowserExternalPlayerName("iina"), "IINA");

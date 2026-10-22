@@ -7452,7 +7452,7 @@ export const SettingsScreen = {
           })()
             ? (() => {
                 const player = getBrowserExternalPlayerPreference(model.player.browserExternalPlayer);
-                const playerName = externalPlayerLabel(player);
+                const playerName = getBrowserExternalPlayerName(player) || externalPlayerLabel(player);
                 return this.renderActionRow({
                   focusKey: `playback:getExternalPlayer:${player}`,
                   title: `Get ${playerName}`,
