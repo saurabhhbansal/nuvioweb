@@ -461,8 +461,11 @@ html.desktop-browser {
 }
 
 .desktop-browser .detail-trailer-modal-loading .player-loading-spinner-ring {
+  position: relative;
+  inset: auto;
   width: 32px;
   height: 32px;
+  margin: 0;
 }
 
 .desktop-browser .detail-trailer-modal-close {
@@ -2625,6 +2628,19 @@ html.desktop-browser {
   color: var(--detail-text-primary);
 }
 
+/* The watched button keeps its dark action tile when it is both selected and
+   focused. The TV rule's white tile would turn the eye glyph black. */
+.desktop-browser
+  #detail
+  .series-circle-btn[data-action="toggleWatched"].is-selected.focused,
+.desktop-browser
+  #detail
+  .series-circle-btn[data-action="toggleWatched"].is-selected:focus-visible {
+  border-color: rgba(255, 255, 255, 0.34);
+  background: rgb(18 22 28 / 0.76);
+  color: var(--detail-text-primary);
+}
+
 .desktop-browser #detail .series-btn-svg {
   width: 22px;
   height: 22px;
@@ -2704,12 +2720,60 @@ html.desktop-browser {
 }
 
 .desktop-browser #detail .series-detail-description {
+  position: relative;
   max-width: 660px;
   margin-bottom: 12px;
   font-size: 16px;
   line-height: 1.48;
-  -webkit-line-clamp: 4;
-  line-clamp: 4;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.desktop-browser #detail .series-detail-description.is-expanded {
+  -webkit-line-clamp: unset;
+  line-clamp: unset;
+  display: block;
+}
+
+.desktop-browser #detail .detail-description-toggle {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  display: inline-flex;
+  width: auto;
+  align-items: center;
+  margin: 0;
+  padding: 0 0 0 12px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--detail-text-secondary, rgba(255, 255, 255, 0.62));
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  text-shadow:
+    0 0 5px var(--detail-bg),
+    0 0 10px var(--detail-bg);
+  height: 1.45em;
+}
+
+.desktop-browser
+  #detail
+  .series-detail-description.is-expanded
+  .detail-description-toggle {
+  position: static;
+  height: auto;
+  padding: 4px 8px;
+  background: transparent;
+}
+
+.desktop-browser #detail .detail-description-toggle[hidden] {
+  display: none;
+}
+
+.desktop-browser #detail .detail-description-toggle:focus-visible {
+  outline: 2px solid var(--detail-focus-ring);
+  outline-offset: 2px;
 }
 
 .desktop-browser #detail .detail-meta-stack {
@@ -5278,9 +5342,9 @@ html.desktop-browser {
   position: relative;
   overflow: hidden;
   width: 96px;
-  height: 96px;
+  height: 108px;
   margin: 0 auto 9px;
-  border-radius: 50%;
+  border-radius: 16px;
   transition: box-shadow 140ms ease, transform 140ms ease;
 }
 
@@ -5289,6 +5353,7 @@ html.desktop-browser {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center 35%;
 }
 
 .desktop-browser #detail .movie-cast-name {
@@ -5642,7 +5707,6 @@ html.desktop-browser {
   }
 
   .desktop-browser #detail .movie-cast-card:hover .movie-cast-avatar {
-    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.42);
     transform: scale(1.03);
   }
 
@@ -5651,7 +5715,6 @@ html.desktop-browser {
   }
 
   .desktop-browser #detail .detail-morelike-card:hover .detail-morelike-poster-wrap {
-    border-color: rgba(255, 255, 255, 0.56);
     box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
     transform: scale(1.04);
   }
@@ -5679,7 +5742,7 @@ html.desktop-browser {
 
   .desktop-browser #detail .movie-cast-avatar {
     width: 88px;
-    height: 88px;
+    height: 99px;
   }
 }
 
@@ -12623,7 +12686,7 @@ body.desktop-browser {
 
   .desktop-browser #detail .movie-cast-avatar {
     width: 80px;
-    height: 80px;
+    height: 90px;
     margin-bottom: 7px;
   }
 
@@ -12792,7 +12855,7 @@ body.desktop-browser {
 
   .desktop-browser #detail .movie-cast-avatar {
     width: 88px;
-    height: 88px;
+    height: 99px;
   }
 
   .desktop-browser #detail .series-episode-card {
