@@ -86,6 +86,8 @@ export const SimklAuthStore = {
     const current = readProfileState(profileId);
     return writeProfileState(profileId, {
       ...current,
+      // A different token may be a different Simkl account: forget the old name.
+      ...(current.accessToken !== accessToken ? { username: null, accountId: null } : {}),
       accessToken,
       userCode: null,
       deviceCode: null,

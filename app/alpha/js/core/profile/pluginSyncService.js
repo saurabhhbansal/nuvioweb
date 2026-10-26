@@ -1,4 +1,5 @@
 import { AuthManager } from "../auth/authManager.js";
+import { LocalStore } from "../storage/localStore.js";
 import { SupabaseApi } from "../../data/remote/supabase/supabaseApi.js";
 import { PluginRuntime } from "../player/pluginRuntime.js";
 import { isRepoUrl } from "../plugins/pluginRepo.js";
@@ -8,6 +9,25 @@ import { SyncHydrationState, SyncPullResult } from "./syncHydrationState.js";
 const TABLE = "plugins";
 const PUSH_RPC = "sync_push_plugins";
 const pendingLocalChanges = new Map();
+// The repository URLs the account held the last time this device read or
+// wrote it, by plugin profile. It tells a repository added here and not yet
+// sent (absent from it) from one removed on another device (present in it),
+// across reloads. Cleared with the rest of the account's local data.
+const BASELINE_KEY = "pluginSyncBaseline";
+
+function readBaseline(profileId) {
+  const all = LocalStore.get(BASELINE_KEY, null);
+  const urls = all && typeof all === "object" ? all[String(profileId)] : null;
+  return Array.isArray(urls) ? new Set(urls) : null;
+}
+
+function writeBaseline(profileId, sources = []) {
+  const all = LocalStore.get(BASELINE_KEY, null);
+  LocalStore.set(BASELINE_KEY, {
+    ...(all && typeof all === "object" ? all : {}),
+    [String(profileId)]: sources.map((source) => sourceKey(source)).filter(Boolean)
+  });
+}
 
 function resolveProfileId() {
   const raw = Number(ProfileManager.getActiveProfileId() || 1);
@@ -76,7 +96,8 @@ function mapRemoteRowsToSources(rows = []) {
         id: sourceIdFromUrl(url, index),
         name: row.name || `Plugin ${index + 1}`,
         url,
-        enabled: row.enabled !== false
+        enabled: row.enabled !== false,
+        ...(typeof row.repo_type === "string" && row.repo_type ? { repoType: row.repo_type } : {})
       };
     })
     .filter(Boolean);
@@ -87,6 +108,9 @@ function sourceKey(source = {}) {
 }
 
 // Rows the account may receive: real repository URLs only, never templates.
+// The push replaces every row, so a repository kind a native app recorded
+// (`repo_type`) is sent back as it came; a repository added here has none and
+// the native apps detect it.
 export function buildPushRows(sources = []) {
   return (sources || [])
     .filter((source) => isRepoUrl(source?.url))
@@ -94,14 +118,12 @@ export function buildPushRows(sources = []) {
       url: String(source.url).trim(),
       name: source.name || `Plugin ${index + 1}`,
       enabled: source.enabled !== false,
-      sort_order: index
+      sort_order: index,
+      ...(typeof source.repoType === "string" && source.repoType ? { repo_type: source.repoType } : {})
     }));
 }
 
 function mergeSources(localSources = [], remoteSources = []) {
-  if (!remoteSources.length) {
-    return [...localSources];
-  }
   const localByKey = new Map();
   localSources.forEach((source) => {
     const key = sourceKey(source);
@@ -126,10 +148,50 @@ function mergeSources(localSources = [], remoteSources = []) {
     localByKey.delete(key);
   });
 
-  localByKey.forEach((localSource) => {
-    merged.push(localSource);
-  });
+  // The account list is authoritative, as for add-ons and collections: a
+  // repository only this device still has was removed elsewhere. This
+  // device's own unsent changes are laid back on by the caller.
+  return merged;
+}
 
+function sameSource(a, b) {
+  return JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
+}
+
+// The account list, plus what is this device's own:
+// - repositories only this device has that the account never had (baseline)
+//   were added here and not sent yet; ones the account had were removed
+//   elsewhere and go;
+// - this session's unsent changes (pending before/after): its removals, its
+//   additions, and the entries it changed. Entries it did not touch keep the
+//   account's values.
+function mergeWithAccount(localSources = [], remoteSources = [], baseline = null, pending = null) {
+  let merged = mergeSources(localSources, remoteSources);
+  const remoteKeys = new Set(remoteSources.map(sourceKey));
+  localSources.forEach((source) => {
+    const key = sourceKey(source);
+    if (!key || remoteKeys.has(key)) return;
+    // Without a baseline (first sync after an update) nothing can be told
+    // apart, so local repositories are kept as before.
+    if (!baseline || !baseline.has(key)) merged.push(source);
+  });
+  if (!pending) return merged;
+
+  const beforeByKey = new Map((pending.before || []).map((source) => [sourceKey(source), source]));
+  const afterByKey = new Map((pending.after || []).map((source) => [sourceKey(source), source]));
+  merged = merged
+    .filter((source) => {
+      const key = sourceKey(source);
+      return !beforeByKey.has(key) || afterByKey.has(key);
+    })
+    .map((source) => {
+      const key = sourceKey(source);
+      const changedHere = afterByKey.has(key) && !sameSource(beforeByKey.get(key), afterByKey.get(key));
+      return changedHere ? { ...source, ...afterByKey.get(key) } : source;
+    });
+  afterByKey.forEach((source, key) => {
+    if (!beforeByKey.has(key) && !merged.some((entry) => sourceKey(entry) === key)) merged.push(source);
+  });
   return merged;
 }
 
@@ -169,30 +231,32 @@ export const PluginSyncService = {
       const ownerId = await AuthManager.getEffectiveUserId();
       const rows = await SupabaseApi.select(
         TABLE,
-        `user_id=eq.${encodeURIComponent(ownerId)}&profile_id=eq.${profileId}&select=url,name,enabled,sort_order&order=sort_order.asc`,
+        `user_id=eq.${encodeURIComponent(ownerId)}&profile_id=eq.${profileId}&select=*&order=sort_order.asc`,
         true
       );
       if (!(await SyncHydrationState.isCurrent(syncContext))) {
         return { result: SyncPullResult.FAILED, items: localSources };
       }
       const remoteSources = mapRemoteRowsToSources(rows);
-      if (!remoteSources.length && localSources.length) {
+      // An empty account list only means "removed elsewhere" for repositories
+      // this device saw on the account before; with no baseline (a new
+      // account, or the first sync after an update) local ones are kept.
+      const baseline = readBaseline(profileId);
+      if (!remoteSources.length && localSources.length && !baseline?.size) {
         await SyncHydrationState.completePull(syncContext, "plugins", SyncPullResult.SUCCESS_EMPTY);
         return { result: SyncPullResult.SUCCESS_EMPTY, items: localSources };
       }
-      let mergedSources = mergeSources(localSources, remoteSources);
-      const pending = pendingLocalChanges.get(String(profileId));
-      if (pending) {
-        const beforeKeys = new Set((pending.before || []).map(sourceKey));
-        const afterByKey = new Map((pending.after || []).map((source) => [sourceKey(source), source]));
-        mergedSources = mergedSources
-          .filter((source) => !beforeKeys.has(sourceKey(source)) || afterByKey.has(sourceKey(source)))
-          .map((source) => afterByKey.get(sourceKey(source)) || source);
-        afterByKey.forEach((source, key) => {
-          if (!mergedSources.some((entry) => sourceKey(entry) === key)) mergedSources.push(source);
-        });
-      }
+      const pendingKey = [String(resolveProfileId()), String(profileId)].find((key) => pendingLocalChanges.has(key));
+      const pending = pendingKey ? pendingLocalChanges.get(pendingKey) : null;
+      const mergedSources = mergeWithAccount(localSources, remoteSources, baseline, pending);
       writeLocalSources(mergedSources);
+      writeBaseline(profileId, remoteSources);
+      // Repositories added here that the account has not got yet are this
+      // device's change to send, even after a reload.
+      const remoteKeys = new Set(remoteSources.map(sourceKey));
+      if (!pending && mergedSources.some((source) => !remoteKeys.has(sourceKey(source)))) {
+        this.recordLocalMutation(null, remoteSources, mergedSources);
+      }
       const result = remoteSources.length ? SyncPullResult.SUCCESS_WITH_DATA : SyncPullResult.SUCCESS_EMPTY;
       await SyncHydrationState.completePull(syncContext, "plugins", result);
       return { result, items: mergedSources };
@@ -219,7 +283,20 @@ export const PluginSyncService = {
       if (automatic && !pendingKeys.some((key) => pendingLocalChanges.has(key))) {
         return false;
       }
-      const pushRows = buildPushRows(readLocalSources());
+      const sentSources = readLocalSources();
+      const pushRows = buildPushRows(sentSources);
+      // A change made while this push is on the wire records a new pending
+      // entry. Only the entries this push carries may be cleared by it; a
+      // newer one is kept, measured from what this push sent.
+      const sentPending = new Map(pendingKeys.map((key) => [key, pendingLocalChanges.get(key)]));
+      const settlePush = () => {
+        pendingKeys.forEach((key) => {
+          const current = pendingLocalChanges.get(key);
+          if (current === sentPending.get(key)) pendingLocalChanges.delete(key);
+          else if (current) pendingLocalChanges.set(key, { before: sentSources, after: current.after });
+        });
+        writeBaseline(profileId, sentSources);
+      };
       try {
         await SupabaseApi.rpc(
           PUSH_RPC,
@@ -229,7 +306,7 @@ export const PluginSyncService = {
           },
           true
         );
-        pendingKeys.forEach((key) => pendingLocalChanges.delete(key));
+        settlePush();
         return true;
       } catch (rpcError) {
         if (!shouldTryLegacyTable(rpcError)) {
@@ -238,7 +315,13 @@ export const PluginSyncService = {
       }
 
       const ownerId = await AuthManager.getEffectiveUserId();
-      const rows = pushRows.map((row) => ({ user_id: ownerId, profile_id: profileId, ...row }));
+      // Deployments without the RPC predate the repo_type column; sending it
+      // there would fail after the delete below and leave the list empty.
+      const rows = pushRows.map(({ repo_type: _repoType, ...row }) => ({
+        user_id: ownerId,
+        profile_id: profileId,
+        ...row
+      }));
       await SupabaseApi.delete(
         TABLE,
         `user_id=eq.${encodeURIComponent(ownerId)}&profile_id=eq.${profileId}`,
@@ -251,7 +334,7 @@ export const PluginSyncService = {
           await SupabaseApi.upsert(TABLE, rows, null, true);
         }
       }
-      pendingKeys.forEach((key) => pendingLocalChanges.delete(key));
+      settlePush();
       return true;
     } catch (error) {
       console.warn("Plugin sync push failed", error);

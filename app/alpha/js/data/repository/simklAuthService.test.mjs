@@ -15,7 +15,7 @@ globalThis.__NUVIO_ENV__ = { SIMKL_CLIENT_ID: "fixture-simkl-public-client" };
 const { Platform } = await import("../../platform/index.js");
 Platform.current = null;
 const { SimklAuthStore } = await import("../local/simklAuthStore.js");
-const { SimklAuthService } = await import("./simklAuthService.js");
+const { SimklAuthService, parseSimklUserSettings } = await import("./simklAuthService.js");
 
 function json(payload, status = 200) {
   return new Response(JSON.stringify(payload), { status, headers: { "Content-Type": "application/json" } });
@@ -25,7 +25,7 @@ function useNetwork(t, handler) {
   const calls = [];
   const original = globalThis.fetch;
   globalThis.fetch = async (url, options = {}) => {
-    const call = { url: new URL(String(url)), method: options.method, body: options.body ? JSON.parse(options.body) : null };
+    const call = { url: new URL(String(url)), method: options.method, headers: options.headers || {}, body: options.body ? JSON.parse(options.body) : null };
     calls.push(call);
     return handler(call);
   };
@@ -102,4 +102,88 @@ test("a code left over from the old PIN flow is dropped instead of polled", asyn
   SimklAuthStore.savePinSession({ user_code: "OLD1", verification_url: "https://simkl.com/pin", expires_in: 900 });
   assert.deepEqual(await SimklAuthService.pollPin(), { type: "invalidated" });
   assert.equal(calls.length, 0);
+});
+
+test("the account name is read from user.name in Simkl's settings answer", () => {
+  assert.deepEqual(
+    parseSimklUserSettings({ user: { name: "  Fixture Person  ", joined_at: "2020-01-01" }, account: { id: "42", type: "free" } }),
+    { username: "Fixture Person", accountId: 42 }
+  );
+  assert.deepEqual(parseSimklUserSettings({ user: { name: "" }, account: {} }), { username: null, accountId: null });
+  assert.deepEqual(parseSimklUserSettings({ user: { name: 7 }, account: { id: "x" } }), { username: null, accountId: null });
+  assert.deepEqual(parseSimklUserSettings(null), { username: null, accountId: null });
+});
+
+test("the settings lookup sends the token and the documented simkl-api-key header", async (t) => {
+  storage.clear();
+  SimklAuthStore.saveToken("fixture-access");
+  const calls = useNetwork(t, () => json({ user: { name: "fixture-user" }, account: { id: 7 } }));
+  assert.equal(await SimklAuthService.fetchUserSettings(), "fixture-user");
+  assert.equal(calls[0].url.pathname, "/users/settings");
+  assert.equal(calls[0].method, "POST");
+  assert.equal(calls[0].headers.Authorization, "Bearer fixture-access");
+  assert.equal(calls[0].headers["simkl-api-key"], "fixture-simkl-public-client");
+  assert.equal(calls[0].headers["Content-Type"], "application/json");
+  assert.deepEqual(calls[0].body, {});
+  assert.equal(SimklAuthStore.get().username, "fixture-user");
+  assert.equal(SimklAuthStore.get().accountId, 7);
+});
+
+test("sign-in calls do not carry the simkl-api-key header", async (t) => {
+  storage.clear();
+  const calls = useNetwork(t, () => json(deviceResponse));
+  await SimklAuthService.startPinAuth();
+  assert.equal(calls[0].headers["simkl-api-key"], undefined);
+  assert.equal(calls[0].headers.Authorization, undefined);
+});
+
+test("a new token forgets the previous account's name", () => {
+  storage.clear();
+  SimklAuthStore.saveToken("fixture-access");
+  SimklAuthStore.saveIdentity({ username: "fixture-user", accountId: 7 });
+  SimklAuthStore.saveToken("fixture-access");
+  assert.equal(SimklAuthStore.get().username, "fixture-user");
+  SimklAuthStore.saveToken("fixture-other-access");
+  assert.equal(SimklAuthStore.get().username, null);
+  assert.equal(SimklAuthStore.get().accountId, null);
+});
+
+test("an answer for a token that has since changed is dropped", async (t) => {
+  storage.clear();
+  SimklAuthStore.saveToken("fixture-access");
+  useNetwork(t, () => {
+    SimklAuthStore.saveToken("fixture-other-access");
+    return json({ user: { name: "fixture-user" }, account: { id: 7 } });
+  });
+  assert.equal(await SimklAuthService.fetchUserSettings(), null);
+  assert.equal(SimklAuthStore.get().username, null);
+});
+
+test("a failing name lookup is not retried on every refresh", async (t) => {
+  storage.clear();
+  const profileId = "fixture-cooldown";
+  SimklAuthStore.saveToken("fixture-access", profileId);
+  const calls = useNetwork(t, () => json({ error: "not_found" }, 404));
+  assert.equal(await SimklAuthService.ensureIdentity(profileId), null);
+  assert.equal(await SimklAuthService.ensureIdentity(profileId), null);
+  assert.equal(calls.filter((call) => call.url.pathname === "/users/settings").length, 1);
+});
+
+test("an answer without a name keeps the name already known", async (t) => {
+  storage.clear();
+  SimklAuthStore.saveToken("fixture-access");
+  SimklAuthStore.saveIdentity({ username: "fixture-user", accountId: 7 });
+  useNetwork(t, () => json({ user: {}, account: {} }));
+  assert.equal(await SimklAuthService.fetchUserSettings(), "fixture-user");
+  assert.equal(SimklAuthStore.get().username, "fixture-user");
+  assert.equal(SimklAuthStore.get().accountId, 7);
+});
+
+test("a connection restored without a name looks the name up once", async (t) => {
+  storage.clear();
+  SimklAuthStore.saveToken("fixture-access");
+  const calls = useNetwork(t, () => json({ user: { name: "fixture-user" }, account: { id: 7 } }));
+  assert.equal(await SimklAuthService.ensureIdentity(), "fixture-user");
+  assert.equal(await SimklAuthService.ensureIdentity(), "fixture-user");
+  assert.equal(calls.filter((call) => call.url.pathname === "/users/settings").length, 1);
 });

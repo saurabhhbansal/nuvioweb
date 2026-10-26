@@ -25,9 +25,12 @@ test("static bundled settings explain unavailable integrations without sidecar r
   await page.getByRole("button", { name: "Settings", exact: true }).click();
   await page.locator('#settings [data-focus-key="nav:trakt"]').click();
   const traktSection = page.locator('[data-focus-key="tracking:desktop:trakt"]');
-  await expect(traktSection).toContainText("Closed");
+  // The row shows only a chevron, no "Open"/"Closed" text.
+  await expect(traktSection).not.toHaveClass(/is-open/);
+  await expect(traktSection).not.toContainText("Closed");
   await traktSection.click();
-  await expect(traktSection).toContainText("Open");
+  await expect(traktSection).toHaveClass(/is-open/);
+  await expect(traktSection).not.toContainText("Open");
   const trakt = page.locator('[data-sidecar-status="traktAuth"]');
   await expect(trakt).toContainText("Continue without Trakt");
   await expect(
