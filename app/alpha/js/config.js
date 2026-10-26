@@ -81,5 +81,5 @@ export const SIMKL_CLIENT_ID = String(runtimeEnv.SIMKL_CLIENT_ID || "").trim();
 // how to build the Shortcut instead.
 export const AUTOMATION_SHORTCUT_URL = String(runtimeEnv.AUTOMATION_SHORTCUT_URL || "").trim();
 export const SIMKL_API_URL = "https://api.simkl.com";
-export const SIMKL_APP_NAME = String(runtimeEnv.SIMKL_APP_NAME || "nuvio").trim() || "nuvio";
+export const SIMKL_APP_NAME = String(runtimeEnv.SIMKL_APP_NAME || "nuvioweb").trim() || "nuvioweb";
 export const PREMIUMIZE_CLIENT_ID = String(runtimeEnv.PREMIUMIZE_CLIENT_ID || "").trim();

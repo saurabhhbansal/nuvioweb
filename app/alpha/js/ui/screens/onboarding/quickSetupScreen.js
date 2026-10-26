@@ -397,7 +397,7 @@ export const QuickSetupScreen = {
         caution: t(
           "quick_setup_offline_sync_caution",
           {},
-          "Experimental. It still has plenty of bugs: positions can disagree between devices, and viewing can go missing. A tracking service is told the position but not when you watched it, so an offline session reaches Trakt or Simkl stamped with the time it arrived."
+          "Experimental. Positions can still disagree between devices. A finish reaches Trakt or Simkl with the time you watched it, but a stopping point arrives with the time it was sent."
         )
       }
     ];

@@ -52,7 +52,7 @@
       typeof existing.SIMKL_CLIENT_ID === "undefined" ? "" : existing.SIMKL_CLIENT_ID,
     SIMKL_APP_NAME:
       typeof existing.SIMKL_APP_NAME === "undefined" || !String(existing.SIMKL_APP_NAME).trim()
-        ? "nuvio"
+        ? "nuvioweb"
         : existing.SIMKL_APP_NAME,
     AUTOMATION_SHORTCUT_URL:
       typeof existing.AUTOMATION_SHORTCUT_URL === "undefined"

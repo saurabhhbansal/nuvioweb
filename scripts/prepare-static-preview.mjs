@@ -52,7 +52,7 @@ export function applyTrackerClientIds(properties, ids = {}) {
   for (const [service, key] of Object.entries(TRACKER_CLIENT_ID_KEYS)) {
     const value = String(ids[service] ?? "").trim();
     if (!value) continue;
-    if (!/^[A-Za-z0-9]{16,128}$/.test(value)) throw new Error(`The ${service} client id must be 16 to 128 letters and digits`);
+    if (!/^[A-Za-z0-9_-]{16,128}$/.test(value)) throw new Error(`The ${service} client id must be 16 to 128 letters, digits, dashes or underscores, with no quotes or spaces`);
     const line = new RegExp(`^${key}=.*$`, "m");
     if (!line.test(next)) throw new Error(`build.properties has no ${key} line`);
     next = next.replace(line, `${key}=${value}`);
