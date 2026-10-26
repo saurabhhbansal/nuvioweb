@@ -30,6 +30,86 @@ function stableStringify(value) {
   return JSON.stringify(value);
 }
 
+// The account blob as another app last wrote it, before this app's normalizer
+// dropped the fields it does not model (NuvioMobile, for one, keeps its own
+// per-folder settings there). Pushing only our normalized copy would delete
+// them, so a push lays our values over the raw objects instead, matched the
+// way the native apps match them: collections and folders by id, sources by
+// what they point at.
+function readRawCollections(blob = null) {
+  let raw = blob?.collections_json ?? blob?.collectionsJson ?? [];
+  if (typeof raw === "string") {
+    try {
+      raw = JSON.parse(raw);
+    } catch (_) {
+      return [];
+    }
+  }
+  return Array.isArray(raw) ? raw.filter((entry) => entry && typeof entry === "object" && !Array.isArray(entry)) : [];
+}
+
+function isPlainObject(value) {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function indexBy(entries, keyOf) {
+  const index = new Map();
+  (Array.isArray(entries) ? entries : []).forEach((entry) => {
+    if (!isPlainObject(entry)) return;
+    const key = keyOf(entry);
+    if (key && !index.has(key)) index.set(key, entry);
+  });
+  return index;
+}
+
+function catalogSourceKey(source = {}) {
+  const { addonId, type, catalogId } = source;
+  return addonId && type && catalogId ? `${addonId}|${type}|${catalogId}` : null;
+}
+
+function unifiedSourceKey(source = {}) {
+  const provider = String(source.provider || "addon").toLowerCase();
+  if (provider === "tmdb") {
+    return source.tmdbSourceType
+      ? `tmdb|${source.tmdbSourceType}|${source.tmdbId ?? ""}|${source.mediaType ?? ""}|${source.sortBy ?? ""}`
+      : null;
+  }
+  if (provider === "trakt") {
+    return source.traktListId != null
+      ? `trakt|${source.traktListId}|${source.mediaType ?? ""}|${source.sortBy ?? ""}|${source.sortHow ?? ""}`
+      : null;
+  }
+  const key = catalogSourceKey(source);
+  return key ? `addon|${key}` : null;
+}
+
+function layOver(raw, ours) {
+  return isPlainObject(raw) ? { ...raw, ...ours } : ours;
+}
+
+function mergeList(rawList, ourList, keyOf, mergeEntry = layOver) {
+  const rawByKey = indexBy(rawList, keyOf);
+  return (ourList || []).map((entry) => mergeEntry(rawByKey.get(keyOf(entry)), entry));
+}
+
+function mergeFolder(rawFolder, folder) {
+  const merged = layOver(rawFolder, folder);
+  if (!isPlainObject(rawFolder)) return merged;
+  merged.sources = mergeList(rawFolder.sources, folder.sources, unifiedSourceKey);
+  merged.catalogSources = mergeList(rawFolder.catalogSources, folder.catalogSources, catalogSourceKey);
+  return merged;
+}
+
+export function preserveRemoteCollectionFields(rawCollections = [], collections = []) {
+  return mergeList(rawCollections, collections, (entry) => entry.id || null, (rawCollection, collection) => {
+    const merged = layOver(rawCollection, collection);
+    if (isPlainObject(rawCollection)) {
+      merged.folders = mergeList(rawCollection.folders, collection.folders, (entry) => entry.id || null, mergeFolder);
+    }
+    return merged;
+  });
+}
+
 function parseRemoteCollectionsPayload(blob = null) {
   const raw = blob?.collections_json ?? blob?.collectionsJson ?? blob ?? [];
   if (typeof raw === "string") {
@@ -46,6 +126,7 @@ export const CollectionSyncService = {
   syncingFromRemoteProfiles: new Set(),
   pushTimers: new Map(),
   pendingLocalChanges: new Map(),
+  remoteRawCollections: new Map(),
 
   isSyncingFromRemote(profileId = null) {
     return this.syncingFromRemoteProfiles.has(resolveProfileId(profileId));
@@ -75,7 +156,10 @@ export const CollectionSyncService = {
         return false;
       }
       const collectionsJson = CollectionsStore.exportCurrentProfileJson(resolvedProfileId);
-      const parsedJson = CollectionsStore.importFromJson(collectionsJson);
+      const parsedJson = preserveRemoteCollectionFields(
+        this.remoteRawCollections.get(resolvedProfileId) || [],
+        CollectionsStore.importFromJson(collectionsJson)
+      );
       await SupabaseApi.rpc(
         PUSH_RPC,
         {
@@ -84,6 +168,7 @@ export const CollectionSyncService = {
         },
         true
       );
+      this.remoteRawCollections.set(resolvedProfileId, parsedJson);
       this.pendingLocalChanges.delete(resolvedProfileId);
       return true;
     } catch (error) {
@@ -118,6 +203,7 @@ export const CollectionSyncService = {
         return { result: SyncPullResult.FAILED, items: CollectionsStore.getForProfile(resolvedProfileId) };
       }
 
+      this.remoteRawCollections.set(resolvedProfileId, readRawCollections(blob));
       const remoteCollections = parseRemoteCollectionsPayload(blob);
       const localCollections = CollectionsStore.getForProfile(resolvedProfileId);
       const pending = this.pendingLocalChanges.get(resolvedProfileId);
@@ -176,6 +262,7 @@ export const CollectionSyncService = {
     this.pushTimers.forEach((timerId) => clearTimeout(timerId));
     this.pushTimers.clear();
     this.pendingLocalChanges.clear();
+    this.remoteRawCollections.clear();
     this.syncingFromRemoteProfiles.clear();
   }
 };
