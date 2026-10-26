@@ -7,6 +7,16 @@ export const SETTINGS_ROUTE = "settings";
 export const SETTINGS_SECTION_ROUTE = "settingsSection";
 
 /**
+ * Whether a route is one of Settings' pages. A check for "settings" alone
+ * misses every section page, which is where the browser shows a section --
+ * so sign-in polling and live refreshes stopped there before they started.
+ */
+export function isSettingsRoute(routeName) {
+  const name = String(routeName || "");
+  return name === SETTINGS_ROUTE || name === SETTINGS_SECTION_ROUTE;
+}
+
+/**
  * Which section the section page is showing, or null for the index page.
  *
  * An unknown or empty section falls back to the index rather than to a blank
