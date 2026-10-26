@@ -2922,7 +2922,8 @@ export const SettingsScreen = {
     subtitle = "",
     checked = false,
     disabled = false,
-    planned = false
+    planned = false,
+    badge = ""
   }) {
     const inert = disabled || planned;
     return `
@@ -2931,7 +2932,7 @@ export const SettingsScreen = {
               ${this.registerAction(focusKey, inert ? () => {} : this.actionMap.get(focusKey))}
               data-role="toggle">
         <span class="settings-row-copy">
-          <span class="settings-row-title">${escapeHtml(title)}</span>
+          <span class="settings-row-title">${escapeHtml(title)}${badge ? `<span class="settings-row-tag">${escapeHtml(badge)}</span>` : ""}</span>
           ${subtitle ? `<span class="settings-row-subtitle">${escapeHtml(subtitle)}</span>` : ""}
         </span>
         <span class="settings-row-tail">
@@ -3681,7 +3682,6 @@ export const SettingsScreen = {
             ${subtitle ? `<span class="settings-row-subtitle">${escapeHtml(subtitle)}</span>` : ""}
           </span>
           <span class="settings-row-tail">
-            <span class="settings-row-value">${expanded ? t("common.open") : t("common.closed")}</span>
             ${iconSvg(expanded ? ROW_ICONS.expand : ROW_ICONS.chevron, "settings-row-icon")}
           </span>
         </button>
@@ -9107,9 +9107,13 @@ export const SettingsScreen = {
         ${this.renderActionRow({ focusKey: "downloads:playbackTarget", title: "Play downloaded media with", subtitle: "Handing a file to another app copies it; that app then keeps its own copy.", value: ({ ask: "Ask every time", internal: "Nuvio player", external: "Another app" })[normalizeOfflinePlaybackTarget(model.player?.offlinePlaybackTarget)], leadingIcon: "play_circle" })}
         ${this.renderToggleRow({
           focusKey: "downloads:syncOfflineProgress",
-          title: "Sync offline progress (experimental)",
-          subtitle:
-            "Experimental, and still has plenty of bugs. Off: watching a download records nothing at all — not your position, not that you finished it, and nothing reaches your account or tracking service. On: a download is treated like any other playback, and two devices can disagree about which position is newer. A tracking service is sent the position but not when you watched it, so an offline session arrives at Trakt or Simkl stamped with the time it got there; a finished title does carry its real time.",
+          title: t("settings_downloads_sync_offline_title", {}, "Sync offline progress"),
+          badge: t("common_experimental", {}, "Experimental"),
+          subtitle: t(
+            "settings_downloads_sync_offline_subtitle",
+            {},
+            "Off: watching a download records nothing at all — not your position, not that you finished it, and nothing reaches your account or tracking service. On: a download is treated like any other playback, and two devices can disagree about which position is newer. A tracking service is sent the position but not when you watched it, so an offline session arrives at Trakt or Simkl stamped with the time it got there; a finished title does carry its real time."
+          ),
           checked: Boolean(model.player?.syncOfflineProgress)
         })}
       </div></div>

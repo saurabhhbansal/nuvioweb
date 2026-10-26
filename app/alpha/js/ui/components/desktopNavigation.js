@@ -13,7 +13,9 @@ const NAVIGATION_ITEMS = [
     labelKey: "sidebar.search",
     fallback: "Search",
     viewBox: "0 0 20 20",
-    icon: '<path fill-rule="evenodd" d="M4 9a5 5 0 1110 0A5 5 0 014 9zm5-7a7 7 0 104.2 12.6.999.999 0 00.093.107l3 3a1 1 0 001.414-1.414l-3-3a.999.999 0 00-.107-.093A7 7 0 004 9z"/>'
+    // A closed ring plus a handle. The previous path closed its outer arc on
+    // the inner circle's start point, which bent the ring out of round.
+    icon: '<path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"/>'
   },
   {
     route: "library",
