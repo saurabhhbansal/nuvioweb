@@ -312,7 +312,21 @@ export const LibrarySyncService = {
         console.info("[Sync] addons automatic push blocked", { hydration: SyncHydrationState.get(syncContext, "addons") });
         return false;
       }
-      const urls = addonRepository.getInstalledAddonUrls();
+      // A change made while this push is in flight records a new pending
+      // entry. Only the entry this push carries may be cleared by it; a newer
+      // one is kept, measured from what this push sent.
+      const pendingKey = String(ProfileManager.getActiveProfileId() || "1");
+      const sentPending = pendingLocalSnapshots.get(pendingKey);
+      const sentSnapshot = addonRepository.getSyncSnapshot();
+      const clearSentPending = () => {
+        const current = pendingLocalSnapshots.get(pendingKey);
+        if (current === sentPending) {
+          pendingLocalSnapshots.delete(pendingKey);
+        } else if (current) {
+          pendingLocalSnapshots.set(pendingKey, { before: sentSnapshot, after: current.after });
+        }
+      };
+      const urls = sentSnapshot.urls;
 
       try {
         await SupabaseApi.rpc(
@@ -330,7 +344,7 @@ export const LibrarySyncService = {
           },
           true
         );
-        pendingLocalSnapshots.delete(String(ProfileManager.getActiveProfileId() || "1"));
+        clearSentPending();
         return true;
       } catch (rpcError) {
         console.warn("Addon sync push RPC failed, falling back to legacy table", rpcError);
@@ -364,7 +378,7 @@ export const LibrarySyncService = {
             await SupabaseApi.upsert(ADDONS_TABLE, addonRows, null, true);
           }
         }
-        pendingLocalSnapshots.delete(String(ProfileManager.getActiveProfileId() || "1"));
+        clearSentPending();
         return true;
       } catch (addonsTableError) {
         if (!isMissingResourceError(addonsTableError)) {
@@ -387,7 +401,7 @@ export const LibrarySyncService = {
         if (rows.length) {
           await SupabaseApi.upsert(TABLE, rows, "owner_id,base_url", true);
         }
-        pendingLocalSnapshots.delete(String(ProfileManager.getActiveProfileId() || "1"));
+        clearSentPending();
         return true;
       } catch (tvTableError) {
         console.warn("Addon sync push tv_addons fallback failed", tvTableError);
