@@ -76,7 +76,8 @@ function mapRemoteRowsToSources(rows = []) {
         id: sourceIdFromUrl(url, index),
         name: row.name || `Plugin ${index + 1}`,
         url,
-        enabled: row.enabled !== false
+        enabled: row.enabled !== false,
+        ...(typeof row.repo_type === "string" && row.repo_type ? { repoType: row.repo_type } : {})
       };
     })
     .filter(Boolean);
@@ -87,6 +88,9 @@ function sourceKey(source = {}) {
 }
 
 // Rows the account may receive: real repository URLs only, never templates.
+// The push replaces every row, so a repository kind a native app recorded
+// (`repo_type`) is sent back as it came; a repository added here has none and
+// the native apps detect it.
 export function buildPushRows(sources = []) {
   return (sources || [])
     .filter((source) => isRepoUrl(source?.url))
@@ -94,7 +98,8 @@ export function buildPushRows(sources = []) {
       url: String(source.url).trim(),
       name: source.name || `Plugin ${index + 1}`,
       enabled: source.enabled !== false,
-      sort_order: index
+      sort_order: index,
+      ...(typeof source.repoType === "string" && source.repoType ? { repo_type: source.repoType } : {})
     }));
 }
 
@@ -126,10 +131,9 @@ function mergeSources(localSources = [], remoteSources = []) {
     localByKey.delete(key);
   });
 
-  localByKey.forEach((localSource) => {
-    merged.push(localSource);
-  });
-
+  // The account list is authoritative, as for add-ons and collections: a
+  // repository only this device still has was removed elsewhere. This
+  // device's own unsent changes are laid back on by the caller.
   return merged;
 }
 
@@ -169,7 +173,7 @@ export const PluginSyncService = {
       const ownerId = await AuthManager.getEffectiveUserId();
       const rows = await SupabaseApi.select(
         TABLE,
-        `user_id=eq.${encodeURIComponent(ownerId)}&profile_id=eq.${profileId}&select=url,name,enabled,sort_order&order=sort_order.asc`,
+        `user_id=eq.${encodeURIComponent(ownerId)}&profile_id=eq.${profileId}&select=*&order=sort_order.asc`,
         true
       );
       if (!(await SyncHydrationState.isCurrent(syncContext))) {

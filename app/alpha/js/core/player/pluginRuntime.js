@@ -18,7 +18,9 @@ const MAX_SETTING_VALUE = 4000;
 const MAX_PARALLEL_SCRAPERS = 4;
 
 // Sources are plugin repositories. Older builds stored URL templates under
-// `urlTemplate`; those are not repositories and are dropped here.
+// `urlTemplate`; those are not repositories and are dropped here. `repoType` is
+// the native apps' repository kind from the account; it is kept so a push from
+// here writes it back unchanged.
 export function normalizeSources(input) {
   if (!Array.isArray(input)) return [];
   const seen = new Set();
@@ -29,7 +31,10 @@ export function normalizeSources(input) {
         id: String(source?.id || `plugin_${Math.random().toString(36).slice(2, 10)}`),
         name: String(source?.name || "").trim(),
         url,
-        enabled: source?.enabled !== false
+        enabled: source?.enabled !== false,
+        ...(typeof source?.repoType === "string" && source.repoType.trim()
+          ? { repoType: source.repoType.trim() }
+          : {})
       };
     })
     .filter((source) => {
