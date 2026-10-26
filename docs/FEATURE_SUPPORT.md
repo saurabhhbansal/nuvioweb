@@ -1,6 +1,6 @@
 # Feature support
 
-Updated 2026-10-23. "Tested" means covered by automated tests in CI, mostly Chromium on Linux. Anything else is **unverified**. Real phones, Safari, Edge, HDR output and audible multitrack audio are unverified unless a line says otherwise.
+Updated 2026-10-26. "Tested" means covered by automated tests in CI, mostly Chromium on Linux. Anything else is **unverified**. Real phones, Safari, Edge, HDR output and audible multitrack audio are unverified unless a line says otherwise.
 
 ## Status
 
@@ -23,6 +23,28 @@ Updated 2026-10-23. "Tested" means covered by automated tests in CI, mostly Chro
 | Trakt and Simkl | Sign-in runs in the browser with the site's public app ids (Trakt device code, Simkl PIN). Each device signs in for itself; the sign-in is not shared through the Nuvio account. Tested with mocks | On only where the deploy sets the app ids. Live sign-in unverified until the ids are registered |
 | Sidecar features (debrid bridges, external-player return) | Off on the public site; Settings explains why and hides external-player progress options | Need a server. Static hosting has no server-side debrid bridge, and none is planned |
 | Problem reports | No telemetry. Users open a GitHub issue; a source that fails to start offers "Export redacted diagnostics" (no URLs or tokens) to attach | App start-up errors and other screens have no export button |
+
+## Account sync with the Nuvio apps
+
+Signed in, these lists live on the Nuvio account and are shared with the Nuvio TV, mobile and desktop apps. The web app pulls them at start-up, on a profile switch and every 2 minutes, and pushes after a change made here. Tested with a fake account (two simulated devices), not against the live service.
+
+| Item | Pulled | Pushed on | Account format |
+| --- | --- | --- | --- |
+| Add-ons | Yes | Add, remove, reorder, turn on/off | `sync_push_addons` rows: URL, name, on/off, order |
+| Plugin repositories | Yes | Add, remove, turn on/off | `sync_push_plugins` rows: URL, name, on/off, order |
+| Collections | Yes | Any edit | `sync_push_collections` blob, the native apps' JSON |
+| Home catalog layout | Yes | Any change | `sync_push_home_catalog_settings`, shared namespace |
+| App settings | Yes | Any change | `sync_push_profile_settings_blob`, `desktop` namespace |
+
+Limits:
+
+- **Each push replaces the whole list.** The account API has no merge. If two devices change the same list within one sync cycle, the later push wins.
+- **App settings are shared with the desktop app only.** The account keeps one settings blob per app family. The web app writes the desktop one and never the TV or mobile one, which would overwrite their settings with keys they do not use. It reads the TV one once, to import settings on first use.
+- **Plugin settings stay on this device.** Per-plugin on/off, each plugin's own settings and the proxy have no account field, and may hold tokens.
+- **Plugin sync is outside the public API reference.** The `plugins` table and `sync_push_plugins` are what the native apps use, not part of the documented public API, so they may change without notice.
+- **Only Nuvio plugin repositories run here.** Other repository kinds the native apps support stay in the account list but do not run in the browser.
+- **One add-on name.** The account stores one name per add-on; the web app uses it as the display name.
+- **Profiles that share the primary profile's add-ons or plugins** read and write profile 1's list.
 
 ## By platform
 
