@@ -165,21 +165,28 @@ export const SimklAuthService = {
     return SimklAuthStore.isAuthenticated();
   },
 
+  // Simkl's OAuth 2.0 device flow (RFC 8628). Apps registered as OAuth 2.0
+  // apps are refused on the older /oauth/pin endpoints. Neither step needs the
+  // client secret, so this runs in the browser with the public client id.
   async startPinAuth() {
     if (!SIMKL_CLIENT_ID) throw new Error("Missing SIMKL_CLIENT_ID");
     const profileId = activeProfileId();
     const current = SimklAuthStore.get(profileId);
-    if (current.userCode && current.expiresAt && Date.now() < current.expiresAt) return current;
-    const { payload } = await simklRequest("/oauth/pin", {
+    if (current.userCode && current.deviceCode && current.expiresAt && Date.now() < current.expiresAt) {
+      return current;
+    }
+    const { payload } = await simklRequest("/oauth2/device", {
+      method: "POST",
+      body: { client_id: SIMKL_CLIENT_ID },
       authenticated: false
     });
     if (
-      payload?.result !== "OK" ||
+      !payload?.device_code ||
       !payload?.user_code ||
-      !(payload?.verification_uri || payload?.verification_url) ||
+      !(payload?.verification_uri || payload?.verification_uri_complete) ||
       !Number(payload?.expires_in)
     ) {
-      throw new Error("Simkl returned an invalid PIN response");
+      throw new Error("Simkl returned an invalid sign-in code");
     }
     return SimklAuthStore.savePinSession(payload, profileId);
   },
@@ -192,13 +199,44 @@ export const SimklAuthService = {
       SimklAuthStore.clearPinSession(profileId);
       return { type: "expired" };
     }
-    const { payload } = await simklRequest(`/oauth/pin/${encodeURIComponent(state.userCode)}`, {
-      authenticated: false,
-      retry: false
-    });
-    if (payload?.result === "KO") return { type: "pending" };
+    // A code saved by the older PIN flow has nothing to poll with.
+    if (!state.deviceCode) {
+      SimklAuthStore.clearPinSession(profileId);
+      return { type: "invalidated" };
+    }
+    let payload;
+    try {
+      ({ payload } = await simklRequest("/oauth2/token", {
+        method: "POST",
+        body: {
+          client_id: SIMKL_CLIENT_ID,
+          device_code: state.deviceCode,
+          grant_type: "urn:ietf:params:oauth:grant-type:device_code"
+        },
+        authenticated: false,
+        retry: false
+      }));
+    } catch (error) {
+      const code = String(error?.payload?.error || "");
+      if (code === "authorization_pending") return { type: "pending" };
+      if (code === "slow_down") {
+        SimklAuthStore.updatePollInterval(Math.min(60, Number(state.pollInterval || 5) + 5), profileId);
+        return { type: "pending" };
+      }
+      if (code === "expired_token") {
+        SimklAuthStore.clearPinSession(profileId);
+        return { type: "expired" };
+      }
+      if (code === "access_denied" || code === "invalid_grant") {
+        SimklAuthStore.clearPinSession(profileId);
+        return { type: "invalidated" };
+      }
+      // No answer at all (network) is worth another try on the next tick.
+      if (!error?.status) return { type: "pending" };
+      throw error;
+    }
     const accessToken = String(payload?.access_token || "").trim();
-    if (payload?.result !== "OK" || !accessToken || payload?.device_code) {
+    if (!accessToken) {
       SimklAuthStore.clearPinSession(profileId);
       return { type: "invalidated" };
     }
