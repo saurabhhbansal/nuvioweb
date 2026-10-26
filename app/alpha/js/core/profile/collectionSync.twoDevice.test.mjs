@@ -209,3 +209,71 @@ test("an edit on the web keeps the fields a native app wrote that the web does n
   assert.deepEqual(cloud.blobs.get(1)[0].folders.map((entry) => entry.id), ["f2"]);
   assert.equal(cloud.blobs.get(1)[0].nativeOnlyCollectionFlag, "keep-me");
 });
+
+test("a web push keeps what a native app changed or added after the web last pulled", async () => {
+  const cloud = createCloud();
+  cloud.blobs.set(1, [{ id: "c1", title: "Weekend", folders: [{ id: "f1", title: "Sci-Fi", tileShape: "POSTER" }] }]);
+  const web = await createDevice(cloud);
+  await web.pull();
+
+  // A native app edits the account in between: a field of its own on the
+  // existing folder, and a whole new collection.
+  const [native] = cloud.blobs.get(1);
+  native.folders[0].mobileFocusGifEnabled = false;
+  cloud.blobs.get(1).push({ id: "c2", title: "Added on TV", folders: [] });
+
+  await web.edit((store) => {
+    const [current] = store.getForProfile("1");
+    store.upsertCollection({ ...current, title: "Weekend Picks" });
+  });
+  const pushed = cloud.blobs.get(1);
+  assert.deepEqual(pushed.map((entry) => entry.title), ["Weekend Picks", "Added on TV"]);
+  assert.equal(pushed[0].folders[0].mobileFocusGifEnabled, false);
+
+  // Deleting on the web still deletes, once the web has seen the entry.
+  await web.pull();
+  await web.edit((store) => store.removeCollection("c2"));
+  assert.deepEqual(cloud.blobs.get(1).map((entry) => entry.id), ["c1"]);
+});
+
+test("sources keep their own native fields when several point at the same place", async () => {
+  const cloud = createCloud();
+  const discover = (genre, note) => ({
+    provider: "tmdb",
+    tmdbSourceType: "DISCOVER",
+    mediaType: "movie",
+    sortBy: "popularity.desc",
+    filters: { withGenres: genre, nativeFilterNote: note },
+    nativeNote: note
+  });
+  cloud.blobs.set(1, [
+    {
+      id: "c1",
+      title: "Genres",
+      folders: [
+        {
+          id: "f1",
+          title: "Mixed",
+          sources: [
+            discover("28", "action"),
+            discover("35", "comedy"),
+            { provider: "futureprovider", listRef: "abc", nativeNote: "unknown" }
+          ]
+        }
+      ]
+    }
+  ]);
+  const web = await createDevice(cloud);
+  await web.pull();
+  await web.edit((store) => {
+    const [current] = store.getForProfile("1");
+    store.upsertCollection({ ...current, title: "Genres!" });
+  });
+
+  const sources = cloud.blobs.get(1)[0].folders[0].sources;
+  assert.deepEqual(sources.map((source) => source.nativeNote), ["action", "comedy", "unknown"]);
+  assert.deepEqual(sources.slice(0, 2).map((source) => source.filters.nativeFilterNote), ["action", "comedy"]);
+  assert.deepEqual(sources.slice(0, 2).map((source) => source.filters.withGenres), ["28", "35"]);
+  // A source the web cannot read goes back untouched.
+  assert.deepEqual(sources[2], { provider: "futureprovider", listRef: "abc", nativeNote: "unknown" });
+});

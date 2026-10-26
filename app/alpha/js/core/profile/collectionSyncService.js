@@ -1,7 +1,7 @@
 import { AuthManager } from "../auth/authManager.js";
 import { registerAccountRuntimeResetHandler } from "../auth/accountLocalDataReset.js";
 import { SupabaseApi } from "../../data/remote/supabase/supabaseApi.js";
-import { CollectionsStore } from "../../data/local/collectionsStore.js";
+import { CollectionsStore, getCollectionFolderSources } from "../../data/local/collectionsStore.js";
 import { ProfileManager } from "./profileManager.js";
 import { SyncHydrationState, SyncPullResult } from "./syncHydrationState.js";
 
@@ -37,7 +37,7 @@ function stableStringify(value) {
 // way the native apps match them: collections and folders by id, sources by
 // what they point at.
 function readRawCollections(blob = null) {
-  let raw = blob?.collections_json ?? blob?.collectionsJson ?? [];
+  let raw = blob?.collections_json ?? blob?.collectionsJson ?? blob ?? [];
   if (typeof raw === "string") {
     try {
       raw = JSON.parse(raw);
@@ -45,68 +45,109 @@ function readRawCollections(blob = null) {
       return [];
     }
   }
-  return Array.isArray(raw) ? raw.filter((entry) => entry && typeof entry === "object" && !Array.isArray(entry)) : [];
+  if (isPlainObject(raw) && Array.isArray(raw.collections)) raw = raw.collections;
+  return Array.isArray(raw) ? raw.filter(isPlainObject) : [];
 }
 
 function isPlainObject(value) {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
-function indexBy(entries, keyOf) {
-  const index = new Map();
-  (Array.isArray(entries) ? entries : []).forEach((entry) => {
-    if (!isPlainObject(entry)) return;
-    const key = keyOf(entry);
-    if (key && !index.has(key)) index.set(key, entry);
-  });
-  return index;
+// Native apps parse these case-insensitively, so they are matched that way.
+function keyPart(value) {
+  return String(value ?? "").trim().toLowerCase();
 }
 
 function catalogSourceKey(source = {}) {
-  const { addonId, type, catalogId } = source;
-  return addonId && type && catalogId ? `${addonId}|${type}|${catalogId}` : null;
+  const parts = [source.addonId, source.type, source.catalogId].map(keyPart);
+  return parts.every(Boolean) ? parts.join("|") : null;
 }
 
 function unifiedSourceKey(source = {}) {
-  const provider = String(source.provider || "addon").toLowerCase();
+  const provider = keyPart(source.provider || "addon");
   if (provider === "tmdb") {
-    return source.tmdbSourceType
-      ? `tmdb|${source.tmdbSourceType}|${source.tmdbId ?? ""}|${source.mediaType ?? ""}|${source.sortBy ?? ""}`
+    // Older web builds wrote a missing tmdbId as 0.
+    const tmdbId = Number(source.tmdbId) ? keyPart(source.tmdbId) : "";
+    return keyPart(source.tmdbSourceType)
+      ? ["tmdb", source.tmdbSourceType, tmdbId, source.mediaType, source.sortBy].map(keyPart).join("|")
       : null;
   }
   if (provider === "trakt") {
     return source.traktListId != null
-      ? `trakt|${source.traktListId}|${source.mediaType ?? ""}|${source.sortBy ?? ""}|${source.sortHow ?? ""}`
+      ? ["trakt", source.traktListId, source.mediaType, source.sortBy, source.sortHow].map(keyPart).join("|")
       : null;
   }
   const key = catalogSourceKey(source);
-  return key ? `addon|${key}` : null;
+  return key ? `${provider}|${key}` : null;
+}
+
+function idKey(entry = {}) {
+  return keyPart(entry.id) ? String(entry.id).trim() : null;
 }
 
 function layOver(raw, ours) {
-  return isPlainObject(raw) ? { ...raw, ...ours } : ours;
+  if (!isPlainObject(raw)) return ours;
+  const merged = { ...raw, ...ours };
+  // TMDB filters are an object of their own; keep keys only a native app set.
+  if (isPlainObject(raw.filters) && isPlainObject(ours.filters)) {
+    merged.filters = { ...raw.filters, ...ours.filters };
+  }
+  return merged;
 }
 
+// Pairs each of our entries with the raw entry it came from. Equal keys
+// (two folders' sources can point at the same catalog) pair up in order.
 function mergeList(rawList, ourList, keyOf, mergeEntry = layOver) {
-  const rawByKey = indexBy(rawList, keyOf);
-  return (ourList || []).map((entry) => mergeEntry(rawByKey.get(keyOf(entry)), entry));
+  const rawByKey = new Map();
+  (Array.isArray(rawList) ? rawList : []).filter(isPlainObject).forEach((entry) => {
+    const key = keyOf(entry);
+    if (!key) return;
+    if (!rawByKey.has(key)) rawByKey.set(key, []);
+    rawByKey.get(key).push(entry);
+  });
+  return (ourList || []).map((entry) => mergeEntry(rawByKey.get(keyOf(entry))?.shift(), entry));
+}
+
+// Raw sources the web normalizer cannot read (a provider added to the native
+// apps later, say) never reach the web list. They were not removed here, so
+// they go back as they came.
+function unreadableSources(rawSources = []) {
+  return (Array.isArray(rawSources) ? rawSources : [])
+    .filter(isPlainObject)
+    .filter((source) => getCollectionFolderSources({ sources: [source] }).length === 0);
 }
 
 function mergeFolder(rawFolder, folder) {
   const merged = layOver(rawFolder, folder);
   if (!isPlainObject(rawFolder)) return merged;
-  merged.sources = mergeList(rawFolder.sources, folder.sources, unifiedSourceKey);
+  merged.sources = [
+    ...mergeList(rawFolder.sources, folder.sources, unifiedSourceKey),
+    ...unreadableSources(rawFolder.sources)
+  ];
   merged.catalogSources = mergeList(rawFolder.catalogSources, folder.catalogSources, catalogSourceKey);
   return merged;
 }
 
 export function preserveRemoteCollectionFields(rawCollections = [], collections = []) {
-  return mergeList(rawCollections, collections, (entry) => entry.id || null, (rawCollection, collection) => {
+  return mergeList(rawCollections, collections, idKey, (rawCollection, collection) => {
     const merged = layOver(rawCollection, collection);
     if (isPlainObject(rawCollection)) {
-      merged.folders = mergeList(rawCollection.folders, collection.folders, (entry) => entry.id || null, mergeFolder);
+      merged.folders = mergeList(rawCollection.folders, collection.folders, idKey, mergeFolder);
     }
     return merged;
+  });
+}
+
+// Collections another device added after this one last read the account. The
+// push replaces the blob, so without this they would be deleted by an edit
+// made here to something else.
+function addedElsewhere(freshRaw = [], lastSeenRaw = null, collections = []) {
+  if (!Array.isArray(lastSeenRaw)) return [];
+  const seen = new Set(lastSeenRaw.map(idKey).filter(Boolean));
+  const ours = new Set(collections.map(idKey).filter(Boolean));
+  return freshRaw.filter((entry) => {
+    const id = idKey(entry);
+    return id && !seen.has(id) && !ours.has(id);
   });
 }
 
@@ -155,11 +196,27 @@ export const CollectionSyncService = {
         });
         return false;
       }
-      const collectionsJson = CollectionsStore.exportCurrentProfileJson(resolvedProfileId);
-      const parsedJson = preserveRemoteCollectionFields(
-        this.remoteRawCollections.get(resolvedProfileId) || [],
-        CollectionsStore.importFromJson(collectionsJson)
+      const collections = CollectionsStore.importFromJson(
+        CollectionsStore.exportCurrentProfileJson(resolvedProfileId)
       );
+      // Merge over the account as it is now, not as it was at the last pull,
+      // so a native app's edits since then are kept.
+      const lastSeenRaw = this.remoteRawCollections.get(resolvedProfileId) ?? null;
+      let freshRaw = lastSeenRaw || [];
+      try {
+        const rows = await SupabaseApi.rpc(PULL_RPC, { p_profile_id: resolvedProfileId }, true);
+        const blob = Array.isArray(rows) ? rows[0] || null : rows || null;
+        if (blob) freshRaw = readRawCollections(blob);
+      } catch (error) {
+        console.warn("Collection sync pre-push read failed; merging over the last pull", error);
+      }
+      if (!(await SyncHydrationState.isCurrent(syncContext))) {
+        return false;
+      }
+      const parsedJson = [
+        ...preserveRemoteCollectionFields(freshRaw, collections),
+        ...addedElsewhere(freshRaw, lastSeenRaw, collections)
+      ];
       await SupabaseApi.rpc(
         PUSH_RPC,
         {
@@ -168,6 +225,9 @@ export const CollectionSyncService = {
         },
         true
       );
+      if (!(await SyncHydrationState.isCurrent(syncContext))) {
+        return false;
+      }
       this.remoteRawCollections.set(resolvedProfileId, parsedJson);
       this.pendingLocalChanges.delete(resolvedProfileId);
       return true;
