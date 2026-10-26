@@ -4,6 +4,7 @@ import { Router } from "./ui/navigation/router.js";
 import { FocusEngine } from "./ui/navigation/focusEngine.js";
 import { PlayerController } from "./core/player/playerController.js";
 import { AuthManager } from "./core/auth/authManager.js";
+import { TraktAuthService } from "./data/repository/traktAuthService.js";
 import { AuthState } from "./core/auth/authState.js";
 import { DeviceSessionRegistration } from "./core/auth/deviceSessionRegistration.js";
 import { ProfileManager } from "./core/profile/profileManager.js";
@@ -414,6 +415,11 @@ async function bootstrapApp() {
 
   markBootStage("Checking authentication");
   await AuthManager.bootstrap();
+  // Back from trakt.tv with a sign-in code: trade it before it expires. The
+  // outcome waits for Settings > Tracking.
+  await TraktAuthService.completeRedirectAuth().catch((error) => {
+    console.warn("Trakt sign-in could not be finished", error);
+  });
   // Progress written while offline had nothing to carry it up: pushes ride on
   // playback events, so it could sit unsent until the next thing was played.
   installWatchProgressReconnectSync();

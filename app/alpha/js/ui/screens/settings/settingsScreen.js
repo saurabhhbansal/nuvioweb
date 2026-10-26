@@ -7995,6 +7995,12 @@ export const SettingsScreen = {
     this.contentFocusKey = "trakt:back";
     await this.render();
     try {
+      if (TraktAuthService.usesRedirectSignIn()) {
+        this.traktStatusMessage = "Opening Trakt...";
+        await this.render();
+        await TraktAuthService.startRedirectAuth();
+        return;
+      }
       await TraktAuthService.startDeviceAuth();
       this.traktStatusMessage = "Enter code on trakt.tv/activate";
       this.startTraktPolling();
@@ -8128,7 +8134,28 @@ export const SettingsScreen = {
     });
   },
 
+  // What happened on trakt.tv, shown once when the viewer comes back.
+  traktRedirectMessages() {
+    const result = TraktAuthService.takeRedirectResult();
+    if (!result) return null;
+    if (result.type === "approved") {
+      return { status: `Connected as ${result.username || "Trakt user"}`, error: null };
+    }
+    const error =
+      result.type === "denied"
+        ? "Trakt sign-in was cancelled."
+        : result.type === "expired"
+          ? "Trakt sign-in took too long. Try again."
+          : result.message || "Trakt sign-in failed. Try again.";
+    return { status: null, error };
+  },
+
   renderTraktSection(model) {
+    const redirect = this.traktRedirectMessages();
+    if (redirect) {
+      this.traktStatusMessage = redirect.status;
+      this.traktErrorMessage = redirect.error;
+    }
     const trakt = model.trakt || this.collectTraktModel();
     const auth = trakt.auth || {};
     const settings = trakt.settings || TraktSettingsStore.get();
@@ -8505,6 +8532,12 @@ export const SettingsScreen = {
   },
 
   renderDesktopTrackingSection() {
+    const redirect = this.traktRedirectMessages();
+    if (redirect) {
+      this.desktopTraktStatusMessage = redirect.status;
+      this.desktopTraktErrorMessage = redirect.error;
+      this.desktopTrackingExpanded = { ...this.desktopTrackingExpanded, trakt: true };
+    }
     const settings = TraktSettingsStore.get();
     const trakt = TraktAuthService.getCurrentAuthState();
     const simkl = SimklAuthService.getCurrentAuthState();
@@ -8537,6 +8570,12 @@ export const SettingsScreen = {
     this.actionMap.set("tracking:desktop:trakt:connect", async () => {
       this.desktopTraktErrorMessage = null;
       try {
+        if (TraktAuthService.usesRedirectSignIn()) {
+          this.desktopTraktStatusMessage = "Opening Trakt...";
+          await this.render();
+          await TraktAuthService.startRedirectAuth();
+          return;
+        }
         await TraktAuthService.startDeviceAuth();
         this.desktopTraktStatusMessage = "Enter the code on Trakt to approve Nuvio.";
         this.desktopTrackingExpanded = { ...this.desktopTrackingExpanded, trakt: true };
