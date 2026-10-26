@@ -79,7 +79,13 @@ async function executeSimklRequest(
   const token = authenticated ? authorizationToken : null;
   if (authenticated && !token) throw new Error("Simkl authentication required");
   const headers = { Accept: "application/json" };
-  if (token) headers.Authorization = `Bearer ${token}`;
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+    // Simkl's docs pair the bearer token with the client id in this header.
+    // Signed-in calls are preflighted for Authorization anyway, so it adds no
+    // extra round trip; sign-in itself keeps the id in its body.
+    headers["simkl-api-key"] = SIMKL_CLIENT_ID;
+  }
   if (body != null) headers["Content-Type"] = "application/json";
 
   const attempts = retry ? MAX_ATTEMPTS : 1;
@@ -144,12 +150,55 @@ export function simklRequest(path, options = {}) {
   return task;
 }
 
+// `POST /users/settings` answers { user: { name, ... }, account: { id, ... } }.
+export function parseSimklUserSettings(payload) {
+  const name = typeof payload?.user?.name === "string" ? payload.user.name.trim() : "";
+  const rawId = payload?.account?.id;
+  const accountId = rawId == null || rawId === "" ? null : Number(rawId);
+  return {
+    username: name || null,
+    accountId: Number.isFinite(accountId) ? accountId : null
+  };
+}
+
 async function fetchUserSettings(profileId = activeProfileId()) {
-  const { payload } = await simklRequest("/users/settings", { method: "POST", profileId });
-  const username = String(payload?.user?.name || "") || null;
-  const accountId = payload?.account?.id == null ? null : Number(payload.account.id);
+  const tokenAtStart = SimklAuthStore.get(profileId).accessToken;
+  // Sent the way Simkl's own examples send it: a JSON POST with an empty body.
+  const { payload } = await simklRequest("/users/settings", {
+    method: "POST",
+    body: {},
+    profileId
+  });
+  const current = SimklAuthStore.get(profileId);
+  // Signed out, or signed in as someone else, while the answer was on its way.
+  if (!current.accessToken || current.accessToken !== tokenAtStart) return null;
+  const parsed = parseSimklUserSettings(payload);
+  // An answer without a name must not wipe the name this token already has.
+  const username = parsed.username || current.username || null;
+  const accountId = parsed.accountId ?? current.accountId ?? null;
   SimklAuthStore.saveIdentity({ username, accountId }, profileId);
   return username;
+}
+
+// If the lookup at sign-in failed, the name stays missing. Ask again, at most
+// once an hour per profile, so a failing lookup cannot crowd out sync calls.
+const IDENTITY_RETRY_MS = 60 * 60 * 1000;
+const identityAttempts = new Map();
+
+function ensureIdentity(profileId = activeProfileId()) {
+  const state = SimklAuthStore.get(profileId);
+  if (!state.accessToken || state.username) return Promise.resolve(state.username || null);
+  const previous = identityAttempts.get(profileId);
+  if (previous?.promise) return previous.promise;
+  if (previous && Date.now() - previous.at < IDENTITY_RETRY_MS) return Promise.resolve(null);
+  const attempt = { at: Date.now(), promise: null };
+  attempt.promise = fetchUserSettings(profileId)
+    .catch(() => null)
+    .finally(() => {
+      attempt.promise = null;
+    });
+  identityAttempts.set(profileId, attempt);
+  return attempt.promise;
 }
 
 export const SimklAuthService = {
@@ -251,6 +300,8 @@ export const SimklAuthService = {
   },
 
   fetchUserSettings,
+
+  ensureIdentity,
 
   async disconnect() {
     const profileId = activeProfileId();
