@@ -3,6 +3,8 @@ import { TraktAuthStore } from "../local/traktAuthStore.js";
 import { detailWatchedEnrichmentService } from "./detailWatchedEnrichmentService.js";
 import { TraktCredentialSyncService } from "../../core/profile/traktCredentialSyncService.js";
 import { getSidecarCapabilities, requireSidecarCapability, sidecarUnavailableMessage } from "../../core/platform/sidecarCapabilities.js";
+import { ProfileManager } from "../../core/profile/profileManager.js";
+import { beginTraktPkce, takeTraktPkceCallback, traktRedirectUri } from "./traktPkce.js";
 
 const API_VERSION = "2";
 const DEFAULT_API_URL = "https://api.trakt.tv";
@@ -11,6 +13,7 @@ const BROWSER_AUTH_BRIDGE_BASE_PATH = "/api/trakt";
 // Trakt's own answer for apps that show a code instead of redirecting back.
 const DEVICE_REDIRECT_URI = "urn:ietf:wg:oauth:2.0:oob";
 let browserBridgeStatus = "unknown";
+let lastRedirectResult = null;
 
 function apiBaseUrl() {
   return String(TRAKT_API_URL || DEFAULT_API_URL).replace(/\/+$/, "");
@@ -52,7 +55,8 @@ function directAuthRequest(path, body = {}) {
       {
         refresh_token: String(body.refresh_token || ""),
         client_id: TRAKT_CLIENT_ID,
-        redirect_uri: DEVICE_REDIRECT_URI,
+        // A token from the PKCE sign-in was issued for this site's address.
+        redirect_uri: traktRedirectUri() || DEVICE_REDIRECT_URI,
         grant_type: "refresh_token"
       }
     ];
@@ -168,6 +172,81 @@ export const TraktAuthService = {
 
   isAuthenticated() {
     return TraktAuthStore.isAuthenticated();
+  },
+
+  /**
+   * Whether this site signs in to Trakt by sending the viewer to trakt.tv and
+   * back (PKCE). That is the only way without a server: the device-code poll
+   * needs a client secret. A deployment with the /api/trakt helper keeps the
+   * device code.
+   */
+  usesRedirectSignIn() {
+    const capabilities = getSidecarCapabilities();
+    return Boolean(capabilities.traktAuth && !capabilities.traktBridge && TRAKT_CLIENT_ID);
+  },
+
+  /** Leave for trakt.tv. The page comes back to this site's root. */
+  async startRedirectAuth({ runtime = globalThis } = {}) {
+    requireSidecarCapability("traktAuth");
+    if (!TRAKT_CLIENT_ID) throw new Error("Missing TRAKT credentials");
+    const url = await beginTraktPkce({
+      clientId: TRAKT_CLIENT_ID,
+      profileId: ProfileManager.getActiveProfileId() || "1",
+      runtime
+    });
+    runtime.location.assign(url);
+  },
+
+  /**
+   * Finish a sign-in Trakt sent the viewer back from. Called once at startup;
+   * does nothing when the address is not a Trakt answer. The result waits for
+   * Settings to show it (see takeRedirectResult).
+   */
+  async completeRedirectAuth({ runtime = globalThis } = {}) {
+    const answer = takeTraktPkceCallback({ runtime });
+    if (!answer) return null;
+    const profileId = answer.profileId || String(ProfileManager.getActiveProfileId() || "1");
+    let result;
+    if (answer.type !== "code") {
+      result = { type: answer.type };
+    } else {
+      try {
+        const response = await fetch(`${apiBaseUrl()}/oauth/token`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify({
+            code: answer.code,
+            client_id: TRAKT_CLIENT_ID,
+            redirect_uri: answer.redirectUri,
+            code_verifier: answer.verifier,
+            grant_type: "authorization_code"
+          }),
+          cache: "no-store"
+        });
+        const payload = await readResponseBody(response);
+        if (response.ok && payload?.access_token) {
+          TraktAuthStore.saveToken(payload, profileId);
+          const username = await fetchUserSettings().catch(() => null);
+          result = { type: "approved", username };
+        } else {
+          result = {
+            type: "failed",
+            message: normalizeAuthErrorMessage(payload, `Trakt sign-in failed (${response.status})`)
+          };
+        }
+      } catch (error) {
+        result = { type: "failed", message: String(error?.message || "Unable to reach Trakt") };
+      }
+    }
+    lastRedirectResult = result;
+    return result;
+  },
+
+  /** The outcome of the last return from trakt.tv, handed out once. */
+  takeRedirectResult() {
+    const result = lastRedirectResult;
+    lastRedirectResult = null;
+    return result;
   },
 
   async startDeviceAuth() {
