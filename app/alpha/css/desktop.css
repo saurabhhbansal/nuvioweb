@@ -7507,6 +7507,12 @@ html.desktop-browser {
   font-size: 11px;
 }
 
+.desktop-browser .settings-shell .settings-row-tag {
+  margin-left: 8px;
+  padding: 3px 8px;
+  font-size: 11px;
+}
+
 /* Fusion sources retain their raw URLs for import, identity, and sync, but the
    desktop list deliberately displays only a safe hostname/path summary. */
 .desktop-browser .settings-shell .settings-collapsible-fusion .settings-fusion-sources-actions {
