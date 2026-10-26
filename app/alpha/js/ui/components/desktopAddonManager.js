@@ -133,7 +133,7 @@ export function createDesktopAddonManager({ requestRender, isActive } = {}) {
     const url = String(addon?.baseUrl || "");
     if (!url) return;
     const enabled = !addonRepository.isAddonEnabled(url);
-    addonRepository.setAddonEnabledStates([{ url, enabled }], { replace: false });
+    addonRepository.setAddonEnabled(url, enabled);
     state.addons = addonRepository.getConfiguredAddons({ includeDisabled: true });
     setStatus(`${addon.displayName || addon.name || "Addon"} ${enabled ? "enabled" : "disabled"} locally.`);
     await rerender();
