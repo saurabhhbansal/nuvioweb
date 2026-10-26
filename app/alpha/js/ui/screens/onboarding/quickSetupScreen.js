@@ -19,7 +19,6 @@ import { I18n } from "../../../i18n/index.js";
 import { Router } from "../../navigation/router.js";
 import { ScreenUtils } from "../../navigation/screen.js";
 import {
-  getBrowserDesktopSystem,
   getBrowserExternalPlayerCapabilities,
   getBrowserExternalPlayerName,
   getBrowserExternalPlayerOptions,
@@ -45,28 +44,6 @@ function escapeHtml(value = "") {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
-}
-
-function desktopPlayerNote(system) {
-  if (system === "windows") {
-    return t(
-      "quick_setup_player_desktop_note_windows",
-      {},
-      "PotPlayer opens straight from Nuvio. VLC opens a small playlist file, and Copy the link works with any player."
-    );
-  }
-  if (system === "mac") {
-    return t(
-      "quick_setup_player_desktop_note_mac",
-      {},
-      "IINA and Infuse open straight from Nuvio. VLC opens a small playlist file, and Copy the link works with any player."
-    );
-  }
-  return t(
-    "quick_setup_player_desktop_note",
-    {},
-    "VLC opens a small playlist file, and Copy the link works with any player."
-  );
 }
 
 function playerLabel(id, platform) {
@@ -218,11 +195,7 @@ export const QuickSetupScreen = {
               "On iPhone and iPad an external player is recommended: it plays what the browser cannot. Lenna is the pick because it has a built-in subtitle search."
             )
           )}</p>`
-        : this.platform === "other"
-          ? `<p class="quick-setup-note">${escapeHtml(
-              desktopPlayerNote(getBrowserDesktopSystem())
-            )}</p>`
-          : "";
+        : "";
 
     const cards = options
       .map((id) => {
