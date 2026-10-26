@@ -62,6 +62,19 @@ function normalizeFolderViewMode(value) {
   return CollectionFolderViewMode.TABBED_GRID;
 }
 
+// Number(null) and Number("") are 0, so a missing number would come back as a
+// real 0 -- a "rating at most 0" filter on the native apps. Absent stays null.
+function numberOrNull(value) {
+  if (value == null || (typeof value === "string" && !value.trim())) return null;
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
+}
+
+function integerOrNull(value) {
+  const number = numberOrNull(value);
+  return number == null ? null : Math.trunc(number);
+}
+
 function normalizeTmdbFilters(value = {}) {
   const raw = value && typeof value === "object" ? value : {};
   return {
@@ -69,11 +82,9 @@ function normalizeTmdbFilters(value = {}) {
     withoutGenres: stringOrNull(raw.withoutGenres),
     releaseDateGte: stringOrNull(raw.releaseDateGte),
     releaseDateLte: stringOrNull(raw.releaseDateLte),
-    voteAverageGte: Number.isFinite(Number(raw.voteAverageGte)) ? Number(raw.voteAverageGte) : null,
-    voteAverageLte: Number.isFinite(Number(raw.voteAverageLte)) ? Number(raw.voteAverageLte) : null,
-    voteCountGte: Number.isFinite(Number(raw.voteCountGte))
-      ? Math.trunc(Number(raw.voteCountGte))
-      : null,
+    voteAverageGte: numberOrNull(raw.voteAverageGte),
+    voteAverageLte: numberOrNull(raw.voteAverageLte),
+    voteCountGte: integerOrNull(raw.voteCountGte),
     withOriginalLanguage: stringOrNull(raw.withOriginalLanguage),
     withOriginCountry: stringOrNull(raw.withOriginCountry),
     withKeywords: stringOrNull(raw.withKeywords),
@@ -105,7 +116,7 @@ function normalizeCollectionSource(source = {}) {
       title: stringOrEmpty(
         raw.title || tmdbSourceType.replace(/^./, (match) => match.toUpperCase())
       ),
-      tmdbId: Number.isFinite(Number(raw.tmdbId)) ? Math.trunc(Number(raw.tmdbId)) : null,
+      tmdbId: integerOrNull(raw.tmdbId),
       mediaType: stringOrEmpty(raw.mediaType || "MOVIE").toUpperCase() === "TV" ? "TV" : "MOVIE",
       sortBy: stringOrEmpty(raw.sortBy || "popularity.desc") || "popularity.desc",
       filters: normalizeTmdbFilters(raw.filters)
