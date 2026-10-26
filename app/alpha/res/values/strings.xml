@@ -432,9 +432,6 @@
     <string name="quick_setup_player_builtin">Nuvio’s own player</string>
     <string name="quick_setup_player_copylink">Copy the link</string>
     <string name="quick_setup_player_vlc_desktop">VLC (playlist file)</string>
-    <string name="quick_setup_player_desktop_note">VLC opens a small playlist file, and Copy the link works with any player.</string>
-    <string name="quick_setup_player_desktop_note_windows">PotPlayer opens straight from Nuvio. VLC opens a small playlist file, and Copy the link works with any player.</string>
-    <string name="quick_setup_player_desktop_note_mac">IINA and Infuse open straight from Nuvio. VLC opens a small playlist file, and Copy the link works with any player.</string>
     <string name="quick_setup_progress_title">Bringing progress back</string>
     <string name="quick_setup_progress_body">Automatic only works if you leave the external player by its own Close button.</string>
     <string name="quick_setup_progress_automatic">Automatic</string>
