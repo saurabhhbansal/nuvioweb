@@ -5,9 +5,10 @@ const fixtureOrigin = "https://identity.fixture.invalid";
 globalThis.__NUVIO_ENV__ = {
   NUVIO_SUPABASE_URL: fixtureOrigin,
   NUVIO_SUPABASE_ANON_KEY: "fixture-public-key",
-  NUVIO_SUPABASE_FALLBACK_URL: ""
+  NUVIO_SUPABASE_FALLBACK_URL: "",
+  TV_LOGIN_WEB_BASE_URL: "https://nuvio.tv/tv-login"
 };
-const { QrLoginService, isSafeQrImageUrl } = await import("./qrLoginService.js");
+const { QrLoginService, isSafeQrImageUrl, resolveTvLoginRedirectBase, expectedQrLoginUrl } = await import("./qrLoginService.js");
 const { AuthManager } = await import("./authManager.js");
 const { SessionStore } = await import("../storage/sessionStore.js");
 const { AuthState } = await import("./authState.js");
@@ -350,6 +351,88 @@ test("a start error is redacted for the device nonce", async () => {
     if (descriptor) Object.defineProperty(globalThis, "crypto", descriptor);
     else delete globalThis.crypto;
     globalThis.window = originalWindow;
+  }
+});
+
+test("QR start sends the configured approval page, never the page the app is served from", async () => {
+  const originalWindow = globalThis.window;
+  globalThis.window = { location: { protocol: "https:", origin: "https://nuvioweb.example.invalid" } };
+  const redirects = [];
+  try {
+    await withSession(anonymousSession(), async (url, options) => {
+      if (url.endsWith("/rest/v1/rpc/start_tv_login_session")) {
+        const body = JSON.parse(options.body);
+        redirects.push(body.p_redirect_base_url);
+        // Mirrors the live service: a base without "/tv-login" is refused and
+        // the link is built as `<base>?code=<code>` with an ISO expiry.
+        if (!String(body.p_redirect_base_url).includes("/tv-login")) {
+          return json({ code: "P0001", message: "Invalid TV login redirect base URL" }, 400);
+        }
+        return json([{
+          code: "SYNTH1",
+          web_url: `${body.p_redirect_base_url}?code=SYNTH1`,
+          expires_at: new Date(Date.now() + 300000).toISOString(),
+          poll_interval_seconds: 3
+        }]);
+      }
+      throw new Error(`unexpected request ${url}`);
+    }, async () => {
+      const started = await QrLoginService.start();
+      assert.ok(started, QrLoginService.getLastError());
+      assert.deepEqual(redirects, ["https://nuvio.tv/tv-login"]);
+      assert.equal(started.loginUrl, "https://nuvio.tv/tv-login?code=SYNTH1");
+      assert.equal(started.qrImageUrl, null);
+      assert.ok(started.expiresAt > Date.now());
+    });
+  } finally {
+    globalThis.window = originalWindow;
+  }
+});
+
+test("a start response pointing anywhere but the requested approval page yields no login URL", async () => {
+  for (const webUrl of [
+    "https://elsewhere.example.invalid/tv-login?code=SYNTH1",
+    "https://nuvio.tv/other?code=SYNTH1",
+    "http://nuvio.tv/tv-login?code=SYNTH1",
+    "https://user:pass@nuvio.tv/tv-login?code=SYNTH1",
+    "javascript:alert(1)"
+  ]) {
+    await withSession(anonymousSession(), async (url) => {
+      if (url.endsWith("/rest/v1/rpc/start_tv_login_session")) {
+        return json([{ code: "SYNTH1", web_url: webUrl, expires_at: new Date(Date.now() + 300000).toISOString() }]);
+      }
+      throw new Error(`unexpected request ${url}`);
+    }, async () => {
+      const started = await QrLoginService.start();
+      assert.ok(started, webUrl);
+      assert.equal(started.loginUrl, null, webUrl);
+      assert.equal(started.code, "SYNTH1");
+    });
+  }
+  assert.equal(expectedQrLoginUrl("https://nuvio.tv/tv-login/?code=A", "https://nuvio.tv/tv-login"), "https://nuvio.tv/tv-login/?code=A");
+  assert.equal(expectedQrLoginUrl("https://nuvio.tv/tv-login?code=A#x", "https://nuvio.tv/tv-login"), null);
+  assert.equal(expectedQrLoginUrl("https://nuvio.tv/tv-login?code=A", null), null);
+});
+
+test("the QR redirect base must be an HTTPS /tv-login page without query, fragment or credentials", () => {
+  assert.equal(resolveTvLoginRedirectBase("https://nuvio.tv/tv-login"), "https://nuvio.tv/tv-login");
+  assert.equal(resolveTvLoginRedirectBase(" https://nuvio.tv/tv-login/ "), "https://nuvio.tv/tv-login");
+  assert.equal(resolveTvLoginRedirectBase("https://sync.example.invalid/app/tv-login"), "https://sync.example.invalid/app/tv-login");
+  assert.equal(resolveTvLoginRedirectBase("http://127.0.0.1:4371/tv-login"), "http://127.0.0.1:4371/tv-login");
+  for (const rejected of [
+    "",
+    null,
+    "https://nuvioweb.example.invalid",
+    "https://nuvioweb.example.invalid/",
+    "https://nuvio.tv/tv-login-other",
+    "https://nuvio.tv/tv-login?next=/x",
+    "https://nuvio.tv/tv-login#x",
+    "https://user:pass@nuvio.tv/tv-login",
+    "http://nuvio.tv/tv-login",
+    "javascript:alert(1)//tv-login",
+    "/tv-login"
+  ]) {
+    assert.equal(resolveTvLoginRedirectBase(rejected), null, String(rejected));
   }
 });
 

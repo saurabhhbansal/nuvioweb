@@ -330,7 +330,7 @@ async function bootstrapApp() {
 
   markBootStage("Restoring session");
   DeviceSessionRegistration.start();
-  AuthManager.subscribe((state) => {
+  AuthManager.subscribe((state, detail) => {
     if (state === AuthState.LOADING) {
       StartupSyncService.stop();
       ProviderCredentialSyncService.cancelForegroundPull();
@@ -342,9 +342,21 @@ async function bootstrapApp() {
       ProviderCredentialSyncService.cancelForegroundPull();
       hasSelectedProfileThisSession = false;
       const shouldBypassQr = Boolean(LocalStore.get(GUEST_QR_BYPASS_KEY, false));
+      // A sign-out (not a first visit with no session) drops every screen of
+      // the session that just ended, even on a screen allowed while signed
+      // out; the start screen then opens on its own and replaces the current
+      // history entry.
+      if (detail?.reason === "signOut") {
+        try {
+          Router.resetForSignOut({ sessionEnded: Boolean(detail.wasAuthenticated) });
+        } catch (error) {
+          console.warn("Failed to reset navigation after sign-out", error?.name || "error");
+        }
+      }
       if (isSignedOutRouteAllowed()) {
         return;
       }
+      const startOptions = { replaceHistory: true, skipStackPush: true };
       if (shouldBypassQr) {
         // Honor "remember last profile" for guests too: skip the picker and go
         // straight in with the last profile (guests have no PIN).
@@ -380,13 +392,13 @@ async function bootstrapApp() {
       }
       // Browser sign-in uses the existing Supabase email/password screen.
       if (Platform.isBrowser()) {
-        Router.navigate("authSignIn");
+        Router.navigate("authSignIn", {}, startOptions);
         return;
       }
       const hasSeenQr = LocalStore.get("hasSeenAuthQrOnFirstLaunch");
       Router.navigate("authQrSignIn", {
         onboardingMode: !hasSeenQr
-      });
+      }, startOptions);
     }
 
     if (state === AuthState.AUTHENTICATED) {

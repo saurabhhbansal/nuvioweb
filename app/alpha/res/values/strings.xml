@@ -412,6 +412,9 @@
     <string name="account_signin_divider">or</string>
     <string name="account_signin_qr_action">Sign in with QR</string>
     <string name="account_signin_guest_action">Continue without account</string>
+    <string name="account_signin_signup_prompt">New to Nuvio? An account keeps your library and progress in sync.</string>
+    <string name="account_signin_signup_action">Sign up</string>
+    <string name="account_signin_signup_hint">Opens nuvio.tv in a new tab. Come back here to sign in.</string>
     <string name="detail_season_picker_title">Season</string>
     <string name="detail_finding_stream">Finding a stream…</string>
     <string name="library_offline_title">You’re offline</string>
@@ -2797,6 +2800,7 @@
     <string name="auth.qr.qrImageAlt">QR code</string>
     <string name="auth.qr.serviceUnavailable">QR sign-in is temporarily unavailable. Please try again later.</string>
     <string name="auth_qr_image_unavailable">QR image unavailable on this device. Use the code below.</string>
+    <string name="auth_qr_open_link">Open the sign-in page</string>
     <string name="auth.qr.unavailableWithReason">QR unavailable: {{reason}}</string>
     <string name="auth.qr.waitingApproval">Waiting for approval on your phone...</string>
     <string name="auth.signIn.devEmailLogin">Dev Email Login</string>
