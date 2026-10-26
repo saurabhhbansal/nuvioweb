@@ -809,3 +809,41 @@ test("an episode un-marked on one device does not come back from the other", asy
   await pullWatched(a);
   assert.deepEqual(await localWatched(a, "tt1196946"), []);
 });
+
+// The push is an upsert and the cloud keeps whatever arrives last. A push used
+// to carry every row this device had, so a device that had not pulled since
+// another one moved on resent its older copy of a title it never touched again
+// -- just because it pushed for something else -- and the other device's
+// viewing was overwritten, there and on every device that pulled afterwards.
+test("pushing one title does not resend a stale copy of another", async () => {
+  const cloud = createCloud();
+  const a = await createDevice("stale-a", cloud);
+  const b = await createDevice("stale-b", cloud);
+
+  await play(a, movie(0.3));
+  await a.run((service) => service.push());
+  await b.run((service) => service.pull());
+
+  // B watches further and says so. A, online but not pulled since, plays
+  // something else.
+  await play(b, movie(0.8));
+  await b.run((service) => service.push());
+  await play(a, {
+    contentId: "tt0816692",
+    contentType: "movie",
+    videoId: null,
+    season: null,
+    episode: null,
+    positionMs: at(0.2),
+    durationMs: RUNTIME_MS,
+    title: "Interstellar"
+  });
+  await a.run((service) => service.push());
+
+  assert.equal(cloud.progress.get("tt1375666").position, at(0.8));
+  await b.run((service) => service.pull());
+  assert.deepEqual(positionsFor(await b.localProgress(), "tt1375666"), [at(0.8)]);
+  await a.run((service) => service.pull());
+  assert.deepEqual(positionsFor(await a.localProgress(), "tt1375666"), [at(0.8)]);
+  assert.deepEqual(positionsFor(await a.localProgress(), "tt0816692"), [at(0.2)]);
+});
