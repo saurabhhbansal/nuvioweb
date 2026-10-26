@@ -266,6 +266,18 @@ export class AddonRepository {
     return changed;
   }
 
+  // A user turning one add-on on or off. Unlike setAddonEnabledStates (which a
+  // remote pull also uses), this is a local change: listeners hear it so the
+  // account receives it and an in-flight pull cannot undo it.
+  setAddonEnabled(url, enabled) {
+    const before = this.getSyncSnapshot();
+    const changed = this.setAddonEnabledStates([{ url, enabled: enabled !== false }], { replace: false });
+    if (changed) {
+      this.notifyAddonsChanged("toggle", { before, after: this.getSyncSnapshot() });
+    }
+    return changed;
+  }
+
   getAddonDisplayNameOverrides() {
     return this.readProfileScopedValue(
       ADDON_DISPLAY_NAMES_KEY,
