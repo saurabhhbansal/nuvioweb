@@ -847,3 +847,34 @@ test("pushing one title does not resend a stale copy of another", async () => {
   assert.deepEqual(positionsFor(await a.localProgress(), "tt1375666"), [at(0.8)]);
   assert.deepEqual(positionsFor(await a.localProgress(), "tt0816692"), [at(0.2)]);
 });
+
+// Finishing a title removes its row here; the cloud copy is deleted on the next
+// push. When that delete failed, the push used to rewrite the baseline from
+// this device's list -- which no longer had the title -- so the only record
+// that a delete was owed was gone, and the next pull adopted the cloud's
+// surviving row back into Continue Watching.
+test("a delete that fails is tried again rather than forgotten", async () => {
+  const cloud = createCloud();
+  const a = await createDevice("del-a", cloud);
+  await play(a, movie(0.4));
+  await a.run((service) => service.push());
+
+  // Deletes fail from here on: the one made straight away, and the push's.
+  const handle = cloud.handle;
+  cloud.handle = (procedure, body) => {
+    if (procedure === "sync_delete_watch_progress") throw new Error("offline");
+    return handle(procedure, body);
+  };
+  await a.run(async () => {
+    const { watchProgressRepository } =
+      await import("../../data/repository/watchProgressRepository.js");
+    await watchProgressRepository.removeProgress("tt1375666", null);
+  });
+  assert.equal(await a.run((service) => service.push()), false);
+  cloud.handle = handle;
+
+  await a.run((service) => service.pull());
+  assert.deepEqual(positionsFor(await a.localProgress(), "tt1375666"), []);
+  assert.equal(await a.run((service) => service.push()), true);
+  assert.equal(cloud.progress.has("tt1375666"), false);
+});
