@@ -20,7 +20,7 @@ Development preview: https://nuvioweb-preview.pages.dev
 
 What works in each browser, and the known limits: [FEATURE_SUPPORT](docs/FEATURE_SUPPORT.md).
 
-Found a problem? Open a [GitHub issue](https://github.com/saurabhhbansal/nuvioweb/issues). The app sends no telemetry. When a source fails to play, its error screen has an "Export redacted diagnostics" button whose file (no URLs or tokens) you can attach.
+Found a problem? Open a [GitHub issue](https://github.com/saurabhhbansal/nuvioweb/issues). The app has no analytics or error reporting. When a source fails to play, its error screen has an "Export redacted diagnostics" button whose file (no URLs or tokens) you can attach.
 
 ## Run it locally
 
