@@ -4,7 +4,8 @@ import { createScreenPrototype } from "../../navigation/routeLayerInstances.js";
 import {
   readSettingsRouteSection,
   SETTINGS_ROUTE,
-  SETTINGS_SECTION_ROUTE
+  SETTINGS_SECTION_ROUTE,
+  isSettingsRoute
 } from "./settingsRoutes.js";
 import { APP_IDENTITY } from "../../../core/app/appIdentity.js";
 import { ensureSpatialFocusVisible, ScreenUtils } from "../../navigation/screen.js";
@@ -2520,7 +2521,7 @@ export const SettingsScreen = {
     this.model = initialModel;
     if (Platform.isBrowser()) {
       void TraktAuthService.refreshBrowserBridgeAvailability().then(() => {
-        if (this.container && Router.getCurrent() === "settings") {
+        if (this.container && isSettingsRoute(Router.getCurrent())) {
           void this.render();
         }
       });
@@ -2528,7 +2529,7 @@ export const SettingsScreen = {
     if (Platform.isBrowser()) {
       this.offlineDownloadsUnsubscribe?.();
       this.offlineDownloadsUnsubscribe = subscribeToOfflineDownloads(() => {
-        if (this.container && Router.getCurrent() === "settings" && this.activeSection === "downloads") {
+        if (this.container && isSettingsRoute(Router.getCurrent()) && this.activeSection === "downloads") {
           void this.render();
         }
       });
@@ -8024,7 +8025,7 @@ export const SettingsScreen = {
       const state = TraktAuthService.getCurrentAuthState();
       if (
         !state.deviceCode ||
-        Router.getCurrent() !== "settings" ||
+        !isSettingsRoute(Router.getCurrent()) ||
         this.activeSection !== "trakt"
       ) {
         this.stopTraktPolling();
@@ -8437,7 +8438,7 @@ export const SettingsScreen = {
     if (this.desktopSimklPollTimer) return;
     const poll = async () => {
       const auth = SimklAuthService.getCurrentAuthState();
-      if (!auth.userCode || Router.getCurrent() !== "settings" || this.activeSection !== "trakt") {
+      if (!auth.userCode || !isSettingsRoute(Router.getCurrent()) || this.activeSection !== "trakt") {
         this.stopDesktopSimklPolling();
         return;
       }
@@ -8489,7 +8490,7 @@ export const SettingsScreen = {
     if (this.desktopTraktPollTimer) return;
     const poll = async () => {
       const auth = TraktAuthService.getCurrentAuthState();
-      if (!auth.deviceCode || Router.getCurrent() !== "settings" || this.activeSection !== "trakt") {
+      if (!auth.deviceCode || !isSettingsRoute(Router.getCurrent()) || this.activeSection !== "trakt") {
         this.stopDesktopTraktPolling();
         return;
       }
@@ -8853,7 +8854,7 @@ export const SettingsScreen = {
       state.loaded = true;
     } finally {
       state.loading = false;
-      if (Router.getCurrent() === "settings") {
+      if (isSettingsRoute(Router.getCurrent())) {
         await this.render({ refreshModel: false });
       }
     }
