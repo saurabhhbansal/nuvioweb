@@ -13,6 +13,7 @@ const ACCOUNT_LOCAL_STORAGE_KEYS = new Set([
   "watchedItems",
   "savedLibraryItems",
   "savedLibrarySyncOutbox",
+  "trackerOutbox",
   "watchProgressItems",
   "streamPreferences",
   "trackPreferences",
