@@ -37,6 +37,8 @@ function createCloud() {
     handle(method, path, body) {
       if (path.endsWith("/rpc/sync_push_addons")) {
         pushes.push(body.p_addons || []);
+        this.duringPush?.();
+        this.duringPush = null;
         rows.set(
           Number(body.p_profile_id),
           (body.p_addons || []).map((addon) => ({
@@ -150,12 +152,16 @@ test("an add-on added on one device appears on the other, and a removal follows"
   await addAndPush(deviceA, ADDON_B);
   // Each push carries only the fields the native apps write.
   cloud.pushes.forEach((push) =>
-    push.forEach((addon) =>
+    push.forEach((addon, index) => {
       assert.deepEqual(
         Object.keys(addon).filter((key) => !["url", "name", "enabled", "sort_order"].includes(key)),
         []
-      )
-    )
+      );
+      assert.equal(typeof addon.url, "string");
+      assert.equal(typeof addon.enabled, "boolean");
+      assert.equal(addon.sort_order, index);
+      if ("name" in addon) assert.equal(typeof addon.name, "string");
+    })
   );
 
   await pull(deviceB);
@@ -213,4 +219,21 @@ test("turning an add-on off is a local change the account receives and a pull ke
 
   await pull(deviceB);
   assert.equal(await deviceB.enabled(ADDON_A), false);
+});
+
+test("a change made while a push is in flight stays pending after that push", async () => {
+  const cloud = createCloud();
+  const device = await createDevice(cloud);
+  await addAndPush(device, ADDON_A);
+  await device.run(async ({ addonRepository, LibrarySyncService }) => {
+    addonRepository.setAddonEnabled(ADDON_A, false);
+    // The user turns it back on while the first push is on the wire.
+    cloud.duringPush = () => addonRepository.setAddonEnabled(ADDON_A, true);
+    assert.equal(await LibrarySyncService.push(), true);
+    assert.equal(cloud.rows.get(1).find((row) => row.url === ADDON_A).enabled, false);
+    assert.equal(LibrarySyncService.hasPendingLocalMutation(), true);
+    // A pull now must not undo the newer change.
+    await LibrarySyncService.pull();
+    assert.equal(addonRepository.isAddonEnabled(ADDON_A), true);
+  });
 });
