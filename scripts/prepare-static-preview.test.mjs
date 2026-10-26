@@ -43,5 +43,8 @@ test("tracker client ids fill their lines, stay off when empty and reject anythi
   for (const bad of ["short", "x".repeat(200), `${trakt}\nNUVIO_ENABLE_TRAKT_BRIDGE=true`, "id with spaces 12345"]) {
     assert.throws(() => applyTrackerClientIds(props, { trakt: bad }), /client id/);
   }
+  const dashed = "0a1b2c3d-4e5f-6789-abcd-ef0123456789_x";
+  assert.match(applyTrackerClientIds(props, { trakt: dashed }), new RegExp(`TRAKT_CLIENT_ID=${dashed}`));
+  assert.throws(() => applyTrackerClientIds(props, { trakt: `"${trakt}"` }), /client id/);
   assert.throws(() => applyTrackerClientIds("TMDB_API_KEY=\n", { simkl }), /no SIMKL_CLIENT_ID line/);
 });

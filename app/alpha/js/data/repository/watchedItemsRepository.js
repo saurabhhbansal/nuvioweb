@@ -6,6 +6,13 @@ import { SimklAuthStore } from "../local/simklAuthStore.js";
 import { SimklSyncService } from "./simklSyncService.js";
 import { TraktAuthService, requestJson as traktRequestJson } from "./traktAuthService.js";
 import { ownsWatchProgress } from "./trackingWriteScope.js";
+import {
+  deliverOrQueue,
+  dropTrackerWrite,
+  installTrackerOutboxFlush,
+  registerTrackerSender,
+  trackerHistoryKey
+} from "./trackerOutbox.js";
 
 function activeProfileId() {
   return String(ProfileManager.getActiveProfileId() || "1");
@@ -58,9 +65,19 @@ function traktHistoryBody(item = {}) {
     year: item.year == null ? undefined : Number(item.year),
     ids
   };
+  // When it was watched, not when Trakt hears about it: a finish recorded
+  // offline can reach Trakt hours later. Removals take no time.
+  const watchedAt = Number(item.watchedAt || 0) > 0 ? new Date(Number(item.watchedAt)).toISOString() : null;
   const isEpisode = item.season != null && item.episode != null;
   if (isEpisode) {
-    media.seasons = [{ number: Number(item.season), episodes: [{ number: Number(item.episode) }] }];
+    media.seasons = [
+      {
+        number: Number(item.season),
+        episodes: [{ number: Number(item.episode), ...(watchedAt ? { watched_at: watchedAt } : {}) }]
+      }
+    ];
+  } else if (watchedAt) {
+    media.watched_at = watchedAt;
   }
   const type = String(item.contentType || item.itemType || item.type || "movie").toLowerCase();
   return ["series", "show", "tv", "anime"].includes(type)
@@ -70,7 +87,12 @@ function traktHistoryBody(item = {}) {
 
 async function writeTraktHistory(item, remove = false) {
   const token = await TraktAuthService.getValidAccessToken();
-  if (!token) throw new Error("Trakt is not connected");
+  if (!token) {
+    // Signed in but not refreshable right now (no network) is worth retrying.
+    throw Object.assign(new Error("Trakt is not connected"), {
+      retryable: TraktAuthService.isAuthenticated()
+    });
+  }
   const { response, payload } = await traktRequestJson(
     remove ? "/sync/history/remove" : "/sync/history",
     {
@@ -80,10 +102,29 @@ async function writeTraktHistory(item, remove = false) {
     }
   );
   if (!response.ok) {
-    throw new Error(
+    const error = new Error(
       payload?.message || `Could not update Trakt watched history (${response.status})`
     );
+    error.status = response.status;
+    throw error;
   }
+}
+
+// A finish that cannot reach the tracker now is saved and sent later, with its
+// real time. See trackerOutbox.js.
+registerTrackerSender("trakt", "history", (item) => writeTraktHistory(item, false));
+registerTrackerSender("simkl", "history", (item) => SimklSyncService.markWatched(item));
+installTrackerOutboxFlush();
+
+function sendWatchedToTracker(provider, item, send) {
+  return deliverOrQueue({
+    provider,
+    kind: "history",
+    key: trackerHistoryKey(item),
+    payload: item,
+    profileId: activeProfileId(),
+    send
+  });
 }
 
 function watchedKey(item = {}) {
@@ -299,11 +340,11 @@ class WatchedItemsRepository {
     // Watching. A tracking provider can be offline or reject a history write;
     // it must not prevent the local completion from being recorded.
     clearTombstones(activeProfileId(), [item]);
+    const tracked = { ...item, watchedAt: item.watchedAt || Date.now() };
     WatchedItemsStore.upsert(
       {
-        ...item,
-        source: String(item?.source || "").trim() || selectedLocalWatchedSource(),
-        watchedAt: item.watchedAt || Date.now()
+        ...tracked,
+        source: String(item?.source || "").trim() || selectedLocalWatchedSource()
       },
       activeProfileId(),
       // A completion is never one of playback's periodic writes: every caller
@@ -315,14 +356,18 @@ class WatchedItemsRepository {
     );
     queueWatchedItemsCloudSync();
     if (shouldUseSimkl() && options.skipTrackingWrite !== true) {
-      void SimklSyncService.markWatched(item).catch((error) => {
-        console.warn("SIMKL watched history update failed", error);
-      });
+      void sendWatchedToTracker("simkl", tracked, (payload) => SimklSyncService.markWatched(payload)).catch(
+        (error) => {
+          console.warn("SIMKL watched history update failed", error);
+        }
+      );
     }
     if (shouldUseTrakt() && options.skipTrackingWrite !== true) {
-      void writeTraktHistory(item, false).catch((error) => {
-        console.warn("Trakt watched history update failed", error);
-      });
+      void sendWatchedToTracker("trakt", tracked, (payload) => writeTraktHistory(payload, false)).catch(
+        (error) => {
+          console.warn("Trakt watched history update failed", error);
+        }
+      );
     }
   }
 
@@ -353,6 +398,15 @@ class WatchedItemsRepository {
         : [{ contentId, season: options?.season ?? null, episode: options?.episode ?? null }]
     );
     queueWatchedItemsCloudSync();
+    // A finish saved while offline must not be sent after this un-watch.
+    const unwatched = removedItems.length
+      ? removedItems
+      : [{ contentId, season: options?.season ?? null, episode: options?.episode ?? null }];
+    for (const provider of ["trakt", "simkl"]) {
+      unwatched.forEach((item) =>
+        dropTrackerWrite({ provider, kind: "history", key: trackerHistoryKey(item), profileId: pid })
+      );
+    }
     void deleteWatchedItemsFromCloud(removedItems).catch((error) => {
       console.warn("Watched items cloud delete failed", error);
     });

@@ -89,6 +89,7 @@ import { StreamPreferencesStore } from "../../../data/local/streamPreferencesSto
 
 import { buildStreamResumeIdentity } from "../../../core/streams/streamResumeIdentity.js";
 import { TrackPreferencesStore } from "../../../data/local/trackPreferencesStore.js";
+import { describeAudioTrackAvailability } from "../../../core/player/audioTrackAvailability.js";
 import {
   shouldEnterStillWatchingPrompt,
   shouldShowNextEpisodeCard as shouldShowNextEpisodeCardRule
@@ -3550,6 +3551,17 @@ export const PlayerScreen = {
             .split(";")[0]
             .trim();
     return normalizedSourceType === "video/x-matroska";
+  },
+
+  getAudioTrackAvailability(trackCount = 0) {
+    const adaptiveSource = !trackCount && this.isCurrentSourceAdaptiveManifest();
+    return describeAudioTrackAvailability({
+      playbackEngine: PlayerController.playbackEngine,
+      nativeTrackListAvailable: Boolean(this.getVideoAudioTrackList()),
+      adaptiveSource,
+      trackCount,
+      loading: adaptiveSource && Boolean(this.manifestLoading || this.trackDiscoveryInProgress)
+    });
   },
 
   getUnavailableTrackMessage(kind = "audio") {
@@ -13962,14 +13974,11 @@ export const PlayerScreen = {
       }
     ];
     this.audioMixFocusIndex = clamp(this.audioMixFocusIndex, 0, audioControls.length - 1);
+    const availability = this.getAudioTrackAvailability(entries.length);
     if (!entries.length) {
       this.audioFocusedColumn = "controls";
-      const loading =
-        this.isCurrentSourceAdaptiveManifest() &&
-        (this.manifestLoading || this.trackDiscoveryInProgress);
-      const emptyMessage = loading
-        ? "Loading audio tracks..."
-        : this.getUnavailableTrackMessage("audio");
+      const loading = availability.kind === "loading";
+      const emptyMessage = availability.message;
       dialog.innerHTML = `
         <div class="player-dialog-title">${escapeHtml(t("audio_dialog_title", {}, "Audio"))}</div>
         <div class="player-dialog-empty${loading ? " player-dialog-loading" : ""}">
@@ -13987,6 +13996,7 @@ export const PlayerScreen = {
     dialog.innerHTML = `
       <div class="player-dialog-title">${escapeHtml(t("audio_dialog_title", {}, "Audio"))}</div>
       ${hasSupportedEntries ? "" : `<div class="player-audio-support-message">${escapeHtml(t("player.audio.noSupportedTracks", {}, "No supported audio tracks available"))}</div>`}
+      ${hasSupportedEntries && availability.kind === "single" ? `<div class="player-audio-support-message" data-audio-availability="single">${escapeHtml(availability.message)}</div>` : ""}
       <div class="player-audio-overlay-grid">
         <div class="player-dialog-list player-audio-track-list">
           ${entries

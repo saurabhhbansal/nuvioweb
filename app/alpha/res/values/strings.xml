@@ -456,7 +456,7 @@
     <string name="quick_setup_offline_sync_body">A download plays with no network. Nuvio can either keep track of where you are in it, or leave it alone completely.</string>
     <string name="quick_setup_offline_sync_warning">Keeping track is experimental and still has plenty of bugs. When another device watched the same title while this one was offline, the two can disagree about which position is newer, and the wrong one can win. That is why it starts off.</string>
     <string name="quick_setup_offline_sync_default">Default</string>
-    <string name="quick_setup_offline_sync_caution">Experimental. It still has plenty of bugs: positions can disagree between devices, and viewing can go missing. A tracking service is told the position but not when you watched it, so an offline session reaches Trakt or Simkl stamped with the time it arrived.</string>
+    <string name="quick_setup_offline_sync_caution">Experimental. Positions can still disagree between devices. A finish reaches Trakt or Simkl with the time you watched it, but a stopping point arrives with the time it was sent.</string>
     <string name="quick_setup_offline_sync_experimental">Experimental</string>
     <string name="quick_setup_offline_sync_off">Watch and forget</string>
     <string name="quick_setup_offline_sync_off_body">Nothing is recorded while you watch a download: not your position, not that you finished it, and nothing reaches your account or tracking service.</string>
@@ -2800,6 +2800,7 @@
     <string name="auth.qr.qrImageAlt">QR code</string>
     <string name="auth.qr.serviceUnavailable">QR sign-in is temporarily unavailable. Please try again later.</string>
     <string name="auth_qr_image_unavailable">QR image unavailable on this device. Use the code below.</string>
+    <string name="auth_qr_open_link">Open the sign-in page</string>
     <string name="auth.qr.unavailableWithReason">QR unavailable: {{reason}}</string>
     <string name="auth.qr.waitingApproval">Waiting for approval on your phone...</string>
     <string name="auth.signIn.devEmailLogin">Dev Email Login</string>

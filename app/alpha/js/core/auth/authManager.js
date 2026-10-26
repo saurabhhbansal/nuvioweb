@@ -65,9 +65,17 @@ class AuthManagerClass {
     };
   }
 
-  setState(newState) {
+  // A listener that throws must not stop the others from hearing the change,
+  // nor abort whatever changed the state (sign-out above all).
+  setState(newState, detail = {}) {
     this.state = newState;
-    this.listeners.forEach((l) => l(newState));
+    this.listeners.slice().forEach((listener) => {
+      try {
+        listener(newState, detail);
+      } catch (error) {
+        console.warn(`[Auth] state listener failed (${error?.name || "error"})`);
+      }
+    });
   }
 
   async bootstrap() {
@@ -212,16 +220,33 @@ class AuthManagerClass {
     }
   }
 
+  // Purely local and always completes: nothing here waits on the network.
+  // The account's data is gone before anyone is told, so a listener (or the
+  // screen it opens) can never see the previous account's data.
   async signOut() {
+    const wasAuthenticated = this.state === AuthState.AUTHENTICATED;
     this.sessionGeneration += 1;
     this.authAttemptSequence += 1;
     this.refreshPromise = null;
     this.clearSessionRetry();
-    SessionStore.clear();
     this.cachedEffectiveUserId = null;
-    this.setState(AuthState.SIGNED_OUT);
-    clearAccountLocalData();
-    await resetAccountRuntimeState();
+    try {
+      SessionStore.clear();
+    } catch (_) {}
+    try {
+      clearAccountLocalData();
+    } catch (_) {}
+    // The marker exists to recognise the same account at a later startup. Once
+    // signed out there is no account to recognise, and keeping it would let
+    // the next sign-in fall back to this account's owner if the owner lookup
+    // fails.
+    try {
+      globalThis.localStorage?.removeItem?.(ACCOUNT_OWNER_MARKER_KEY);
+    } catch (_) {}
+    this.setState(AuthState.SIGNED_OUT, { reason: "signOut", wasAuthenticated });
+    try {
+      await resetAccountRuntimeState();
+    } catch (_) {}
   }
 
   getSessionGeneration() {

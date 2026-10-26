@@ -32,7 +32,24 @@ if (!globalThis.__NUVIO_ENV__) {
 export const SUPABASE_URL = String(runtimeEnv.NUVIO_SUPABASE_URL || "").trim();
 export const SUPABASE_ANON_KEY = String(runtimeEnv.NUVIO_SUPABASE_ANON_KEY || "").trim();
 export const SUPABASE_FALLBACK_URL = String(runtimeEnv.NUVIO_SUPABASE_FALLBACK_URL || "").trim();
-export const TV_LOGIN_WEB_BASE_URL = String(runtimeEnv.TV_LOGIN_WEB_BASE_URL || "").trim();
+// Nuvio's approval page. The server only accepts a redirect base that contains
+// "/tv-login" and builds the QR link as `<base>?code=<code>`; this site has no
+// such page, so the hosted backend uses the one Nuvio's own TV clients use.
+// A self-hosted backend approves codes on its own page, so it gets no default
+// and QR sign-in reports "not configured" until TV_LOGIN_WEB_BASE_URL is set.
+export const DEFAULT_TV_LOGIN_WEB_BASE_URL = "https://nuvio.tv/tv-login";
+export function defaultTvLoginWebBaseUrl(backendUrl) {
+  try {
+    return new URL(String(backendUrl || "")).hostname === "api.nuvio.tv"
+      ? DEFAULT_TV_LOGIN_WEB_BASE_URL
+      : "";
+  } catch {
+    return "";
+  }
+}
+export const TV_LOGIN_WEB_BASE_URL = String(
+  runtimeEnv.TV_LOGIN_WEB_BASE_URL || defaultTvLoginWebBaseUrl(SUPABASE_URL)
+).trim();
 export const YOUTUBE_PROXY_URL = String(
   runtimeEnv.YOUTUBE_PROXY_URL || "youtube-proxy.html"
 ).trim();
@@ -64,5 +81,5 @@ export const SIMKL_CLIENT_ID = String(runtimeEnv.SIMKL_CLIENT_ID || "").trim();
 // how to build the Shortcut instead.
 export const AUTOMATION_SHORTCUT_URL = String(runtimeEnv.AUTOMATION_SHORTCUT_URL || "").trim();
 export const SIMKL_API_URL = "https://api.simkl.com";
-export const SIMKL_APP_NAME = String(runtimeEnv.SIMKL_APP_NAME || "nuvio").trim() || "nuvio";
+export const SIMKL_APP_NAME = String(runtimeEnv.SIMKL_APP_NAME || "nuvioweb").trim() || "nuvioweb";
 export const PREMIUMIZE_CLIENT_ID = String(runtimeEnv.PREMIUMIZE_CLIENT_ID || "").trim();

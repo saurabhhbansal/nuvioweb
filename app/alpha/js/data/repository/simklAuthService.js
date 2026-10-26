@@ -74,7 +74,7 @@ async function executeSimklRequest(
   if (!SIMKL_CLIENT_ID) throw new Error("Missing SIMKL_CLIENT_ID");
   const url = new URL(`${apiBaseUrl()}${path.startsWith("/") ? path : `/${path}`}`);
   url.searchParams.set("client_id", SIMKL_CLIENT_ID);
-  url.searchParams.set("app-name", SIMKL_APP_NAME || "nuvio");
+  url.searchParams.set("app-name", SIMKL_APP_NAME || "nuvioweb");
   url.searchParams.set("app-version", appVersion());
   const token = authenticated ? authorizationToken : null;
   if (authenticated && !token) throw new Error("Simkl authentication required");
