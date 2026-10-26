@@ -9,13 +9,14 @@ Development preview: https://nuvioweb-preview.pages.dev
 
 ## How to use it
 
-1. **Sign in** with your existing Nuvio account, or continue as a guest (guest data stays on this device).
+1. **Open the site and sign in** with your existing Nuvio account (email or QR code), or choose **Continue without account** (data then stays on this device). No account yet? **Sign up** opens nuvio.tv.
 2. **Pick a profile.** Your library and watch progress sync with the Nuvio account.
 3. **Add-ons:** install HTTP/Stremio-compatible add-ons by URL in Settings. Catalogs, details, sources and subtitles come from them.
 4. **Plugins:** add a Nuvio plugin repository by its URL in Settings, then turn individual scrapers on or off. Plugins run in a browser worker.
 5. **Proxy (optional, bring your own):** many plugin requests are blocked by the browser (CORS). If a plugin shows "Needs proxy", you can set the URL of a proxy **you run yourself** in the plugin settings. The project runs no proxy. See the [proxy decision](docs/PLUGIN_PROXY_DECISION.md).
-6. **Play** a source in the browser (native video, HLS, DASH, with subtitles), or **hand it off to an external player** (VLC and others on Android and iPhone; a playlist file or copied link on desktop).
-7. **Install** it from the browser menu (Add to Home Screen on iPhone) to use it like an app.
+6. **Play** a source in the browser (native video, HLS, DASH, with subtitles), or **hand it off to an external player** (VLC and others on Android and iPhone; VLC, PotPlayer, IINA or Infuse on desktop, or copy the link).
+7. **Track (optional):** connect Trakt or Simkl in Settings. Each device signs in on its own.
+8. **Install it as an app.** iPhone: Safari → Share → Add to Home Screen. Android: Chrome menu → Install app (or Add to Home screen). Desktop Chrome/Edge: the install icon in the address bar.
 
 What works in each browser, and the known limits: [FEATURE_SUPPORT](docs/FEATURE_SUPPORT.md).
 
