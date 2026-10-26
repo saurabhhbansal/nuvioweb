@@ -10,6 +10,11 @@ import {
   requestInstall
 } from "../../components/browserInstallPrompt.js";
 
+// Nuvio's own sign-up page. Its `next` parameter only moves within nuvio.tv
+// (checked 2026-10-23, issue #200), so there is no way back to this site: it opens in a new tab and the person
+// returns here to sign in.
+export const NUVIO_SIGN_UP_URL = "https://nuvio.tv/account/signup";
+
 function t(key, fallback) {
   return I18n.t(key, {}, { fallback });
 }
@@ -151,6 +156,16 @@ export const AuthSignInScreen = {
           <button class="desktop-auth-guest" type="button" data-action="continueGuest" ${
             submitting ? "disabled" : ""
           }>${escapeHtml(t("account_signin_guest_action", "Continue without account"))}</button>
+          <div class="desktop-auth-signup">
+            <p class="desktop-auth-signup-prompt">${escapeHtml(
+              t("account_signin_signup_prompt", "New to Nuvio? An account keeps your library and progress in sync.")
+            )}</p>
+            <a class="desktop-auth-signup-link" data-action="signUp" href="${escapeHtml(NUVIO_SIGN_UP_URL)}"
+              target="_blank" rel="noopener noreferrer">${escapeHtml(t("account_signin_signup_action", "Sign up"))}</a>
+            <p class="desktop-auth-signup-hint">${escapeHtml(
+              t("account_signin_signup_hint", "Opens nuvio.tv in a new tab. Come back here to sign in.")
+            )}</p>
+          </div>
         </section>
         ${renderInstallBanner()}
       </main>
