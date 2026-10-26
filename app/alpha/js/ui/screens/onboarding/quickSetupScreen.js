@@ -413,13 +413,6 @@ export const QuickSetupScreen = {
           "A download plays with no network. Nuvio can either keep track of where you are in it, or leave it alone completely."
         )
       )}</p>
-      <p class="quick-setup-note">${escapeHtml(
-        t(
-          "quick_setup_offline_sync_warning",
-          {},
-          "Keeping track is experimental and still has plenty of bugs. When another device watched the same title while this one was offline, the two can disagree about which position is newer, and the wrong one can win. That is why it starts off."
-        )
-      )}</p>
       <div class="quick-setup-options">${cards}</div>`;
   },
 

@@ -153,19 +153,18 @@ export const AuthSignInScreen = {
             <span class="material-icons" aria-hidden="true">qr_code</span>
             <span>${escapeHtml(t("account_signin_qr_action", "Sign in with QR"))}</span>
           </button>
+          <a class="desktop-auth-signup-link" data-action="signUp"
+            href="${escapeHtml(NUVIO_SIGN_UP_URL)}" target="_blank" rel="noopener noreferrer"
+            aria-describedby="desktop-auth-signup-hint">
+            <span class="material-icons" aria-hidden="true">person</span>
+            <span>${escapeHtml(t("account_signin_signup_action", "Sign up"))}</span>
+          </a>
           <button class="desktop-auth-guest" type="button" data-action="continueGuest" ${
             submitting ? "disabled" : ""
           }>${escapeHtml(t("account_signin_guest_action", "Continue without account"))}</button>
-          <div class="desktop-auth-signup">
-            <p class="desktop-auth-signup-prompt">${escapeHtml(
-              t("account_signin_signup_prompt", "New to Nuvio? An account keeps your library and progress in sync.")
-            )}</p>
-            <a class="desktop-auth-signup-link" data-action="signUp" href="${escapeHtml(NUVIO_SIGN_UP_URL)}"
-              target="_blank" rel="noopener noreferrer">${escapeHtml(t("account_signin_signup_action", "Sign up"))}</a>
-            <p class="desktop-auth-signup-hint">${escapeHtml(
-              t("account_signin_signup_hint", "Opens nuvio.tv in a new tab. Come back here to sign in.")
-            )}</p>
-          </div>
+          <p id="desktop-auth-signup-hint" class="desktop-auth-signup-hint">${escapeHtml(
+            t("account_signin_signup_hint", "Opens nuvio.tv in a new tab. Come back here to sign in.")
+          )}</p>
         </section>
         ${renderInstallBanner()}
       </main>

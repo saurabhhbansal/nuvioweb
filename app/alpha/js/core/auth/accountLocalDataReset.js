@@ -36,6 +36,7 @@ const ACCOUNT_LOCAL_STORAGE_KEYS = new Set([
   "memberAccessCache",
   "manualSyncCode",
   "pluginSources",
+  "pluginSyncBaseline",
   "pluginsEnabled",
   "pluginScraperSettings",
   "pluginState:migrationComplete",
