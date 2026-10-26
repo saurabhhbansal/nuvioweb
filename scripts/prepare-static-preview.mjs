@@ -8,7 +8,10 @@ import { ENV_PROPERTY_KEYS } from "../app/alpha/scripts/envProperties.mjs";
 import { stageIdentityProgressDemo } from "./stage-identity-progress-demo.mjs";
 import { stageLegalDemo } from "./stage-legal-demo.mjs";
 
-export function validatePublicConfig(source) {
+// `traktBridge`: the deploy stored the Trakt client secret in the Pages
+// project, so the /api/trakt sign-in helper (functions/api/trakt) can work and
+// the page should use it. The other sidecars are never on for this site.
+export function validatePublicConfig(source, { traktBridge = false } = {}) {
   const json = source.match(/var values = (\{[\s\S]*?\n\});/)?.[1];
   if (!json) throw new Error("Missing generated public configuration");
   const values = JSON.parse(json);
@@ -17,9 +20,13 @@ export function validatePublicConfig(source) {
     throw new Error("Preview requires the documented public primary URL and publishable key");
   }
   if (values.NUVIO_SUPABASE_FALLBACK_URL) throw new Error("Alternate credential destination is not enabled for this preview");
-  for (const key of ["NUVIO_ENABLE_TRAKT_BRIDGE", "NUVIO_ENABLE_DEBRID_BRIDGE", "NUVIO_ENABLE_EXTERNAL_RETURN_BRIDGE"]) {
+  for (const key of ["NUVIO_ENABLE_DEBRID_BRIDGE", "NUVIO_ENABLE_EXTERNAL_RETURN_BRIDGE"]) {
     if (values[key] !== "false") throw new Error("Static preview sidecars must be explicitly disabled");
   }
+  if (values.NUVIO_ENABLE_TRAKT_BRIDGE !== (traktBridge ? "true" : "false")) {
+    throw new Error(traktBridge ? "Trakt sign-in helper was requested but the build has it off" : "Static preview sidecars must be explicitly disabled");
+  }
+  if (traktBridge && !values.TRAKT_CLIENT_ID) throw new Error("Trakt sign-in helper needs TRAKT_CLIENT_ID");
   return values;
 }
 
@@ -44,11 +51,18 @@ export function applyTmdbKey(properties, key) {
 // Trakt and Simkl sign in from the browser with a public client id, which is
 // public by design (it is in every request the page makes). The deployer passes
 // them as NUVIO_TRAKT_CLIENT_ID and NUVIO_SIMKL_CLIENT_ID; empty leaves the
-// service off on this site. Never a client secret.
+// service off on this site. Never a client secret: when Trakt has one, the
+// deploy stores it in the Pages project and `traktBridge` turns the page's
+// sign-in over to /api/trakt.
 const TRACKER_CLIENT_ID_KEYS = Object.freeze({ trakt: "TRAKT_CLIENT_ID", simkl: "SIMKL_CLIENT_ID" });
 
-export function applyTrackerClientIds(properties, ids = {}) {
+export function applyTrackerClientIds(properties, ids = {}, { traktBridge = false } = {}) {
   let next = properties;
+  if (traktBridge) {
+    if (!String(ids.trakt ?? "").trim()) throw new Error("Trakt sign-in helper needs the trakt client id");
+    if (!/^NUVIO_ENABLE_TRAKT_BRIDGE=.*$/m.test(next)) throw new Error("build.properties has no NUVIO_ENABLE_TRAKT_BRIDGE line");
+    next = next.replace(/^NUVIO_ENABLE_TRAKT_BRIDGE=.*$/m, "NUVIO_ENABLE_TRAKT_BRIDGE=true");
+  }
   for (const [service, key] of Object.entries(TRACKER_CLIENT_ID_KEYS)) {
     const value = String(ids[service] ?? "").trim();
     if (!value) continue;
@@ -64,6 +78,10 @@ function trackerClientIdsFromEnv() {
   return { trakt: process.env.NUVIO_TRAKT_CLIENT_ID, simkl: process.env.NUVIO_SIMKL_CLIENT_ID };
 }
 
+function traktBridgeFromEnv() {
+  return process.env.NUVIO_TRAKT_BRIDGE === "true";
+}
+
 async function buildPropertiesPath() {
   const committed = join(root,"deploy/cloudflare/build.properties");
   const keyFile = String(process.env.NUVIO_TMDB_API_KEY_FILE || "").trim();
@@ -75,7 +93,7 @@ async function buildPropertiesPath() {
   const path = join(dir,"build.properties");
   let properties = await readFile(committed,"utf8");
   if (keyFile) properties = applyTmdbKey(properties, await readFile(keyFile,"utf8"));
-  await writeFile(path, applyTrackerClientIds(properties, ids), { mode: 0o600 });
+  await writeFile(path, applyTrackerClientIds(properties, ids, { traktBridge: traktBridgeFromEnv() }), { mode: 0o600 });
   return { path, cleanup: () => rm(dir,{ recursive: true, force: true }) };
 }
 
@@ -96,7 +114,7 @@ export async function preparePreview() {
     await properties.cleanup();
   }
   const source = join(root,"app/alpha/dist");
-  const publicConfig = validatePublicConfig(await readFile(join(source,"nuvio.env.js"),"utf8"));
+  const publicConfig = validatePublicConfig(await readFile(join(source,"nuvio.env.js"),"utf8"), { traktBridge: traktBridgeFromEnv() });
   if (process.env.NUVIO_TMDB_API_KEY_FILE && !publicConfig.TMDB_API_KEY) throw new Error("TMDB key file was given but the build has no TMDB_API_KEY");
   const files = await readdir(source,{recursive:true,withFileTypes:true});
   for (const entry of files) {
@@ -125,7 +143,7 @@ export async function preparePreview() {
   }
   await stageLegalDemo(destination);
   await stageIdentityProgressDemo(destination);
-  await writeFile(join(destination,"SOURCE.txt"),`NuvioWeb independent community preview; not affiliated with or endorsed by Nuvio.\nGPL source and build instructions for this revision:\nhttps://github.com/saurabhhbansal/nuvioweb/tree/${revision}\nUpstream provenance: /UPSTREAM_SOURCES.md\nGPL license: /LICENSE.txt\nThird-party notice files: ${noticePaths.map((path)=>`/third-party/${path}`).join(", ")}\nBrowser preview only. Native sidecars, paid compute and a media proxy are not deployed.\n`);
+  await writeFile(join(destination,"SOURCE.txt"),`NuvioWeb independent community preview; not affiliated with or endorsed by Nuvio.\nGPL source and build instructions for this revision:\nhttps://github.com/saurabhhbansal/nuvioweb/tree/${revision}\nUpstream provenance: /UPSTREAM_SOURCES.md\nGPL license: /LICENSE.txt\nThird-party notice files: ${noticePaths.map((path)=>`/third-party/${path}`).join(", ")}\nBrowser preview only. The one piece of server code is the Trakt sign-in helper at /api/trakt. Native sidecars, paid compute and a media proxy are not deployed.\n`);
   const inventory = [];
   for (const entry of await readdir(destination,{recursive:true,withFileTypes:true})) if (entry.isFile()) {
     const path = join(entry.parentPath,entry.name);

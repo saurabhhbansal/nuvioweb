@@ -10,9 +10,10 @@ Run the **Deploy preview** workflow ([preview-deploy.yml](../.github/workflows/p
 - `CLOUDFLARE_API_TOKEN`: a token limited to Cloudflare Pages: Edit.
 - `CLOUDFLARE_ACCOUNT_ID`: the account that owns `nuvioweb-preview`.
 
-Two more are optional. Without them Trakt or Simkl shows as unavailable:
+These are optional. Without them Trakt or Simkl shows as unavailable:
 
-- `TRAKT_CLIENT_ID`: the Client ID of a Trakt app. Sign-in runs in the browser and needs no client secret, so never add one.
+- `TRAKT_CLIENT_ID`: the Client ID of a Trakt app.
+- `TRAKT_CLIENT_SECRET`: that app's Client Secret. Trakt only finishes sign-in when its token request carries the secret, so without it the page waits for approval forever. The deploy stores it in the Pages project's encrypted settings, never in the page, and the sign-in helper at `/api/trakt` (`functions/api/trakt`, logic in `deploy/cloudflare/traktAuthEdge.mjs`) adds it to the three sign-in requests. It answers only this site's own pages.
 - `SIMKL_CLIENT_ID`: the Client ID of a Simkl app.
 
 The steps below are the manual fallback.
@@ -21,12 +22,12 @@ The steps below are the manual fallback.
 
 Register each app once under the project's name, not a person's:
 
-- **Trakt** ([trakt.tv/oauth/applications](https://trakt.tv/oauth/applications)): set the redirect URI to `urn:ietf:wg:oauth:2.0:oob`, and list every site origin under JavaScript (CORS) origins: `https://nuvioweb.xyz`, `https://www.nuvioweb.xyz` and `https://nuvioweb-preview.pages.dev`. Per-deployment preview addresses (`<hash>.nuvioweb-preview.pages.dev`) are not listed, so test Trakt on the main preview address. Trakt's docs say never to send a client secret from a website, so the app needs none.
-- **Simkl** ([simkl.com/settings/developer](https://simkl.com/settings/developer/)): any redirect URI; sign-in uses a PIN.
+- **Trakt** ([trakt.tv/oauth/applications](https://trakt.tv/oauth/applications)): set the redirect URI to `urn:ietf:wg:oauth:2.0:oob`, and list every site origin under JavaScript (CORS) origins: `https://nuvioweb.xyz`, `https://www.nuvioweb.xyz` and `https://nuvioweb-preview.pages.dev`. Per-deployment preview addresses (`<hash>.nuvioweb-preview.pages.dev`) are not listed, so test Trakt on the main preview address. The secret never goes into the page; see `TRAKT_CLIENT_SECRET` above.
+- **Simkl** ([simkl.com/settings/developer](https://simkl.com/settings/developer/)): pick the "TV, devices & command line" type; any redirect URI. Sign-in uses Simkl's OAuth 2.0 device flow and needs only the Client ID.
 
 Sign-ins stay on the device. They are not shared with the Nuvio account, because the native Nuvio apps use their own Trakt and Simkl apps and a token from this site would break their connection.
 
-For a manual stage, set `NUVIO_TRAKT_CLIENT_ID` and `NUVIO_SIMKL_CLIENT_ID` when running `preview:stage`.
+For a manual stage, set `NUVIO_TRAKT_CLIENT_ID` and `NUVIO_SIMKL_CLIENT_ID` when running `preview:stage`, and `NUVIO_TRAKT_BRIDGE=true` once the secret is stored with `wrangler pages secret put TRAKT_CLIENT_ID` and `TRAKT_CLIENT_SECRET`.
 
 ## TMDB key
 

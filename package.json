@@ -8,7 +8,7 @@
     "test:browser": "playwright test",
     "preview:stage": "node scripts/prepare-static-preview.mjs",
     "preview:verify": "node scripts/verify-preview.mjs",
-    "test:preview": "node --test scripts/prepare-static-preview.test.mjs scripts/stage-legal-demo.test.mjs scripts/stage-identity-progress-demo.test.mjs"
+    "test:preview": "node --test scripts/prepare-static-preview.test.mjs scripts/stage-legal-demo.test.mjs scripts/stage-identity-progress-demo.test.mjs deploy/cloudflare/traktAuthEdge.test.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.64.0"

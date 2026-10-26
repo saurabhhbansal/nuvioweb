@@ -20,6 +20,21 @@ test("static preview refuses enabled, missing or malformed sidecar flags",()=>{
   }
 });
 
+test("the Trakt sign-in helper is on only when the deploy asks for it, with a client id",()=>{
+  const withBridge = {...publicValues,NUVIO_ENABLE_TRAKT_BRIDGE:"true",TRAKT_CLIENT_ID:"0123456789abcdef0123"};
+  assert.equal(validatePublicConfig(config(withBridge),{traktBridge:true}).NUVIO_ENABLE_TRAKT_BRIDGE,"true");
+  assert.throws(()=>validatePublicConfig(config(publicValues),{traktBridge:true}),/helper/);
+  assert.throws(()=>validatePublicConfig(config({...withBridge,TRAKT_CLIENT_ID:""}),{traktBridge:true}),/TRAKT_CLIENT_ID/);
+  assert.throws(()=>validatePublicConfig(config({...withBridge,NUVIO_ENABLE_DEBRID_BRIDGE:"true"}),{traktBridge:true}),/sidecars/);
+  const props = "TRAKT_CLIENT_ID=\nNUVIO_ENABLE_TRAKT_BRIDGE=false\n";
+  assert.equal(
+    applyTrackerClientIds(props,{trakt:"0123456789abcdef0123"},{traktBridge:true}),
+    "TRAKT_CLIENT_ID=0123456789abcdef0123\nNUVIO_ENABLE_TRAKT_BRIDGE=true\n"
+  );
+  assert.equal(applyTrackerClientIds(props,{trakt:"0123456789abcdef0123"}).includes("BRIDGE=false"),true);
+  assert.throws(()=>applyTrackerClientIds(props,{},{traktBridge:true}),/client id/);
+});
+
 test("TMDB key comes from a private file and must look like a v3 key",()=>{
   const props = ["NUVIO_SUPABASE_URL=https://api.nuvio.tv","TMDB_API_KEY=","TRAKT_CLIENT_ID=",""].join("\n");
   const key = "0123456789abcdef0123456789ABCDEF";

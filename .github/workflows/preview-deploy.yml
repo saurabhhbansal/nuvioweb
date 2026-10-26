@@ -5,6 +5,8 @@ name: Deploy preview
 #   TMDB_API_KEY            public TMDB v3 key baked into the browser bundle
 #   TRAKT_CLIENT_ID         optional public Trakt app id; empty leaves Trakt off
 #   SIMKL_CLIENT_ID         optional public Simkl app id; empty leaves Simkl off
+#   TRAKT_CLIENT_SECRET     optional; stored in the Pages project (never in the bundle)
+#                           for the /api/trakt sign-in helper. Trakt sign-in needs it.
 #   CLOUDFLARE_API_TOKEN    token limited to Cloudflare Pages: Edit
 #   CLOUDFLARE_ACCOUNT_ID   account that owns nuvioweb-preview
 on:
@@ -43,11 +45,30 @@ jobs:
           test -n "$TMDB_API_KEY" || { echo "TMDB_API_KEY secret is not set"; exit 1; }
           umask 077
           printf '%s' "$TMDB_API_KEY" > "$RUNNER_TEMP/tmdb.key"
+      - name: Store Trakt client secret in Cloudflare
+        id: trakt
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          TRAKT_CLIENT_ID: ${{ secrets.TRAKT_CLIENT_ID }}
+          TRAKT_CLIENT_SECRET: ${{ secrets.TRAKT_CLIENT_SECRET }}
+        run: |
+          # Trakt only finishes sign-in when the poll carries the client secret,
+          # so it lives in the Pages project for functions/api/trakt to add.
+          # Without it the page signs in directly and Trakt stays pending.
+          if [ -n "$TRAKT_CLIENT_ID" ] && [ -n "$TRAKT_CLIENT_SECRET" ]; then
+            printf '%s' "$TRAKT_CLIENT_ID" | npx --yes wrangler@4.151.3 pages secret put TRAKT_CLIENT_ID --project-name nuvioweb-preview
+            printf '%s' "$TRAKT_CLIENT_SECRET" | npx --yes wrangler@4.151.3 pages secret put TRAKT_CLIENT_SECRET --project-name nuvioweb-preview
+            echo "bridge=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "bridge=false" >> "$GITHUB_OUTPUT"
+          fi
       - name: Stage preview
         env:
           NUVIO_TMDB_API_KEY_FILE: ${{ runner.temp }}/tmdb.key
           NUVIO_TRAKT_CLIENT_ID: ${{ secrets.TRAKT_CLIENT_ID }}
           NUVIO_SIMKL_CLIENT_ID: ${{ secrets.SIMKL_CLIENT_ID }}
+          NUVIO_TRAKT_BRIDGE: ${{ steps.trakt.outputs.bridge }}
         run: npm run preview:stage
       - name: Upload to Cloudflare Pages
         env:

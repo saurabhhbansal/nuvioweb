@@ -23,10 +23,11 @@ function ownString(flags, key) {
 
 // Deployment permission to attempt fixed routes, not service-health or auth proof.
 //
-// Trakt is the one exception to "needs a server". Its sign-in endpoints accept
-// browser requests and no longer need a client secret, so a public client id
-// is enough: `traktAuth` is on with either the id or a configured bridge, and
-// `traktBridge` says which of the two the sign-in goes through.
+// Trakt sign-in works with either a public client id or the /api/trakt helper.
+// Trakt only hands out a token when the poll carries the client secret, so on
+// a deployed site the helper (which adds it server-side) is what finishes
+// sign-in; the id alone gets as far as showing a code. `traktAuth` is on with
+// either, and `traktBridge` says the helper is there.
 export function getSidecarCapabilities(runtime = globalThis) {
   const flags = runtime?.__NUVIO_ENV__ || SIDECAR_DEPLOYMENT_FLAGS;
   const enabled = Object.fromEntries(
