@@ -104,16 +104,24 @@ async function withDevice(storage, cloud, fn) {
   }
 }
 
-async function createDevice(cloud) {
-  const storage = createStorage();
-  storage.setItem("activeProfileId", JSON.stringify("1"));
-  storage.setItem("profiles", JSON.stringify([{ id: "1", profileIndex: 1, isPrimary: true }]));
+// `reopen` gives a device a fresh module instance over the storage it already
+// has: the app closed and opened again, losing everything held in memory.
+async function createDevice(cloud, { reopen = null, profiles = null, activeProfileId = "1" } = {}) {
+  const storage = reopen ? reopen.storage : createStorage();
+  if (!reopen) {
+    storage.setItem("activeProfileId", JSON.stringify(activeProfileId));
+    storage.setItem(
+      "profiles",
+      JSON.stringify(profiles || [{ id: "1", profileIndex: 1, isPrimary: true }])
+    );
+  }
   const modules = await withDevice(storage, cloud, () => bundleDevice());
   await withDevice(storage, cloud, () => {
     modules.AuthManager.setState(modules.AuthState.AUTHENTICATED);
     modules.AuthManager.cachedEffectiveUserId = "user-1";
   });
   const device = {
+    storage,
     run: (fn) => withDevice(storage, cloud, () => fn(modules)),
     urls: () => device.run(({ PluginManager }) => PluginManager.listPluginSources().map((source) => source.url)),
     pull: () => device.run(({ PluginSyncService }) => PluginSyncService.pull()),
@@ -197,4 +205,101 @@ test("a repository added here but not yet sent survives a pull", async () => {
     await PluginSyncService.pull();
   });
   assert.deepEqual(await device.urls(), [REPO_A, REPO_B]);
+});
+
+test("an unsent change here does not bring back a repository removed on another device", async () => {
+  const cloud = createCloud();
+  const deviceA = await createDevice(cloud);
+  const deviceB = await createDevice(cloud);
+  await deviceA.pull();
+  await deviceA.edit((manager) => manager.addPluginSource({ id: "a", name: "Repo A", url: REPO_A, enabled: true }));
+  await deviceB.pull();
+
+  // A adds a repository but has not sent it; B removes Repo A meanwhile.
+  await deviceA.run(({ PluginManager, PluginSyncService }) => {
+    const before = PluginManager.listPluginSources();
+    PluginManager.addPluginSource({ id: "b", name: "Repo B", url: REPO_B, enabled: true });
+    PluginSyncService.recordLocalMutation(null, before, PluginManager.listPluginSources());
+  });
+  await deviceB.edit((manager) => manager.removePluginSource(manager.listPluginSources()[0].id));
+
+  await deviceA.pull();
+  assert.deepEqual(await deviceA.urls(), [REPO_B]);
+  await deviceA.run(({ PluginSyncService }) => PluginSyncService.push({ automatic: true }));
+  assert.deepEqual(cloud.rows.get(1).map((row) => row.url), [REPO_B]);
+});
+
+test("an unsent addition survives the app being reopened and is then sent", async () => {
+  const cloud = createCloud();
+  cloud.rows.set(1, [{ url: REPO_A, name: "Repo A", enabled: true, sort_order: 0, repo_type: null }]);
+  const first = await createDevice(cloud);
+  await first.pull();
+  // Added while offline: the push fails, so the account never hears of it.
+  await first.run(({ PluginManager }) =>
+    PluginManager.addPluginSource({ id: "b", name: "Repo B", url: REPO_B, enabled: true })
+  );
+
+  const reopened = await createDevice(cloud, { reopen: first });
+  await reopened.pull();
+  assert.deepEqual(await reopened.urls(), [REPO_A, REPO_B]);
+  // The pull marks it as this device's change, so the automatic push sends it.
+  assert.equal(await reopened.run(({ PluginSyncService }) => PluginSyncService.push({ automatic: true })), true);
+  assert.deepEqual(cloud.rows.get(1).map((row) => row.url), [REPO_A, REPO_B]);
+});
+
+test("a removal on another device still arrives after this app is reopened", async () => {
+  const cloud = createCloud();
+  const deviceA = await createDevice(cloud);
+  await deviceA.pull();
+  await deviceA.edit((manager) => manager.addPluginSource({ id: "a", name: "Repo A", url: REPO_A, enabled: true }));
+  await deviceA.edit((manager) => manager.addPluginSource({ id: "b", name: "Repo B", url: REPO_B, enabled: true }));
+  cloud.rows.set(1, cloud.rows.get(1).filter((row) => row.url !== REPO_A));
+
+  const reopened = await createDevice(cloud, { reopen: deviceA });
+  await reopened.pull();
+  assert.deepEqual(await reopened.urls(), [REPO_B]);
+});
+
+test("an unsent change here keeps another device's edits to entries it did not touch", async () => {
+  const cloud = createCloud();
+  const deviceA = await createDevice(cloud);
+  await deviceA.pull();
+  await deviceA.edit((manager) => manager.addPluginSource({ id: "a", name: "Repo A", url: REPO_A, enabled: true }));
+  await deviceA.run(({ PluginManager, PluginSyncService }) => {
+    const before = PluginManager.listPluginSources();
+    PluginManager.addPluginSource({ id: "b", name: "Repo B", url: REPO_B, enabled: true });
+    PluginSyncService.recordLocalMutation(null, before, PluginManager.listPluginSources());
+  });
+  // Another device turns Repo A off and renames it.
+  cloud.rows.set(1, [{ url: REPO_A, name: "Renamed", enabled: false, sort_order: 0, repo_type: "NUVIO_JS" }]);
+
+  await deviceA.pull();
+  const sources = await deviceA.run(({ PluginManager }) => PluginManager.listPluginSources());
+  assert.deepEqual(
+    sources.map((source) => [source.url, source.name, source.enabled]),
+    [
+      [REPO_A, "Renamed", false],
+      [REPO_B, "Repo B", true]
+    ]
+  );
+});
+
+test("a profile that uses the primary profile's plugins keeps its unsent changes on pull", async () => {
+  const cloud = createCloud();
+  cloud.rows.set(1, [{ url: REPO_A, name: "Repo A", enabled: true, sort_order: 0, repo_type: null }]);
+  const device = await createDevice(cloud, {
+    activeProfileId: "2",
+    profiles: [
+      { id: "1", profileIndex: 1, isPrimary: true },
+      { id: "2", profileIndex: 2, usesPrimaryPlugins: true }
+    ]
+  });
+  await device.pull();
+  await device.run(async ({ PluginManager, PluginSyncService }) => {
+    const before = PluginManager.listPluginSources();
+    PluginManager.removePluginSource(before[0].id);
+    PluginSyncService.recordLocalMutation(null, before, PluginManager.listPluginSources());
+    await PluginSyncService.pull();
+  });
+  assert.deepEqual(await device.urls(), []);
 });
