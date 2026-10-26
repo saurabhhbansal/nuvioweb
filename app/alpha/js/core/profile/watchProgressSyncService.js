@@ -13,6 +13,7 @@ import {
   itemsByProgressKey,
   mergeProgressItems,
   normalizeProgressItems,
+  progressContentSignature,
   progressKey
 } from "./watchProgressMerge.js";
 import { WatchedItemsStore } from "../../data/local/watchedItemsStore.js";
@@ -373,6 +374,14 @@ function buildPushSignature(rows = []) {
   );
 }
 
+function changedSinceBaseline(items = [], baselineItems = []) {
+  const baselineByKey = itemsByProgressKey(baselineItems);
+  return items.filter((item) => {
+    const known = baselineByKey.get(progressKey(item));
+    return !known || progressContentSignature(known) !== progressContentSignature(item);
+  });
+}
+
 async function pushOnce() {
   let pushSignature = "";
   try {
@@ -405,8 +414,9 @@ async function pushOnce() {
     const retired = readBaselineItems(profileId).filter(
       (item) => !localKeys.has(progressKey(item))
     );
+    let retiredDeleted = true;
     if (retired.length) {
-      await WatchProgressSyncService.deleteItems(retired);
+      retiredDeleted = await WatchProgressSyncService.deleteItems(retired);
       if (!AuthManager.isSessionCurrent(sessionGeneration)) return false;
     }
 
@@ -415,6 +425,14 @@ async function pushOnce() {
     if (pushSignature && pushSignature === lastSuccessfulPushSignature) {
       return true;
     }
+    // Only what changed here since the cloud was last seen. The push is an
+    // upsert and the cloud keeps whatever arrives last, so resending a row this
+    // device has not touched since its last pull put its older copy back over
+    // anything another device had recorded in the meantime -- and every device
+    // that pulled afterwards adopted it. Left out, the row stays as the cloud
+    // has it, and the next pull brings it here as a move made elsewhere.
+    const changedItems = changedSinceBaseline(items, readBaselineItems(profileId));
+    const changedRows = buildRemoteProgressEntries(changedItems);
     if (
       pushSignature &&
       pushSignature === lastFailedPushSignature &&
@@ -422,21 +440,31 @@ async function pushOnce() {
     ) {
       return false;
     }
-    await SupabaseApi.rpc(
+    if (changedRows.length) await SupabaseApi.rpc(
       PUSH_RPC,
       {
         p_profile_id: profileId,
-        p_entries: rows,
+        p_entries: changedRows,
         p_origin_client_id: getSyncClientId()
       },
       true
     );
     if (!AuthManager.isSessionCurrent(sessionGeneration)) return false;
-    lastSuccessfulPushSignature = pushSignature;
-    writeBaselineItems(profileId, items);
+    // A delete still owed means this is not done: the next push must not be
+    // skipped as a repeat, or the delete is never tried again.
+    lastSuccessfulPushSignature = retiredDeleted ? pushSignature : "";
+    // What the cloud now holds is what it held before plus what was just sent.
+    // Read again rather than reusing the list from before the request: a pull
+    // can land while it is in flight, and a retired row whose delete failed
+    // is still in the baseline (deleteItems drops it only on success) -- the
+    // only record that the deletion is still owed. Writing this device's own
+    // list over either lost it.
+    const baselineByKey = itemsByProgressKey(readBaselineItems(profileId));
+    changedItems.forEach((item) => baselineByKey.set(progressKey(item), item));
+    writeBaselineItems(profileId, Array.from(baselineByKey.values()));
     lastFailedPushSignature = "";
     lastFailedPushAt = 0;
-    return true;
+    return retiredDeleted;
   } catch (error) {
     if (typeof pushSignature === "string" && pushSignature) {
       lastFailedPushSignature = pushSignature;
