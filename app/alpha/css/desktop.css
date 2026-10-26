@@ -1751,7 +1751,8 @@ html.desktop-browser {
 }
 
 .desktop-browser #account .desktop-auth-submit:focus-visible,
-.desktop-browser #account .desktop-auth-qr:focus-visible {
+.desktop-browser #account .desktop-auth-qr:focus-visible,
+.desktop-browser #account .desktop-auth-signup-link:focus-visible {
   outline: 2px solid #fff;
   outline-offset: 3px;
 }
@@ -1762,44 +1763,12 @@ html.desktop-browser {
   opacity: 0.58;
 }
 
-.desktop-browser #account .desktop-auth-signup {
-  margin-top: 18px;
-  padding-top: 16px;
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
-  text-align: center;
-}
-
-.desktop-browser #account .desktop-auth-signup-prompt,
 .desktop-browser #account .desktop-auth-signup-hint {
-  margin: 0;
-  color: rgba(255, 255, 255, 0.72);
-  font-family: inherit;
+  margin: 4px 0 0;
+  color: rgba(255, 255, 255, 0.6);
   font-size: 13px;
-  font-weight: 400;
   line-height: 1.4;
-}
-
-.desktop-browser #account .desktop-auth-signup-link {
-  display: inline-block;
-  margin: 10px 0 8px;
-  padding: 8px 20px;
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  border-radius: 999px;
-  color: #fff;
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 1.35;
-  text-decoration: none;
-}
-
-.desktop-browser #account .desktop-auth-signup-link:hover {
-  border-color: #fff;
-}
-
-.desktop-browser #account .desktop-auth-signup-link:focus-visible {
-  outline: 2px solid #fff;
-  outline-offset: 2px;
+  text-align: center;
 }
 
 .desktop-browser #account .desktop-auth-guest {
@@ -1946,8 +1915,10 @@ html.desktop-browser {
   background: rgba(255, 255, 255, 0.12);
 }
 
-/* QR stops being a footnote: on a phone it is often the easier of the two. */
-.desktop-browser #account .desktop-auth-qr {
+/* QR stops being a footnote: on a phone it is often the easier of the two.
+   Sign up, a link to nuvio.tv, wears the same button one row below. */
+.desktop-browser #account .desktop-auth-qr,
+.desktop-browser #account .desktop-auth-signup-link {
   box-sizing: border-box;
   display: flex;
   width: 100%;
@@ -1965,12 +1936,19 @@ html.desktop-browser {
   font-weight: 600;
 }
 
-.desktop-browser #account .desktop-auth-qr:hover:not(:disabled) {
+.desktop-browser #account .desktop-auth-qr:hover:not(:disabled),
+.desktop-browser #account .desktop-auth-signup-link:hover {
   background: rgba(255, 255, 255, 0.12);
   color: #fff;
 }
 
-.desktop-browser #account .desktop-auth-qr .material-icons {
+.desktop-browser #account .desktop-auth-signup-link {
+  margin-top: 10px;
+  text-decoration: none;
+}
+
+.desktop-browser #account .desktop-auth-qr .material-icons,
+.desktop-browser #account .desktop-auth-signup-link .material-icons {
   font-size: 20px;
 }
 

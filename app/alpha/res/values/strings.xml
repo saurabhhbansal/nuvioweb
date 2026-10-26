@@ -412,7 +412,6 @@
     <string name="account_signin_divider">or</string>
     <string name="account_signin_qr_action">Sign in with QR</string>
     <string name="account_signin_guest_action">Continue without account</string>
-    <string name="account_signin_signup_prompt">New to Nuvio? An account keeps your library and progress in sync.</string>
     <string name="account_signin_signup_action">Sign up</string>
     <string name="account_signin_signup_hint">Opens nuvio.tv in a new tab. Come back here to sign in.</string>
     <string name="detail_season_picker_title">Season</string>
