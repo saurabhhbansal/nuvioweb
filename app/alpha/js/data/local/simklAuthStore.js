@@ -13,6 +13,7 @@ function normalizeState(value = {}) {
     username: String(value.username || "") || null,
     accountId: value.accountId == null ? null : Number(value.accountId),
     userCode: String(value.userCode || value.user_code || "") || null,
+    deviceCode: String(value.deviceCode || "") || null,
     verificationUrl:
       String(value.verificationUrl || value.verification_uri || value.verification_url || "") ||
       null,
@@ -63,7 +64,10 @@ export const SimklAuthStore = {
     return writeProfileState(profileId, {
       ...current,
       userCode: data.user_code || data.userCode || null,
+      deviceCode: data.device_code || data.deviceCode || null,
+      // The complete link carries the code, so the viewer has nothing to type.
       verificationUrl:
+        data.verification_uri_complete ||
         data.verification_uri ||
         data.verification_url ||
         data.verificationUrl ||
@@ -73,12 +77,18 @@ export const SimklAuthStore = {
     });
   },
 
+  updatePollInterval(seconds, profileId = activeProfileId()) {
+    const current = readProfileState(profileId);
+    return writeProfileState(profileId, { ...current, pollInterval: seconds });
+  },
+
   saveToken(accessToken, profileId = activeProfileId()) {
     const current = readProfileState(profileId);
     return writeProfileState(profileId, {
       ...current,
       accessToken,
       userCode: null,
+      deviceCode: null,
       verificationUrl: null,
       expiresAt: null,
       pollInterval: 5
@@ -95,6 +105,7 @@ export const SimklAuthStore = {
     return writeProfileState(profileId, {
       ...current,
       userCode: null,
+      deviceCode: null,
       verificationUrl: null,
       expiresAt: null,
       pollInterval: 5
