@@ -8,7 +8,7 @@ The goal is something a real user can open on the [development preview](https://
 
 **Roadmap:** GitHub milestones. Work the [Public beta](https://github.com/saurabhhbansal/nuvioweb/milestones) issues first; "Later" holds deferred ideas. Do not start work outside a milestone issue without the owner.
 
-**Out of scope:** server compute, hosted jobs, credits, payments, media proxies and upstream tracking (the repo is a hard fork).
+**Out of scope:** general server compute, hosted jobs, credits, payments, media proxies and upstream tracking (the repo is a hard fork). **Exception (owner, 2026-10-27):** small, cheap Cloudflare Workers or Pages Functions are allowed for features that are at most in the legal grey area, such as the [external player return relay](docs/EXTERNAL_RETURN_RELAY.md). Each one stores the minimum for minutes, not days, runs on the free plan, and gets an ADR note. Still never a media, donor, shared or unrestricted proxy (ADR-019).
 
 ## Workflow
 
@@ -63,7 +63,7 @@ The goal is something a real user can open on the [development preview](https://
 
 - **Accounts:** use the existing Nuvio identity and sync, with no second account system.
 - **Playback:** free add-on playback at original quality where the browser supports it. Explain incompatible formats; don't silently degrade.
-- **Proxying and DRM:** no central video relay, no unrestricted URL proxy, no DRM circumvention.
+- **Proxying and DRM:** no central video relay, no unrestricted URL proxy, no DRM circumvention. A permitted Worker never fetches on a user's behalf and never sees or stores a stream address.
 - **Neutral client:** test and demo only with legal or self-hosted media and the project's fixtures. Never add, test against or name third-party scraper providers in code, tests, docs, commits or PRs.
 - **Capability claims:** codec and device claims come from real checks, not title strings.
 - **Secrets:** secrets and Nuvio tokens are never committed, logged or sent to add-ons, plugins or players.

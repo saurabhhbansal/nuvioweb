@@ -20,6 +20,8 @@ export function validatePublicConfig(source) {
   for (const key of ["NUVIO_ENABLE_TRAKT_BRIDGE", "NUVIO_ENABLE_DEBRID_BRIDGE", "NUVIO_ENABLE_EXTERNAL_RETURN_BRIDGE"]) {
     if (values[key] !== "false") throw new Error("Static preview sidecars must be explicitly disabled");
   }
+  const relay = values.NUVIO_EXTERNAL_RETURN_RELAY_URL ?? "";
+  if (relay && relay !== normalizeReturnRelayUrl(relay)) throw new Error("The return relay must be a bare https origin");
   return values;
 }
 
@@ -60,6 +62,24 @@ export function applyTrackerClientIds(properties, ids = {}) {
   return next;
 }
 
+// The external player return relay (deploy/return-relay) is a Worker on its
+// own origin. The deployer passes its address as NUVIO_EXTERNAL_RETURN_RELAY_URL;
+// empty leaves the site on the manual return prompt. Only a bare https origin.
+export function normalizeReturnRelayUrl(value) {
+  const text = String(value ?? "").trim();
+  if (!text) return "";
+  if (!/^https:\/\/[A-Za-z0-9.-]+(?::\d+)?\/?$/.test(text)) throw new Error("NUVIO_EXTERNAL_RETURN_RELAY_URL must be a bare https origin such as https://relay.example.workers.dev");
+  return new URL(text).origin;
+}
+
+export function applyReturnRelayUrl(properties, value) {
+  const origin = normalizeReturnRelayUrl(value);
+  if (!origin) return properties;
+  const line = /^NUVIO_EXTERNAL_RETURN_RELAY_URL=.*$/m;
+  if (!line.test(properties)) throw new Error("build.properties has no NUVIO_EXTERNAL_RETURN_RELAY_URL line");
+  return properties.replace(line, `NUVIO_EXTERNAL_RETURN_RELAY_URL=${origin}`);
+}
+
 function trackerClientIdsFromEnv() {
   return { trakt: process.env.NUVIO_TRAKT_CLIENT_ID, simkl: process.env.NUVIO_SIMKL_CLIENT_ID };
 }
@@ -68,14 +88,15 @@ async function buildPropertiesPath() {
   const committed = join(root,"deploy/cloudflare/build.properties");
   const keyFile = String(process.env.NUVIO_TMDB_API_KEY_FILE || "").trim();
   const ids = trackerClientIdsFromEnv();
-  if (!keyFile && !String(ids.trakt || "").trim() && !String(ids.simkl || "").trim()) {
+  const relay = String(process.env.NUVIO_EXTERNAL_RETURN_RELAY_URL || "").trim();
+  if (!keyFile && !relay && !String(ids.trakt || "").trim() && !String(ids.simkl || "").trim()) {
     return { path: committed, cleanup: async () => {} };
   }
   const dir = await mkdtemp(join(tmpdir(),"nuvio-preview-"));
   const path = join(dir,"build.properties");
   let properties = await readFile(committed,"utf8");
   if (keyFile) properties = applyTmdbKey(properties, await readFile(keyFile,"utf8"));
-  await writeFile(path, applyTrackerClientIds(properties, ids), { mode: 0o600 });
+  await writeFile(path, applyReturnRelayUrl(applyTrackerClientIds(properties, ids), relay), { mode: 0o600 });
   return { path, cleanup: () => rm(dir,{ recursive: true, force: true }) };
 }
 

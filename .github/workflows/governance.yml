@@ -19,4 +19,4 @@ jobs:
         with:
           node-version-file: .node-version
       - name: Root script unit tests (no install needed)
-        run: node --test scripts/stage-legal-demo.test.mjs scripts/quality-fixture-packaging.test.mjs
+        run: node --test scripts/stage-legal-demo.test.mjs scripts/quality-fixture-packaging.test.mjs deploy/return-relay/worker.test.mjs

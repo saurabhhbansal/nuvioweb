@@ -4601,7 +4601,10 @@ export const PlayerScreen = {
     const prepared = prepareBrowserExternalPlaybackLaunch({
       player,
       platform: getBrowserExternalPlayerPlatform(),
-      progressMode: "manual",
+      // Automatic only where this site has a return relay and the viewer kept
+      // "Automatic when supported"; otherwise the return prompt asks.
+      progressMode: PlayerSettingsStore.get().externalPlayerProgress === "manual" ? "manual" : "automatic",
+      returnMethod: PlayerSettingsStore.get().externalReturnMethod || "",
       resumePositionSeconds: this.getExternalPlayerResumeSeconds(),
       knownDurationMs: this.getExternalPlayerKnownDurationMs(),
       progressContext: PlayerController.createProgressContext?.(),

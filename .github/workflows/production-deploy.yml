@@ -7,6 +7,13 @@ name: Deploy production
 #   SIMKL_CLIENT_ID         optional public Simkl app id; empty leaves Simkl off
 #   CLOUDFLARE_API_TOKEN    token limited to Cloudflare Pages: Edit
 #   CLOUDFLARE_ACCOUNT_ID   account that owns the nuvioweb project
+# Optional repository variable (not a secret):
+#   RETURN_RELAY_URL        https origin of the nuvioweb-return-relay Worker
+#                           (deploy/return-relay). Set it to deploy the Worker
+#                           and point the app at it; leave it unset for the
+#                           manual return prompt only. See
+#                           docs/EXTERNAL_RETURN_RELAY.md for setup and rollback.
+#                           The API token then also needs Workers Scripts: Edit.
 on:
   workflow_dispatch:
     inputs:
@@ -71,11 +78,21 @@ jobs:
           test -n "$TMDB_API_KEY" || { echo "TMDB_API_KEY secret is not set"; exit 1; }
           umask 077
           printf '%s' "$TMDB_API_KEY" > "$RUNNER_TEMP/tmdb.key"
+      - name: Deploy the external player return relay
+        if: vars.RETURN_RELAY_URL != ''
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          npx --yes wrangler@4.151.3 deploy --config deploy/return-relay/wrangler.toml \
+            --name nuvioweb-return-relay \
+            --var "ALLOWED_ORIGINS:https://nuvioweb.xyz,https://www.nuvioweb.xyz"
       - name: Stage release
         env:
           NUVIO_TMDB_API_KEY_FILE: ${{ runner.temp }}/tmdb.key
           NUVIO_TRAKT_CLIENT_ID: ${{ secrets.TRAKT_CLIENT_ID }}
           NUVIO_SIMKL_CLIENT_ID: ${{ secrets.SIMKL_CLIENT_ID }}
+          NUVIO_EXTERNAL_RETURN_RELAY_URL: ${{ vars.RETURN_RELAY_URL }}
         run: npm run preview:stage
       - name: Upload to Cloudflare Pages
         env:

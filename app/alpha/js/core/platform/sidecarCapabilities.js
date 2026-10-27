@@ -21,6 +21,21 @@ function ownString(flags, key) {
   return Object.prototype.hasOwnProperty.call(flags, key) ? String(flags[key] ?? "").trim() : "";
 }
 
+// The return relay is a small Worker on its own https origin. Only a bare
+// origin is accepted: no path, query, credentials or plain http.
+export function readExternalReturnRelayOrigin(value) {
+  const text = String(value ?? "").trim();
+  if (!text) return "";
+  try {
+    const url = new URL(text);
+    if (url.protocol !== "https:" || url.username || url.password || url.search || url.hash) return "";
+    if (url.pathname !== "/" || !/^https:\/\/[^/]+\/?$/.test(text)) return "";
+    return url.origin;
+  } catch (_) {
+    return "";
+  }
+}
+
 // Deployment permission to attempt fixed routes, not service-health or auth proof.
 //
 // Trakt is the one exception to "needs a server". Its sign-in endpoints accept
@@ -32,8 +47,13 @@ export function getSidecarCapabilities(runtime = globalThis) {
   const enabled = Object.fromEntries(
     Object.entries(flagKeys).map(([feature, key]) => [feature, ownString(flags, key) === "true" && flags[key] === "true"])
   );
+  // A self-hosted bridge answers on the app's own origin (""); a static site
+  // reaches the relay Worker on its origin instead.
+  const relayOrigin = readExternalReturnRelayOrigin(ownString(flags, "NUVIO_EXTERNAL_RETURN_RELAY_URL"));
   return Object.freeze({
     ...enabled,
+    externalReturn: enabled.externalReturn || Boolean(relayOrigin),
+    externalReturnOrigin: enabled.externalReturn ? "" : relayOrigin,
     traktAuth: enabled.traktAuth || Boolean(ownString(flags, "TRAKT_CLIENT_ID")),
     traktBridge: enabled.traktAuth,
     nativeMedia: false

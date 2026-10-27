@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   getSidecarCapabilities,
+  readExternalReturnRelayOrigin,
   requireSidecarCapability,
   sidecarUnavailableMessage
 } from "./sidecarCapabilities.js";
@@ -19,6 +20,7 @@ test("only explicit public true flags permit fixed sidecar attempts; native medi
       traktBridge: false,
       debrid: false,
       externalReturn: false,
+      externalReturnOrigin: "",
       nativeMedia: false
     });
   }
@@ -31,6 +33,7 @@ test("only explicit public true flags permit fixed sidecar attempts; native medi
       traktBridge: true,
       debrid: true,
       externalReturn: true,
+      externalReturnOrigin: "",
       nativeMedia: false
     }
   );
@@ -76,4 +79,35 @@ test("unavailable guards produce bounded actionable messages without configurati
   assert.doesNotThrow(() =>
     requireSidecarCapability("debrid", { __NUVIO_ENV__: { NUVIO_ENABLE_DEBRID_BRIDGE: "true" } })
   );
+});
+
+test("a return relay origin turns on external return for a static site", () => {
+  const relay = getSidecarCapabilities({
+    __NUVIO_ENV__: { NUVIO_EXTERNAL_RETURN_RELAY_URL: "https://relay.example.workers.dev" }
+  });
+  assert.equal(relay.externalReturn, true);
+  assert.equal(relay.externalReturnOrigin, "https://relay.example.workers.dev");
+  // A self-hosted bridge keeps answering on the app's own origin.
+  const bridge = getSidecarCapabilities({
+    __NUVIO_ENV__: {
+      NUVIO_ENABLE_EXTERNAL_RETURN_BRIDGE: "true",
+      NUVIO_EXTERNAL_RETURN_RELAY_URL: "https://relay.example.workers.dev"
+    }
+  });
+  assert.equal(bridge.externalReturnOrigin, "");
+  for (const value of [
+    "",
+    "http://relay.example",
+    "https://relay.example/api",
+    "https://relay.example?x=1",
+    "https://user:pass@relay.example",
+    "https://relay.example/#x",
+    "javascript:alert(1)",
+    "relay.example"
+  ]) {
+    assert.equal(readExternalReturnRelayOrigin(value), "", value);
+    const runtime = { __NUVIO_ENV__: { NUVIO_EXTERNAL_RETURN_RELAY_URL: value } };
+    assert.equal(getSidecarCapabilities(runtime).externalReturn, false, value);
+  }
+  assert.equal(readExternalReturnRelayOrigin("https://relay.example/"), "https://relay.example");
 });

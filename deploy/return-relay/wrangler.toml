@@ -1,0 +1,31 @@
+# External player return relay. Deployed by the preview and production deploy
+# workflows; see docs/EXTERNAL_RETURN_RELAY.md for setup and rollback.
+# The Worker name and ALLOWED_ORIGINS are passed per environment on the command
+# line, so this file holds nothing deployment-specific.
+name = "nuvioweb-return-relay"
+main = "worker.js"
+compatibility_date = "2026-10-01"
+workers_dev = true
+
+# No request logs: a callback URL can carry a stream address the relay drops.
+[observability]
+enabled = false
+
+[[durable_objects.bindings]]
+name = "RETURN_SLOTS"
+class_name = "ReturnSlot"
+
+# SQLite-backed Durable Objects are available on the Workers Free plan.
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["ReturnSlot"]
+
+# Per-IP cap on reports and collections. The Worker treats a missing binding
+# as "no limit" so a local run still works.
+[[ratelimits]]
+name = "REPORT_LIMIT"
+namespace_id = "2271"
+
+  [ratelimits.simple]
+  limit = 60
+  period = 60

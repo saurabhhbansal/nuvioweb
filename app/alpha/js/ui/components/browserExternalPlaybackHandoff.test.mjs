@@ -693,3 +693,52 @@ test("the report URL carries an Automation return only when that is the chosen w
   assert.equal(success.searchParams.get("sourceOutcome"), "finished");
   assert.equal(new URL(outplayer.cancel).searchParams.get("return"), "automation");
 });
+
+test("a static site with a return relay sends callbacks to the relay and collects from it", async () => {
+  const runtime = createRuntime();
+  runtime.__NUVIO_ENV__ = { NUVIO_EXTERNAL_RETURN_RELAY_URL: "https://relay.example.workers.dev" };
+  const handoff = beginExternalPlaybackHandoff({
+    runtime,
+    playerMode: "infuse",
+    automatic: true,
+    progressContext
+  });
+  assert.equal(handoff.automatic, true);
+  assert.equal(handoff.returnOrigin, "https://relay.example.workers.dev");
+  const callbacks = createExternalPlaybackCallbacks({
+    token: handoff.token,
+    returnOrigin: handoff.returnOrigin,
+    provider: "infuse",
+    outcomes: { success: "stopped" }
+  });
+  assert.equal(
+    callbacks.success,
+    `https://relay.example.workers.dev/api/external-return/report/${handoff.token}?outcome=stopped&provider=infuse`
+  );
+  const requests = [];
+  const result = await collectExternalPlaybackReport({
+    runtime,
+    fetchImpl: async (url, init) => {
+      requests.push({ url, init });
+      return { ok: true, json: async () => ({ found: true, outcome: "stopped", position: 60, duration: 120 }) };
+    }
+  });
+  assert.equal(result.found, true);
+  assert.equal(requests[0].url, `https://relay.example.workers.dev/api/external-return/collect/${handoff.token}`);
+  assert.equal(requests[0].init.credentials, "omit");
+  // A manual hand-off on the same site never involves the relay.
+  const manual = beginExternalPlaybackHandoff({ runtime, playerMode: "chooser", progressContext });
+  assert.equal(manual.automatic, false);
+  assert.equal(manual.returnOrigin, "https://nuviotest.alphasquare.my.id");
+  assert.equal(readPendingExternalPlaybackHandoff({ runtime }).token, manual.token);
+});
+
+test("an automatic handoff left behind when the relay is switched off is dropped, not sent elsewhere", () => {
+  const runtime = createRuntime();
+  runtime.__NUVIO_ENV__ = { NUVIO_EXTERNAL_RETURN_RELAY_URL: "https://relay.example.workers.dev" };
+  beginExternalPlaybackHandoff({ runtime, playerMode: "infuse", automatic: true, progressContext });
+  runtime.__NUVIO_ENV__ = {};
+  // The stored origin no longer matches anything this site reports to, so the
+  // handoff is dropped rather than sent anywhere.
+  assert.equal(readPendingExternalPlaybackHandoff({ runtime }), null);
+});
