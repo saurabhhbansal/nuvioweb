@@ -45,8 +45,8 @@ Browser support at a glance:
 | Platform | Status |
 | --- | --- |
 | Desktop Chrome and Edge | Main target. Checked by hand on Edge; Chromium is tested automatically |
-| iPhone Safari and Home Screen app | Supported (iOS 15+); not every flow is verified on a real iPhone yet |
-| Android Chrome | Supported; not yet verified on a real device |
+| iPhone Safari and Home Screen app | Supported (iOS 15+). Checked by hand on a real iPhone, including external players and progress |
+| Android Chrome | Supported. Checked by hand on a real Android phone, including external players and progress |
 | Desktop Safari (Mac) | Supported (Safari 15+); unverified |
 
 Browsers cannot play everything. MKV files, TrueHD/DTS audio, HEVC and Dolby Vision often fail, and sources that need special request headers usually do. An external player is the fix for most of these. Full detail, including what is and isn't verified: **[Feature support](docs/FEATURE_SUPPORT.md)**.
