@@ -31,19 +31,12 @@
   <body>
     <script src="boot-guard.js"></script>
     <script src="nuvio.env.js"></script>
-    <script nomodule>
-      window.NuvioBootGuard &&
-        window.NuvioBootGuard.fail(
-          "This browser is too old for Nuvio. Use Chrome or Edge 100+, or Safari 15+.",
-          navigator.userAgent,
-          "BOOT-BROWSER"
-        );
-    </script>
-
+    <!-- No inline script: the CSP forbids it. boot-guard.js reports an old
+         browser and a bundle that fails to load (data-boot-required). -->
     <script
       type="module"
       src="app.bundle.js?v=20260531supporters2"
-      onerror="window.NuvioBootGuard && window.NuvioBootGuard.scriptFailed(this.src)"
+      data-boot-required
     ></script>
   </body>
 </html>
