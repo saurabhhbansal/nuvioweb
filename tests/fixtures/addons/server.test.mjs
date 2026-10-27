@@ -100,3 +100,19 @@ test("source preference fixture retains all unknown/adaptive/constraint choices 
   for(const source of streams) assert.equal(new URL(source.url).origin,origin);
   assert.equal(new Set(streams.map(source=>source.url)).size,streams.length);
 });
+test("multi-audio media match provenance and send CORS only on the CORS route",async()=>{
+  const provenance=JSON.parse(await readFile(new URL("../media/multi-audio/provenance.json",import.meta.url)));
+  for (const file of provenance.files) {
+    const bytes=Buffer.from(await (await fetch(`${origin}/media/multi-audio/${file.file}`)).arrayBuffer());
+    assert.equal(createHash("sha256").update(bytes).digest("hex"),file.sha256);
+  }
+  const range=await fetch(`${origin}/media/multi-audio/multi-audio.mkv`,{headers:{Range:"bytes=0-15"}});
+  assert.equal(range.status,206);
+  assert.equal(range.headers.get("access-control-allow-origin"),"http://127.0.0.1:4371");
+  assert.match(range.headers.get("access-control-expose-headers"),/Content-Range/);
+  assert.match(range.headers.get("content-range"),/^bytes 0-15\/\d+$/);
+  const denied=await fetch(`${origin}/cors-denied/media/multi-audio/multi-audio.mkv`,{headers:{Range:"bytes=0-15"}});
+  assert.equal(denied.status,206);
+  assert.equal(denied.headers.get("access-control-allow-origin"),null);
+  assert.equal((await fetch(`${origin}/media/multi-audio/other.mkv`)).status,404);
+});

@@ -2,12 +2,13 @@
 // track) to offer, and whether to point the viewer at an external player.
 // Switching itself lives in PlayerController.
 //
-// What the browser can switch today (see the audio tracks PR notes):
+// What the browser can switch:
 //   HLS via hls.js, DASH via dash.js     every browser with Media Source Extensions
 //   native HLS / single files            Safari (HTMLMediaElement.audioTracks)
-//   single MP4/MKV/WebM files            not in Chrome, Edge or Firefox: they hide
-//                                        audioTracks behind a flag and play the
-//                                        file's default track only.
+//   single MP4/MKV/WebM files            Chrome, Edge, Firefox via the remux path
+//                                        (core/player/remux), only when the host
+//                                        allows CORS range reads; otherwise they
+//                                        play the file's first track only.
 
 const ADAPTIVE_ENGINES = new Set(["hls.js", "dash.js", "native-hls", "native-dash"]);
 
@@ -30,7 +31,8 @@ export const AUDIO_AVAILABILITY_MESSAGES = {
  * @param {number} [input.trackCount] Tracks the picker can list.
  * @param {number} [input.supportedTrackCount] Listed tracks whose codec this browser can decode.
  *   Defaults to `trackCount`.
- * @param {boolean} [input.loading] An adaptive manifest is still being read.
+ * @param {boolean} [input.singleTrackKnown] The file was read and has one audio track.
+ * @param {boolean} [input.loading] An adaptive manifest or a file's track list is still being read.
  * @returns {{ kind: string, message: string, offerExternalPlayer: boolean }}
  */
 export function describeAudioTrackAvailability({
@@ -39,6 +41,7 @@ export function describeAudioTrackAvailability({
   adaptiveSource = false,
   trackCount = 0,
   supportedTrackCount = undefined,
+  singleTrackKnown = false,
   loading = false
 } = {}) {
   const count = Math.max(0, Number(trackCount) || 0);
@@ -58,7 +61,7 @@ export function describeAudioTrackAvailability({
   if (count >= 2) {
     return result("switchable", "");
   }
-  if (count === 1) {
+  if (count === 1 || (count === 0 && singleTrackKnown && !loading)) {
     return result("single", AUDIO_AVAILABILITY_MESSAGES.single);
   }
   if (loading) {

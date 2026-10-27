@@ -15,6 +15,7 @@ Updated 2026-10-21.
 - Rendered text is escaped. Stream metadata cannot inject markup.
 - JS plugins run in a separate Web Worker per scraper run, with a timeout, capped output, no cookies, no access to localStorage tokens, and no requests to this app, loopback or local-network addresses. The worker is same-origin, so this is not a full sandbox; see [proxy decision](PLUGIN_PROXY_DECISION.md).
 - Source URLs handed to an external player are the user's choice. NuvioWeb does not rewrite, proxy or relay them.
+- To list and switch audio tracks inside a single file in Chromium or Firefox, the player reads that file from its own host with `fetch` range requests (`credentials: "omit"`, no added headers). Only the host that already serves the video sees these requests, and the bytes never leave the browser. Hosts that don't allow CORS simply aren't read this way.
 - The optional [external player return relay](EXTERNAL_RETURN_RELAY.md) receives only a random one-time token, the playback position, duration and outcome. It drops any stream address a player appends, logs nothing, keeps a report for at most 10 minutes and hands it only to the site's own origins.
 
 ## Build and hosting

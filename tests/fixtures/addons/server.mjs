@@ -5,6 +5,7 @@ import { resolve } from "node:path";
 
 const scenarios = new Set(["source-order","basic","objects","configured","cors-denied","malformed","shape","slow","failure","empty","timeout","partial","declared","conflicting-codecs","unknown-quality","unsupported-mime","quality-1080","quality-2160","quality-hls","quality-dash","quality-expired","quality-restricted","quality-hls-cors","startup-header-required"]);
 const mediaRoot = new URL("../media/",import.meta.url);
+const multiAudioFiles = new Set(["multi-audio.mp4","multi-audio.mkv","multi-audio.webm"]);
 const qualityFiles = new Set(["original-1080p.mp4","original-2160p.mp4","native-1080p.mp4","native-2160p.mp4",...["1080p","2160p","canonical1080p","canonical2160p"].flatMap(size => ["init.mp4","segment.m4s","stream.m3u8","manifest.mpd"].map(file => `${size}/${file}`))]);
 
 export function createAddonFixtureServer() {
@@ -45,6 +46,23 @@ export function createAddonFixtureServer() {
       }
       if (url.pathname === "/media/quality/expired.mp4" || url.pathname === "/media/quality/restricted.mp4") {
         response.writeHead(url.pathname.includes("expired") ? 410 : 403,{...headers,"Content-Type":"video/mp4"}).end("Original fixture unavailable"); return;
+      }
+      // Multi-audio files for the remux path: /media/... sends CORS headers,
+      // /cors-denied/media/... does not (the plain <video src> path still plays it).
+      if ((scenario === "media" || scenario === "cors-denied") && parts[1 + (scenario === "cors-denied" ? 1 : 0)] === "multi-audio") {
+        const file = parts.slice(scenario === "cors-denied" ? 3 : 2).join("/");
+        if (!multiAudioFiles.has(file)) { json({error:"Unknown fixture"},404); return; }
+        const bytes = await readFile(new URL(`multi-audio/${file}`,mediaRoot));
+        const type = file.endsWith(".mp4") ? "video/mp4" : file.endsWith(".webm") ? "video/webm" : "video/x-matroska";
+        const mediaHeaders = {...headers,"Content-Type":type,"Accept-Ranges":"bytes",...(cors ? {"Access-Control-Expose-Headers":"Content-Range, Content-Length"} : {})};
+        const match = /^bytes=(\d+)-(\d*)$/.exec(request.headers.range || "");
+        if (match) {
+          const start = Number(match[1]);
+          const end = match[2] ? Math.min(Number(match[2]),bytes.length-1) : bytes.length-1;
+          if (start > end) { response.writeHead(416,{...mediaHeaders,"Content-Range":`bytes */${bytes.length}`}).end(); return; }
+          response.writeHead(206,{...mediaHeaders,"Content-Range":`bytes ${start}-${end}/${bytes.length}`,"Content-Length":end-start+1}).end(request.method === "HEAD" ? undefined : bytes.subarray(start,end+1));
+        } else response.writeHead(200,{...mediaHeaders,"Content-Length":bytes.length}).end(request.method === "HEAD" ? undefined : bytes);
+        return;
       }
       const qualityFile = parts[1] === "quality" ? parts.slice(2).join("/") : "";
       if (scenario === "media" && ((["procedural-vp8-opus.webm","english.vtt"].includes(parts[1]) && parts.length === 2) || qualityFiles.has(qualityFile))) {

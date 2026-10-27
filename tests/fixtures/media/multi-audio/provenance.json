@@ -1,0 +1,89 @@
+{
+  "generator": "scripts/generate-multi-audio-media.py",
+  "pyav": "18.1.0",
+  "libavformat": "62.12.102",
+  "python": "3.11.9",
+  "license": "CC0-1.0",
+  "files": [
+    {
+      "file": "multi-audio.mp4",
+      "bytes": 172632,
+      "sha256": "33938e58d362fd562f18903a4ac5a6d94253b1f7c374691976963382ac525986",
+      "video": "libx264 320x180 10 fps, 6 s",
+      "audio": [
+        {
+          "codec": "aac",
+          "toneHz": 440,
+          "language": "eng",
+          "title": "English",
+          "default": true
+        },
+        {
+          "codec": "libopus",
+          "toneHz": 880,
+          "language": "fra",
+          "title": "Français",
+          "default": false
+        },
+        {
+          "codec": "ac3",
+          "toneHz": 660,
+          "language": "deu",
+          "title": "Deutsch AC-3",
+          "default": false
+        }
+      ]
+    },
+    {
+      "file": "multi-audio.mkv",
+      "bytes": 170894,
+      "sha256": "6797a37c73a13de8be7a49e6c86dfedfa449ceaf509254899f981d35490de3c5",
+      "video": "libx264 320x180 10 fps, 6 s",
+      "audio": [
+        {
+          "codec": "aac",
+          "toneHz": 440,
+          "language": "eng",
+          "title": "English",
+          "default": true
+        },
+        {
+          "codec": "libopus",
+          "toneHz": 880,
+          "language": "fra",
+          "title": "Français",
+          "default": false
+        },
+        {
+          "codec": "ac3",
+          "toneHz": 660,
+          "language": "deu",
+          "title": "Deutsch AC-3",
+          "default": false
+        }
+      ]
+    },
+    {
+      "file": "multi-audio.webm",
+      "bytes": 100822,
+      "sha256": "4e44b1278d7d26ef8e130f0047d752bedf8a9c3934635cb3c8436091a325e86b",
+      "video": "libvpx-vp9 320x180 10 fps, 6 s",
+      "audio": [
+        {
+          "codec": "libopus",
+          "toneHz": 440,
+          "language": "eng",
+          "title": "English",
+          "default": true
+        },
+        {
+          "codec": "libopus",
+          "toneHz": 880,
+          "language": "fra",
+          "title": "Français",
+          "default": false
+        }
+      ]
+    }
+  ]
+}

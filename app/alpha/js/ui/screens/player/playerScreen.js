@@ -562,6 +562,10 @@ function getTrackMetadataStrings(track = {}) {
 }
 
 function getAudioTrackSupportState(track = {}) {
+  // Remuxed file tracks were already checked against MediaSource.
+  if (track?.engine === "remux" && typeof track.supported === "boolean") {
+    return { supported: track.supported, unsupportedReason: track.supported ? null : "codec" };
+  }
   // Adaptive engines decode through Media Source Extensions; files and native
   // HLS through the media element itself.
   const adaptive = track?.engine === "hls.js" || track?.engine === "dash.js";
@@ -3578,7 +3582,10 @@ export const PlayerScreen = {
       adaptiveSource,
       trackCount,
       supportedTrackCount,
-      loading: adaptiveSource && Boolean(this.manifestLoading || this.trackDiscoveryInProgress)
+      singleTrackKnown: PlayerController.getRemuxAudioUnavailableReason?.() === "single-audio",
+      loading:
+        (adaptiveSource && Boolean(this.manifestLoading || this.trackDiscoveryInProgress)) ||
+        Boolean(PlayerController.isRemuxAudioProbePending?.())
     });
   },
 
