@@ -6,9 +6,6 @@ import { ScreenUtils } from "../../navigation/screen.js";
 import { AuthManager } from "../../../core/auth/authManager.js";
 import { I18n } from "../../../i18n/index.js";
 import { Platform } from "../../../platform/index.js";
-import { continueWithoutAccount, GUEST_QR_BYPASS_KEY } from "./continueWithoutAccount.js";
-
-export { continueWithoutAccount };
 
 let pollInterval = null;
 let countdownInterval = null;
@@ -58,7 +55,13 @@ export const AuthQrSignInScreen = {
             <div id="qr-status" class="qr-status">${I18n.t("auth.qr.waitingApproval")}</div>
             <div class="qr-actions">
               <button type="button" id="qr-refresh-btn" class="qr-action-btn qr-action-btn-primary focusable" data-action="refresh">${I18n.t("auth.qr.refresh")}</button>
-              <button type="button" id="qr-back-btn" class="qr-action-btn qr-action-btn-secondary focusable" data-action="back">${this.getBackButtonLabel()}</button>
+              ${
+                // Signed out, this screen is a way in, not something to skip:
+                // there is no use without an account.
+                this.isSignedIn
+                  ? `<button type="button" id="qr-back-btn" class="qr-action-btn qr-action-btn-secondary focusable" data-action="back">${I18n.t("auth.qr.continue")}</button>`
+                  : ""
+              }
             </div>
           </div>
         </section>
@@ -252,7 +255,6 @@ export const AuthQrSignInScreen = {
 
             if (exchange) {
               this.activeAttemptId = null;
-              LocalStore.remove(GUEST_QR_BYPASS_KEY);
               LocalStore.set("hasSeenAuthQrOnFirstLaunch", true);
               this.isSignedIn = true;
               Router.navigate("profileSelection");
@@ -354,16 +356,15 @@ export const AuthQrSignInScreen = {
     if (this.isLeaving) {
       return;
     }
+    if (!this.isSignedIn) {
+      // No way past this screen without an account. In a browser, Back
+      // returns to the email sign-in form; elsewhere it stays here.
+      this.handleDesktopBrowserBack();
+      return;
+    }
     this.isLeaving = true;
     this.updateActionButtons();
     LocalStore.set("hasSeenAuthQrOnFirstLaunch", true);
-    if (!this.isSignedIn) {
-      this.cleanup();
-      continueWithoutAccount();
-      return;
-    } else {
-      LocalStore.remove(GUEST_QR_BYPASS_KEY);
-    }
     this.cleanup();
     if (this.hasBackDestination && this.isSignedIn) {
       Router.back();
@@ -415,13 +416,6 @@ export const AuthQrSignInScreen = {
       return I18n.t("auth.qr.cardSubtitleSignedIn");
     }
     return I18n.t("auth.qr.cardSubtitleSignedOut");
-  },
-
-  getBackButtonLabel() {
-    if (this.isSignedIn) {
-      return I18n.t("auth.qr.continue");
-    }
-    return I18n.t("auth.qr.continueWithoutAccount");
   },
 
   onKeyDown(event) {

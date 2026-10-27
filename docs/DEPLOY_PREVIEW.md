@@ -63,7 +63,7 @@ Previous deployments stay in Cloudflare for rollback. Do not delete them.
 npm run preview:verify -- dist/preview/<commit>
 ```
 
-[scripts/verify-preview.mjs](../scripts/verify-preview.mjs) checks the served files against the staged manifest, cache and security headers, 404 handling, the service worker, guest navigation and the legal demo playback journey. It runs a guest session only and blocks every third-party request. It is manual, not part of CI.
+[scripts/verify-preview.mjs](../scripts/verify-preview.mjs) checks the served files against the staged manifest, cache and security headers, 404 handling, the service worker, signed-in navigation and the legal demo playback journey. The app needs an account, so the script answers the preview's account backend with the browser tests' fake account ([tests/browser/fakeAccount.mjs](../tests/browser/fakeAccount.mjs)); no real account is used and every third-party request is blocked. It is manual, not part of CI.
 
 ## Rollback
 

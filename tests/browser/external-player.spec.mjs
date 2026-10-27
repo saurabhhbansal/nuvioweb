@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { readFile } from "node:fs/promises";
+import { installFakeAccount, openSignedInHome } from "./fakeAccount.mjs";
 
 const provider = "http://127.0.0.1:4373";
 const mediaUrl = "https://media.fixture.invalid:8443/original.mkv?signature=disposable%2Fcanary&part=2";
@@ -20,8 +21,8 @@ test("bundled desktop player offers explicit playlist/copy, responsive explanati
   await context.addInitScript((provider) => {
     localStorage.setItem("installedAddonUrls", JSON.stringify({ __profileScoped: true, version: 1, profiles: { "1": [`${provider}/basic`] } }));
   }, provider);
-  await page.goto("/");
-  await page.locator('[data-action="continueGuest"]').click();
+  await installFakeAccount(context, { addons: [`${provider}/basic`] });
+  await openSignedInHome(page, { expect });
   await page.locator('#home .home-poster-card[data-item-id="fixture:original"]').first().click();
   await page.locator('button[data-action="playDefault"]').click();
   await page.locator('[data-action="playStream"]').click();
@@ -67,8 +68,8 @@ test("bundled iPhone touch More panel opens the iPhone player chooser instead of
     await context.route("**/*", route => ["http://127.0.0.1:4371", provider].includes(new URL(route.request().url()).origin) ? route.continue() : route.abort());
     await context.addInitScript(provider => localStorage.setItem("installedAddonUrls", JSON.stringify({ __profileScoped: true, version: 1, profiles: { "1": [`${provider}/basic`] } })), provider);
     const page = await context.newPage();
-    await page.goto("/");
-    await page.locator('[data-action="continueGuest"]').tap();
+    await installFakeAccount(context, { addons: [`${provider}/basic`] });
+    await openSignedInHome(page, { expect });
     await page.locator('#home .home-poster-card[data-item-id="fixture:original"]').first().tap();
     await page.locator('button[data-action="playDefault"]').tap();
     await page.locator('[data-action="playStream"]').tap();
@@ -94,8 +95,8 @@ for (const scenario of ["basic", "startup-header-required"]) {
       localStorage.setItem("installedAddonUrls", JSON.stringify({ __profileScoped: true, version: 1, profiles: { "1": [`${provider}/${scenario}`] } }));
     }, { provider, scenario });
     if (scenario === "basic") await page.route("**/media/procedural-vp8-opus.webm", (route) => route.fulfill({ contentType: "video/webm", body: "deliberately invalid media fixture" }));
-    await page.goto("/");
-    await page.locator('[data-action="continueGuest"]').click();
+    await installFakeAccount(context, { addons: [`${provider}/${scenario}`] });
+    await openSignedInHome(page, { expect });
     await page.locator('#home .home-poster-card[data-item-id="fixture:original"]').first().click();
     await page.locator('button[data-action="playDefault"]').click();
     await page.locator('[data-action="playStream"]').click();
@@ -249,8 +250,8 @@ test("bundled desktop playlist hand-off asks where the viewer stopped when they 
   await context.addInitScript((provider) => {
     localStorage.setItem("installedAddonUrls", JSON.stringify({ __profileScoped: true, version: 1, profiles: { "1": [`${provider}/basic`] } }));
   }, provider);
-  await page.goto("/");
-  await page.locator('[data-action="continueGuest"]').click();
+  await installFakeAccount(context, { addons: [`${provider}/basic`] });
+  await openSignedInHome(page, { expect });
   await page.locator('#home .home-poster-card[data-item-id="fixture:original"]').first().click();
   await page.locator('button[data-action="playDefault"]').click();
   await page.locator('[data-action="playStream"]').click();

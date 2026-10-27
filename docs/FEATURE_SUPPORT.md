@@ -1,6 +1,6 @@
 # Feature support
 
-Updated 2026-10-26 for the first public beta. "Tested" means covered by automated tests in CI, mostly Chromium on Linux. Anything else is **unverified**. Real phones, Safari, Edge, HDR output and audible multitrack audio are unverified unless a line says otherwise.
+Updated 2026-10-27. "Tested" means covered by automated tests in CI, mostly Chromium on Linux. Anything else is **unverified**. Real phones, Safari, Edge, HDR output and audible multitrack audio are unverified unless a line says otherwise.
 
 ## Status
 
@@ -8,7 +8,7 @@ Updated 2026-10-26 for the first public beta. "Tested" means covered by automate
 | --- | --- | --- |
 | Sign in with Nuvio, refresh, sign out | Works; tested with mocks and fixtures. Startup survives server errors and retries when back online. QR sign-in shows a code for Nuvio's approval page and, on a computer, a link to open it; the QR start was checked against the live service | QR approval with a real account unverified. Natural token expiry on real accounts not observed |
 | Profiles, library, watch progress sync | Works; Library changes queue in a saved outbox and retry on startup, reconnect and the sync cycle | Same-item edits on two devices: last write wins. No cross-tab coordination. See [sync policy](LIBRARY_SYNC_POLICY.md) |
-| Guest mode | Works; tested | Data stays on this device |
+| Use without an account | Not offered: a Nuvio account is required ([ADR-022](DECISIONS.md)). Signed out, every screen and link opens the sign-in screen; tested in Chromium | Data an older version kept for a guest stays on the device until the first sign-in there, which replaces it with the account's data |
 | Create a Nuvio account | A Sign up button on the sign-in screen opens nuvio.tv's sign-up page in a new tab; tested in Chromium | nuvio.tv has no way to send people back here afterwards, so they return to this tab and sign in |
 | HTTP/Stremio add-ons | Install by URL, catalogs, details, sources, subtitles; tested with a fixture add-on | Each add-on must allow browser CORS |
 | Source list | Keeps add-on order. A card shows at most one hint: "Needs headers" or "Link expired", from declared metadata. Every source stays selectable | No per-card playback prediction |

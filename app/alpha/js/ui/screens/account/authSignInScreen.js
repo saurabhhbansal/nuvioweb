@@ -3,7 +3,6 @@ import { ScreenUtils } from "../../navigation/screen.js";
 import { AuthManager } from "../../../core/auth/authManager.js";
 import { I18n } from "../../../i18n/index.js";
 import { Platform } from "../../../platform/index.js";
-import { continueWithoutAccount } from "./continueWithoutAccount.js";
 import {
   dismissInstallOffer,
   renderInstallBanner,
@@ -159,9 +158,6 @@ export const AuthSignInScreen = {
             <span class="material-icons" aria-hidden="true">person</span>
             <span>${escapeHtml(t("account_signin_signup_action", "Sign up"))}</span>
           </a>
-          <button class="desktop-auth-guest" type="button" data-action="continueGuest" ${
-            submitting ? "disabled" : ""
-          }>${escapeHtml(t("account_signin_guest_action", "Continue without account"))}</button>
           <p id="desktop-auth-signup-hint" class="desktop-auth-signup-hint">${escapeHtml(
             t("account_signin_signup_hint", "Opens nuvio.tv in a new tab. Come back here to sign in.")
           )}</p>
@@ -175,9 +171,6 @@ export const AuthSignInScreen = {
     });
     this.container.querySelector("[data-action='openQr']")?.addEventListener("click", () => {
       Router.navigate("authQrSignIn");
-    });
-    this.container.querySelector("[data-action='continueGuest']")?.addEventListener("click", () => {
-      continueWithoutAccount();
     });
     // Revealing the password re-renders the field, which would drop what has
     // been typed and where the caret was. Both are carried over.
