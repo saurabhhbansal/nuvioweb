@@ -180,6 +180,17 @@ function isDesktopSettingsBrowser() {
   return Platform.isBrowser();
 }
 
+// Every visible debrid provider signs in and plays through the debrid bridge,
+// so without it the whole Debrid page is dead. It stays only while an account
+// is still saved, so that account can be disconnected.
+function connectedDebridProviders(debrid = DebridSettingsStore.get()) {
+  return DebridProviders.visible().filter((provider) => DebridProviders.apiKeyFor(debrid, provider.id));
+}
+
+function showDebridSettings(debrid) {
+  return getSidecarCapabilities().debrid || connectedDebridProviders(debrid).length > 0;
+}
+
 function normalizeDesktopAboutUrl(value) {
   return String(value || "")
     .trim()
@@ -5364,15 +5375,17 @@ export const SettingsScreen = {
         ${this.renderSectionHeader(SECTION_META.find((item) => item.id === "integration"))}
         <div class="settings-group-card settings-group-card-fill">
           <div class="settings-stack">
-            ${this.renderActionRow({
-              focusKey: "integration:hub:debrid",
-              title: t("settings.integration.debrid.label", {}, "Debrid"),
-              subtitle: t(
-                "settings.integration.debrid.subtitle",
-                {},
-                "Connect accounts for links and library access"
-              )
-            })}
+            ${showDebridSettings()
+              ? this.renderActionRow({
+                  focusKey: "integration:hub:debrid",
+                  title: t("settings.integration.debrid.label", {}, "Debrid"),
+                  subtitle: t(
+                    "settings.integration.debrid.subtitle",
+                    {},
+                    "Connect accounts for links and library access"
+                  )
+                })
+              : ""}
             ${this.renderActionRow({
               focusKey: "integration:hub:tmdb",
               title: t("settings.integration.tmdb.label"),
@@ -5671,20 +5684,45 @@ export const SettingsScreen = {
         });
       });
 
+      const backRow = this.renderActionRow({
+        focusKey: "integration:back",
+        title: t("settings.integration.backToIntegrations.title"),
+        subtitle: t("settings.integration.backToIntegrations.subtitle"),
+        icon: "back"
+      });
+      if (!getSidecarCapabilities().debrid) {
+        // Without the bridge only a saved account is left to manage.
+        return `
+        ${this.renderSectionHeader({ labelKey: "settings.integration.debrid.label", subtitleKey: "settings.integration.debrid.subtitle" })}
+        <div class="settings-group-card settings-group-card-fill">
+          <div class="settings-stack">
+            ${backRow}
+            <div class="settings-group-heading">
+              <div class="settings-group-title">${escapeHtml(t("debrid_section_account", {}, "Account"))}</div>
+            </div>
+            ${connectedDebridProviders(model.debrid)
+              .map((provider) =>
+                this.renderActionRow({
+                  focusKey: `integration:debrid:key:${provider.id}`,
+                  title: provider.displayName,
+                  value: t("debrid_connected", {}, "Connected"),
+                  icon: "chevron"
+                })
+              )
+              .join("")}
+          </div>
+        </div>
+      `;
+      }
+
       return `
         ${this.renderSectionHeader({ labelKey: "settings.integration.debrid.label", subtitleKey: "settings.integration.debrid.subtitle" })}
         <div class="settings-group-card settings-group-card-fill">
           <div class="settings-stack">
-            ${this.renderActionRow({
-              focusKey: "integration:back",
-              title: t("settings.integration.backToIntegrations.title"),
-              subtitle: t("settings.integration.backToIntegrations.subtitle"),
-              icon: "back"
-            })}
+            ${backRow}
             <div class="settings-group-heading">
               <div class="settings-group-title">${escapeHtml(t("debrid_experimental_notice", {}, "Experimental Direct Debrid integration"))}</div>
             </div>
-            ${!getSidecarCapabilities().debrid ? `<p class="sidecar-capability-message" data-sidecar-status="debrid">${escapeHtml(t("sidecar_debrid_unavailable", {}, sidecarUnavailableMessage("debrid")))}</p>` : ""}
             ${this.renderToggleRow({
               focusKey: "integration:debrid:cloud",
               title: t("settings.integration.debrid.cloud.title", {}, "Cloud library"),
@@ -5748,7 +5786,7 @@ export const SettingsScreen = {
                           { provider: provider.displayName },
                           `Connect your ${provider.displayName} account.`
                       ),
-                  value: ["torbox", "premiumize"].includes(provider.id) && !getSidecarCapabilities().debrid ? "Unavailable on this site" : maskValue(
+                  value: maskValue(
                     provider.authMethod === DEBRID_AUTH_METHODS.DEVICE_CODE
                       ? ""
                       : DebridProviders.apiKeyFor(model.debrid, provider.id),
@@ -6321,6 +6359,10 @@ export const SettingsScreen = {
   },
 
   renderIntegrationSection(model) {
+    // A remembered Debrid page falls back to the hub once there is nothing on it.
+    if (this.integrationView === "debrid" && !showDebridSettings(model.debrid)) {
+      this.integrationView = "hub";
+    }
     if (this.integrationView && this.integrationView !== "hub") {
       return this.renderIntegrationDetail(model, this.integrationView);
     }
@@ -8742,9 +8784,10 @@ export const SettingsScreen = {
            </div>`
         : `<p class="settings-row-subtitle">Connect Simkl to sync lists, watched history, playback progress, and scrobbles.</p>
            ${inlineButton("tracking:desktop:simkl:connect", "Connect Simkl")}`;
-    const traktBody = !getSidecarCapabilities().traktAuth
-      ? `<p class="sidecar-capability-message" data-sidecar-status="traktAuth">${escapeHtml(t("sidecar_trakt_unavailable", {}, sidecarUnavailableMessage("traktAuth")))}</p>${traktConnected ? inlineButton("tracking:desktop:trakt:disconnect", "Disconnect saved Trakt connection", "is-danger") : ""}`
-      : traktConnected
+    // Without Trakt sign-in on this site the row only stays for a saved
+    // connection, so it can be disconnected.
+    const showTrakt = getSidecarCapabilities().traktAuth || traktConnected;
+    const traktBody = traktConnected
       ? `<p class="settings-tracking-provider-status">Connected as ${escapeHtml(trakt.username || "Trakt user")}</p>
          ${inlineButton("tracking:desktop:trakt:disconnect", "Disconnect", "is-danger")}`
       : traktWaiting
@@ -8776,7 +8819,7 @@ export const SettingsScreen = {
       ${this.renderSectionHeader(SECTION_META.find((item) => item.id === "trakt"))}
       <div class="settings-group-card settings-group-card-fill">
         <div class="settings-stack settings-desktop-tracking-stack">
-          ${this.renderCollapsibleRow({ focusKey: "tracking:desktop:trakt", title: "Trakt", subtitle: !getSidecarCapabilities().traktAuth ? "Unavailable on this site" : traktConnected ? `Connected as ${trakt.username || "Trakt user"}` : traktWaiting ? "Waiting for approval" : traktBridgeStatus === "unavailable" ? "Unavailable on this server" : "Not connected", expanded: Boolean(expanded.trakt), bodyHtml: expanded.trakt ? `${traktBody}${this.desktopTraktErrorMessage ? `<p class="settings-tracking-error">${escapeHtml(this.desktopTraktErrorMessage)}</p>` : ""}` : "", classes: "settings-collapsible-tracking" })}
+          ${showTrakt ? this.renderCollapsibleRow({ focusKey: "tracking:desktop:trakt", title: "Trakt", subtitle: traktConnected ? `Connected as ${trakt.username || "Trakt user"}` : traktWaiting ? "Waiting for approval" : traktBridgeStatus === "unavailable" ? "Unavailable on this server" : "Not connected", expanded: Boolean(expanded.trakt), bodyHtml: expanded.trakt ? `${traktBody}${this.desktopTraktErrorMessage ? `<p class="settings-tracking-error">${escapeHtml(this.desktopTraktErrorMessage)}</p>` : ""}` : "", classes: "settings-collapsible-tracking" }) : ""}
           ${this.renderCollapsibleRow({ focusKey: "tracking:desktop:simkl", title: "Simkl", subtitle: simklConnected ? `Connected as ${simkl.username || "Simkl user"}` : simklWaiting ? "Waiting for approval" : "Not connected", expanded: Boolean(expanded.simkl), bodyHtml: expanded.simkl ? `${simklBody}${this.desktopSimklErrorMessage ? `<p class="settings-tracking-error">${escapeHtml(this.desktopSimklErrorMessage)}</p>` : ""}` : "", classes: "settings-collapsible-tracking" })}
           ${this.renderCollapsibleRow({ focusKey: "tracking:desktop:behavior", title: "Sources & Behavior", subtitle: "Choose the sources used for Library, progress, and related content.", expanded: Boolean(expanded.behavior), bodyHtml: expanded.behavior ? behaviorBody : "", classes: "settings-collapsible-tracking" })}
         </div>

@@ -8,9 +8,9 @@ test.beforeEach(async ({ context }) => {
   });
 });
 
-test("static bundled settings explain unavailable integrations without sidecar requests", async ({
+test("static bundled settings hide integrations that need a sidecar, without sidecar requests", async ({
   page,
-}, testInfo) => {
+}) => {
   const sidecarRequests = [];
   page.on("request", (request) => {
     if (
@@ -24,64 +24,25 @@ test("static bundled settings explain unavailable integrations without sidecar r
   await page.locator('[data-action="continueGuest"]').click();
   await page.getByRole("button", { name: "Settings", exact: true }).click();
   await page.locator('#settings [data-focus-key="nav:trakt"]').click();
-  const traktSection = page.locator('[data-focus-key="tracking:desktop:trakt"]');
-  // The row shows only a chevron, no "Open"/"Closed" text.
-  await expect(traktSection).not.toHaveClass(/is-open/);
-  await expect(traktSection).not.toContainText("Closed");
-  await traktSection.click();
-  await expect(traktSection).toHaveClass(/is-open/);
-  await expect(traktSection).not.toContainText("Open");
-  const trakt = page.locator('[data-sidecar-status="traktAuth"]');
-  await expect(trakt).toContainText("Continue without Trakt");
+  // Trakt sign-in is off on this build, so its row is not shown at all;
+  // Simkl works from the browser and stays.
   await expect(
-    page.locator('[data-focus-key="tracking:desktop:trakt:connect"]'),
+    page.locator('[data-focus-key="tracking:desktop:simkl"]'),
+  ).toBeVisible();
+  await expect(
+    page.locator('[data-focus-key="tracking:desktop:trakt"]'),
   ).toHaveCount(0);
-  for (const viewport of [
-    { width: 1280, height: 800 },
-    { width: 390, height: 844 },
-  ]) {
-    await page.setViewportSize(viewport);
-    await expect(trakt).toBeVisible();
-    const metrics = await trakt.evaluate((node) => ({
-      client: node.clientWidth,
-      scroll: node.scrollWidth,
-      font: getComputedStyle(node).fontSize,
-    }));
-    expect(metrics.scroll).toBeLessThanOrEqual(metrics.client);
-    expect(metrics.font).toBe("16px");
-    await page.screenshot({
-      path: testInfo.outputPath(`trakt-unavailable-${viewport.width}.png`),
-    });
-  }
-  await page.setViewportSize({ width: 1280, height: 800 });
   await page.getByRole("button", { name: "Settings", exact: true }).click();
   await page.locator('#settings [data-focus-key="nav:integration"]').click();
-  await page.locator('[data-focus-key="integration:hub:debrid"]').click();
-  const debrid = page.locator('[data-sidecar-status="debrid"]');
-  await expect(debrid).toContainText(
-    "Choose a direct compatible add-on source",
-  );
-  await page
-    .locator('[data-focus-key="integration:debrid:key:torbox"]')
-    .click();
-  await expect(debrid).toBeVisible();
-  for (const viewport of [
-    { width: 1280, height: 800 },
-    { width: 390, height: 844 },
-  ]) {
-    await page.setViewportSize(viewport);
-    const metrics = await debrid.evaluate((node) => ({
-      client: node.clientWidth,
-      scroll: node.scrollWidth,
-      font: getComputedStyle(node).fontSize,
-    }));
-    expect(metrics.scroll).toBeLessThanOrEqual(metrics.client);
-    expect(metrics.font).toBe("16px");
-    await page.screenshot({
-      path: testInfo.outputPath(`debrid-unavailable-${viewport.width}.png`),
-    });
-  }
-  await page.setViewportSize({ width: 1280, height: 800 });
+  // Every Debrid provider needs the bridge, so the whole entry is hidden.
+  await expect(
+    page.locator('[data-focus-key="integration:hub:tmdb"]'),
+  ).toBeVisible();
+  await expect(
+    page.locator('[data-focus-key="integration:hub:debrid"]'),
+  ).toHaveCount(0);
+  // No "unavailable on this site" explanations are left anywhere.
+  await expect(page.locator("[data-sidecar-status]")).toHaveCount(0);
   await page.getByRole("button", { name: "Settings", exact: true }).click();
   await page.locator('#settings [data-focus-key="nav:playback"]').click();
   await page.locator('[data-focus-key="playback:toggle:general"]').click();
