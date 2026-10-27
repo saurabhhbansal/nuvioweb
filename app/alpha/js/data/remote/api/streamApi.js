@@ -1,9 +1,12 @@
 import { httpRequest } from "../../../core/network/httpClient.js";
+import { addonFetch } from "../../../core/network/addonRequestScheduler.js";
 
 export const StreamApi = {
-  async getStreams(url) {
+  async getStreams(url, options = {}) {
     return httpRequest(url, {
-      includeSessionAuth: false
+      ...options,
+      includeSessionAuth: false,
+      fetchImpl: addonFetch
     });
   }
 };

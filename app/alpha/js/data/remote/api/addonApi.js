@@ -1,27 +1,36 @@
 import { httpRequest } from "../../../core/network/httpClient.js";
+import { addonFetch } from "../../../core/network/addonRequestScheduler.js";
 
 export const AddonApi = {
-  async getManifest(url) {
+  async getManifest(url, options = {}) {
     return httpRequest(url, {
-      includeSessionAuth: false
+      ...options,
+      includeSessionAuth: false,
+      fetchImpl: addonFetch
     });
   },
 
-  async getMeta(url) {
+  async getMeta(url, options = {}) {
     return httpRequest(url, {
-      includeSessionAuth: false
+      ...options,
+      includeSessionAuth: false,
+      fetchImpl: addonFetch
     });
   },
 
-  async getStreams(url) {
+  async getStreams(url, options = {}) {
     return httpRequest(url, {
-      includeSessionAuth: false
+      ...options,
+      includeSessionAuth: false,
+      fetchImpl: addonFetch
     });
   },
 
-  async getSubtitles(url) {
+  async getSubtitles(url, options = {}) {
     return httpRequest(url, {
-      includeSessionAuth: false
+      ...options,
+      includeSessionAuth: false,
+      fetchImpl: addonFetch
     });
   }
 };

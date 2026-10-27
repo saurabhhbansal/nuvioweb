@@ -10265,6 +10265,25 @@ export const HomeScreen = {
     return { ...result, data: { ...result.data, items: filtered } };
   },
 
+  // One AbortController per Home load generation. A newer generation can no
+  // longer commit an older one's rows, so its queued add-on requests are
+  // aborted instead of holding up the per-host request queue. Plain
+  // navigate-away keeps the current generation (see cleanup()).
+  homeCatalogSignal(token = this.homeLoadToken) {
+    const current = this.homeCatalogAbort;
+    if (current?.token === token) {
+      return current.controller.signal;
+    }
+    if (current && current.token > token) {
+      // A stale caller must not cancel the newer generation's requests.
+      return null;
+    }
+    current?.controller.abort();
+    const controller = new AbortController();
+    this.homeCatalogAbort = { token, controller };
+    return controller.signal;
+  },
+
   async fetchCatalogRows(descriptors = [], options = {}) {
     const allowLoading = Boolean(options?.allowLoading);
     const timeoutMs = Number(options?.timeoutMs || HOME_ROW_TIMEOUT_MS);
@@ -10274,6 +10293,7 @@ export const HomeScreen = {
     const onRow = typeof options?.onRow === "function" ? options.onRow : null;
     const fetchedRows = [];
     const normalizedDescriptors = Array.isArray(descriptors) ? descriptors : [];
+    const catalogSignal = this.homeCatalogSignal();
 
     const fetchBatch = async (batchDescriptors = []) => {
       const rowResults = await Promise.all(
@@ -10288,7 +10308,8 @@ export const HomeScreen = {
                 catalogName: catalog.catalogName,
                 type: catalog.type,
                 skip: 0,
-                supportsSkip: true
+                supportsSkip: true,
+                signal: catalogSignal
               }),
               timeoutMs,
               { status: "error", message: "timeout" }
@@ -10383,6 +10404,7 @@ export const HomeScreen = {
       return;
     }
     const token = this.homeLoadToken;
+    const catalogSignal = this.homeCatalogSignal(token);
     this.catalogRetryInFlight = true;
     const retryBatchSize = Math.max(
       1,
@@ -10405,7 +10427,8 @@ export const HomeScreen = {
                   catalogName: row.catalogName,
                   type: row.type,
                   skip: 0,
-                  supportsSkip: true
+                  supportsSkip: true,
+                  signal: catalogSignal
                 }),
                 HOME_ROW_RETRY_TIMEOUT_MS,
                 { status: "error", message: "timeout" }
@@ -12856,6 +12879,7 @@ export const HomeScreen = {
         this._trackPaginationInFlight = this._trackPaginationInFlight || new Set();
         this._trackPaginationInFlight.add(rowKey);
         const token = this.homeLoadToken;
+        const catalogSignal = this.homeCatalogSignal(token);
         let shouldRequestAnotherPage = false;
         catalogRepository
           .getCatalog({
@@ -12866,7 +12890,8 @@ export const HomeScreen = {
             catalogName: rowData.catalogName || "",
             type: rowData.type || "movie",
             skip,
-            supportsSkip: true
+            supportsSkip: true,
+            signal: catalogSignal
           })
           .then((result) => {
             if (token !== this.homeLoadToken || result?.status !== "success") {
