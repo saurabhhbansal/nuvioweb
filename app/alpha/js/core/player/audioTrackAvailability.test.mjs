@@ -10,7 +10,7 @@ test("two or more listed tracks are switchable with no explanation", () => {
   for (const playbackEngine of ["hls.js", "dash.js", "native-file"]) {
     assert.deepEqual(
       describeAudioTrackAvailability({ playbackEngine, nativeTrackListAvailable: true, trackCount: 3 }),
-      { kind: "switchable", message: "" }
+      { kind: "switchable", message: "", offerExternalPlayer: false }
     );
   }
 });
@@ -18,7 +18,8 @@ test("two or more listed tracks are switchable with no explanation", () => {
 test("a single listed track says the source has only one", () => {
   assert.deepEqual(describeAudioTrackAvailability({ playbackEngine: "hls.js", trackCount: 1 }), {
     kind: "single",
-    message: AUDIO_AVAILABILITY_MESSAGES.single
+    message: AUDIO_AVAILABILITY_MESSAGES.single,
+    offerExternalPlayer: false
   });
 });
 
@@ -31,6 +32,7 @@ test("a single file in a browser without audioTracks says the browser cannot swi
   assert.equal(result.kind, "browser-cannot-list");
   assert.match(result.message, /can't list or switch the audio tracks inside a single video file/);
   assert.match(result.message, /external player/);
+  assert.equal(result.offerExternalPlayer, true);
 });
 
 test("a single file in a browser with audioTracks but none listed says none", () => {
@@ -77,4 +79,36 @@ test("an adaptive manifest still loading reports loading before anything else", 
 test("missing or junk input falls back to the browser explanation", () => {
   assert.equal(describeAudioTrackAvailability().kind, "browser-cannot-list");
   assert.equal(describeAudioTrackAvailability({ trackCount: "x" }).kind, "browser-cannot-list");
+});
+
+test("listed tracks the browser cannot decode point at an external player", () => {
+  for (const playbackEngine of ["hls.js", "dash.js", "native-file"]) {
+    const result = describeAudioTrackAvailability({
+      playbackEngine,
+      nativeTrackListAvailable: true,
+      trackCount: 2,
+      supportedTrackCount: 0
+    });
+    assert.equal(result.kind, "unsupported-codec");
+    assert.match(result.message, /AC-3, E-AC-3 or DTS/);
+    assert.equal(result.offerExternalPlayer, true);
+  }
+});
+
+test("one decodable track among several keeps the picker switchable", () => {
+  const result = describeAudioTrackAvailability({
+    playbackEngine: "hls.js",
+    trackCount: 3,
+    supportedTrackCount: 1
+  });
+  assert.equal(result.kind, "switchable");
+  assert.equal(result.offerExternalPlayer, false);
+});
+
+test("only browser-limited cases offer the external player", () => {
+  assert.equal(describeAudioTrackAvailability({ playbackEngine: "hls.js", trackCount: 0 }).offerExternalPlayer, false);
+  assert.equal(
+    describeAudioTrackAvailability({ playbackEngine: "native-file", nativeTrackListAvailable: true }).offerExternalPlayer,
+    false
+  );
 });

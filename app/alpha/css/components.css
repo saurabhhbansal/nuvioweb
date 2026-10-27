@@ -14319,8 +14319,13 @@ html[data-card-depth="true"][data-card-depth-trailers="true"] .detail-trailer-ca
     border-color 120ms ease;
 }
 
-.player-audio-toggle {
+.player-audio-toggle,
+.player-audio-action {
   padding: min(0.73vw, 14px) min(1.04vw, 20px); /* ATV persist 7/10dp -> 14/20px */
+}
+
+.player-audio-action {
+  cursor: pointer;
 }
 
 .player-audio-control-card > .player-audio-control-title,

@@ -1,5 +1,13 @@
 // Explains, in plain words, why the audio picker has nothing (or only one
-// track) to offer. Switching itself lives in PlayerController.
+// track) to offer, and whether to point the viewer at an external player.
+// Switching itself lives in PlayerController.
+//
+// What the browser can switch today (see the audio tracks PR notes):
+//   HLS via hls.js, DASH via dash.js     every browser with Media Source Extensions
+//   native HLS / single files            Safari (HTMLMediaElement.audioTracks)
+//   single MP4/MKV/WebM files            not in Chrome, Edge or Firefox: they hide
+//                                        audioTracks behind a flag and play the
+//                                        file's default track only.
 
 const ADAPTIVE_ENGINES = new Set(["hls.js", "dash.js", "native-hls", "native-dash"]);
 
@@ -9,7 +17,9 @@ export const AUDIO_AVAILABILITY_MESSAGES = {
     "This browser can't list or switch the audio tracks inside a single video file, so it plays the file's default track. To hear another language, use an external player or pick a source in that language.",
   adaptiveNone: "This stream has no separate audio tracks. It plays its built-in audio.",
   nativeNone: "No audio tracks available.",
-  single: "This source has only one audio track."
+  single: "This source has only one audio track.",
+  unsupportedCodec:
+    "This browser can't play any of this source's audio tracks (for example AC-3, E-AC-3 or DTS). Use an external player or pick another source."
 };
 
 /**
@@ -18,32 +28,47 @@ export const AUDIO_AVAILABILITY_MESSAGES = {
  * @param {boolean} [input.adaptiveSource] The source URL or type is an HLS/DASH manifest.
  * @param {boolean} [input.nativeTrackListAvailable] The video element exposes `audioTracks`.
  * @param {number} [input.trackCount] Tracks the picker can list.
+ * @param {number} [input.supportedTrackCount] Listed tracks whose codec this browser can decode.
+ *   Defaults to `trackCount`.
  * @param {boolean} [input.loading] An adaptive manifest is still being read.
- * @returns {{ kind: string, message: string }}
+ * @returns {{ kind: string, message: string, offerExternalPlayer: boolean }}
  */
 export function describeAudioTrackAvailability({
   playbackEngine = "none",
   nativeTrackListAvailable = false,
   adaptiveSource = false,
   trackCount = 0,
+  supportedTrackCount = undefined,
   loading = false
 } = {}) {
   const count = Math.max(0, Number(trackCount) || 0);
+  const supportedInput = Number(supportedTrackCount);
+  const supported = Number.isFinite(supportedInput)
+    ? Math.min(count, Math.max(0, supportedInput))
+    : count;
   const adaptive = Boolean(adaptiveSource) || ADAPTIVE_ENGINES.has(String(playbackEngine || ""));
+  const result = (kind, message, offerExternalPlayer = false) => ({
+    kind,
+    message,
+    offerExternalPlayer
+  });
+  if (count >= 1 && supported === 0) {
+    return result("unsupported-codec", AUDIO_AVAILABILITY_MESSAGES.unsupportedCodec, true);
+  }
   if (count >= 2) {
-    return { kind: "switchable", message: "" };
+    return result("switchable", "");
   }
   if (count === 1) {
-    return { kind: "single", message: AUDIO_AVAILABILITY_MESSAGES.single };
+    return result("single", AUDIO_AVAILABILITY_MESSAGES.single);
   }
   if (loading) {
-    return { kind: "loading", message: AUDIO_AVAILABILITY_MESSAGES.loading };
+    return result("loading", AUDIO_AVAILABILITY_MESSAGES.loading);
   }
   if (adaptive) {
-    return { kind: "adaptive-none", message: AUDIO_AVAILABILITY_MESSAGES.adaptiveNone };
+    return result("adaptive-none", AUDIO_AVAILABILITY_MESSAGES.adaptiveNone);
   }
   if (!nativeTrackListAvailable) {
-    return { kind: "browser-cannot-list", message: AUDIO_AVAILABILITY_MESSAGES.browserCannotList };
+    return result("browser-cannot-list", AUDIO_AVAILABILITY_MESSAGES.browserCannotList, true);
   }
-  return { kind: "none", message: AUDIO_AVAILABILITY_MESSAGES.nativeNone };
+  return result("none", AUDIO_AVAILABILITY_MESSAGES.nativeNone);
 }

@@ -5,7 +5,8 @@ import {
   audioTrackLabelConflictsWithCodec,
   formatAudioCodecName,
   getAuthoritativeAudioCodecValue,
-  getAudioTrackLabelPrefix
+  getAudioTrackLabelPrefix,
+  isAudioTrackCodecDecodable
 } from "../../../core/player/audioTrackCodecMetadata.js";
 import {
   canReleasePlayingStartupAudioGate,
@@ -560,10 +561,25 @@ function getTrackMetadataStrings(track = {}) {
   return values;
 }
 
-function getAudioTrackSupportState(_track = {}) {
+function getAudioTrackSupportState(track = {}) {
+  // Adaptive engines decode through Media Source Extensions; files and native
+  // HLS through the media element itself.
+  const adaptive = track?.engine === "hls.js" || track?.engine === "dash.js";
+  const mediaSource = globalThis.ManagedMediaSource || globalThis.MediaSource || null;
+  const video = PlayerController.video;
+  const supported = isAudioTrackCodecDecodable(track, {
+    isTypeSupported:
+      adaptive && typeof mediaSource?.isTypeSupported === "function"
+        ? (mime) => mediaSource.isTypeSupported(mime)
+        : undefined,
+    canPlayType:
+      !adaptive && typeof video?.canPlayType === "function"
+        ? (mime) => video.canPlayType(mime)
+        : undefined
+  });
   return {
-    supported: true,
-    unsupportedReason: null
+    supported,
+    unsupportedReason: supported ? null : "codec"
   };
 }
 
@@ -3554,13 +3570,14 @@ export const PlayerScreen = {
     return normalizedSourceType === "video/x-matroska";
   },
 
-  getAudioTrackAvailability(trackCount = 0) {
+  getAudioTrackAvailability(trackCount = 0, supportedTrackCount = trackCount) {
     const adaptiveSource = !trackCount && this.isCurrentSourceAdaptiveManifest();
     return describeAudioTrackAvailability({
       playbackEngine: PlayerController.playbackEngine,
       nativeTrackListAvailable: Boolean(this.getVideoAudioTrackList()),
       adaptiveSource,
       trackCount,
+      supportedTrackCount,
       loading: adaptiveSource && Boolean(this.manifestLoading || this.trackDiscoveryInProgress)
     });
   },
@@ -13979,21 +13996,8 @@ export const PlayerScreen = {
     this.renderAudioDialog();
   },
 
-  renderAudioDialog() {
-    const dialog = this.uiRefs?.audioDialog;
-    if (!dialog) {
-      return;
-    }
-
-    dialog.classList.toggle("hidden", !this.audioDialogVisible);
-    if (!this.audioDialogVisible) {
-      dialog.innerHTML = "";
-      return;
-    }
-
-    const entries = this.getAudioEntries();
-    const hasSupportedEntries = entries.some((entry) => entry?.supported !== false);
-    const audioControls = [
+  getAudioDialogControls(availability = null) {
+    const controls = [
       {
         id: "amplification",
         title: t("audio_mix_label", {}, "Audio boost"),
@@ -14024,15 +14028,50 @@ export const PlayerScreen = {
         toggle: true
       }
     ];
+    if (availability?.offerExternalPlayer && this.canOpenInExternalPlayer()) {
+      controls.push({
+        id: "external-player",
+        title: t("external_player_title", {}, "Open in another player"),
+        value: "",
+        helper: t(
+          "player.audio.externalPlayerHelp",
+          {},
+          "Another player can switch this source's audio track"
+        ),
+        enabled: true,
+        action: true
+      });
+    }
+    return controls;
+  },
+
+  renderAudioDialog() {
+    const dialog = this.uiRefs?.audioDialog;
+    if (!dialog) {
+      return;
+    }
+
+    dialog.classList.toggle("hidden", !this.audioDialogVisible);
+    if (!this.audioDialogVisible) {
+      dialog.innerHTML = "";
+      return;
+    }
+
+    const entries = this.getAudioEntries();
+    const hasSupportedEntries = entries.some((entry) => entry?.supported !== false);
+    const availability = this.getAudioTrackAvailability(
+      entries.length,
+      entries.filter((entry) => entry?.supported !== false).length
+    );
+    const audioControls = this.getAudioDialogControls(availability);
     this.audioMixFocusIndex = clamp(this.audioMixFocusIndex, 0, audioControls.length - 1);
-    const availability = this.getAudioTrackAvailability(entries.length);
     if (!entries.length) {
       this.audioFocusedColumn = "controls";
       const loading = availability.kind === "loading";
       const emptyMessage = availability.message;
       dialog.innerHTML = `
         <div class="player-dialog-title">${escapeHtml(t("audio_dialog_title", {}, "Audio"))}</div>
-        <div class="player-dialog-empty${loading ? " player-dialog-loading" : ""}">
+        <div class="player-dialog-empty${loading ? " player-dialog-loading" : ""}" data-audio-availability="${escapeHtml(availability.kind)}">
           ${loading ? renderLoadingIndicator() : ""}
           <span>${escapeHtml(emptyMessage)}</span>
         </div>
@@ -14046,7 +14085,7 @@ export const PlayerScreen = {
     this.audioDialogIndex = clamp(this.audioDialogIndex, 0, entries.length - 1);
     dialog.innerHTML = `
       <div class="player-dialog-title">${escapeHtml(t("audio_dialog_title", {}, "Audio"))}</div>
-      ${hasSupportedEntries ? "" : `<div class="player-audio-support-message">${escapeHtml(t("player.audio.noSupportedTracks", {}, "No supported audio tracks available"))}</div>`}
+      ${hasSupportedEntries ? "" : `<div class="player-audio-support-message" data-audio-availability="${escapeHtml(availability.kind)}">${escapeHtml(availability.message || t("player.audio.noSupportedTracks", {}, "No supported audio tracks available"))}</div>`}
       ${hasSupportedEntries && availability.kind === "single" ? `<div class="player-audio-support-message" data-audio-availability="single">${escapeHtml(availability.message)}</div>` : ""}
       <div class="player-audio-overlay-grid">
         <div class="player-dialog-list player-audio-track-list">
@@ -14087,6 +14126,14 @@ export const PlayerScreen = {
 
   renderAudioControlItem(control, index) {
     const focused = this.audioFocusedColumn === "controls" && index === this.audioMixFocusIndex;
+    if (control.action) {
+      return `
+        <div class="player-audio-control-card player-audio-action focusable${focused ? " focused" : ""}" role="button" data-audio-column="controls" data-audio-index="${index}" data-audio-action="${escapeHtml(control.id)}">
+          <div class="player-dialog-item-main">${escapeHtml(control.title)}</div>
+          <div class="player-dialog-item-sub">${escapeHtml(control.helper || "")}</div>
+        </div>
+      `;
+    }
     if (control.toggle) {
       return `
         <div class="player-audio-control-card player-audio-toggle focusable${this.persistAudioAmplification ? " selected" : ""}${focused ? " focused" : ""}" data-audio-column="controls" data-audio-index="${index}">
@@ -14108,12 +14155,28 @@ export const PlayerScreen = {
     `;
   },
 
+  getCurrentAudioDialogControls() {
+    const entries = this.getAudioEntries();
+    return this.getAudioDialogControls(
+      this.getAudioTrackAvailability(
+        entries.length,
+        entries.filter((entry) => entry?.supported !== false).length
+      )
+    );
+  },
+
   activateAudioControl(direction = 0) {
-    if (this.audioMixFocusIndex === 0) {
+    const control = this.getCurrentAudioDialogControls()[this.audioMixFocusIndex] || null;
+    if (control?.id === "amplification") {
       if (!this.audioAmplificationAvailable) {
         return;
       }
       this.adjustAudioAmplification(direction < 0 ? -1 : 1);
+      return;
+    }
+    if (control?.id === "external-player") {
+      this.closeAudioDialog();
+      this.openExternalPlayerChooser();
       return;
     }
     this.togglePersistAudioAmplification();
@@ -14169,7 +14232,11 @@ export const PlayerScreen = {
       if (this.audioFocusedColumn === "tracks") {
         this.audioDialogIndex = clamp(this.audioDialogIndex - 1, 0, entries.length - 1);
       } else {
-        this.audioMixFocusIndex = clamp(this.audioMixFocusIndex - 1, 0, 1);
+        this.audioMixFocusIndex = clamp(
+          this.audioMixFocusIndex - 1,
+          0,
+          this.getCurrentAudioDialogControls().length - 1
+        );
       }
       this.renderAudioDialog();
       return true;
@@ -14179,7 +14246,11 @@ export const PlayerScreen = {
       if (this.audioFocusedColumn === "tracks") {
         this.audioDialogIndex = clamp(this.audioDialogIndex + 1, 0, entries.length - 1);
       } else {
-        this.audioMixFocusIndex = clamp(this.audioMixFocusIndex + 1, 0, 1);
+        this.audioMixFocusIndex = clamp(
+          this.audioMixFocusIndex + 1,
+          0,
+          this.getCurrentAudioDialogControls().length - 1
+        );
       }
       this.renderAudioDialog();
       return true;
