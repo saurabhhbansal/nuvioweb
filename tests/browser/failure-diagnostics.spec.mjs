@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { installFakeAccount, openSignedInHome } from "./fakeAccount.mjs";
 
 test("failure overlay renders bounded reason, next action and redacted downloadable JSON", async ({ page }) => {
   await page.goto("/__fixture/harness");
@@ -46,8 +47,8 @@ test("header diagnosis coexists with the real blocked-handoff dialog and export 
   await context.route("**/*", route => ["http://127.0.0.1:4371", provider].includes(new URL(route.request().url()).origin) ? route.continue() : route.abort("blockedbyclient"));
   await context.addInitScript(provider => localStorage.setItem("installedAddonUrls", JSON.stringify({ __profileScoped: true, version: 1, profiles: { 1: [`${provider}/startup-header-required`] } })), provider);
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/");
-  await page.locator('[data-action="continueGuest"]').click();
+  await installFakeAccount(context, { addons: [`${provider}/startup-header-required`] });
+  await openSignedInHome(page, { expect });
   await page.locator('#home .home-poster-card[data-item-id="fixture:original"]').first().click();
   await page.locator('button[data-action="playDefault"]').click();
   await page.locator('[data-action="playStream"]').click();

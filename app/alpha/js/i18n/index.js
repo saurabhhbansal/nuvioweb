@@ -357,7 +357,6 @@ const KEY_ALIASES = {
   "auth.qr.cardTitle": "auth_qr_account_login",
   "auth.qr.codeLabel": "auth_qr_code_label",
   "auth.qr.continue": "auth_qr_continue",
-  "auth.qr.continueWithoutAccount": "auth_qr_continue_without_account",
   "auth.qr.imageUnavailable": "auth_qr_image_unavailable",
   "auth.qr.expired": "qr_login_expired",
   "auth.qr.leftDescriptionSignedIn": "auth_qr_connected",

@@ -1,8 +1,9 @@
 import { test, expect } from "@playwright/test";
+import { enterPastStartup, installFakeAccount, openSignedInHome } from "./fakeAccount.mjs";
 
 const provider = "http://127.0.0.1:4373";
 
-test("guest installs a legal add-on, saves its item, uses player controls and retains it on reload", async ({ page, context, browser }, testInfo) => {
+test("signed-in user installs a legal add-on, saves its item, uses player controls and retains it on reload", async ({ page, context, browser }, testInfo) => {
   const pageErrors = [];
   page.on("pageerror", error => pageErrors.push(error.message));
   await context.route("**/*", async route => {
@@ -14,15 +15,15 @@ test("guest installs a legal add-on, saves its item, uses player controls and re
     window.addEventListener("popstate", event => globalThis.__mvpBackEvents.push({ route: event.state?.route, marker: event.state?.__nuvioHistory }));
     if (!localStorage.getItem("installedAddonUrls")) localStorage.setItem("installedAddonUrls", JSON.stringify({ __profileScoped: true, version: 1, profiles: { "1": [] } }));
   });
-  await page.goto("/");
-  await page.locator('[data-action="continueGuest"]').click();
+  const account = await installFakeAccount(context);
+  await openSignedInHome(page, { expect });
   await page.getByRole("button", { name: "Settings", exact: true }).click();
   await page.locator('[data-focus-key="nav:contentDiscovery"]').click();
   await page.locator('[data-focus-key="contentDiscovery:addons"]').click();
   await page.locator("#desktop-addon-url").fill(`${provider}/basic/manifest.json`);
   await page.getByRole("button", { name: "Add Addon", exact: true }).click();
   await expect(page.locator(".settings-shell .desktop-addon-inline-status[role=status]")).toHaveCount(1);
-  await expect(page.locator(".settings-shell .desktop-addon-inline-status[role=status]")).toHaveText("Saved locally");
+  await expect(page.locator(".settings-shell .desktop-addon-inline-status[role=status]")).toHaveText("Synced");
   await page.getByRole("button", { name: "Home", exact: true }).click();
   await page.locator('#home .home-poster-card[data-item-id="fixture:original"]').first().click();
   await expect(page.getByRole("heading", { name: "Original Legal Fixture", exact: true })).toBeVisible();
@@ -80,9 +81,11 @@ test("guest installs a legal add-on, saves its item, uses player controls and re
   await expect(page.locator("#home")).toBeVisible();
   await page.getByRole("button", { name: "Library", exact: true }).click();
   await expect(page.locator('#library .library-grid-card[data-item-id="fixture:original"]')).toBeVisible();
+  // Both reached the account, not only this device.
+  await expect.poll(() => account.store.get("addons:1")?.map(row => row.url)).toEqual([`${provider}/basic`]);
+  await expect.poll(() => account.store.get("library:1")?.map(row => row.content_id)).toEqual(["fixture:original"]);
   await page.reload();
-  await page.locator('#profileSelection [data-profile-id="1"]').click();
-  await page.getByRole("button", { name: "Skip setup", exact: true }).click();
+  await enterPastStartup(page, { expect });
   // The reload comes back to Library, with Home behind it.
   await expect(page.locator('#library .library-grid-card[data-item-id="fixture:original"]')).toBeVisible();
   await page.goBack();
@@ -102,8 +105,8 @@ test("source Back returns to detail both before and after opening the bundled pl
     globalThis.__mvpBackEvents = [];
     window.addEventListener("popstate", event => globalThis.__mvpBackEvents.push({ route: event.state?.route, marker: event.state?.__nuvioHistory }));
   }, provider);
-  await page.goto("/");
-  await page.locator('[data-action="continueGuest"]').click();
+  await installFakeAccount(context, { addons: [`${provider}/basic`] });
+  await openSignedInHome(page, { expect });
   await page.locator('#home .home-poster-card[data-item-id="fixture:original"]').first().click();
   await page.locator('button[data-action="playDefault"]').click();
   await page.locator("[data-stream-desktop-back]").click();

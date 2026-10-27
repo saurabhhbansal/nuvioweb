@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { installFakeAccount, openSignedInHome } from "./fakeAccount.mjs";
 
 const provider = "http://127.0.0.1:4373";
 const original = [
@@ -42,8 +43,8 @@ test("source list keeps add-on order with compact hints and fits a phone", async
       ),
     provider,
   );
-  await page.goto("/");
-  await page.locator('[data-action="continueGuest"]').click();
+  await installFakeAccount(context, { addons: [`${provider}/source-order`] });
+  await openSignedInHome(page, { expect });
   await page
     .locator('#home .home-poster-card[data-item-id="fixture:original"]')
     .first()

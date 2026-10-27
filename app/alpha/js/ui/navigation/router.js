@@ -243,6 +243,13 @@ export const Router = {
   // A route the page was opened on (a reload or a shared link), held until the
   // sign-in and profile flow first reaches Home, then opened over it.
   pendingDeepLink: null,
+  // Set by app.js: (routeName) => null to allow the route, or the name of the
+  // route to open instead. Kept as a hook so the router needs no auth import.
+  accessGuard: null,
+
+  setAccessGuard(guard) {
+    this.accessGuard = typeof guard === "function" ? guard : null;
+  },
 
   // Screens already loaded, by route. The rest are listed in LAZY_ROUTES and
   // land here the first time ensureRoute() fetches them.
@@ -1059,6 +1066,15 @@ export const Router = {
     const skipStackPush = Boolean(options?.skipStackPush);
     const replaceHistory = Boolean(options?.replaceHistory);
     const targetParams = params || {};
+
+    // Every screen past sign-in needs a Nuvio account. A route refused here
+    // (a Back into an old entry, a stray navigate while signed out) opens the
+    // sign-in screen in its place instead.
+    const redirectRoute = this.accessGuard ? this.accessGuard(routeName) : null;
+    if (redirectRoute && redirectRoute !== routeName) {
+      return this.navigate(redirectRoute, {}, { replaceHistory: true, skipStackPush: true });
+    }
+
     const navigationToken = {};
     this.latestNavigation = navigationToken;
 
