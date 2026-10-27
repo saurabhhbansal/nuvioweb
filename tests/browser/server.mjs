@@ -8,12 +8,18 @@ const navigationAliases = new Set((await readFile(new URL("../../deploy/cloudfla
   .split("\n").filter((line) => line && !line.startsWith("#")).map((line) => line.split(" ")[0]));
 const headerRules = (await readFile(new URL("../../deploy/cloudflare/_headers", import.meta.url), "utf8"))
   .split(/\n\s*\n/).map((block) => block.split("\n").filter((line) => line.trim() && !line.startsWith("#")))
-  .filter((lines) => lines.length).map(([path,...lines]) => ({path, headers: lines.map((line) => {
-    const colon = line.indexOf(":"); return [line.slice(0,colon).trim(), line.slice(colon+1).trim()];
-  })}));
+  .filter((lines) => lines.length).map(([path,...lines]) => ({
+    path: path.trim(),
+    // "! Name" detaches a header an earlier matching rule set, as Cloudflare does.
+    detach: lines.filter((line) => line.trim().startsWith("!")).map((line) => line.trim().slice(1).trim().toLowerCase()),
+    headers: lines.filter((line) => !line.trim().startsWith("!")).map((line) => {
+      const colon = line.indexOf(":"); return [line.slice(0,colon).trim(), line.slice(colon+1).trim()];
+    })
+  }));
 function headersFor(path) {
   const headers = {};
   for (const rule of headerRules) if (rule.path === "/*" || rule.path === path) {
+    for (const name of Object.keys(headers)) if (rule.detach.includes(name.toLowerCase())) delete headers[name];
     for (const [name,value] of rule.headers) headers[name] = headers[name] ? `${headers[name]}, ${value}` : value;
   }
   return headers;

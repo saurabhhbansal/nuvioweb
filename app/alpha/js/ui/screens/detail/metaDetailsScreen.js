@@ -1,3 +1,4 @@
+import { imageFallbackAttribute } from "../../imageFallback.js";
 import { showLibraryStorageError } from "../../components/libraryStorageError.js";
 import { Router } from "../../navigation/router.js";
 import { ScreenUtils } from "../../navigation/screen.js";
@@ -842,7 +843,7 @@ function renderImdbBadge(rating) {
 }
 
 function renderImdbLogo() {
-  return `<img src="assets/icons/imdb_logo_2016.svg" alt="IMDb" onerror="this.hidden=true;this.nextElementSibling.hidden=false" /><span class="detail-imdb-text-fallback" hidden>IMDb</span>`;
+  return `<img src="assets/icons/imdb_logo_2016.svg" alt="IMDb"${imageFallbackAttribute("hide-reveal")} /><span class="detail-imdb-text-fallback" hidden>IMDb</span>`;
 }
 
 function formatRatingValue(value, { digits = 1, stripTrailingZero = false } = {}) {
@@ -1050,7 +1051,7 @@ function renderStreamAddonIcon(addonName = "") {
   }
   return `
     <span class="series-stream-addon-badge" aria-hidden="true">
-      <img class="series-stream-addon-icon" src="${escapeHtml(iconPath)}" alt="" decoding="async" onerror="this.hidden=true;var fallback=this.nextElementSibling;if(fallback){fallback.hidden=false;}" />
+      <img class="series-stream-addon-icon" src="${escapeHtml(iconPath)}" alt="" decoding="async"${imageFallbackAttribute("hide-reveal")} />
       <span class="series-stream-addon-fallback" hidden>${fallback}</span>
     </span>
   `;
@@ -4287,7 +4288,7 @@ export const MetaDetailsScreen = {
     const logoOrTitle = this.holdDetailArtwork
       ? '<div class="series-detail-logo-skeleton" aria-hidden="true"></div>'
       : meta.logo
-        ? `<img src="${capTmdbImageSize(meta.logo, "heroLogo")}" class="series-detail-logo" alt="${escapeHtml(meta.name || "logo")}" decoding="async" fetchpriority="high" onerror="this.hidden=true;this.nextElementSibling.hidden=false" /><h1 class="series-detail-title" title="${escapeHtml(meta.name || "Untitled")}" onclick="this.classList.toggle('is-expanded')" hidden>${escapeHtml(meta.name || "Untitled")}</h1>`
+        ? `<img src="${capTmdbImageSize(meta.logo, "heroLogo")}" class="series-detail-logo" alt="${escapeHtml(meta.name || "logo")}" decoding="async" fetchpriority="high"${imageFallbackAttribute("hide-reveal")} /><h1 class="series-detail-title" title="${escapeHtml(meta.name || "Untitled")}" data-toggle-expanded hidden>${escapeHtml(meta.name || "Untitled")}</h1>`
         : `<h1 class="series-detail-title">${escapeHtml(meta.name || "Untitled")}</h1>`;
     const externalRatings = this.holdDetailRatings
       ? '<div class="detail-ratings-row detail-ratings-skeleton" aria-hidden="true"><span></span><span></span><span></span></div>'
@@ -4962,7 +4963,7 @@ export const MetaDetailsScreen = {
         <div class="movie-cast-avatar">
           ${
             person.photo
-              ? `<img class="movie-cast-avatar-image" src="${escapeAttribute(person.photo)}" alt="" loading="lazy" decoding="async" onerror="this.hidden=true" />`
+              ? `<img class="movie-cast-avatar-image" src="${escapeAttribute(person.photo)}" alt="" loading="lazy" decoding="async"${imageFallbackAttribute("hide")} />`
               : ""
           }
         </div>
@@ -8338,7 +8339,7 @@ export const MetaDetailsScreen = {
         <div class="detail-morelike-poster-wrap">
           ${
             primaryImage
-              ? `<img class="detail-morelike-poster-image" src="${escapeHtml(primaryImage)}" alt="${escapeHtml(item.name || "content")}" loading="lazy" decoding="async"${fallbackImage ? ` data-fallback-src="${escapeHtml(fallbackImage)}"` : ""} onerror="var next=this.dataset.fallbackSrc||''; if(next && this.src !== next){ this.src = next; this.dataset.fallbackSrc=''; return; } this.hidden = true; var placeholder = this.nextElementSibling; if(placeholder){ placeholder.hidden = false; }" />`
+              ? `<img class="detail-morelike-poster-image" src="${escapeHtml(primaryImage)}" alt="${escapeHtml(item.name || "content")}" loading="lazy" decoding="async"${fallbackImage ? ` data-fallback-src="${escapeHtml(fallbackImage)}"` : ""}${imageFallbackAttribute("src-then-hide-reveal")} />`
               : ""
           }
           <div class="detail-morelike-poster placeholder"${primaryImage ? " hidden" : ""}></div>

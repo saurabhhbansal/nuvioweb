@@ -1,3 +1,4 @@
+import { imageFallbackAttribute } from "../../imageFallback.js";
 import { ScreenUtils } from "../../navigation/screen.js";
 import { Router } from "../../navigation/router.js";
 import { Platform } from "../../../platform/index.js";
@@ -527,7 +528,7 @@ export const SupportersContributorsScreen = {
         <span class="supporters-avatar supporters-avatar-image">
           ${
             contributor.avatarUrl
-              ? `<img src="${escapeHtml(contributor.avatarUrl)}" alt="${escapeHtml(contributor.name)}" loading="lazy" decoding="async" onerror="this.hidden=true;this.nextElementSibling.hidden=false;" />`
+              ? `<img src="${escapeHtml(contributor.avatarUrl)}" alt="${escapeHtml(contributor.name)}" loading="lazy" decoding="async"${imageFallbackAttribute("hide-reveal")} />`
               : ""
           }
           <span${contributor.avatarUrl ? " hidden" : ""}>${escapeHtml(initialsForName(contributor.name))}</span>
@@ -614,7 +615,7 @@ export const SupportersContributorsScreen = {
       body: `
         <div class="supporters-dialog-person-row">
           <span class="supporters-avatar supporters-avatar-image large">
-            ${contributor.avatarUrl ? `<img src="${escapeHtml(contributor.avatarUrl)}" alt="${escapeHtml(contributor.name)}" onerror="this.hidden=true;this.nextElementSibling.hidden=false;" />` : ""}
+            ${contributor.avatarUrl ? `<img src="${escapeHtml(contributor.avatarUrl)}" alt="${escapeHtml(contributor.name)}"${imageFallbackAttribute("hide-reveal")} />` : ""}
             <span${contributor.avatarUrl ? " hidden" : ""}>${escapeHtml(initialsForName(contributor.name))}</span>
           </span>
           <div>

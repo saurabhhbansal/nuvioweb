@@ -27,7 +27,17 @@ async function checkServedFiles() {
     assert.match(cacheControl,/no-cache/);
     if (["sw.js","nuvio.env.js"].includes(path)) assert.match(cacheControl,/no-store/);
     assert.equal(response.headers.get("x-content-type-options"),"nosniff");
+    if (path === "index.html") {
+      const csp = response.headers.get("content-security-policy") || "";
+      for (const directive of ["default-src 'self'","object-src 'none'","base-uri 'self'","frame-ancestors 'none'"]) assert.ok(csp.includes(directive),`CSP lacks ${directive}`);
+      assert.ok(!/script-src[^;]*'unsafe-(inline|eval)'/.test(csp),"app CSP must not allow inline script or eval");
+      assert.equal(response.headers.get("cross-origin-opener-policy"),"same-origin");
+    }
   }
+  // Only the plugin worker may eval, and it carries that one policy, not two.
+  const workerCsp = (await fetch(`${origin}/plugin-worker.bundle.js`,{signal:AbortSignal.timeout(20000)})).headers.get("content-security-policy") || "";
+  assert.match(workerCsp,/script-src 'self' 'unsafe-eval'/);
+  assert.ok(!workerCsp.includes("frame-ancestors"),"plugin worker CSP was merged with the app CSP");
   for (const path of ["/missing.js","/api/unavailable"]) assert.equal((await fetch(origin+path,{signal:AbortSignal.timeout(20000)})).status,404,path);
   assert.equal((await fetch(`https://github.com/saurabhhbansal/nuvioweb/tree/${manifest.revision}`,{signal:AbortSignal.timeout(20000)})).status,200,"matching source URL");
   const source = await fetch(`${origin}/SOURCE.txt`, { signal: AbortSignal.timeout(20000), redirect: "error" });
