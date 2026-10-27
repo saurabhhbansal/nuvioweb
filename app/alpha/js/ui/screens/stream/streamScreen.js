@@ -2963,7 +2963,10 @@ export const StreamScreen = {
           subtitleUrl: "",
           resumePositionSeconds,
           knownDurationMs,
-          progressMode: "manual",
+          // Automatic only where this site has a return relay and the viewer
+          // kept "Automatic when supported"; otherwise the prompt asks.
+          progressMode: PlayerSettingsStore.get().externalPlayerProgress === "manual" ? "manual" : "automatic",
+          returnMethod: PlayerSettingsStore.get().externalReturnMethod || "",
           progressContext
         });
         if (!prepared?.launch?.href) return false;

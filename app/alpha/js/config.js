@@ -16,6 +16,8 @@ export const SIDECAR_DEPLOYMENT_FLAGS = Object.freeze({
   NUVIO_ENABLE_TRAKT_BRIDGE: runtimeEnv.NUVIO_ENABLE_TRAKT_BRIDGE || "false",
   NUVIO_ENABLE_DEBRID_BRIDGE: runtimeEnv.NUVIO_ENABLE_DEBRID_BRIDGE || "false",
   NUVIO_ENABLE_EXTERNAL_RETURN_BRIDGE: runtimeEnv.NUVIO_ENABLE_EXTERNAL_RETURN_BRIDGE || "false",
+  // Not a sidecar either: the static site's external player return relay.
+  NUVIO_EXTERNAL_RETURN_RELAY_URL: runtimeEnv.NUVIO_EXTERNAL_RETURN_RELAY_URL || "",
   // Not a sidecar: Trakt sign-in runs straight from the browser once a public
   // client id is configured. Read here so the capability check sees it.
   TRAKT_CLIENT_ID: runtimeEnv.TRAKT_CLIENT_ID || ""

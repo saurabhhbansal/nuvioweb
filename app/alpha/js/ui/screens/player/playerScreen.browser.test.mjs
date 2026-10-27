@@ -118,14 +118,16 @@ test("manual external playback uses a valid non-wrapping time row and responsive
   );
 });
 
-test("explicit player launches keep the gesture, force manual progress and never bind sidecars", async () => {
+test("explicit player launches keep the gesture, follow the progress setting and never bind sidecars", async () => {
   const source = await readFile(playerScreenUrl, "utf8");
   assert.doesNotMatch(source, /bindBrowserPushReturn|disableBrowserPushReturn/);
   const method = source.match(/ {2}launchExternalPlayer\(player\) \{[\s\S]*?\n {2}\},/)[0];
   const calls = [];
   let preparedOptions;
   let requested = true;
+  let settings = { externalPlayerProgress: "manual", externalReturnMethod: "" };
   const screen = vm.runInNewContext(`({${method}})`, {
+    PlayerSettingsStore: { get: () => settings },
     getBrowserExternalPlayerPlatform: () => "ios",
     prepareBrowserExternalPlaybackLaunch(options) {
       preparedOptions = options;
@@ -152,6 +154,13 @@ test("explicit player launches keep the gesture, force manual progress and never
   requested = false;
   assert.equal(screen.launchExternalPlayer("infuse"), false);
   assert.deepEqual(calls, ["prepare", "request", "clear"]);
+  // "Automatic when supported" asks prepare for a callback; prepare still
+  // decides whether this site has a relay to send it to.
+  settings = { externalPlayerProgress: "automatic", externalReturnMethod: "automation" };
+  requested = true;
+  screen.launchExternalPlayer("infuse");
+  assert.equal(preparedOptions.progressMode, "automatic");
+  assert.equal(preparedOptions.returnMethod, "automation");
 });
 
 

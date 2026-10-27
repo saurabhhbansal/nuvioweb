@@ -1,6 +1,6 @@
 # Deploying the development preview
 
-The dev preview is the Cloudflare Pages project `nuvioweb-preview`, at https://nuvioweb-preview.pages.dev. It is a static site: no Functions, Workers, bindings or paid features. Do not add custom domains or billing changes to it. Production is a separate project, set up by the owner: see [DEPLOY_PRODUCTION](DEPLOY_PRODUCTION.md).
+The dev preview is the Cloudflare Pages project `nuvioweb-preview`, at https://nuvioweb-preview.pages.dev. It is a static site: no Functions, bindings or paid features on the Pages project. The one Worker beside it is the optional [external player return relay](EXTERNAL_RETURN_RELAY.md), deployed by the same workflow when the `RETURN_RELAY_PREVIEW_URL` variable is set. Do not add custom domains or billing changes to it. Production is a separate project, set up by the owner: see [DEPLOY_PRODUCTION](DEPLOY_PRODUCTION.md).
 
 ## Usual way: GitHub Actions
 
@@ -14,6 +14,8 @@ Two more are optional. Without them Trakt or Simkl shows as unavailable:
 
 - `TRAKT_CLIENT_ID`: the Client ID of a Trakt app. Sign-in uses Trakt's PKCE flow in the browser and needs no client secret; Trakt no longer issues one for sign-in.
 - `SIMKL_CLIENT_ID`: the Client ID of a Simkl app.
+
+One optional repository **variable**: `RETURN_RELAY_PREVIEW_URL`, the address of the return relay Worker. See [EXTERNAL_RETURN_RELAY](EXTERNAL_RETURN_RELAY.md) for setup and rollback.
 
 The steps below are the manual fallback.
 

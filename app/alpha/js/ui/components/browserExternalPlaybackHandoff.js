@@ -32,7 +32,11 @@ function writeHandoff(handoff, runtime = globalThis) {
   }
 }
 
+// Where the player's callback goes: the relay Worker when this site has one,
+// otherwise the app's own https origin (a self-hosted bridge).
 function getReturnOrigin(runtime) {
+  const relayOrigin = getSidecarCapabilities(runtime).externalReturnOrigin;
+  if (relayOrigin) return relayOrigin;
   try {
     const url = new URL(String(runtime?.location?.href || ""));
     return url.protocol === "https:" ? url.origin : "";
@@ -156,12 +160,12 @@ export function beginExternalPlaybackHandoff({
   navigationLaunch = false
 } = {}) {
   const token = createOutplayerReturnToken(runtime);
-  const secureOrigin = getReturnOrigin(runtime);
-  const returnOrigin = secureOrigin || getPageOrigin(runtime);
+  const relayOrigin = getReturnOrigin(runtime);
   const context = sanitizeProgressContext(progressContext);
-  if (!token || !returnOrigin || !context || !String(playerMode || "").trim()) return null;
-  const relayEnabled = Boolean(secureOrigin) && getSidecarCapabilities(runtime).externalReturn;
+  const relayEnabled = Boolean(relayOrigin) && getSidecarCapabilities(runtime).externalReturn;
   const automaticEnabled = Boolean(automatic && relayEnabled);
+  const returnOrigin = automaticEnabled ? relayOrigin : getPageOrigin(runtime);
+  if (!token || !returnOrigin || !context || !String(playerMode || "").trim()) return null;
   const launchedAt = Date.now();
   const handoff = {
     token,
@@ -214,7 +218,7 @@ export function readPendingExternalPlaybackHandoff({
       return null;
     }
     if (handoff.automatic && !getSidecarCapabilities(runtime).externalReturn) {
-      const manual = { ...handoff, automatic: false, callbackCapable: false,
+      const manual = { ...handoff, returnOrigin: getPageOrigin(runtime), automatic: false, callbackCapable: false,
         progressMode: "manual", manualPromptEligible: true, state: "manual-required" };
       writeHandoff(manual, runtime);
       return manual;

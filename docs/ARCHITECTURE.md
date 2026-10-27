@@ -23,7 +23,7 @@ Browser / PWA (Cloudflare Pages, static files)
 4. **JS plugins.** User-installed Nuvio JS plugins run in the browser through the existing plugin runtime under `app/alpha/js/core/player/`. Work tracked in #166.
 5. **Playback pipeline.** Sources are mapped to a capability description and ranked by what this browser reports it can play. The player tries native video, then HLS.js or DASH.js. On failure it shows a short reason and next step.
 6. **External hand-off.** The source URL can be opened in an external player (desktop, Android intent, iOS app link). The browser is not involved after hand-off.
-7. **Optional sidecars.** Upstream integrations that need a server (Trakt auth, debrid bridges, external-player return) are off by default and disabled on the public preview.
+7. **Optional sidecars.** Upstream integrations that need a server (Trakt auth, debrid bridges) are off by default and disabled on the public preview. External-player return uses a small Cloudflare Worker on the public sites when one is configured ([return relay](EXTERNAL_RETURN_RELAY.md)), and the return prompt otherwise.
 
 ## Layout
 

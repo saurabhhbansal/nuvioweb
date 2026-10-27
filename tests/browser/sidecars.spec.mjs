@@ -137,6 +137,7 @@ test("actual browser client boundaries use manual return and never request disab
       traktBridge: false,
       debrid: false,
       externalReturn: false,
+      externalReturnOrigin: "",
       nativeMedia: false,
     },
     authError: "SIDECAR_UNAVAILABLE",
