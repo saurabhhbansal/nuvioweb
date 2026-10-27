@@ -243,3 +243,46 @@ for (const platform of ["ios", "android"]) {
     });
   });
 }
+
+test("bundled desktop playlist hand-off asks where the viewer stopped when they come back", async ({ page, context }) => {
+  test.setTimeout(60000);
+  await context.addInitScript((provider) => {
+    localStorage.setItem("installedAddonUrls", JSON.stringify({ __profileScoped: true, version: 1, profiles: { "1": [`${provider}/basic`] } }));
+  }, provider);
+  await page.goto("/");
+  await page.locator('[data-action="continueGuest"]').click();
+  await page.locator('#home .home-poster-card[data-item-id="fixture:original"]').first().click();
+  await page.locator('button[data-action="playDefault"]').click();
+  await page.locator('[data-action="playStream"]').click();
+  await expect.poll(() => page.locator("video").evaluate((video) => video.currentTime)).toBeGreaterThan(0.1);
+  await page.mouse.move(640, 700);
+  await page.getByRole("button", { name: "Open in another player", exact: true }).click();
+  const chooser = page.getByRole("dialog");
+  await Promise.all([
+    page.waitForEvent("download"),
+    chooser.getByRole("button", { name: "Open in VLC (playlist file)", exact: true }).click()
+  ]);
+  const stored = await page.evaluate(() => JSON.parse(localStorage.getItem("nuvioExternalPlaybackHandoff")));
+  expect(stored).toMatchObject({ playerMode: "vlc", automatic: false, manualPromptEligible: true });
+  await chooser.getByRole("button", { name: "Cancel", exact: true }).click();
+  // A blur straight after the download is not a return from the player.
+  await page.evaluate(() => { dispatchEvent(new Event("blur")); dispatchEvent(new Event("focus")); });
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  // Twenty minutes in VLC later, the viewer comes back.
+  await page.evaluate(() => {
+    const handoff = JSON.parse(localStorage.getItem("nuvioExternalPlaybackHandoff"));
+    localStorage.setItem("nuvioExternalPlaybackHandoff", JSON.stringify({ ...handoff, launchedAt: Date.now() - 20 * 60 * 1000 }));
+    dispatchEvent(new Event("blur"));
+    dispatchEvent(new Event("focus"));
+  });
+  const prompt = page.getByRole("dialog");
+  await expect(prompt).toContainText("How did your playback go?");
+  await expect(prompt.getByRole("button", { name: "Finished", exact: true })).toBeVisible();
+  await prompt.getByRole("button", { name: "Stopped at…", exact: true }).click();
+  const picker = page.getByRole("dialog");
+  await picker.getByRole("textbox", { name: "Minutes" }).fill("00");
+  await picker.getByRole("textbox", { name: "Seconds" }).fill("01");
+  await picker.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect.poll(() => page.evaluate(() => localStorage.getItem("nuvioExternalPlaybackHandoff"))).toBeNull();
+});

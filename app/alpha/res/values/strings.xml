@@ -3050,11 +3050,12 @@
     <string name="external_player_position_save_failed">Could not save playback position. Try again.</string>
     <string name="external_player_position_saved">Playback position saved</string>
     <string name="external_player_position_seconds">Seconds</string>
-    <string name="external_player_return_finish">Mark as finished</string>
+    <string name="external_player_return_finish">Finished</string>
     <string name="external_player_return_finish_failed">Could not mark as finished</string>
     <string name="external_player_return_finished">Marked as finished</string>
     <string name="external_player_return_keep">Keep current progress</string>
-    <string name="external_player_return_set_position">Set playback position</string>
+    <string name="external_player_return_set_position">Stopped at…</string>
+    <string name="external_player_position_slider">Playback position</string>
     <string name="external_player_return_this_title">this title</string>
     <string name="external_player_return_title">How did your playback go?</string>
     <string name="home_offline_back_online">Back online — pull down to refresh.</string>

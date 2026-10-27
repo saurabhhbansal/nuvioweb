@@ -310,6 +310,7 @@ test("duplicate foreground events use one manual prompt for a manual handoff", a
   installExternalPlaybackReturnCoordinator({
     runtime,
     fetchImpl: async () => ({ ok: true, json: async () => ({ found: false }) }),
+    minimumAwayMs: 0,
     onManualFallback: () => {
       prompts += 1;
     }
@@ -320,6 +321,44 @@ test("duplicate foreground events use one manual prompt for a manual handoff", a
   windowListeners.get("pageshow")();
   await drainTimers(timers);
   assert.equal(prompts, 1);
+});
+
+test("a manual return that comes straight back keeps the prompt for the real return", async () => {
+  const runtime = createRuntime();
+  runtime.__NUVIO_ENV__ = {};
+  const documentListeners = new Map();
+  const windowListeners = new Map();
+  runtime.document = {
+    visibilityState: "visible",
+    addEventListener: (name, listener) => documentListeners.set(name, listener)
+  };
+  runtime.addEventListener = (name, listener) => windowListeners.set(name, listener);
+  runtime.setTimeout = () => {};
+  const handoff = beginExternalPlaybackHandoff({ runtime, playerMode: "chooser", progressContext });
+  assert.equal(handoff.manualPromptEligible, true);
+  const prompts = [];
+  installExternalPlaybackReturnCoordinator({
+    runtime,
+    minimumAwayMs: 20_000,
+    onManualFallback: (pending) => prompts.push(pending)
+  });
+  // A blur the moment the player was asked for, then straight back.
+  windowListeners.get("blur")();
+  windowListeners.get("focus")();
+  assert.equal(prompts.length, 0);
+  assert.ok(readPendingExternalPlaybackHandoff({ runtime }), "handoff kept for the real return");
+  // Twenty minutes later the viewer comes back from the player.
+  const stored = JSON.parse(runtime.localStorage.getItem("nuvioExternalPlaybackHandoff"));
+  runtime.localStorage.setItem(
+    "nuvioExternalPlaybackHandoff",
+    JSON.stringify({ ...stored, launchedAt: Date.now() - 20 * 60 * 1000 })
+  );
+  runtime.document.visibilityState = "hidden";
+  documentListeners.get("visibilitychange")();
+  runtime.document.visibilityState = "visible";
+  documentListeners.get("visibilitychange")();
+  assert.equal(prompts.length, 1);
+  assert.equal(prompts[0].progressContext.itemId, "movie:1");
 });
 
 test("duplicate foreground events cannot promote an automatic handoff to manual", async () => {

@@ -395,6 +395,32 @@ export function prepareBrowserExternalPlaybackLaunch({
 }
 
 
+// Copy link and the playlist file hand the stream over without a launch the
+// app can see, and no player they reach can report back. They still owe the
+// viewer the same question on return: where did you get to?
+export function beginManualExternalPlaybackHandoff({
+  player = "copylink",
+  progressContext = null,
+  resumePositionSeconds = 0,
+  knownDurationMs = 0,
+  profileId = null,
+  runtime = globalThis
+} = {}) {
+  return beginExternalPlaybackHandoff({
+    runtime,
+    playerMode: String(player || "copylink"),
+    automatic: false,
+    progressMode: "manual",
+    callbackCapable: false,
+    manualPromptEligible: true,
+    progressContext,
+    profileId: profileId ?? ProfileManager.getActiveProfileId(),
+    startingPositionMs: Math.max(0, Number(resumePositionSeconds) || 0) * 1000,
+    knownDurationMs
+  });
+}
+
+
 export function getBrowserExternalPlayerStoreUrl({ player, platform } = {}) {
   const selectedPlayer = normalizeBrowserExternalPlayer(player);
   if (platform === "ios") return IOS_APP_STORE_URLS[selectedPlayer] || "";

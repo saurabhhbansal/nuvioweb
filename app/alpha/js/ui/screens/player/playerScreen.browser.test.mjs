@@ -171,3 +171,48 @@ test("audio boost does not capture native cross-origin media", async () => {
   assert.equal(context.supportsWebAudioAmplification(), false);
 });
 
+
+test("a copied link or playlist file arms the return prompt like a launch does", async () => {
+  const source = await readFile(playerScreenUrl, "utf8");
+  assert.match(source, /onDelivered: \(player\) => this\.trackManualExternalPlayback\(player\)/);
+  const method = source.match(/ {2}trackManualExternalPlayback\(player\) \{[\s\S]*?\n {2}\},/)[0];
+  const calls = [];
+  let options;
+  let handoff = { token: "opaque" };
+  const screen = vm.runInNewContext(`({${method}})`, {
+    beginManualExternalPlaybackHandoff(value) {
+      options = value;
+      calls.push("handoff");
+      return handoff;
+    },
+    PlayerController: {
+      createProgressContext: () => ({ itemId: "fixture" }),
+      beginExternalPlaybackHandoff: () => calls.push("begin")
+    }
+  });
+  screen.getExternalPlayerResumeSeconds = () => 42;
+  screen.getExternalPlayerKnownDurationMs = () => 600000;
+  assert.equal(screen.trackManualExternalPlayback("vlc"), true);
+  assert.equal(options.player, "vlc");
+  assert.equal(options.resumePositionSeconds, 42);
+  assert.equal(options.knownDurationMs, 600000);
+  assert.equal(options.progressContext.itemId, "fixture");
+  assert.deepEqual(calls, ["handoff", "begin"]);
+  calls.length = 0;
+  handoff = null;
+  assert.equal(screen.trackManualExternalPlayback("copylink"), false);
+  assert.deepEqual(calls, ["handoff"]);
+});
+
+test("the Stopped at… picker has a runtime slider and starts at the last known position", async () => {
+  const [source, componentsCss] = await Promise.all([
+    readFile(playerScreenUrl, "utf8"),
+    readFile(componentsCssUrl, "utf8")
+  ]);
+  assert.match(source, /t\("external_player_return_set_position", \{\}, "Stopped at…"\)/);
+  assert.match(source, /t\("external_player_return_finish", \{\}, "Finished"\)/);
+  assert.match(source, /slider\.type = "range";/);
+  assert.match(source, /slider\.max = String\(Math\.floor\(manualDurationMs \/ 1000\)\);/);
+  assert.match(source, /handoff\.startingPositionMs/);
+  assert.match(componentsCss, /\.desktop-external-player-time-slider \{[\s\S]*?min-height: 44px;/);
+});
