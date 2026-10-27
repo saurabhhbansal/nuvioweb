@@ -59,6 +59,9 @@ Limits:
 - **No server-side debrid bridge.** The site is static, so debrid sign-in and resolving need a server we do not run. Sources that need one fail with an explanation.
 - **Header-bound sources ("Needs headers").** Browsers cannot send custom headers with media requests, so these sources stay selectable but usually fail in the browser. The URL-only external hand-off cannot pass headers either, so it refuses them. Pick another source.
 - **Plugins blocked by CORS** need a proxy the user runs and sets in Settings. The project runs none.
+- **Plugins where TMDB is blocked.** In regions where internet providers block TMDB, plugins that look titles up there return nothing unless the user's proxy sends its traffic out from another network.
+- **Plugin sites that block servers.** Some sites refuse traffic from data-centre or VPN addresses, so they can fail through a user's proxy on a hosted server. The desktop app uses the home connection instead.
+- **Plugins that need a setting** (for example a token) only work after the user fills in that plugin's Settings form. Values are saved per device and do not sync.
 - **Codecs and containers.** See the browser limits below: HEVC, Dolby Vision, MKV, TrueHD and DTS often fail in browsers. Use an external player for those.
 - **Modern browsers only.** The build targets Chrome/Edge 100+ and Safari/iOS 15+; older browsers show a start-up error screen.
 - **Latin-only bundled font.** The self-hosted Inter font covers Latin scripts. Other scripts use the system font. The optional DM Sans and Open Sans themes load from Google Fonts when chosen.
