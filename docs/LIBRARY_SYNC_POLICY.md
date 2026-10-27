@@ -31,7 +31,7 @@ A pull first sends the outbox, then replaces the profile's local list with the c
 - This device keeps at most 1000 items per profile. Saving beyond that drops the oldest item locally only; the cloud keeps it.
 - No conflict handling beyond last write wins: if two devices change the same item, the change that reaches the cloud last wins.
 - Tabs do not coordinate; each tab sends its own outbox.
-- Guest (signed-out) Library edits stay on the device and are not uploaded later.
+- There is no signed-out Library: an account is required ([ADR-022](DECISIONS.md)). A Library an older version kept for a guest is never uploaded; the first sign-in on the device clears it.
 - Sign-out clears the Library, the outbox and other account data on this device. Unsent changes are lost.
 
 The Library screen shows a short notice while changes are waiting to sync.

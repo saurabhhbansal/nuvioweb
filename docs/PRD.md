@@ -1,6 +1,6 @@
 # Product requirements — NuvioWeb
 
-Updated 2026-10-21. Scope: browser playback plus external player hand-off. Roadmap: [GitHub milestones](https://github.com/saurabhhbansal/nuvioweb/milestones).
+Updated 2026-10-27. Scope: browser playback plus external player hand-off. Roadmap: [GitHub milestones](https://github.com/saurabhhbansal/nuvioweb/milestones).
 
 ## Problem
 
@@ -15,7 +15,7 @@ Nuvio users want to watch on any device with a browser, without installing a nat
 
 | Area | Requirement |
 | --- | --- |
-| Account | Sign in with an existing Nuvio account. Refresh, sign out and switch profiles. Guest mode still works. No second account system. |
+| Account | Sign in with an existing Nuvio account. Refresh, sign out and switch profiles. An account is required; there is no guest mode ([ADR-022](DECISIONS.md)). No second account system. |
 | Sync | Library and watch progress sync through Nuvio. Sync failures are shown and recoverable, never silently dropped. See [sync policy](LIBRARY_SYNC_POLICY.md). |
 | Add-ons | Install HTTP/Stremio-compatible add-ons by URL. Browse catalogs, open details and list sources. |
 | Sources and play | Rank sources by what this browser can likely play. Play native video, HLS and DASH with subtitles. Explain failures in plain words. |

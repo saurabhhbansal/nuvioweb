@@ -29,7 +29,7 @@ test("the sign-in screen offers Sign up on nuvio.tv with a come-back hint", asyn
   );
 });
 
-test("Sign up sits between QR and Continue without account in focus order and opens from Enter", async ({ page, context }) => {
+test("Sign up follows QR in focus order, is the last action, and opens from Enter", async ({ page, context }) => {
   await page.goto("/");
   const link = page.locator("#account .desktop-auth-signup-link");
   await expect(page.locator("#account .desktop-auth-signup-prompt")).toHaveCount(0);
@@ -37,8 +37,12 @@ test("Sign up sits between QR and Continue without account in focus order and op
   await page.locator("#account .desktop-auth-qr").focus();
   await page.keyboard.press("Tab");
   await expect(link).toBeFocused();
-  await page.keyboard.press("Tab");
-  await expect(page.locator("#account .desktop-auth-guest")).toBeFocused();
+  // No "Continue without account" after it: an account is required.
+  await expect(page.locator("#account .desktop-auth-guest")).toHaveCount(0);
+  const actions = await page.locator("#account .desktop-auth-card").evaluate((card) =>
+    [...card.querySelectorAll("button, a[href]")].map((node) => node.className)
+  );
+  expect(actions.at(-1)).toBe("desktop-auth-signup-link");
   await link.focus();
   const [popup] = await Promise.all([context.waitForEvent("page"), page.keyboard.press("Enter")]);
   await popup.waitForLoadState("domcontentloaded");

@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { installFakeAccount, openSignedInHome } from "./fakeAccount.mjs";
 
 const provider = "http://127.0.0.1:4373";
 test.beforeEach(async ({ context, request }) => {
@@ -32,8 +33,8 @@ for (const scenario of ["unknown-quality", "declared", "unsupported-mime", "conf
         ),
       { provider, scenario },
     );
-    await page.goto("/");
-    await page.locator('[data-action="continueGuest"]').click();
+    await installFakeAccount(context, { addons: [`${provider}/${scenario}`] });
+    await openSignedInHome(page, { expect });
     await page
       .locator('#home .home-poster-card[data-item-id="fixture:original"]')
       .first()
@@ -203,8 +204,8 @@ test("a header-restricted source reports header-required with a working return p
       ),
     { provider },
   );
-  await page.goto("/");
-  await page.locator('[data-action="continueGuest"]').click();
+  await installFakeAccount(context, { addons: [`${provider}/startup-header-required`] });
+  await openSignedInHome(page, { expect });
   await page
     .locator('#home .home-poster-card[data-item-id="fixture:original"]')
     .first()

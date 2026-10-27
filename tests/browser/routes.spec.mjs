@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { enterPastStartup, installFakeAccount } from "./fakeAccount.mjs";
 
 // Real URLs: reloading a title stays on it, a shared link opens it after the
 // normal sign-in step, and Back still works. Local fixtures only.
@@ -11,6 +12,7 @@ test.beforeEach(async ({ context }) => {
       await route.continue();
     else await route.abort("blockedbyclient");
   });
+  await installFakeAccount(context, { addons: [`${provider}/source-order`] });
   await context.addInitScript(
     (provider) =>
       localStorage.setItem(
@@ -25,31 +27,31 @@ test.beforeEach(async ({ context }) => {
   );
 });
 
-async function continueAsGuest(page) {
-  await page.locator('[data-action="continueGuest"]').click();
+// Signed in already; the profile and setup steps run before any screen.
+async function continueSignedIn(page) {
+  await enterPastStartup(page, { expect });
 }
 
 const detailPlay = (page) => page.locator('#detail button[data-action="playDefault"]');
 
 test("reloading a detail page stays on it and Back returns Home", async ({ page }) => {
   await page.goto("/");
-  await continueAsGuest(page);
+  await continueSignedIn(page);
   await expect(page).toHaveURL(/#\/$/);
   await page.locator('#home .home-poster-card[data-item-id="fixture:original"]').first().click();
   await expect(detailPlay(page)).toBeVisible();
   await expect(page).toHaveURL(new RegExp(`${detailHash.replace(/[/%]/g, "\\$&")}$`));
 
   await page.reload();
-  // A reload runs the normal profile step first; the link waits for it.
-  await page.locator('#profileSelection [data-profile-id="1"]').click();
-  await page.getByRole("button", { name: "Skip setup", exact: true }).click();
+  // A reload runs the normal startup steps first; the link waits for them.
+  await continueSignedIn(page);
   await expect(detailPlay(page)).toBeVisible();
   await expect(page.locator("#detail")).toContainText("Original Legal Fixture");
   expect(new URL(page.url()).hash).toBe(detailHash);
 
-  // Again, now that setup is done: profile choice goes straight to the title.
+  // Again, now that the profile was chosen and setup is done: straight to
+  // the title.
   await page.reload();
-  await page.locator('#profileSelection [data-profile-id="1"]').click();
   await expect(detailPlay(page)).toBeVisible();
   await expect(page.locator("#profileSelection")).toBeHidden();
   expect(new URL(page.url()).hash).toBe(detailHash);
@@ -61,7 +63,7 @@ test("reloading a detail page stays on it and Back returns Home", async ({ page 
 
 test("a shared title link opens that title after the sign-in step", async ({ page }) => {
   await page.goto(`/${detailHash}`);
-  await continueAsGuest(page);
+  await continueSignedIn(page);
   await expect(detailPlay(page)).toBeVisible();
   await expect(page.locator("#detail")).toContainText("Original Legal Fixture");
   expect(new URL(page.url()).hash).toBe(detailHash);
@@ -82,7 +84,7 @@ test("a shared title link opens that title after the sign-in step", async ({ pag
 test("a shared source-list link shows the title, not Untitled", async ({ page }) => {
   // The link holds IDs only; the screen looks the title up itself.
   await page.goto("/#/stream/movie/fixture%3Aoriginal");
-  await continueAsGuest(page);
+  await continueSignedIn(page);
   await expect(page.locator('[data-action="playStream"]').first()).toBeVisible();
   const title = page.locator("#stream .stream-route-title");
   await expect(title).toHaveText("Original Legal Fixture");

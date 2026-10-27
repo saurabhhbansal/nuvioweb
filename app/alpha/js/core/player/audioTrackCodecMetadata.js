@@ -134,3 +134,49 @@ export function mapAudioTrackNativeIndexes(
     return nativeIndex;
   });
 }
+
+// Codec families browsers often can't decode. Only these are ever reported
+// as unsupported: any other codec, or a track with no codec info, counts as
+// playable so the picker never hides a track it can't judge.
+const SURROUND_CODEC_PROBES = {
+  "ac-3": ["ac-3"],
+  eac3: ["ec-3"],
+  dts: ["dtsc", "dtsh", "dtse", "dtsx"],
+  truehd: ["mlpa"],
+  "ac-4": ["ac-4"]
+};
+
+function probeSupports(probe, mimeType) {
+  if (typeof probe !== "function") {
+    return false;
+  }
+  try {
+    const result = probe(mimeType);
+    return result === true || result === "probably" || result === "maybe";
+  } catch (_) {
+    return false;
+  }
+}
+
+/**
+ * @param {object} track A track as listed by hls.js, dash.js or the media element.
+ * @param {{ isTypeSupported?: (mime: string) => boolean, canPlayType?: (mime: string) => string }} probes
+ * @returns {boolean} false only when the codec is a known surround family and
+ *   neither probe accepts it.
+ */
+export function isAudioTrackCodecDecodable(track = {}, { isTypeSupported, canPlayType } = {}) {
+  const codecValue =
+    getAuthoritativeAudioCodecValue(track) || getAuthoritativeAudioCodecValue(track?.raw || {});
+  const family = getAudioCodecFamily(codecValue);
+  const codecs = SURROUND_CODEC_PROBES[family];
+  if (!codecs) {
+    return true;
+  }
+  if (typeof isTypeSupported !== "function" && typeof canPlayType !== "function") {
+    return true;
+  }
+  return codecs.some((codec) => {
+    const mimeType = `audio/mp4; codecs="${codec}"`;
+    return probeSupports(isTypeSupported, mimeType) || probeSupports(canPlayType, mimeType);
+  });
+}

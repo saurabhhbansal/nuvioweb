@@ -34,7 +34,7 @@ The installed app opens without the browser bar, keeps the app shell offline and
 
 - **Browse and search** catalogs from your add-ons, with title pages and source lists.
 - **Sync with Nuvio:** profiles, Library, Continue Watching and progress, shared with the Nuvio TV, mobile and desktop apps.
-- **Play in the browser:** regular video files, HLS and DASH, with subtitles. Choose the audio track on HLS and DASH streams; your choice is remembered per title.
+- **Play in the browser:** regular video files, HLS and DASH, with subtitles. Switch audio tracks on HLS and DASH streams (and single files in Safari); your choice is remembered per title. Tracks the browser cannot play are marked Unsupported, and for single files in Chrome, Edge or Firefox the picker offers "Open in another player".
 - **Clear errors:** when a source fails, the app says why when it knows (headers, HTTP status, format, debrid).
 - **External players:** hand a source to another app (see below).
 - **Trakt and Simkl:** send what you watch and your progress, where enabled.
