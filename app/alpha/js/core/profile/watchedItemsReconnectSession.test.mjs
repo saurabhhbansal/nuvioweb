@@ -22,6 +22,7 @@ const { WatchProgressSyncService } = await import("./watchProgressSyncService.js
 const { WatchedItemsSyncService } = await import("./watchedItemsSyncService.js");
 const { AuthManager } = await import("../auth/authManager.js");
 const { AuthState } = await import("../auth/authState.js");
+const { ProfileManager } = await import("./profileManager.js");
 
 const watchedRow = {
   content_id: "tt-watched",
@@ -79,6 +80,31 @@ test("a reconnect run that outlives its session pushes nothing under the next on
     afterSwitch.filter((call) => call.procedure.startsWith("sync_push_")).map((call) => call.procedure),
     []
   );
+});
+
+test("a reconnect run whose profile changes mid-pull pushes nothing for the new profile", async () => {
+  globalThis.localStorage.clear();
+  AuthManager.setState(AuthState.AUTHENTICATED);
+  await ProfileManager.setActiveProfile("1");
+  let switched = false;
+  const calls = installCloud(async (procedure) => {
+    if (procedure === "sync_pull_watched_items" && !switched) {
+      switched = true;
+      await ProfileManager.setActiveProfile("2");
+      return [watchedRow];
+    }
+    return [];
+  });
+
+  await WatchProgressSyncService.syncAfterReconnect("test");
+
+  assert.equal(switched, true, "the watched pull reached the cloud");
+  const pullIndex = calls.findIndex((call) => call.procedure === "sync_pull_watched_items");
+  assert.deepEqual(
+    calls.slice(pullIndex + 1).filter((call) => call.procedure.startsWith("sync_push_")).map((call) => call.procedure),
+    []
+  );
+  await ProfileManager.setActiveProfile("1");
 });
 
 test("a watched push pinned to an earlier session is refused before it is sent", async () => {
