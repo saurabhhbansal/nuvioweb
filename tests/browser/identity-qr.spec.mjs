@@ -198,7 +198,8 @@ test("leaving the QR screen removes the code-bearing link", async ({ context, pa
   const fixture = await installQrFixture(context, { pollStatus: "pending" });
   await openQrScreen(page);
   await expect(page.locator("#qr-login-link a")).toBeVisible();
-  await page.locator("#qr-back-btn").click();
+  // The only way off the QR screen while signed out: back to email sign-in.
+  await page.locator("#qr-browser-back-btn").click();
   expect(await page.locator("#qr-login-link a").count()).toBe(0);
   expect(fixture.unexpected).toEqual([]);
 });
@@ -221,7 +222,8 @@ test("leaving during a held owner resolution leaves no persisted account", async
   const fixture = await installQrFixture(context, { holdOwner: true });
   await openQrScreen(page);
   await fixture.ownerStarted;
-  await page.locator("#qr-back-btn").click();
+  // The only way off the QR screen while signed out: back to email sign-in.
+  await page.locator("#qr-browser-back-btn").click();
   await expect.poll(() => page.evaluate(() => history.state?.route)).not.toBe("profileSelection");
   const beforeRelease = await page.evaluate(() => ({
     access: localStorage.getItem("access_token"),
@@ -256,8 +258,9 @@ test("leaving the screen during a held exchange has no later token or navigation
   const fixture = await installQrFixture(context, { holdExchange: true });
   await openQrScreen(page);
   await fixture.exchangeStarted;
-  await page.locator("#qr-back-btn").click();
-  await expect(page.locator("#desktop-auth-email")).not.toBeVisible();
+  // The only way off the QR screen while signed out: back to email sign-in.
+  await page.locator("#qr-browser-back-btn").click();
+  await expect(page.locator("#desktop-auth-email")).toBeVisible();
   await expect.poll(() => page.evaluate(() => history.state?.route)).not.toBe("profileSelection");
   fixture.releaseExchange();
   await expect.poll(() => page.evaluate(() => globalThis.__qrConsumed["/functions/v1/tv-logins-exchange"] || 0)).toBe(1);
