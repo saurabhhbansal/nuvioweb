@@ -20,6 +20,7 @@ export async function httpRequest(url, options = {}) {
   const method = String(options.method || "GET").toUpperCase();
   const includeSessionAuth = options.includeSessionAuth !== false;
   const expectedSessionGeneration = options.expectedSessionGeneration;
+  const fetchImpl = typeof options.fetchImpl === "function" ? options.fetchImpl : fetch;
   const requireExpectedSession = () => {
     if (expectedSessionGeneration !== undefined && !AuthManager.isSessionCurrent(expectedSessionGeneration)) {
       const error = new Error("Session changed before request completed");
@@ -49,7 +50,12 @@ export async function httpRequest(url, options = {}) {
     headers["Content-Type"] = "application/json";
   }
 
-  const { includeSessionAuth: _ignoredIncludeSessionAuth, expectedSessionGeneration: _ignoredSessionGeneration, ...fetchOptions } = options;
+  const {
+    includeSessionAuth: _ignoredIncludeSessionAuth,
+    expectedSessionGeneration: _ignoredSessionGeneration,
+    fetchImpl: _ignoredFetchImpl,
+    ...fetchOptions
+  } = options;
   const fetchInit = {
     ...fetchOptions,
     method,
@@ -57,7 +63,7 @@ export async function httpRequest(url, options = {}) {
     headers
   };
 
-  let response = await fetch(url, fetchInit);
+  let response = await fetchImpl(url, fetchInit);
   requireExpectedSession();
 
   if (response.status === 401 && includeSessionAuth && SessionStore.refreshToken) {
@@ -72,7 +78,7 @@ export async function httpRequest(url, options = {}) {
           Authorization: `Bearer ${SessionStore.accessToken}`
         }
       };
-      response = await fetch(url, retryInit);
+      response = await fetchImpl(url, retryInit);
       requireExpectedSession();
     }
   }
