@@ -22,7 +22,7 @@ The steps below are the manual fallback.
 Register each app once under the project's name, not a person's:
 
 - **Trakt** ([trakt.tv/oauth/applications](https://trakt.tv/oauth/applications)): Connect sends the viewer to trakt.tv, which sends them back to the site's root with a one-time code ([PKCE](https://developer.trakt.tv/docs/pkce)). Trakt only sends them back to an address listed under Redirect URIs, matched exactly, so list one per line: `https://nuvioweb.xyz/`, `https://www.nuvioweb.xyz/` and `https://nuvioweb-preview.pages.dev/` (with the trailing slash). List the same origins, without the slash, under JavaScript (CORS) origins. Per-deployment preview addresses (`<hash>.nuvioweb-preview.pages.dev`) are not listed, so test Trakt on the main preview address.
-- **Simkl** ([simkl.com/settings/developer](https://simkl.com/settings/developer/)): any redirect URI; sign-in uses a PIN.
+- **Simkl** ([simkl.com/settings/developer](https://simkl.com/settings/developer/)): any redirect URI; sign-in uses Simkl's OAuth 2.0 device code, so no redirect is followed.
 
 Sign-ins stay on the device. They are not shared with the Nuvio account, because the native Nuvio apps use their own Trakt and Simkl apps and a token from this site would break their connection.
 
