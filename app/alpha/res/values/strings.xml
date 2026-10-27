@@ -2824,6 +2824,7 @@
     <string name="player.audio.unsupported">Unsupported</string>
     <string name="player.audio.unsupportedCodec">Codec not supported by this device</string>
     <string name="player.audio.noSupportedTracks">No supported audio tracks available</string>
+    <string name="player.audio.externalPlayerHelp">Another player can switch this source\'s audio track</string>
     <string name="unsupported_device_title">TV not supported</string>
     <string name="unsupported_device_message">This TV does not meet the minimum requirements for this version of Nuvio TV.</string>
     <string name="unsupported_device_current_platform">Current platform</string>
