@@ -1,3 +1,4 @@
+import { imageFallbackAttribute } from "../../imageFallback.js";
 import { Router } from "../../navigation/router.js";
 import { ScreenUtils } from "../../navigation/screen.js";
 import { setBrowserDocumentTitle } from "../../navigation/browserDocumentTitle.js";
@@ -345,7 +346,7 @@ export const CastDetailScreen = {
       ? `Born ${escapeHtml(person.birthday)}${age != null ? ` (${age})` : ""}`
       : "";
     const avatar = person.profile
-      ? `<img src="${escapeAttribute(person.profile)}" alt="" loading="eager" decoding="async" onerror="this.hidden=true" />`
+      ? `<img src="${escapeAttribute(person.profile)}" alt="" loading="eager" decoding="async"${imageFallbackAttribute("hide")} />`
       : `<span aria-hidden="true">${escapeHtml(String(person.name || "?").slice(0, 1).toUpperCase())}</span>`;
     this.container.innerHTML = `
       <div class="browser-person-detail-shell">

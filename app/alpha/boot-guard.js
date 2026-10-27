@@ -89,6 +89,32 @@
     return typeof previousOnError === "function" ? previousOnError.apply(window, arguments) : false;
   };
 
+  // The CSP allows no inline script, so the startup checks that used to sit in
+  // index.html (a `nomodule` script and an `onerror` attribute) live here.
+  // A <script> that fails to load fires `error` on itself without bubbling;
+  // capture on window still sees it.
+  window.addEventListener("error", function onStartupAssetError(event) {
+    var target = event && event.target;
+    if (!active || !target || target === window || target.tagName !== "SCRIPT") return;
+    if (!target.hasAttribute("data-boot-required")) return;
+    window.NuvioBootGuard.scriptFailed(target.src);
+  }, true);
+
+  // Same test a `nomodule` script made: browsers without ES modules never run
+  // the app bundle, so say so instead of showing a blank page.
+  var scriptProto = window.HTMLScriptElement && window.HTMLScriptElement.prototype;
+  if (!scriptProto || !("noModule" in scriptProto)) {
+    var reportOldBrowser = function reportOldBrowser() {
+      window.NuvioBootGuard.fail(
+        "This browser is too old for Nuvio. Use Chrome or Edge 100+, or Safari 15+.",
+        navigator.userAgent,
+        "BOOT-BROWSER"
+      );
+    };
+    if (document.body) reportOldBrowser();
+    else document.addEventListener("DOMContentLoaded", reportOldBrowser);
+  }
+
   // Unhandled promise rejections are not fatal here. Plenty of them during boot
   // are a sync or network call failing offline, which the app recovers from;
   // a blank "could not start" screen for those hid a working app. Startup

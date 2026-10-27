@@ -1,3 +1,4 @@
+import { imageFallbackAttribute } from "../../imageFallback.js";
 import { showLibraryStorageError } from "../../components/libraryStorageError.js";
 import { Router } from "../../navigation/router.js";
 import { ensureSpatialFocusVisible, ScreenUtils } from "../../navigation/screen.js";
@@ -160,7 +161,6 @@ import {
 import {
   buildHeroBackdropSources,
   buildHeroPortraitSources,
-  buildImageFallbackErrorHandler,
   encodeHeroBackdropFallbacks
 } from "./homeImageHelpers.js";
 import {
@@ -305,7 +305,7 @@ function renderHeroBackdropImage(display) {
     : "";
   const src = resolveHeroArtworkSrc(display);
   const portraitClass = usesPortraitHeroArtwork(display, src) ? " is-portrait-artwork" : "";
-  return `<img class="home-hero-backdrop${portraitClass}" src="${escapeAttribute(src)}"${fallbackAttribute} alt="${escapeAttribute(display.title)}" decoding="async" fetchpriority="high" onerror="${buildImageFallbackErrorHandler()}" />`;
+  return `<img class="home-hero-backdrop${portraitClass}" src="${escapeAttribute(src)}"${fallbackAttribute} alt="${escapeAttribute(display.title)}" decoding="async" fetchpriority="high"${imageFallbackAttribute("queue")} />`;
 }
 
 export function buildModernHomeSizingStyle(layoutPrefs = {}) {
@@ -2253,7 +2253,7 @@ function renderContinueWatchingCard(item, index, options = {}) {
              data-item-type="${escapeAttribute(normalized.type || "movie")}"
              data-item-title="${escapeAttribute(normalized.title || "Untitled")}">
       <div class="home-continue-media">
-        ${cardImage ? `<img class="home-continue-bg" ${continueImageAttrs}${fallbackQueue ? ` data-fallback-srcs="${escapeAttribute(fallbackQueue)}"` : ""} alt="" aria-hidden="true" decoding="async" onerror="${buildImageFallbackErrorHandler()}" />` : ""}
+        ${cardImage ? `<img class="home-continue-bg" ${continueImageAttrs}${fallbackQueue ? ` data-fallback-srcs="${escapeAttribute(fallbackQueue)}"` : ""} alt="" aria-hidden="true" decoding="async"${imageFallbackAttribute("queue")} />` : ""}
         <span class="home-continue-badge">${escapeHtml(normalized.progressStatus || t("home.continueStatusContinue", {}, "Continue"))}</span>
         <div class="home-continue-copy">
           ${normalized.episodeCode ? `<div class="home-continue-kicker">${escapeHtml(normalized.episodeCode)}</div>` : ""}
@@ -2776,7 +2776,7 @@ export function createPosterCardMarkup(
                 ? // Catalog logo URLs are guessed from the id rather than
                   // listed, so a good share of them 404. A card is better
                   // with no logo than with a hole where one failed.
-                  `<img class="home-poster-landscape-logo" ${buildLazyImageAttributes(normalized.logo, { defer: deferImages })} alt="" onerror="this.remove();" />`
+                  `<img class="home-poster-landscape-logo" ${buildLazyImageAttributes(normalized.logo, { defer: deferImages })} alt=""${imageFallbackAttribute("remove")} />`
                 : `<div class="home-poster-landscape-title">${escapeHtml(normalized.name || "Untitled")}</div>`
             }
             ${subtitle ? `<div class="home-poster-landscape-subtitle">${escapeHtml(subtitle)}</div>` : ""}

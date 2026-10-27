@@ -1,3 +1,4 @@
+import { imageFallbackAttribute } from "../../imageFallback.js";
 import { Router } from "../../navigation/router.js";
 import { ensureSpatialFocusVisible, ScreenUtils } from "../../navigation/screen.js";
 import { Platform } from "../../../platform/index.js";
@@ -893,7 +894,7 @@ export const SearchScreen = {
                      data-catalog-type="${escapeHtml(row.type || item.catalogType || "")}"
                      data-row-key="${escapeHtml(rowKey)}">
               <div class="search-result-poster-wrap">
-                ${art ? `<img class="search-result-poster" src="${art}" alt="${item.name || "content"}" loading="lazy" decoding="async"${landscape && item.poster && art !== item.poster ? ` data-fallback-src="${escapeHtml(item.poster)}" onerror="this.onerror=null;this.src=this.dataset.fallbackSrc;"` : ""} />` : `<div class="search-result-poster placeholder"></div>`}
+                ${art ? `<img class="search-result-poster" src="${art}" alt="${item.name || "content"}" loading="lazy" decoding="async"${landscape && item.poster && art !== item.poster ? ` data-fallback-src="${escapeHtml(item.poster)}"${imageFallbackAttribute("swap-src")}` : ""} />` : `<div class="search-result-poster placeholder"></div>`}
                 ${isTitleItemWatched(item, this.watchedTitleIds) ? renderTitleWatchedBadge() : ""}
               </div>
               <div class="search-result-name">${item.name || "Untitled"}</div>

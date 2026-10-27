@@ -28,6 +28,7 @@ import { watchBrowserInstallAvailability } from "./ui/components/browserInstallP
 import { installBrowserFocusModality } from "./ui/navigation/browserFocusModality.js";
 import { installWatchProgressReconnectSync } from "./core/profile/watchProgressReconnect.js";
 import { dispatchOutplayerExplicitFinish } from "./ui/components/browserOutplayerFinishDispatch.js";
+import { installImageFallbacks } from "./ui/imageFallback.js";
 
 (function applyLegacyPatches() {
   const originalGetElementById = document.getElementById;
@@ -305,6 +306,8 @@ function setupProviderCredentialForegroundLifecycle() {
 async function bootstrapApp() {
   const bootstrapStartedAt = startupNow();
   markBootStage("Rendering application shell");
+  // Before any screen renders: the CSP blocks inline onerror handlers.
+  installImageFallbacks(document);
   renderAppShell();
   appShellRendered = true;
   markBootStage("Initializing platform");

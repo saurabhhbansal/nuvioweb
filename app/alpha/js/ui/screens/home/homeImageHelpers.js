@@ -39,16 +39,6 @@ export function encodeHeroBackdropFallbacks(sources = []) {
   return sources.map((source) => encodeURIComponent(source)).join("|");
 }
 
-export function buildImageFallbackErrorHandler() {
-  // Inside a <picture>, a matching <source> wins over `src`, so a fallback
-  // assigned to `src` would never be shown. Dropping the sources first hands
-  // the choice back to the img, and the queue works as it always has.
-  return (
-    "var p=this.parentElement;if(p&&p.tagName==='PICTURE'){p.querySelectorAll('source').forEach(function(s){s.remove();});}" +
-    "var q=(this.dataset.fallbackSrcs||'').split('|').filter(Boolean);var next=q.shift();if(next){this.dataset.fallbackSrcs=q.join('|');this.src=decodeURIComponent(next);return;}this.removeAttribute('src');this.classList.add('placeholder');"
-  );
-}
-
 /**
  * The same list for a screen taller than it is wide.
  *
