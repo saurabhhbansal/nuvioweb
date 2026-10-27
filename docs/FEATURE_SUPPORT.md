@@ -1,6 +1,6 @@
 # Feature support
 
-Updated 2026-10-26. "Tested" means covered by automated tests in CI, mostly Chromium on Linux. Anything else is **unverified**. Real phones, Safari, Edge, HDR output and audible multitrack audio are unverified unless a line says otherwise.
+Updated 2026-10-26 for the first public beta. "Tested" means covered by automated tests in CI, mostly Chromium on Linux. Anything else is **unverified**. Real phones, Safari, Edge, HDR output and audible multitrack audio are unverified unless a line says otherwise.
 
 ## Status
 
@@ -20,9 +20,10 @@ Updated 2026-10-26. "Tested" means covered by automated tests in CI, mostly Chro
 | JS plugins | Nuvio plugin repositories run in a browser Web Worker; per-scraper on/off; optional user proxy. Tested in CI with an original fixture plugin; the owner checked real repositories on desktop Edge and iPhone | Sites that block browsers (CORS) show "Needs proxy" and need the user's own proxy; most plugins do. Header-locked streams show "Needs headers". See [proxy decision](PLUGIN_PROXY_DECISION.md) |
 | Links and reload | Home, Search, Library, Settings, a title and its source list have their own address (`#/detail/movie/tt…`). Reloading stays on the screen, a shared title link opens it after sign-in and profile choice, and Back works. Tested in Chromium | The address holds content IDs only, so a search term or the exact Settings section is not kept. The player reloads to its source list. Reload after iOS removes the app from memory unverified on a real iPhone |
 | Supported browsers | Built for Chrome/Edge 100+ and Safari/iOS 15+. Screens load on first use; the shell, fonts and every screen are precached, so offline still opens them. Tested in Chromium | Older browsers show a start-up error screen instead of the app. Safari 15 and a real iPhone are unverified |
-| Trakt and Simkl | Sign-in runs in the browser with the site's public app ids (Trakt device code, Simkl PIN). Each device signs in for itself; the sign-in is not shared through the Nuvio account. Tested with mocks | On only where the deploy sets the app ids. Live sign-in unverified until the ids are registered |
+| Trakt and Simkl | Sign-in runs in the browser with the site's public app ids; no client secret. Trakt: Connect goes to trakt.tv and comes back to the site with a one-time code (PKCE). Simkl: a device code; open the link it shows and approve, and the app picks it up. Each device signs in for itself; the sign-in is not shared through the Nuvio account. Tested with mocks; the Simkl endpoints were checked against the live API | On only where the deploy sets the app ids. Trakt sends people back only to addresses listed exactly in the Trakt app's Redirect URIs, so Trakt sign-in fails on any other address, including per-deployment preview links. A full live sign-in on each service is unverified |
+| Offline tracking ("Keep track") | **Experimental**, off by default. Trakt and Simkl writes that fail for lack of network are saved per profile and sent when the network returns; a finish keeps the time it was watched. Tested with mocks | Positions can still disagree between devices. A stopping point arrives with the time it was sent. A write the server applied before timing out can be replayed as a second play. Un-watching offline is not saved. Not tried against live Trakt or Simkl |
 | Sidecar features (debrid bridges, external-player return) | Off on the public site; Settings explains why and hides external-player progress options | Need a server. Static hosting has no server-side debrid bridge, and none is planned |
-| Problem reports | No telemetry. Users open a GitHub issue; a source that fails to start offers "Export redacted diagnostics" (no URLs or tokens) to attach | App start-up errors and other screens have no export button |
+| Problem reports | No analytics or error reporting (owner decision for the beta). Users open a GitHub issue; a source that fails to start offers "Export redacted diagnostics" (no URLs or tokens) to attach | App start-up errors and other screens have no export button |
 
 ## Account sync with the Nuvio apps
 
@@ -50,7 +51,8 @@ Limits:
 
 | Platform | What works | Unverified or limited |
 | --- | --- | --- |
-| Desktop Chrome and Edge | The features in the status table, within their limits. CI runs Chromium; the owner used plugins on Edge | Edge is not in CI. HEVC, Dolby Vision and MKV depend on the OS and hardware |
+| Desktop Chrome and Edge | The features in the status table, within their limits. External hand-off: VLC (playlist file), PotPlayer (Windows), IINA or Infuse (Mac), or Copy link. CI runs Chromium; the owner checked sign-in, plugins and playback on Edge | Edge is not in CI. HEVC, Dolby Vision and MKV depend on the OS and hardware |
+| Desktop Safari (Mac) | The same app, built for Safari 15+. External hand-off: IINA, Infuse, VLC (playlist file) or Copy link | Not in CI and not checked by hand: everything is unverified. Safari's WebKit engine runs in CI only on demand |
 | iPhone Safari and the Home Screen app | The same app, built for Safari/iOS 15+. External hand-off offers Lenna, Outplayer, Infuse or VLC. The owner checked plugins with real repositories | Sign-in, playback, install, update, offline and app launches on a real iPhone are unverified until the release walkthrough. Safari 15 untested |
 | Android Chrome | Same app as desktop Chrome; external hand-off through the system "Open with" chooser or VLC | Not yet tested on a real device: install, playback and hand-off are unverified until the release walkthrough |
 
@@ -59,6 +61,7 @@ Limits:
 - **No server-side debrid bridge.** The site is static, so debrid sign-in and resolving need a server we do not run. Sources that need one fail with an explanation.
 - **Header-bound sources ("Needs headers").** Browsers cannot send custom headers with media requests, so these sources stay selectable but usually fail in the browser. The URL-only external hand-off cannot pass headers either, so it refuses them. Pick another source.
 - **Plugins blocked by CORS** need a proxy the user runs and sets in Settings. The project runs none.
+- **Trakt and Simkl sign-in.** Trakt only returns to the site's exact registered addresses (see [DEPLOY_PREVIEW](DEPLOY_PREVIEW.md#trakt-and-simkl-apps)); Simkl uses a device code. Sign-ins stay on each device. Offline tracking is Experimental.
 - **Plugins where TMDB is blocked.** In regions where internet providers block TMDB, plugins that look titles up there return nothing unless the user's proxy sends its traffic out from another network.
 - **Plugin sites that block servers.** Some sites refuse traffic from data-centre or VPN addresses, so they can fail through a user's proxy on a hosted server. The desktop app uses the home connection instead.
 - **Plugins that need a setting** (for example a token) only work after the user fills in that plugin's Settings form. Values are saved per device and do not sync.

@@ -15,7 +15,7 @@ Nothing here is automated. Keep the owner invisible: no personal names, emails, 
    wrangler pages project create nuvioweb --production-branch main
    ```
 
-3. **Attach the custom domain** in the project's Custom domains tab. If the domain's DNS is on Cloudflare, it adds the record itself; otherwise add the CNAME it shows. The `nuvioweb.pages.dev` address also stays reachable.
+3. **Attach the custom domain** in the project's Custom domains tab. If the domain's DNS is on Cloudflare, it adds the record itself; otherwise add the CNAME it shows. The project's own `*.pages.dev` address also stays reachable; Cloudflare adds a suffix when the plain name is taken, so check the project page for the exact address and point the CNAME there.
 4. **Check the secrets.** The workflow uses the same repository secrets as the preview: `TMDB_API_KEY`, `CLOUDFLARE_API_TOKEN` (Cloudflare Pages: Edit on the account that owns `nuvioweb`) and `CLOUDFLARE_ACCOUNT_ID`, plus the optional `TRAKT_CLIENT_ID` and `SIMKL_CLIENT_ID` (see [DEPLOY_PREVIEW](DEPLOY_PREVIEW.md#trakt-and-simkl-apps)).
 5. **Optional approval gate.** The job runs in a GitHub environment called `production`, created on its first run. In Settings → Environments you can add a required reviewer and limit it to `main`.
 6. **Check what the site shows.** The staged `SOURCE.txt` and `UPSTREAM_SOURCES.md` link to this GitHub repository for GPL source, so the repository's account name is visible. If that must not identify the owner, move the repository to a neutral account or organization before the first production deploy.
@@ -42,5 +42,7 @@ Either:
 
 - **Rerun the workflow with the previous tag.** It rebuilds that tag and makes it the live deployment; or
 - **Roll back in the Cloudflare dashboard:** Workers & Pages → `nuvioweb` → Deployments → pick the previous production deployment → Rollback. This is instant and needs no build.
+
+After a rollback, check the live site loads, sign-in works and a title opens, and note the bad tag in its GitHub release or issue.
 
 Never delete old deployments; they are the rollback path. Fix forward with a new tag once the problem is understood.
