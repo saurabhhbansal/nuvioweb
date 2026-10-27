@@ -61,7 +61,8 @@ import {
   getBrowserExternalPlayerPlatform,
   isTransferableExternalMediaUrl,
   launchBrowserExternalPlayer,
-  prepareBrowserExternalPlaybackLaunch
+  prepareBrowserExternalPlaybackLaunch,
+  beginManualExternalPlaybackHandoff
 } from "../../components/browserExternalPlayer.js";
 import { clearExternalPlaybackHandoff } from "../../components/browserExternalPlaybackHandoff.js";
 import { resolveExternalResumeSeconds } from "../../components/externalPlayerResume.js";
@@ -4575,9 +4576,23 @@ export const PlayerScreen = {
     this.externalPlayerChooserDialog = showBrowserExternalPlayerDialog({
       getContext: () => this.getExternalPlayerContext(),
       onLaunch: (player) => this.launchExternalPlayer(player),
+      onDelivered: (player) => this.trackManualExternalPlayback(player),
       onDismiss: () => { this.externalPlayerChooserDialog = null; }
     });
     return true;
+  },
+
+  // A copied link or playlist file leaves for another player all the same:
+  // arm the return prompt and stop this player writing a stale position.
+  trackManualExternalPlayback(player) {
+    const handoff = beginManualExternalPlaybackHandoff({
+      player,
+      resumePositionSeconds: this.getExternalPlayerResumeSeconds(),
+      knownDurationMs: this.getExternalPlayerKnownDurationMs(),
+      progressContext: PlayerController.createProgressContext?.()
+    });
+    if (handoff) PlayerController.beginExternalPlaybackHandoff?.(handoff);
+    return Boolean(handoff);
   },
 
   launchExternalPlayer(player) {
@@ -4650,7 +4665,7 @@ export const PlayerScreen = {
           }
         },
         {
-          label: t("external_player_return_set_position", {}, "Set playback position"),
+          label: t("external_player_return_set_position", {}, "Stopped at…"),
           className: "desktop-external-player-manual-set",
           onAction: () => {
             close();
@@ -4658,7 +4673,7 @@ export const PlayerScreen = {
           }
         },
         {
-          label: t("external_player_return_finish", {}, "Mark as finished"),
+          label: t("external_player_return_finish", {}, "Finished"),
           className: "desktop-external-player-primary desktop-external-player-manual-finish",
           onAction: async () => {
             if (submitting) return;
@@ -4774,6 +4789,39 @@ export const PlayerScreen = {
         }
       });
       wrapper.appendChild(fields);
+      // Typing six digits on a phone is the slow way to say "about an hour in".
+      // With a runtime the slider gets there in one drag, and the fields stay
+      // for the exact second. Both start where the viewer left this app.
+      const setFields = (positionMs) => {
+        const total = Math.max(0, Math.round(Number(positionMs) / 1000) || 0);
+        const pad = (value) => String(value).padStart(2, "0");
+        inputs[0].value = pad(Math.min(99, Math.floor(total / 3600)));
+        inputs[1].value = pad(Math.floor((total % 3600) / 60));
+        inputs[2].value = pad(total % 60);
+      };
+      const startMs = Math.max(0, Number(handoff.startingPositionMs || 0));
+      if (startMs > 0 && (!manualDurationMs || startMs <= manualDurationMs)) setFields(startMs);
+      if (manualDurationMs > 0) {
+        const slider = document.createElement("input");
+        slider.type = "range";
+        slider.min = "0";
+        slider.max = String(Math.floor(manualDurationMs / 1000));
+        slider.step = "1";
+        slider.value = String(Math.floor(Math.min(startMs, manualDurationMs) / 1000));
+        slider.className = "desktop-external-player-time-slider";
+        slider.setAttribute("aria-label", t("external_player_position_slider", {}, "Playback position"));
+        slider.addEventListener("input", () => {
+          setFields(Number(slider.value) * 1000);
+          updateSaveState();
+        });
+        inputs.forEach((input) =>
+          input.addEventListener("input", () => {
+            const result = validate();
+            if (result.valid) slider.value = String(Math.floor(result.positionMs / 1000));
+          })
+        );
+        wrapper.appendChild(slider);
+      }
       error = document.createElement("small");
       error.className = "nuvio-dialog-error";
       wrapper.appendChild(error);
@@ -4784,7 +4832,7 @@ export const PlayerScreen = {
       this.externalPlaybackPositionDialog = null;
     };
     this.externalPlaybackPositionDialog = new NuvioDialog({
-      title: t("external_player_return_set_position", {}, "Set playback position"),
+      title: t("external_player_return_set_position", {}, "Stopped at…"),
       content,
       widthVw: 32,
       panelClassName: "desktop-external-player-dialog",

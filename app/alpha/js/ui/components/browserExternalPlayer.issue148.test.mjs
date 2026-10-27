@@ -127,3 +127,39 @@ test("playlist delivery uses a fixed filename and releases its local object URL"
 test("immediate native navigation errors are handled without claiming playback", () => {
   assert.equal(launchBrowserExternalPlayer({ runtime: { location: { assign() { throw new Error("denied"); } } }, href: "infuse://x-callback-url/play" }), false);
 });
+
+test("copy link and playlist deliveries arm a manual return handoff with no callback", async () => {
+  const { beginManualExternalPlaybackHandoff } = await import("./browserExternalPlayer.js");
+  const values = new Map();
+  const runtime = {
+    __NUVIO_ENV__: {},
+    crypto: { getRandomValues: (bytes) => bytes.fill(0xcd) },
+    location: { href: "https://nuvioweb.example/stream" },
+    localStorage: {
+      getItem: (key) => values.get(key) || null,
+      setItem: (key, value) => values.set(key, value),
+      removeItem: (key) => values.delete(key)
+    }
+  };
+  const handoff = beginManualExternalPlaybackHandoff({
+    runtime,
+    player: "copylink",
+    profileId: "1",
+    resumePositionSeconds: 90,
+    knownDurationMs: 3_600_000,
+    progressContext: { itemId: "movie:1", itemType: "movie" }
+  });
+  assert.equal(handoff.automatic, false);
+  assert.equal(handoff.callbackCapable, false);
+  assert.equal(handoff.manualPromptEligible, true);
+  assert.equal(handoff.state, "manual-required");
+  assert.equal(handoff.playerMode, "copylink");
+  assert.equal(handoff.startingPositionMs, 90_000);
+  assert.equal(handoff.knownDurationMs, 3_600_000);
+  assert.ok(values.has("nuvioExternalPlaybackHandoff"));
+  assert.equal(
+    beginManualExternalPlaybackHandoff({ runtime, progressContext: null }),
+    null,
+    "no title, nothing to ask about"
+  );
+});

@@ -20466,6 +20466,15 @@ html[data-card-depth="true"][data-card-depth-trailers="true"] .detail-trailer-ca
   font: inherit;
 }
 
+.desktop-external-player-time-slider {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  margin: 10px 0 0;
+  accent-color: #fff;
+  touch-action: pan-y;
+}
+
 @media (orientation: landscape) and (max-height: 520px) {
   .desktop-external-player-dialog {
     width: min(calc(100vw - 24px), 520px);

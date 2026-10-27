@@ -72,7 +72,8 @@ import {
   getBrowserExternalPlayerPreference,
   getManualBrowserExternalPlayerOptions,
   launchBrowserExternalPlayer,
-  prepareBrowserExternalPlaybackLaunch
+  prepareBrowserExternalPlaybackLaunch,
+  beginManualExternalPlaybackHandoff
 } from "../../components/browserExternalPlayer.js";
 import { resolveExternalHandoffMediaUrl } from "../../components/externalHandoffMediaUrl.js";
 import { resolveExternalResumeSeconds } from "../../components/externalPlayerResume.js";
@@ -2916,6 +2917,26 @@ export const StreamScreen = {
     if (this.loadToken !== loadToken || this.externalPlayerResolveToken !== resolveToken) return true;
     if (!mediaUrl) return false;
     const itemType = normalizeType(this.params?.itemType);
+    const resumePositionSeconds = resolveExternalResumeSeconds({
+      positionMs: context.resumePositionMs,
+      progressPercent: context.resumeProgressPercent,
+      durationMs: context.resumeDurationMs
+    });
+    const knownDurationMs =
+      Number(context.resumeDurationMs || 0) ||
+      Math.max(0, Number(this.params?.runtime || this.params?.runtimeMinutes || 0)) * 60_000;
+    const progressContext = {
+      itemId: this.params?.itemId || null,
+      itemType: itemType || "movie",
+      videoId: itemType === "series" || itemType === "tv" ? this.params?.videoId || null : null,
+      season: this.params?.season == null ? null : Number(this.params.season),
+      episode: this.params?.episode == null ? null : Number(this.params.episode),
+      title: this.params?.itemTitle || this.params?.playerTitle || null,
+      poster: this.params?.poster || null,
+      background: this.getBackdropUrl() || null,
+      episodeTitle: this.params?.episodeTitle || null,
+      streamIdentity: buildStreamResumeIdentity(selected) || null
+    };
     this.externalPlayerChooserDialog?.destroy?.();
     this.externalPlayerChooserDialog = showBrowserExternalPlayerDialog({
       // The saved player is the primary button; the others stay one tap away.
@@ -2923,6 +2944,14 @@ export const StreamScreen = {
       getContext: () => this.loadToken === loadToken && this.externalPlayerResolveToken === resolveToken
         ? { mediaUrl, source: selected } : null,
       onDismiss: () => { this.externalPlayerChooserDialog = null; },
+      // Copy link and the playlist file leave for another player too, so the
+      // viewer is asked where they got to when they come back.
+      onDelivered: (player) => {
+        if (this.loadToken !== loadToken || this.externalPlayerResolveToken !== resolveToken) return;
+        if (beginManualExternalPlaybackHandoff({ player, resumePositionSeconds, knownDurationMs, progressContext })) {
+          context.onRequested?.();
+        }
+      },
       onLaunch: (player) => {
         if (this.loadToken !== loadToken || this.externalPlayerResolveToken !== resolveToken) return false;
         const prepared = prepareBrowserExternalPlaybackLaunch({
@@ -2932,27 +2961,10 @@ export const StreamScreen = {
           source: selected,
           title: this.params?.episodeTitle || this.params?.itemTitle || this.params?.playerTitle || "",
           subtitleUrl: "",
-          resumePositionSeconds: resolveExternalResumeSeconds({
-            positionMs: context.resumePositionMs,
-            progressPercent: context.resumeProgressPercent,
-            durationMs: context.resumeDurationMs
-          }),
-          knownDurationMs:
-            Number(context.resumeDurationMs || 0) ||
-            Math.max(0, Number(this.params?.runtime || this.params?.runtimeMinutes || 0)) * 60_000,
+          resumePositionSeconds,
+          knownDurationMs,
           progressMode: "manual",
-          progressContext: {
-            itemId: this.params?.itemId || null,
-            itemType: itemType || "movie",
-            videoId: itemType === "series" || itemType === "tv" ? this.params?.videoId || null : null,
-            season: this.params?.season == null ? null : Number(this.params.season),
-            episode: this.params?.episode == null ? null : Number(this.params.episode),
-            title: this.params?.itemTitle || this.params?.playerTitle || null,
-            poster: this.params?.poster || null,
-            background: this.getBackdropUrl() || null,
-            episodeTitle: this.params?.episodeTitle || null,
-            streamIdentity: buildStreamResumeIdentity(selected) || null
-          }
+          progressContext
         });
         if (!prepared?.launch?.href) return false;
         const requested = launchBrowserExternalPlayer({ href: prepared.launch.href });

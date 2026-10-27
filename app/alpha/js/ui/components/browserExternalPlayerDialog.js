@@ -30,6 +30,7 @@ function playerButtonLabel(player, delivery) {
 export function showBrowserExternalPlayerDialog({
   getContext,
   onLaunch,
+  onDelivered,
   onDismiss,
   players = getManualBrowserExternalPlayerOptions()
 }) {
@@ -62,21 +63,32 @@ export function showBrowserExternalPlayerDialog({
     onAction
   });
 
-  const downloadPlaylist = () => {
+  // A delivery the browser can confirm (file saved, link copied) is where the
+  // viewer leaves for another player, so the screen arms the return prompt.
+  const delivered = (player, context) => {
+    try { onDelivered?.(player, context); } catch (_) { /* The delivery itself stands. */ }
+  };
+  const downloadPlaylist = (player) => {
     const context = currentContext();
-    if (context) report(downloadBrowserExternalPlaylist(context)
+    if (!context) return;
+    const ok = downloadBrowserExternalPlaylist(context);
+    if (ok) delivered(player, context);
+    report(ok
       ? t("external_player_download_done", {}, "Playlist downloaded. It contains the stream link; delete it when done.")
       : t("external_player_download_failed", {}, "Could not download the playlist. Copy the link instead."));
   };
-  const copyLink = async () => {
+  const copyLink = async (player = "copylink") => {
     const context = currentContext();
-    if (context) report(await copyBrowserExternalStreamLink(context)
+    if (!context) return;
+    const ok = await copyBrowserExternalStreamLink(context);
+    if (ok) delivered(player, context);
+    report(ok
       ? t("external_player_copy_done", {}, "Link copied. Paste it into your player's network stream option.")
       : t("external_player_copy_failed", {}, "Could not copy the link. Clipboard access may be blocked."));
   };
   const launchButtons = launchable.map((player, index) => action(playerButtonLabel(player, delivery(player)), index === 0, () => {
-    if (delivery(player) === "playlist") return downloadPlaylist();
-    if (delivery(player) === "copy") return copyLink();
+    if (delivery(player) === "playlist") return downloadPlaylist(player);
+    if (delivery(player) === "copy") return copyLink(player);
     const context = currentContext();
     if (!context) return;
     let requested = false;
@@ -88,7 +100,7 @@ export function showBrowserExternalPlayerDialog({
   // Copy link is always on offer, as its own choice or as the last resort.
   const copyButton = launchable.includes("copylink")
     ? []
-    : [action(t("external_player_copy_link", {}, "Copy link"), launchButtons.length === 0, copyLink)];
+    : [action(t("external_player_copy_link", {}, "Copy link"), launchButtons.length === 0, () => copyLink("copylink"))];
   const buttons = [...launchButtons, ...copyButton];
 
   let dialog;

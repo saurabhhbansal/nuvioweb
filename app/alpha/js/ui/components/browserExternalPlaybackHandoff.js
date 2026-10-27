@@ -13,6 +13,11 @@ const HANDOFF_TTL_MS = 6 * 60 * 60 * 1000;
 // A report is written by a callback page in a separate browser context. Give
 // that page a small, bounded window to finish before asking the user instead.
 const FOREGROUND_RETRY_DELAYS_MS = [0, 500, 1000, 2000];
+// A launch that bounces straight back (the app was not installed, a download
+// bar took focus, the viewer changed their mind) has nothing to report. Asking
+// then would spend the one prompt this handoff gets on a question with no
+// answer, and the real return later would find it already used up.
+const MANUAL_PROMPT_MIN_AWAY_MS = 20 * 1000;
 
 function getStorage(runtime) {
   return runtime?.localStorage;
@@ -33,6 +38,27 @@ function getReturnOrigin(runtime) {
     return url.protocol === "https:" ? url.origin : "";
   } catch (_) {
     return "";
+  }
+}
+
+// A manual handoff never leaves the page, so any web origin will do for it;
+// only the relay callback needs https.
+function getPageOrigin(runtime) {
+  try {
+    const url = new URL(String(runtime?.location?.href || ""));
+    return ["https:", "http:"].includes(url.protocol) ? url.origin : "";
+  } catch (_) {
+    return "";
+  }
+}
+
+function isWebOrigin(value) {
+  try {
+    const url = new URL(value);
+    return ["https:", "http:"].includes(url.protocol) && !url.username && !url.password &&
+      url.pathname === "/" && !url.search && !url.hash;
+  } catch (_) {
+    return false;
   }
 }
 
@@ -130,10 +156,11 @@ export function beginExternalPlaybackHandoff({
   navigationLaunch = false
 } = {}) {
   const token = createOutplayerReturnToken(runtime);
-  const returnOrigin = getReturnOrigin(runtime);
+  const secureOrigin = getReturnOrigin(runtime);
+  const returnOrigin = secureOrigin || getPageOrigin(runtime);
   const context = sanitizeProgressContext(progressContext);
   if (!token || !returnOrigin || !context || !String(playerMode || "").trim()) return null;
-  const relayEnabled = getSidecarCapabilities(runtime).externalReturn;
+  const relayEnabled = Boolean(secureOrigin) && getSidecarCapabilities(runtime).externalReturn;
   const automaticEnabled = Boolean(automatic && relayEnabled);
   const launchedAt = Date.now();
   const handoff = {
@@ -175,8 +202,8 @@ export function readPendingExternalPlaybackHandoff({
     if (
       !handoff ||
       !isValidExternalPlaybackToken(handoff.token) ||
-      !isHttpsOrigin(handoff.returnOrigin) ||
-      handoff.returnOrigin !== getReturnOrigin(runtime) ||
+      !(handoff.automatic ? isHttpsOrigin(handoff.returnOrigin) : isWebOrigin(handoff.returnOrigin)) ||
+      handoff.returnOrigin !== (handoff.automatic ? getReturnOrigin(runtime) : getPageOrigin(runtime)) ||
       !sanitizeProgressContext(handoff.progressContext) ||
       !Number.isFinite(Number(handoff.expiresAt)) ||
       Date.now() > Number(handoff.expiresAt) ||
@@ -260,7 +287,8 @@ export function installExternalPlaybackReturnCoordinator({
   getProfileId = () => null,
   onAutomaticReport = async () => false,
   onManualFallback = () => {},
-  onManualFallbackResolved = () => {}
+  onManualFallbackResolved = () => {},
+  minimumAwayMs = MANUAL_PROMPT_MIN_AWAY_MS
 } = {}) {
   let wasBackgrounded = runtime.document?.visibilityState === "hidden";
   let collecting = false;
@@ -283,7 +311,12 @@ export function installExternalPlaybackReturnCoordinator({
     if (!handoff.automatic) {
       // A manual launch has no callback protocol; only prompt after the app
       // actually returns from the external player, never at normal startup.
-      if (confirmedReturn) promptManually(handoff);
+      // The handoff is kept when the return comes too soon, so the next one
+      // still asks.
+      const awayMs = Date.now() - Number(handoff.launchedAt || 0);
+      if (confirmedReturn && (handoff.navigationLaunch || awayMs >= minimumAwayMs)) {
+        promptManually(handoff);
+      }
       return;
     }
     // Only a cycle that is mid-apply blocks another. "manual-required" used to
