@@ -279,7 +279,184 @@ export const PlayerController = {
     }));
   },
 
+  // Single files in browsers without HTMLMediaElement.audioTracks (Chromium,
+  // Firefox): when the host allows CORS range reads, the file's audio tracks
+  // are listed from its header, and picking one other than the first replays
+  // the file through Media Source Extensions with that track (remux only).
+  shouldProbeRemuxAudio(url, requestHeaders = {}) {
+    if (this.currentPlaybackIsOffline || !/^https?:\/\//i.test(String(url || ""))) {
+      return false;
+    }
+    if (requestHeaders && Object.keys(requestHeaders).length) {
+      return false;
+    }
+    if (this.video?.audioTracks || this.video?.webkitAudioTracks || this.video?.mozAudioTracks) {
+      return false;
+    }
+    const MediaSourceCtor = globalThis.ManagedMediaSource || globalThis.MediaSource;
+    return typeof MediaSourceCtor?.isTypeSupported === "function";
+  },
+
+  startRemuxAudioProbe(url, requestHeaders = {}, mimeType = null) {
+    this.teardownRemuxAudio();
+    if (!this.shouldProbeRemuxAudio(url, requestHeaders)) {
+      return;
+    }
+    const state = { url, mimeType, status: "probing", reason: "", module: null, probe: null, session: null, activeIndex: null };
+    this.remuxAudio = state;
+    // Let the plain file start first: probe once it has its metadata (or after 3 s).
+    const video = this.video;
+    new Promise((resolve) => {
+      if (Number(video?.readyState || 0) >= 1) {
+        resolve();
+        return;
+      }
+      const timer = setTimeout(done, 3000);
+      function done() {
+        clearTimeout(timer);
+        video?.removeEventListener?.("loadedmetadata", done);
+        resolve();
+      }
+      video?.addEventListener?.("loadedmetadata", done);
+    })
+      .then(() => {
+        if (this.remuxAudio !== state) throw Object.assign(new Error("stale"), { reason: "stale" });
+        return import("./remux/remuxAudio.js");
+      })
+      .then((module) => {
+        state.module = module;
+        return module.probeRemuxableAudio(url);
+      })
+      .then((probe) => {
+        if (this.remuxAudio !== state) return;
+        state.probe = probe;
+        state.status = "ready";
+        this.emitVideoEvent("audiotrackschanged", { playbackEngine: this.playbackEngine });
+      })
+      .catch((error) => {
+        if (this.remuxAudio !== state) return;
+        state.status = "unavailable";
+        state.reason = String(error?.reason || "error");
+        this.emitVideoEvent("audiotrackschanged", { playbackEngine: this.playbackEngine });
+      });
+  },
+
+  isRemuxAudioProbePending() {
+    return this.remuxAudio?.status === "probing" && this.playbackEngine === "native-file";
+  },
+
+  getRemuxAudioUnavailableReason() {
+    return this.remuxAudio?.status === "unavailable" ? this.remuxAudio.reason : "";
+  },
+
+  getRemuxAudioTracks() {
+    const state = this.remuxAudio;
+    if (state?.status !== "ready" || !state.probe) return null;
+    if (this.playbackEngine !== "native-file" && this.playbackEngine !== "remux") return null;
+    const { nativeIndex } = state.probe;
+    const activeIndex = state.session ? state.activeIndex : nativeIndex;
+    return state.probe.audioTracks.map((track) => ({
+      id: `remux-${track.id}`,
+      index: track.index,
+      label: track.label || "",
+      language: track.language,
+      codec: track.codec,
+      channels: track.channels,
+      selected: track.index === activeIndex,
+      // The plain file already plays its first track; the others need MSE.
+      supported: track.index === nativeIndex || track.playable,
+      engine: "remux",
+      raw: track
+    }));
+  },
+
+  selectRemuxAudioTrack(index) {
+    const state = this.remuxAudio;
+    const target = state?.probe?.audioTracks?.[index];
+    if (!target) return false;
+    const { nativeIndex } = state.probe;
+    const current = state.session ? state.activeIndex : nativeIndex;
+    if (index === current) return true;
+    if (index === nativeIndex) {
+      this.leaveRemuxAudio();
+      return true;
+    }
+    if (!target.playable) return false;
+    if (state.session) {
+      const session = state.session;
+      state.activeIndex = index;
+      session.switchAudio(target.track).catch((error) => {
+        if (state.session === session) this.leaveRemuxAudio({ error });
+      });
+      this.emitVideoEvent("audiotrackschanged", { playbackEngine: "remux" });
+      return true;
+    }
+    const video = this.video;
+    const startTime = this.getCurrentTimeSeconds();
+    const autoplay = Boolean(video && !video.paused);
+    const session = new state.module.RemuxSession({
+      video,
+      demuxer: state.probe.demuxer,
+      videoTrack: state.probe.videoTrack,
+      audioTrack: target.track,
+      onFatal: (error) => {
+        if (state.session === session) this.leaveRemuxAudio({ error });
+      }
+    });
+    state.session = session;
+    state.activeIndex = index;
+    this.playbackEngine = "remux";
+    session.start({ startTime, autoplay }).catch((error) => {
+      if (state.session === session) this.leaveRemuxAudio({ error });
+    });
+    this.emitVideoEvent("audiotrackschanged", { playbackEngine: "remux" });
+    return true;
+  },
+
+  /** Back to the plain file at the same position, e.g. after a remux error. */
+  leaveRemuxAudio({ error = null } = {}) {
+    const state = this.remuxAudio;
+    if (!state?.session || !this.video) return;
+    const session = state.session;
+    const time = this.getCurrentTimeSeconds();
+    const resume = !this.video.paused;
+    state.session = null;
+    state.activeIndex = null;
+    session.destroy();
+    if (error) {
+      state.status = "unavailable";
+      state.reason = "remux-error";
+      console.warn("[Nuvio playback] Audio track switch failed; playing the file directly", error);
+    }
+    const video = this.video;
+    const restore = () => {
+      try {
+        video.currentTime = time;
+      } catch (_) {
+        // The position is best effort.
+      }
+      if (resume) video.play()?.catch?.(() => {});
+    };
+    video.addEventListener("loadedmetadata", restore, { once: true });
+    this.applyNativeSource(state.url, state.mimeType || null, "native-file");
+    this.emitVideoEvent("audiotrackschanged", { playbackEngine: "native-file" });
+  },
+
+  teardownRemuxAudio() {
+    const state = this.remuxAudio;
+    this.remuxAudio = null;
+    try {
+      state?.session?.destroy();
+    } catch (_) {
+      // Ignore remux cleanup failures.
+    }
+  },
+
   getBrowserAudioTracks() {
+    const remuxTracks = this.getRemuxAudioTracks();
+    if (remuxTracks) {
+      return remuxTracks;
+    }
     if (this.playbackEngine === "hls.js") {
       const selectedIndex = this.getSelectedHlsAudioTrackIndex();
       return (this.getHlsAudioTracks() || []).map((track, index) => ({
@@ -315,6 +492,9 @@ export const PlayerController = {
       return false;
     }
     const engine = tracks[targetIndex]?.engine;
+    if (engine === "remux") {
+      return this.selectRemuxAudioTrack(targetIndex);
+    }
     if (engine === "hls.js") {
       return this.setHlsAudioTrack(targetIndex);
     }
@@ -814,6 +994,7 @@ export const PlayerController = {
   teardownAdaptiveInstances() {
     this.teardownHlsInstance();
     this.teardownDashInstance();
+    this.teardownRemuxAudio();
     this.playbackEngine = "none";
   },
 
@@ -1640,6 +1821,7 @@ export const PlayerController = {
     freshVideo.playbackRate = preservedState.playbackRate;
     oldVideo.replaceWith(freshVideo);
 
+    this.teardownRemuxAudio();
     this.playbackSessionActive = false;
     this.playbackEngine = "none";
     this.bindVideoElement(freshVideo);
@@ -1805,6 +1987,7 @@ export const PlayerController = {
         warningLabel: "Playback start rejected",
         playToken
       });
+      this.startRemuxAudioProbe(url, requestHeaders, sourceType || null);
     }
 
     this.isPlaying = true;

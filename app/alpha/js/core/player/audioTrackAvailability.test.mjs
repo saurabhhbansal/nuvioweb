@@ -112,3 +112,17 @@ test("only browser-limited cases offer the external player", () => {
     false
   );
 });
+
+test("a file read as having one audio track says so instead of blaming the browser", () => {
+  const known = describeAudioTrackAvailability({ playbackEngine: "native-file", singleTrackKnown: true });
+  assert.equal(known.kind, "single");
+  assert.equal(known.offerExternalPlayer, false);
+  assert.equal(
+    describeAudioTrackAvailability({ playbackEngine: "native-file", singleTrackKnown: true, loading: true }).kind,
+    "loading"
+  );
+});
+
+test("a file's track list still being read shows loading", () => {
+  assert.equal(describeAudioTrackAvailability({ playbackEngine: "native-file", loading: true }).kind, "loading");
+});

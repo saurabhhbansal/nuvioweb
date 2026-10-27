@@ -1,7 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 // Default runs are Chromium-only (CI: browser.yml). Firefox and WebKit run the
-// playback quality spec on demand (CI: browser-engines.yml, manual).
-const engineSpecs = ["**/quality.spec.mjs"];
+// playback quality and audio remux specs on demand (CI: browser-engines.yml, manual).
+const engineSpecs = ["**/quality.spec.mjs", "**/remux-audio.spec.mjs"];
 const webkitProject = process.env.NUVIO_PLAYWRIGHT_WEBKIT === "1"
   ? [{ name: "webkit", testMatch: engineSpecs, use: { ...devices["Desktop Safari"] } }]
   : [];
