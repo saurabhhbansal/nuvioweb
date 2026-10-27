@@ -48,8 +48,10 @@ function loadPlayerScreen() {
   return Router.ensureRoute("player");
 }
 
-const GUEST_QR_BYPASS_KEY = "skipAuthQrGate";
-const SIGNED_OUT_ALLOWED_ROUTES = new Set(["trakt"]);
+// Set by the removed "Continue without account" action; cleared on sight.
+const LEGACY_GUEST_BYPASS_KEY = "skipAuthQrGate";
+// The only screens a signed-out visitor can open: an account is required.
+const SIGNED_OUT_ROUTES = new Set(["authSignIn", "authQrSignIn"]);
 let hasSelectedProfileThisSession = false;
 let appShellRendered = false;
 const STARTUP_PERF_DEBUG = Boolean(globalThis.__NUVIO_DEBUG_STARTUP_PERF__);
@@ -106,8 +108,16 @@ function logStartupTiming(stage, startedAt, extra = {}) {
   });
 }
 
-function isSignedOutRouteAllowed() {
-  return SIGNED_OUT_ALLOWED_ROUTES.has(Router.getCurrent());
+function signedOutStartRoute() {
+  return Platform.isBrowser() ? "authSignIn" : "authQrSignIn";
+}
+
+// Router access guard: while signed out, any screen other than sign-in opens
+// the sign-in screen instead. Nothing is refused while the session is still
+// being restored.
+function guardSignedOutRoute(routeName) {
+  if (AuthManager.getAuthState() !== AuthState.SIGNED_OUT) return null;
+  return SIGNED_OUT_ROUTES.has(routeName) ? null : signedOutStartRoute();
 }
 
 function formatErrorMessage(error) {
@@ -321,6 +331,7 @@ async function bootstrapApp() {
 
   markBootStage("Initializing navigation");
   Router.init();
+  Router.setAccessGuard(guardSignedOutRoute);
   PlayerController.init();
   if (isDesktopBrowser) {
     void initializeBrowserOfflineDownloadQueue().catch(() => {});
@@ -345,11 +356,13 @@ async function bootstrapApp() {
       StartupSyncService.stop();
       ProviderCredentialSyncService.cancelForegroundPull();
       hasSelectedProfileThisSession = false;
-      const shouldBypassQr = Boolean(LocalStore.get(GUEST_QR_BYPASS_KEY, false));
+      // Guest mode is gone (docs/DECISIONS.md): an old "continue without
+      // account" flag is dropped so it can never skip sign-in again. The
+      // local data a guest left behind is not touched.
+      LocalStore.remove(LEGACY_GUEST_BYPASS_KEY);
       // A sign-out (not a first visit with no session) drops every screen of
-      // the session that just ended, even on a screen allowed while signed
-      // out; the start screen then opens on its own and replaces the current
-      // history entry.
+      // the session that just ended; the start screen then opens on its own
+      // and replaces the current history entry.
       if (detail?.reason === "signOut") {
         try {
           Router.resetForSignOut({ sessionEnded: Boolean(detail.wasAuthenticated) });
@@ -357,43 +370,7 @@ async function bootstrapApp() {
           console.warn("Failed to reset navigation after sign-out", error?.name || "error");
         }
       }
-      if (isSignedOutRouteAllowed()) {
-        return;
-      }
       const startOptions = { replaceHistory: true, skipStackPush: true };
-      if (shouldBypassQr) {
-        // Honor "remember last profile" for guests too: skip the picker and go
-        // straight in with the last profile (guests have no PIN).
-        if (
-          ProfileManager.isRememberLastProfileEnabled() &&
-          ProfileManager.hasEverSelectedProfile()
-        ) {
-          enterWithLastProfile().catch((error) => {
-            console.warn("Failed to enter with last profile", error);
-            ProfileManager.clearActiveProfile();
-            if (Router.getCurrent() !== "profileSelection") {
-              Router.navigate(
-                "profileSelection",
-                {},
-                { replaceHistory: true, skipStackPush: true }
-              );
-            }
-          });
-          return;
-        }
-        ProfileManager.clearActiveProfile();
-        if (Router.getCurrent() !== "profileSelection") {
-          Router.navigate(
-            "profileSelection",
-            {},
-            {
-              replaceHistory: true,
-              skipStackPush: true
-            }
-          );
-        }
-        return;
-      }
       // Browser sign-in uses the existing Supabase email/password screen.
       if (Platform.isBrowser()) {
         Router.navigate("authSignIn", {}, startOptions);
@@ -407,7 +384,6 @@ async function bootstrapApp() {
 
     if (state === AuthState.AUTHENTICATED) {
       markBootStage("Loading profiles");
-      LocalStore.remove(GUEST_QR_BYPASS_KEY);
       StartupSyncService.start({ runInitialPull: false });
       routeAfterAuthentication().catch((error) => {
         console.warn("Failed to resolve authenticated route", error);

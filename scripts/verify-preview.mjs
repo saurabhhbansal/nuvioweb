@@ -1,10 +1,13 @@
 // Manual check of the deployed dev preview. Not run in CI.
 // Usage: node scripts/verify-preview.mjs <local staging directory>
 // Checks served file hashes/headers against the staged manifest, the service
-// worker and guest shell, then the same-host legal demo playback journey.
-// Guest context only; every third-party request is blocked.
+// worker and signed-in shell, then the same-host legal demo playback journey.
+// Every third-party request is blocked. The app needs an account, so the
+// preview's account backend is answered by the browser tests' fake account:
+// no real account is used and the real service is never contacted.
 import assert from "node:assert/strict";
 import { chromium, expect } from "@playwright/test";
+import { enterPastStartup, installFakeAccount, openSignedInHome } from "../tests/browser/fakeAccount.mjs";
 import { readFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import { resolve, join } from "node:path";
@@ -44,6 +47,15 @@ async function checkServedFiles() {
   assert.ok((await source.text()).includes(`/tree/${revision}`), "Deployed source mismatch");
 }
 
+// The backend origin this deploy was built against, from its runtime config.
+async function previewIdentityOrigin() {
+  const config = await (await fetch(`${origin}/nuvio.env.js`, { signal: AbortSignal.timeout(20000) })).text();
+  const match = config.match(/NUVIO_SUPABASE_URL\s*:\s*"(https:\/\/[^"]+)"/);
+  assert.ok(match, "nuvio.env.js names no account backend");
+  return new URL(match[1]).origin;
+}
+const identityOrigin = await previewIdentityOrigin();
+
 async function checkShell(browser) {
   const context = await browser.newContext({serviceWorkers:"allow"});
   const blockedExternalOrigins = new Set();
@@ -59,27 +71,30 @@ async function checkShell(browser) {
   await expect.poll(()=>page.evaluate(()=>Boolean(navigator.serviceWorker.controller)),{timeout:45000}).toBe(true);
   const cacheNames = await page.evaluate(()=>caches.keys());
   assert.ok(cacheNames.some((key)=>key.startsWith("nuvio-app-shell-")));
-  await page.locator('[data-action="continueGuest"]').click();
-  await expect(page.locator("#home")).toBeVisible();
+  // No way in without an account.
+  await expect(page.locator('[data-action="continueGuest"]')).toHaveCount(0);
+  await installFakeAccount(context,{identityOrigin});
+  await openSignedInHome(page,{expect,path:`${origin}/`});
   for (const [label,screen] of [["Search","search"],["Library","library"],["Settings","settings"]]) {
     await page.getByRole("button",{name:label,exact:true}).click();
     await expect(page.locator(`#${screen}`)).toBeVisible();
   }
   await page.reload();
-  await expect(page.locator("#profileSelection")).toBeVisible();
-  await expect(page.locator('#profileSelection [data-profile-id="1"]')).toContainText("Profile 1");
+  await expect(page.locator("#settings")).toBeVisible();
   assert.deepEqual(pageErrors,[]);
   const aliasPage = await context.newPage(); await aliasPage.goto(`${origin}/library`);
-  await expect(aliasPage.locator("#profileSelection")).toBeVisible();
+  await enterPastStartup(aliasPage,{expect});
+  await expect(aliasPage.locator("#library")).toBeVisible();
   await context.close();
 }
 
-async function checkGuestJourney(browser) {
+async function checkPlaybackJourney(browser) {
   const context = await browser.newContext({ serviceWorkers: "block" });
   await context.route("**/*", async route => {
     if (new URL(route.request().url()).origin === origin) await route.continue();
     else await route.abort("blockedbyclient");
   });
+  await installFakeAccount(context, { identityOrigin });
   const page = await context.newPage();
   const errors = [];
   page.on("pageerror", () => errors.push("UNCAUGHT_PAGE_ERROR"));
@@ -88,12 +103,11 @@ async function checkGuestJourney(browser) {
     await page.locator('[data-focus-key="nav:contentDiscovery"]').click();
     await page.locator('[data-focus-key="contentDiscovery:addons"]').click();
   };
-  await page.goto(origin, { waitUntil: "domcontentloaded" });
-  await page.locator('[data-action="continueGuest"]').click();
+  await openSignedInHome(page, { expect, path: origin });
   await settings();
   await page.locator("#desktop-addon-url").fill(`${origin}/demo/manifest.json`);
   await page.getByRole("button", { name: "Add Addon", exact: true }).click();
-  await expect(page.getByRole("status")).toHaveText("Saved locally");
+  await expect(page.getByRole("status")).toHaveText("Synced");
   await page.getByRole("button", { name: "Home", exact: true }).click();
   await page.locator('#home .home-poster-card[data-item-id="nuvioweb-demo-original"]').first().click();
   await expect(page.getByRole("heading", { name: "NuvioWeb legal demo", exact: true })).toBeVisible();
@@ -133,8 +147,8 @@ async function checkGuestJourney(browser) {
   await page.getByRole("button", { name: "Library", exact: true }).click();
   await expect(page.locator('#library .library-grid-card[data-item-id="nuvioweb-demo-original"]')).toBeVisible();
   await page.reload();
-  await page.locator('#profileSelection [data-profile-id="1"]').click();
-  await page.getByRole("button", { name: "Skip setup", exact: true }).click();
+  await enterPastStartup(page, { expect });
+  await page.getByRole("button", { name: "Home", exact: true }).click();
   await expect(page.locator('#home .home-poster-card[data-item-id="nuvioweb-demo-original"]').first()).toBeVisible();
   await page.getByRole("button", { name: "Library", exact: true }).click();
   await expect(page.locator('#library .library-grid-card[data-item-id="nuvioweb-demo-original"]')).toBeVisible();
@@ -146,8 +160,8 @@ await checkServedFiles();
 const browser = await chromium.launch();
 try {
   await checkShell(browser);
-  await checkGuestJourney(browser);
-  console.log(`Preview ${origin} at ${revision} passed: served files, worker/guest shell and legal demo journey (${browser.version()}).`);
+  await checkPlaybackJourney(browser);
+  console.log(`Preview ${origin} at ${revision} passed: served files, worker/signed-in shell and legal demo journey (${browser.version()}).`);
 } finally {
   await browser.close();
 }

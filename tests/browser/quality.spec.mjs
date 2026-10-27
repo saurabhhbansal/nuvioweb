@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { installFakeAccount, openSignedInHome } from "./fakeAccount.mjs";
 import { readFile } from "node:fs/promises";
 const provenance = JSON.parse(await readFile(new URL("../fixtures/media/quality/provenance.json", import.meta.url), "utf8"));
 const nativeProvenance = JSON.parse(await readFile(new URL("../fixtures/media/quality/native-provenance.json", import.meta.url), "utf8"));
@@ -51,8 +52,8 @@ async function openSource(page, context, scenario) {
     },
     { provider, scenario },
   );
-  await page.goto("/");
-  await page.locator('[data-action="continueGuest"]').click();
+  await installFakeAccount(context, { addons: [`${provider}/${scenario}`] });
+  await openSignedInHome(page, { expect });
   await page
     .locator('#home .home-poster-card[data-item-id="fixture:original"]')
     .first()

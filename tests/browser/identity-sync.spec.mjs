@@ -920,8 +920,12 @@ for (const network of ["working", "failing", "hanging"]) {
       await signIn(page, "A");
       await expectLibrary(page, "A");
     } else {
-      await page.locator('[data-action="continueGuest"]').click();
-      await expect.poll(() => settledRoute(page)).toMatch(/^(home|profileSelection)$/);
+      // Without an account nothing opens past the start screen, not even the
+      // old Library by its address.
+      await page.goto("/#/library");
+      await expect(page.locator("#desktop-auth-email")).toBeVisible();
+      await expect.poll(() => page.evaluate(() => window.__NUVIO_CURRENT_ROUTE__)).toBe("authSignIn");
+      await expect(page.locator("#library")).toBeHidden();
       expect(await page.evaluate(() => document.body.innerHTML.includes("fixture-library-b"))).toBe(false);
     }
     expect(fixture.unexpected).toEqual([]);
@@ -953,6 +957,7 @@ test("sign-out from the profile picker shown at startup clears the address bar i
   expect(await page.evaluate(() => location.hash)).toBe("#/library");
   await page.locator('#profileSelection [data-action="sign-out"]').click();
   await expectCleanSignedOutStart(page);
-  await page.locator('[data-action="continueGuest"]').click();
-  await expect.poll(() => settledRoute(page)).toMatch(/^(home|profileSelection)$/);
+  // The start screen stays put: there is no way in without an account.
+  await page.reload();
+  await expectCleanSignedOutStart(page);
 });

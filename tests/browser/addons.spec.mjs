@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { enterPastStartup, installFakeAccount, openSignedInHome } from "./fakeAccount.mjs";
 
 const provider = "http://127.0.0.1:4373";
 test.beforeEach(async ({ context,request }) => {
@@ -61,8 +62,7 @@ test("real browser CORS, malformed JSON, provider failure and catalog abort prod
 });
 
 async function openAddonSettings(page) {
-  await page.goto("/");
-  await page.locator('[data-action="continueGuest"]').click();
+  await openSignedInHome(page, { expect });
   await navigateAddonSettings(page);
 }
 
@@ -73,7 +73,8 @@ async function navigateAddonSettings(page) {
   await expect(page.locator("#desktop-addon-url")).toBeVisible();
 }
 
-test("guest installs and toggles a legal HTTP add-on through the real bundled settings UI",async ({ page,context })=> {
+test("signed-in user installs and toggles a legal HTTP add-on through the real bundled settings UI",async ({ page,context })=> {
+  const account = await installFakeAccount(context);
   await context.addInitScript(()=>{
     if (!localStorage.getItem("installedAddonUrls")) localStorage.setItem("installedAddonUrls",JSON.stringify({__profileScoped:true,version:1,profiles:{"1":[]}}));
   });
@@ -83,17 +84,16 @@ test("guest installs and toggles a legal HTTP add-on through the real bundled se
   const card = page.locator("[data-addon-card]").filter({has:page.getByRole("heading",{name:"Legal Fixture",exact:true})});
   await expect(card).toBeVisible();
   await expect(page.locator(".settings-shell .desktop-addon-inline-status[role=status]")).toHaveCount(1);
-  await expect(page.locator(".settings-shell .desktop-addon-inline-status[role=status]")).toHaveText("Saved locally");
+  await expect(page.locator(".settings-shell .desktop-addon-inline-status[role=status]")).toHaveText("Synced");
   await card.getByText("Enabled",{exact:true}).click();
   await expect(card.locator('input[type="checkbox"]')).not.toBeChecked();
   await expect(card).toHaveClass(/is-disabled/);
   await card.getByText("Disabled",{exact:true}).click();
   await expect(card.locator('input[type="checkbox"]')).toBeChecked();
   await expect(card).not.toHaveClass(/is-disabled/);
+  await expect.poll(()=>account.store.get("addons:1")?.map((row)=>[row.url,row.enabled])).toEqual([[`${provider}/basic`,true]]);
   await page.reload();
-  await page.locator('#profileSelection [data-profile-id="1"]').click();
-  await expect(page.getByRole("heading",{name:"Choose a player",exact:true})).toBeVisible();
-  await page.getByRole("button",{name:"Skip setup",exact:true}).click();
+  await enterPastStartup(page,{expect});
   // The reload comes back to Settings.
   await expect(page.locator("#settings")).toBeVisible();
   await navigateAddonSettings(page);
@@ -101,11 +101,10 @@ test("guest installs and toggles a legal HTTP add-on through the real bundled se
   await expect(card.locator('input[type="checkbox"]')).toBeChecked();
 });
 
-test("guest browses the legal catalog, opens detail and starts original fixture playback",async ({ page,context })=> {
+test("signed-in user browses the legal catalog, opens detail and starts original fixture playback",async ({ page,context })=> {
+  await installFakeAccount(context,{addons:[`${provider}/basic`]});
   await context.addInitScript((provider)=>localStorage.setItem("installedAddonUrls",JSON.stringify({__profileScoped:true,version:1,profiles:{"1":[`${provider}/basic`]}})),provider);
-  await page.goto("/");
-  await page.locator('[data-action="continueGuest"]').click();
-  await expect(page.locator("#home")).toBeVisible();
+  await openSignedInHome(page,{expect});
   const card = page.locator('#home .home-poster-card[data-item-id="fixture:original"]').first();
   await expect(card).toBeVisible();
   await card.click();
@@ -119,6 +118,7 @@ test("guest browses the legal catalog, opens detail and starts original fixture 
 });
 
 test("settings visibly rejects CORS, malformed, invalid-shape and unsafe-looking provider errors",async ({ page,context })=> {
+  await installFakeAccount(context);
   await context.addInitScript(()=>localStorage.setItem("installedAddonUrls",JSON.stringify({__profileScoped:true,version:1,profiles:{"1":[]}})));
   await openAddonSettings(page);
   for (const [scenario,message] of [["cors-denied",/Could not reach the add-on server/i],["malformed",/invalid JSON response/i],["shape",/manifest is not valid/i],["failure",/Fixture provider unavailable/]]) {
@@ -168,6 +168,7 @@ test("profile-scoped add-on snapshots preserve local isolation and partial sourc
 
 for (const duplicateName of [false,true]) {
 test(`a failing source stays visible alongside working streams and recovers on retry${duplicateName ? " with duplicate custom names" : ""}`,async ({ page,context,request },testInfo)=> {
+  await installFakeAccount(context,{addons:[`${provider}/basic`,duplicateName ? {url:`${provider}/partial`,name:"Legal Fixture"} : `${provider}/partial`]});
   await context.addInitScript((provider)=>localStorage.setItem("installedAddonUrls",JSON.stringify({__profileScoped:true,version:1,profiles:{"1":[`${provider}/basic`,`${provider}/partial`]}})),provider);
   if (duplicateName) {
     await page.goto("/__fixture/harness");
@@ -178,8 +179,7 @@ test(`a failing source stays visible alongside working streams and recovers on r
       addonRepository.setAddonDisplayNameOverrides([{url:`${provider}/partial`,name:"Legal Fixture"}]);
     },provider);
   }
-  await page.goto("/");
-  await page.locator('[data-action="continueGuest"]').click();
+  await openSignedInHome(page,{expect});
   await page.locator('#home .home-poster-card[data-item-id="fixture:original"]').first().click();
   await expect(page.getByRole("heading",{name:"Original Legal Fixture",exact:true})).toBeVisible();
   await page.clock.install();

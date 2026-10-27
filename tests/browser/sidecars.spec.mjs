@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { installFakeAccount, openSignedInHome } from "./fakeAccount.mjs";
 
 test.beforeEach(async ({ context }) => {
   await context.route("**/*", async (route) => {
@@ -10,6 +11,7 @@ test.beforeEach(async ({ context }) => {
 
 test("static bundled settings hide integrations that need a sidecar, without sidecar requests", async ({
   page,
+  context,
 }) => {
   const sidecarRequests = [];
   page.on("request", (request) => {
@@ -20,8 +22,8 @@ test("static bundled settings hide integrations that need a sidecar, without sid
     )
       sidecarRequests.push(new URL(request.url()).pathname);
   });
-  await page.goto("/");
-  await page.locator('[data-action="continueGuest"]').click();
+  await installFakeAccount(context);
+  await openSignedInHome(page, { expect });
   await page.getByRole("button", { name: "Settings", exact: true }).click();
   await page.locator('#settings [data-focus-key="nav:trakt"]').click();
   // Trakt sign-in is off on this build, so its row is not shown at all;
