@@ -1,4 +1,4 @@
-import { getSidecarCapabilities, sidecarUnavailableMessage } from "../../../core/platform/sidecarCapabilities.js";
+import { getSidecarCapabilities } from "../../../core/platform/sidecarCapabilities.js";
 import { ScreenUtils } from "../../navigation/screen.js";
 import { Router } from "../../navigation/router.js";
 import { Platform } from "../../../platform/index.js";
@@ -229,6 +229,8 @@ export const TraktScreen = Object.assign(Object.create(SettingsScreen), {
     const simkl = SimklAuthService.getCurrentAuthState();
     const settings = TraktSettingsStore.get();
     const traktConnected = TraktAuthService.isAuthenticated();
+    // Without Trakt sign-in on this site the row stays only for a saved connection.
+    const showTrakt = getSidecarCapabilities().traktAuth || traktConnected;
     const simklConnected = SimklAuthService.isAuthenticated();
     const traktWaiting = Boolean(trakt.deviceCode && trakt.expiresAt > Date.now());
     const simklWaiting = Boolean(simkl.userCode && simkl.expiresAt > Date.now());
@@ -405,12 +407,12 @@ export const TraktScreen = Object.assign(Object.create(SettingsScreen), {
             ? "assets/icons/simkl_tv_glyph.svg"
             : "assets/icons/trakt_tv_glyph.svg",
         title,
-        subtitle: id === "trakt" && !getSidecarCapabilities().traktAuth ? t("sidecar_site_unavailable", {}, "Unavailable on this site") : connected
+        subtitle: connected
           ? t(id === "simkl" ? "simkl_connected_as" : "trakt_connected_as", [username || `${title} user`], `Connected as ${username || `${title} user`}`)
           : waiting
             ? t("tracking_status_waiting", {}, "Waiting for approval")
             : t(id === "simkl" ? "simkl_connect" : "trakt_connect", {}, `Connect ${title}`),
-        value: id === "trakt" && !getSidecarCapabilities().traktAuth ? "" : connected ? t("tracking_status_connected", {}, "Connected") : waiting ? t("tracking_status_waiting", {}, "Waiting") : t("tracking_status_disconnected", {}, "Not connected")
+        value: connected ? t("tracking_status_connected", {}, "Connected") : waiting ? t("tracking_status_waiting", {}, "Waiting") : t("tracking_status_disconnected", {}, "Not connected")
       });
 
     return `
@@ -425,11 +427,11 @@ export const TraktScreen = Object.assign(Object.create(SettingsScreen), {
           <div class="settings-trakt-card">
             <h3 class="settings-trakt-card-title">${escapeHtml(t("tracking_accounts_title", {}, "Accounts"))}</h3>
             <div class="settings-trakt-options-stack">
-              ${providerRow({ id: "trakt", title: "Trakt", connected: traktConnected, waiting: traktWaiting, username: trakt.username })}
+              ${showTrakt ? providerRow({ id: "trakt", title: "Trakt", connected: traktConnected, waiting: traktWaiting, username: trakt.username }) : ""}
               ${providerRow({ id: "simkl", title: "Simkl", connected: simklConnected, waiting: simklWaiting, username: simkl.username })}
             </div>
           </div>
-          ${this.expandedProvider === "trakt" ? this.renderTrackingTraktAccount(trakt, traktConnected, traktWaiting) : ""}
+          ${showTrakt && this.expandedProvider === "trakt" ? this.renderTrackingTraktAccount(trakt, traktConnected, traktWaiting) : ""}
           ${this.expandedProvider === "simkl" ? this.renderTrackingSimklAccount(simkl, simklConnected, simklWaiting) : ""}
           <div class="settings-trakt-card">
             <h3 class="settings-trakt-card-title">${escapeHtml(t("tracking_sources_title", {}, "Sources"))}</h3>
@@ -454,8 +456,9 @@ export const TraktScreen = Object.assign(Object.create(SettingsScreen), {
   },
 
   renderTrackingTraktAccount(auth, connected, waiting) {
+    // Without Trakt sign-in on this site only a saved connection is left to remove.
     if (!getSidecarCapabilities().traktAuth) {
-      return `<div class="settings-trakt-card settings-tracking-account-card"><h3 class="settings-trakt-card-title">Trakt</h3><p class="sidecar-capability-message" data-sidecar-status="traktAuth">${escapeHtml(t("sidecar_trakt_unavailable", {}, sidecarUnavailableMessage("traktAuth")))}</p>${connected ? this.renderActionRow({ focusKey: "tracking:traktDisconnect", title: t("trakt_disconnect", {}, "Disconnect Trakt") }) : ""}</div>`;
+      return connected ? `<div class="settings-trakt-card settings-tracking-account-card"><h3 class="settings-trakt-card-title">Trakt</h3>${this.renderActionRow({ focusKey: "tracking:traktDisconnect", title: t("trakt_disconnect", {}, "Disconnect Trakt") })}</div>` : "";
     }
     if (connected) {
       const tokenRemainingMs = auth.createdAt && auth.expiresIn ? Math.max(0, (Number(auth.createdAt) + Number(auth.expiresIn)) * 1000 - Date.now()) : 0;

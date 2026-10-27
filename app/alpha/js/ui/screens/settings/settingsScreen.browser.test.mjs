@@ -38,6 +38,17 @@ test("Connected Services retains credential-gated Cloud Library and resolver tog
   assert.match(source, /DebridSettingsStore\.setProviderApiKey\(state\.provider\.id, ""\)/);
 });
 
+test("Debrid and Trakt rows are hidden, not explained, when their sidecar is off", async () => {
+  const source = await settingsScreenSource();
+
+  // Self-hosted builds with the bridge on keep the page; a saved account keeps it too.
+  assert.match(source, /return getSidecarCapabilities\(\)\.debrid \|\| connectedDebridProviders\(debrid\)\.length > 0;/);
+  assert.match(source, /\$\{showDebridSettings\(\)\s*\? this\.renderActionRow\(\{\s*focusKey: "integration:hub:debrid"/);
+  assert.match(source, /const showTrakt = getSidecarCapabilities\(\)\.traktAuth \|\| traktConnected;/);
+  assert.match(source, /\$\{showTrakt \? this\.renderCollapsibleRow\(\{ focusKey: "tracking:desktop:trakt"/);
+  assert.doesNotMatch(source, /data-sidecar-status=|Unavailable on this site/);
+});
+
 test("Settings only renders visible debrid providers, keeping Real-Debrid hidden", async () => {
   const source = await settingsScreenSource();
 
