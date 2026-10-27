@@ -610,6 +610,8 @@ export const SimklSyncService = {
       return false;
     }
     if (refreshInFlight?.profileId === profileId) return refreshInFlight.promise;
+    // Best effort: only labels the account, so it must never block a refresh.
+    SimklAuthService.ensureIdentity(profileId).catch(() => null);
     const promise = (
       current.initialized
         ? incrementalSync(current, profileId, { rereadPlayback })
