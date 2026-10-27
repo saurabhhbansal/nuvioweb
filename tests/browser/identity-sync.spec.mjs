@@ -423,11 +423,24 @@ async function localSnapshot(page) {
 }
 
 async function expectExactScopedData(page, alias, profileId) {
+  // The Library card is all the caller waited for. Watched items, progress and
+  // add-ons come from separate pulls of the same profile sync and can land a
+  // moment later (progress waits on watched), so wait until all four settle on
+  // this profile's exact set before checking for foreign data.
+  const pid = String(profileId);
+  const scoped = (snapshot) => ({
+    library: snapshot.library.filter((item) => item.profileId === pid).map((item) => item.contentId),
+    watched: snapshot.watched.filter((item) => item.profileId === pid).map((item) => item.contentId),
+    progress: snapshot.progress.filter((item) => item.profileId === pid).map((item) => item.contentId),
+    addons: snapshot.addons[pid]
+  });
+  await expect.poll(async () => scoped(await localSnapshot(page))).toEqual({
+    library: [libraryKey(alias, profileId)],
+    watched: [watchedKey(alias, profileId)],
+    progress: [progressKey(alias, profileId)],
+    addons: [addonUrl(alias, profileId)]
+  });
   const snapshot = await localSnapshot(page);
-  expect(snapshot.library.filter((item) => item.profileId === String(profileId)).map((item) => item.contentId)).toEqual([libraryKey(alias, profileId)]);
-  expect(snapshot.watched.filter((item) => item.profileId === String(profileId)).map((item) => item.contentId)).toEqual([watchedKey(alias, profileId)]);
-  expect(snapshot.progress.filter((item) => item.profileId === String(profileId)).map((item) => item.contentId)).toEqual([progressKey(alias, profileId)]);
-  expect(snapshot.addons[String(profileId)]).toEqual([addonUrl(alias, profileId)]);
   const foreignAlias = alias === "A" ? "b" : "a";
   expect(snapshot.library.some((item) => item.contentId.includes(`-${foreignAlias}-`))).toBe(false);
   expect(snapshot.watched.some((item) => item.contentId.includes(`-${foreignAlias}-`))).toBe(false);

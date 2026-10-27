@@ -237,25 +237,34 @@ export const WatchedItemsSyncService = {
     }
   },
 
-  async push() {
+  // The push sends the whole local set as the profile's snapshot, so it must go
+  // to the session and profile that set was read for. A caller that reconciled
+  // under a particular session passes it; without one, the moment of the call
+  // is the owner.
+  async push({
+    sessionGeneration = AuthManager.getSessionGeneration(),
+    profileId = resolveProfileId()
+  } = {}) {
     try {
-      if (!AuthManager.isAuthenticated) {
+      const owned = () =>
+        AuthManager.isSessionCurrent(sessionGeneration) && resolveProfileId() === profileId;
+      if (!AuthManager.isAuthenticated || !owned()) {
         return false;
       }
-      const sessionGeneration = AuthManager.getSessionGeneration();
       const items = (await watchedItemsRepository.listLocal()).filter((item) =>
         isNuvioSyncOwnedProgress(item)
       );
+      if (!owned()) return false;
       await SupabaseApi.rpc(
         PUSH_RPC,
         {
-          p_profile_id: resolveProfileId(),
+          p_profile_id: profileId,
           p_items: items.map((item) => toRemoteItem(item))
         },
         true
       );
       if (!AuthManager.isSessionCurrent(sessionGeneration)) return false;
-      writeWatchedStateForProfile(resolveProfileId(), { lastSuccessfulPushAt: Date.now() });
+      writeWatchedStateForProfile(profileId, { lastSuccessfulPushAt: Date.now() });
       return true;
     } catch (error) {
       console.warn("Watched items sync push failed", error);

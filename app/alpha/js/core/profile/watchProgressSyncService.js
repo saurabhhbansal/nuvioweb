@@ -593,11 +593,26 @@ export const WatchProgressSyncService = {
       reconnectPullOwed = false;
       return false;
     }
+    // The retries below span half a minute, which is long enough to sign out,
+    // sign in as someone else, or switch profile. Each attempt pulls and then
+    // pushes whatever is local *now*, so an attempt that outlived its session
+    // published the next account's freshly reset, still-empty store over that
+    // account's cloud history -- its pull had been discarded as stale, its push
+    // had not. The run belongs to the session and profile it started under.
+    const sessionGeneration = AuthManager.getSessionGeneration();
+    const profileId = resolveProfileId();
+    const stillOwned = () =>
+      AuthManager.isSessionCurrent(sessionGeneration) && resolveProfileId() === profileId;
+    const abandon = () => {
+      reconnectPullOwed = false;
+      return false;
+    };
     // Completions made elsewhere have to be in hand before the merge runs, or a
     // partial left behind here outlives them and is pushed back over them.
     for (let attempt = 0; attempt < RECONNECT_RETRY_DELAYS_MS.length; attempt += 1) {
       const delay = RECONNECT_RETRY_DELAYS_MS[attempt];
       if (delay) await new Promise((resolve) => setTimeout(resolve, delay));
+      if (!stillOwned()) return abandon();
       // Cleared on every attempt: the previous one failing is what arms it, and
       // an outage that has just ended is exactly when it should not apply.
       lastFailedPushSignature = "";
@@ -605,6 +620,9 @@ export const WatchProgressSyncService = {
       await this.pull({
         watchedItemsReady: WatchedItemsSyncService.pull().catch(() => null)
       });
+      // Both pulls drop their result when the session or profile moved on
+      // meanwhile, so nothing was reconciled and nothing may be pushed.
+      if (!stillOwned()) return abandon();
       // Reconciled: this device's state now accounts for what the cloud holds,
       // so publishing it can no longer erase another device's viewing.
       reconnectPullOwed = false;
@@ -614,10 +632,11 @@ export const WatchProgressSyncService = {
       // nothing tried again. Before the progress push, because a completion in
       // the cloud is what stops another device restoring the partial this one
       // just deleted.
-      await WatchedItemsSyncService.push().catch((error) => {
+      await WatchedItemsSyncService.push({ sessionGeneration, profileId }).catch((error) => {
         console.warn("[ProgressSync] reconnect watched items push failed", error);
         return false;
       });
+      if (!stillOwned()) return abandon();
       const pushed = await this.push();
       if (pushed) return true;
     }
