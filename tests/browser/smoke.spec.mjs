@@ -111,6 +111,12 @@ test("signed out, Home, a title, Settings and a leftover guest flag all land on 
 
 test("a link opened while signed out opens after sign-in", async ({ page, context }) => {
   await installFakeAccount(context, { signedIn: false });
+  // A slow sign-in keeps the sign-in screen up for a while after the click;
+  // the deep link must still open once it and the profile choice are done.
+  await context.route("https://identity.example.invalid/auth/v1/token**", async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    await route.fallback();
+  });
   await page.goto("/#/settings");
   await expect(page.locator("#account .desktop-auth-card")).toBeVisible();
   await signInWithFakeAccount(page);
