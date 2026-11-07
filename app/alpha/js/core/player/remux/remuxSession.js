@@ -1,8 +1,10 @@
 // Plays one progressive file through Media Source Extensions with a chosen
 // audio track: demux -> fMP4 (codecs untouched) -> one SourceBuffer for video,
 // one for audio. Seeking re-reads from the nearest keyframe; switching audio
-// swaps only the audio SourceBuffer.
+// swaps only the audio SourceBuffer. AC-3/E-AC-3 tracks the browser can't
+// play are converted to Opus on the way (audioTranscoder.js).
 
+import { createTranscodingWriter } from "./audioTranscoder.js";
 import { createTrackWriter } from "./trackWriter.js";
 
 const BUFFER_AHEAD_SECONDS = 30;
@@ -49,6 +51,11 @@ class StaleError extends Error {
     super("stale");
     this.name = "RemuxStale";
   }
+}
+
+/** Copies the track untouched, or converts it when describeRemuxSource marked it `transcode`. */
+export async function openAudioWriter(track, demuxer) {
+  return track.transcode ? createTranscodingWriter(track, demuxer) : createTrackWriter(track, demuxer);
 }
 
 export function canRemuxInThisBrowser() {
@@ -115,7 +122,11 @@ export class RemuxSession {
       this.videoBuffer = this.mediaSource.addSourceBuffer(this.videoWriter.mime);
       this.videoBuffer.mode = "segments";
     }
-    this.audioWriter = createTrackWriter(this.audioTrack, this.demuxer);
+    this.audioWriter = await openAudioWriter(this.audioTrack, this.demuxer);
+    if (this.destroyed) {
+      this.audioWriter.close?.();
+      return;
+    }
     this.audioBuffer = this.mediaSource.addSourceBuffer(this.audioWriter.mime);
     this.audioBuffer.mode = "segments";
     if (this.videoBuffer) await this.enqueue(() => this.appendNow(this.videoBuffer, this.videoWriter.init));
@@ -251,8 +262,12 @@ export class RemuxSession {
     const controller = new AbortController();
     this.controller = controller;
     this.readerDone = false;
-    this.videoWriter?.reset({ skipThroughDts: skipVideoThroughDts });
-    this.audioWriter.reset();
+    // A run keeps the writers it started with: a stale run must never feed a
+    // writer a later switch or seek installed (a converting writer would
+    // encode the same audio twice).
+    const { videoWriter, audioWriter } = this;
+    videoWriter?.reset({ skipThroughDts: skipVideoThroughDts });
+    audioWriter.reset();
     const trackIds = [this.videoTrack?.id, this.audioTrack.id].filter((id) => id !== undefined && id !== null);
     try {
       const reader = this.demuxer.createReader({ trackIds, startTime, signal: controller.signal });
@@ -260,17 +275,22 @@ export class RemuxSession {
         if (generation !== this.generation) return;
         for (const { track, samples } of batch) {
           const isVideo = this.videoTrack && track.id === this.videoTrack.id;
-          const writer = isVideo ? this.videoWriter : this.audioWriter;
+          const writer = isVideo ? videoWriter : audioWriter;
           const buffer = isVideo ? this.videoBuffer : this.audioBuffer;
-          await this.appendSegments(buffer, writer, writer.push(samples), generation);
+          if (generation !== this.generation) return;
+          const segments = await writer.push(samples);
+          await this.appendSegments(buffer, writer, segments, generation);
         }
         while (generation === this.generation && !this.destroyed && this.bufferedAheadSeconds >= BUFFER_AHEAD_SECONDS) {
           await this.sleep(1000);
         }
       }
       if (generation !== this.generation) return;
-      if (this.videoWriter) await this.appendSegments(this.videoBuffer, this.videoWriter, this.videoWriter.flush(), generation);
-      await this.appendSegments(this.audioBuffer, this.audioWriter, this.audioWriter.flush(), generation);
+      if (videoWriter) await this.appendSegments(this.videoBuffer, videoWriter, videoWriter.flush(), generation);
+      if (generation !== this.generation) return;
+      const audioTail = await audioWriter.flush();
+      if (generation !== this.generation) return;
+      await this.appendSegments(this.audioBuffer, audioWriter, audioTail, generation);
       this.readerDone = true;
       await this.enqueue(() => {
         if (generation === this.generation && this.mediaSource.readyState === "open" && !this.videoBuffer?.updating && !this.audioBuffer.updating) {
@@ -315,8 +335,13 @@ export class RemuxSession {
     this.generation += 1;
     this.controller?.abort();
     this.wake();
-    const writer = createTrackWriter(audioTrack, this.demuxer);
-    const previousMime = this.audioWriter.mime;
+    const writer = await openAudioWriter(audioTrack, this.demuxer);
+    if (this.destroyed || this.fatal) {
+      writer.close?.();
+      return;
+    }
+    const previousWriter = this.audioWriter;
+    const previousMime = previousWriter.mime;
     await this.enqueue(async () => {
       if (this.mediaSource.readyState === "open") this.audioBuffer.abort();
       await this.removeNow(this.audioBuffer, 0, Infinity);
@@ -329,6 +354,7 @@ export class RemuxSession {
     });
     this.audioTrack = audioTrack;
     this.audioWriter = writer;
+    previousWriter.close?.();
     const time = Number(this.video.currentTime || 0);
     this.run(time, { skipVideoThroughDts: this.lastVideoDts });
   }
@@ -348,6 +374,7 @@ export class RemuxSession {
     this.controller?.abort();
     this.wake();
     globalThis.removeEventListener?.("error", this.handleError, true);
+    this.audioWriter?.close?.();
     this.video.removeEventListener("seeking", this.handleSeeking);
     this.video.removeEventListener("timeupdate", this.handleWake);
     this.video.removeEventListener("playing", this.handleWake);

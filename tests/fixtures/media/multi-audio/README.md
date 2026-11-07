@@ -7,6 +7,7 @@
 | `multi-audio.mp4` | H.264 High, B-frames, moov at the end | AAC 440 Hz `eng` "English"; Opus 880 Hz `fra` "Français"; AC-3 660 Hz `deu` "Deutsch AC-3" |
 | `multi-audio.mkv` | H.264 High, B-frames | same three tracks as the MP4 |
 | `multi-audio.webm` | VP9 | Opus 440 Hz `eng` "English"; Opus 880 Hz `fra` "Français" |
+| `eac3-surround.mkv` | H.264 High, B-frames | AAC 440 Hz `eng` "English"; E-AC-3 5.1 (side) `spa` "Español E-AC-3 5.1" with a 550 Hz tone in the centre channel only and the other five channels silent |
 
 These files are dedicated to the public domain under [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/). No third-party film, music, artwork or stream is used. Generator source follows the repository license.
 
@@ -17,4 +18,4 @@ python -m venv .venv && .venv/bin/pip install av==18.1.0 numpy
 .venv/bin/python scripts/generate-multi-audio-media.py
 ```
 
-Encoder output differs between FFmpeg builds, so CI uses the committed files. [provenance.json](provenance.json) records the PyAV/libavformat versions, sizes and SHA-256 hashes.
+Encoder output differs between FFmpeg builds, and Matroska files get a new random segment UID on every run, so CI uses the committed files. When adding a file, keep the existing ones (and their provenance entries) as committed. [provenance.json](provenance.json) records the PyAV/libavformat versions, sizes and SHA-256 hashes.

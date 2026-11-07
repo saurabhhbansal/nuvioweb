@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync, statSync } from "node:fs";
+import { readFileSync, readdirSync, statSync } from "node:fs";
 import { runInNewContext } from "node:vm";
 
 const dist = new URL("../app/alpha/dist/", import.meta.url);
@@ -10,7 +10,8 @@ const assets = [
   "assets/fonts/material-icons-subset.woff2", "assets/fonts/Inter-OFL.txt",
   "assets/fonts/MaterialIcons-LICENSE.txt",
   "assets/libs/libbitsub_bg.wasm", "assets/libs/hls.js.LICENSE",
-  "assets/libs/dashjs.LICENSE.md", "assets/libs/libbitsub.LICENSE"
+  "assets/libs/dashjs.LICENSE.md", "assets/libs/libbitsub.LICENSE",
+  "assets/libs/decode-eac3.LICENSE", "assets/libs/decode-eac3.LICENSE.ffmpeg"
 ];
 for (const asset of assets) {
   assert.ok(statSync(new URL(asset, dist)).size > 0, `${asset} must be nonempty`);
@@ -27,6 +28,12 @@ assert.ok(Array.isArray(chunks) && chunks.length > 0, "sw.js must list the bundl
 for (const chunk of chunks) {
   assert.ok(statSync(new URL(chunk, dist)).size > 0, `${chunk} must be nonempty`);
 }
+// The AC-3/E-AC-3 decoder is its own lazy chunk, fetched only when a converted
+// track plays, and kept out of the precache.
+const decoderChunks = readdirSync(new URL("chunks/", dist)).filter((name) => name.startsWith("decode-eac3-"));
+assert.equal(decoderChunks.length, 1, "the AC-3/E-AC-3 decoder must be one lazy chunk");
+assert.ok(!chunks.some((chunk) => chunk.includes("decode-eac3-")), "the decoder chunk must not be precached");
+assert.ok(!index.includes("decode-eac3-"), "the decoder chunk must not be preloaded");
 for (const [, preload] of index.matchAll(/<link rel="modulepreload" href="([^"]+)"/g)) {
   assert.ok(chunks.includes(`./${preload}`), `${preload} is preloaded but not precached`);
 }

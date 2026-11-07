@@ -1141,6 +1141,10 @@ function formatAudioTrackDisplay(track = {}, index = 0) {
   if (Number.isFinite(sampleRate) && sampleRate > 0) {
     pushUniqueText(secondaryParts, `${Math.round(sampleRate / 1000)} kHz`);
   }
+  if (track?.converted) {
+    // AC-3/E-AC-3 played by decoding and re-encoding in the browser (stereo).
+    pushUniqueText(secondaryParts, t("player.audio.convertedInBrowser", {}, "Converted to stereo in browser"));
+  }
   const secondary = secondaryParts.join(" | ");
 
   return { label, secondary };

@@ -45,6 +45,7 @@
     "flatted": "3.4.2"
   },
   "dependencies": {
+    "@audio/decode-eac3": "1.0.0",
     "dashjs": "4.7.4",
     "hls.js": "1.5.20",
     "jszip": "^3.10.1",

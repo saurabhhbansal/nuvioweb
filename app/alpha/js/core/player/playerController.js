@@ -365,6 +365,7 @@ export const PlayerController = {
       selected: track.index === activeIndex,
       // The plain file already plays its first track; the others need MSE.
       supported: track.index === nativeIndex || track.playable,
+      converted: track.index !== nativeIndex && Boolean(track.converted),
       engine: "remux",
       raw: track
     }));

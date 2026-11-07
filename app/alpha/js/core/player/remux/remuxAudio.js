@@ -6,9 +6,10 @@ import { RemuxUnavailableError, openHttpSource } from "./byteSource.js";
 import { fourcc, readU32 } from "./bytes.js";
 import { openMatroska } from "./mkvDemuxer.js";
 import { openMp4 } from "./mp4Demuxer.js";
+import { canTranscodeInThisBrowser, isTranscodeCandidate } from "./audioTranscoder.js";
 import { RemuxSession, canRemuxInThisBrowser, isRemuxTrackPlayable } from "./remuxSession.js";
 
-export { RemuxSession, RemuxUnavailableError, canRemuxInThisBrowser, isRemuxTrackPlayable };
+export { RemuxSession, RemuxUnavailableError, canRemuxInThisBrowser, canTranscodeInThisBrowser, isRemuxTrackPlayable };
 
 export function sniffContainer(head) {
   if (head?.length >= 4 && readU32(head, 0) === 0x1a45dfa3) return "matroska";
@@ -20,7 +21,7 @@ export function sniffContainer(head) {
  * Opens a demuxer for `source` and describes what the audio picker can offer.
  * Throws RemuxUnavailableError when the file can't be switched here.
  */
-export async function describeRemuxSource(source) {
+export async function describeRemuxSource(source, { canTranscode = canTranscodeInThisBrowser } = {}) {
   const head = await source.read(0, Math.min(source.size, 64));
   const container = sniffContainer(head);
   if (!container) throw new RemuxUnavailableError("container");
@@ -35,6 +36,10 @@ export async function describeRemuxSource(source) {
   }
   const audioTracks = demuxer.tracks.filter((track) => track.kind === "audio");
   if (audioTracks.length < 2) throw new RemuxUnavailableError("single-audio");
+  for (const track of audioTracks) {
+    // AC-3/E-AC-3 that MSE rejects is converted to Opus instead of copied.
+    track.transcode = !isRemuxTrackPlayable(track) && isTranscodeCandidate(track) && (await canTranscode());
+  }
   return {
     demuxer,
     container,
@@ -48,7 +53,8 @@ export async function describeRemuxSource(source) {
       language: track.language || "",
       codec: track.codec,
       channels: track.channels || 0,
-      playable: isRemuxTrackPlayable(track),
+      playable: track.transcode || isRemuxTrackPlayable(track),
+      converted: track.transcode,
       track
     }))
   };
