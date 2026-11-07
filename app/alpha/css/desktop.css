@@ -940,6 +940,7 @@ html.desktop-browser {
 
 .desktop-browser .home-screen-shell.desktop-navigation-enabled.home-layout-modern .home-modern-catalogs .home-track {
   --home-track-gap: 12px;
+  align-items: flex-start;
   margin-left: 0;
   padding-left: 0;
   padding-right: 24px;
@@ -10040,12 +10041,109 @@ html.desktop-browser {
   background: rgba(255, 255, 255, 0.035);
 }
 
+/* Addons is already one card inside the Content & Discovery group. The
+   generic expanded row adds another bordered, padded card around the manager,
+   which then sits inside Installed Addons' own panel. Drop that wrapper so
+   Installed Addons can take the full width of its Addons row. */
 .desktop-browser .settings-shell .settings-collapsible-addon .settings-collapsible-body {
-  margin-left: 12px;
+  margin-left: 0;
 }
 
 .desktop-browser .settings-shell .settings-collapsible-addon .settings-subsection-card {
-  background: rgba(255, 255, 255, 0.025);
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.desktop-browser .settings-shell .settings-collapsible-addon .desktop-addon-manager,
+.desktop-browser .settings-shell .settings-collapsible-addon .desktop-addon-section {
+  width: 100%;
+}
+
+/* Plugins, Home Catalogs & Collections and Collections carry the same wrapper
+   inside an already-carded row. Flatten that wrapper and let their own panels
+   use the width of the row. */
+.desktop-browser
+  .settings-shell
+  :is(
+    .settings-collapsible-plugin,
+    .settings-collapsible-home-catalogs,
+    .settings-collapsible-collections
+  )
+  .settings-collapsible-body {
+  margin-left: 0;
+}
+
+.desktop-browser
+  .settings-shell
+  :is(
+    .settings-collapsible-plugin,
+    .settings-collapsible-home-catalogs,
+    .settings-collapsible-collections
+  )
+  .settings-subsection-card {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.desktop-browser
+  .settings-shell
+  .settings-collapsible-plugin
+  :is(.desktop-plugin-manager, .desktop-plugin-section),
+.desktop-browser
+  .settings-shell
+  .settings-collapsible-home-catalogs
+  :is(.desktop-home-catalog-manager, .desktop-home-catalog-section),
+.desktop-browser
+  .settings-shell
+  .settings-collapsible-collections
+  .desktop-collection-manager {
+  width: 100%;
+}
+
+/* These three managers own their panels and their rules are declared later in
+   this file; keep the flattened frame at section-screen specificity. */
+.desktop-browser
+  #settingsSection
+  :is(
+    .settings-collapsible-plugin,
+    .settings-collapsible-home-catalogs,
+    .settings-collapsible-collections
+  )
+  .settings-collapsible-body {
+  margin-left: 0;
+}
+
+.desktop-browser
+  #settingsSection
+  :is(
+    .settings-collapsible-plugin,
+    .settings-collapsible-home-catalogs,
+    .settings-collapsible-collections
+  )
+  .settings-subsection-card {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.desktop-browser
+  #settingsSection
+  .settings-collapsible-plugin
+  :is(.desktop-plugin-manager, .desktop-plugin-section),
+.desktop-browser
+  #settingsSection
+  .settings-collapsible-home-catalogs
+  :is(.desktop-home-catalog-manager, .desktop-home-catalog-section),
+.desktop-browser
+  #settingsSection
+  .settings-collapsible-collections
+  .desktop-collection-manager {
+  width: 100%;
 }
 
 /* Desktop Plugins expandable Settings section. */
@@ -14034,6 +14132,98 @@ body.desktop-browser {
   padding: 12px 2px 18px;
 }
 
+/* A heading that keeps its place.
+   ------------------------------------------------------------------
+   The title stays where it is -- centred -- and shrinks to a bar's size once
+   the page has scrolled past the threshold the screen sets on
+   `data-settings-header-collapsed`. The floating navigation keeps its own line,
+   so the heading pins below that line when the navigation is at the top and
+   against the safe area when it is not. */
+.desktop-browser .settings-shell[data-settings-nav-mode] .settings-nav-index-header,
+.desktop-browser .settings-shell[data-settings-nav-mode] .settings-content-header {
+  position: sticky;
+  top: var(--settings-header-sticky-top, 0px);
+  z-index: 8;
+  /* Solid, with the fade below it: content sliding under the title must not be
+     legible through the heading itself. The fade is a separate strip so the
+     text never sits inside a half-transparent band. */
+  background: var(--bg-color);
+}
+
+.desktop-browser .settings-shell[data-settings-nav-mode] .settings-nav-index-header::after,
+.desktop-browser .settings-shell[data-settings-nav-mode] .settings-content-header::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -8px;
+  height: 8px;
+  background: linear-gradient(to bottom, var(--bg-color), transparent);
+  pointer-events: none;
+}
+
+html[data-nav-placement="top"].desktop-browser .settings-shell[data-settings-nav-mode] {
+  --settings-header-sticky-top: calc(
+    var(--browser-floating-nav-top) + var(--browser-floating-nav-height) + 10px
+  );
+}
+
+html[data-nav-placement="bottom"].desktop-browser .settings-shell[data-settings-nav-mode],
+html[data-nav-placement="sidebar"].desktop-browser .settings-shell[data-settings-nav-mode] {
+  --settings-header-sticky-top: calc(env(safe-area-inset-top, 0px) + 12px);
+}
+
+/* On these two pages the screen element is what scrolls, not the frames the
+   rail layout scrolls inside. Left hidden, the frame becomes the sticky box's
+   scrollport and the heading simply scrolls away with the page. */
+.desktop-browser .settings-shell[data-settings-nav-mode] .settings-sidebar-frame,
+.desktop-browser .settings-shell[data-settings-nav-mode] .settings-content-frame {
+  overflow: visible;
+}
+
+.desktop-browser .settings-shell[data-settings-nav-mode] .settings-title {
+  transition: font-size 180ms ease;
+}
+
+.desktop-browser
+  .settings-shell[data-settings-nav-mode]
+  .settings-content-header
+  .settings-subtitle {
+  overflow: hidden;
+  max-height: 48px;
+  opacity: 1;
+  transition:
+    max-height 180ms ease,
+    margin 180ms ease,
+    opacity 150ms ease;
+}
+
+/* Collapsed: a bar's title, and no subtitle. */
+.desktop-browser
+  .settings-shell[data-settings-header-collapsed="true"][data-settings-nav-mode]
+  .settings-title {
+  font-size: 18px;
+}
+
+.desktop-browser
+  .settings-shell[data-settings-header-collapsed="true"][data-settings-nav-mode]
+  .settings-content-header
+  .settings-subtitle {
+  max-height: 0;
+  margin: 0;
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .desktop-browser .settings-shell[data-settings-nav-mode] .settings-title,
+  .desktop-browser
+    .settings-shell[data-settings-nav-mode]
+    .settings-content-header
+    .settings-subtitle {
+    transition: none;
+  }
+}
+
 /* Grouped index: each group is one card with its rows divided inside it, an
    account card above them, and the mark at the foot. The wash behind it all is
    the theme's own colour, so it follows whatever Appearance is set to rather
@@ -14058,6 +14248,7 @@ body.desktop-browser {
 .desktop-browser #search,
 .desktop-browser #discover,
 .desktop-browser #settings,
+.desktop-browser #settingsSection,
 .desktop-browser #account,
 .desktop-browser #castDetail,
 .desktop-browser #stream,
@@ -14083,6 +14274,7 @@ body.desktop-browser {
 .desktop-browser #discover .search-screen-shell,
 .desktop-browser #discover .discover-shell,
 .desktop-browser #settings .settings-shell,
+.desktop-browser #settingsSection .settings-shell,
 .desktop-browser #account .desktop-auth-shell,
 .desktop-browser #account .qr-layout,
 .desktop-browser #castDetail .cast-detail-shell,
@@ -17107,11 +17299,81 @@ html[data-nav-placement="bottom"].desktop-browser .desktop-navigation-item {
     .desktop-navigation-enabled {
     padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 96px);
   }
+
+  /* Keep one flex direction in both states. The old rule switched row to
+     column at the same moment the label was removed, so nothing could
+     interpolate. Labels stay mounted and collapse through max-height and
+     opacity instead. */
+  html[data-nav-placement="bottom"].desktop-browser .desktop-navigation,
+  html[data-nav-placement="bottom"].desktop-browser .desktop-navigation-item {
+    transition:
+      width 220ms cubic-bezier(0.22, 1, 0.36, 1),
+      min-width 220ms cubic-bezier(0.22, 1, 0.36, 1),
+      height 220ms cubic-bezier(0.22, 1, 0.36, 1),
+      padding 220ms cubic-bezier(0.22, 1, 0.36, 1),
+      gap 220ms cubic-bezier(0.22, 1, 0.36, 1),
+      border-radius 220ms cubic-bezier(0.22, 1, 0.36, 1),
+      background-color 160ms ease,
+      color 160ms ease;
+  }
+
+  html[data-nav-placement="bottom"].desktop-browser .desktop-navigation-item {
+    box-sizing: border-box;
+    flex-direction: column;
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    padding: 0;
+    gap: 0;
+    border-radius: 999px;
+  }
+
+  html[data-nav-placement="bottom"].desktop-browser
+    .desktop-navigation-label {
+    display: block;
+    width: auto;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(2px);
+    font-size: 10px;
+    line-height: 12px;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+    transition:
+      max-height 220ms cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 160ms ease,
+      transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  html[data-nav-placement="bottom"].desktop-browser:not(.nav-bottom-collapsed)
+    .desktop-navigation-item {
+    width: 64px;
+    min-width: 64px;
+    height: 52px;
+    padding: 7px 10px 6px;
+    gap: 3px;
+  }
+
+  html[data-nav-placement="bottom"].desktop-browser:not(.nav-bottom-collapsed)
+    .desktop-navigation-label {
+    max-height: 12px;
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  html[data-nav-placement="bottom"].desktop-browser
+    .desktop-navigation-enabled {
+    transition: padding-bottom 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   html[data-nav-placement="bottom"].desktop-browser .desktop-navigation,
-  html[data-nav-placement="bottom"].desktop-browser .desktop-navigation-item {
+  html[data-nav-placement="bottom"].desktop-browser .desktop-navigation-item,
+  html[data-nav-placement="bottom"].desktop-browser .desktop-navigation-label,
+  html[data-nav-placement="bottom"].desktop-browser
+    .desktop-navigation-enabled {
     transition: none;
   }
 }
@@ -17281,9 +17543,19 @@ html[data-nav-placement="bottom"].desktop-browser .desktop-navigation-item {
    what it looked like: credits and ratings reading out from under it.
    --------------------------------------------------------------------------- */
 html[data-nav-placement="bottom"].desktop-browser #detail .series-detail-content,
-html[data-nav-placement="bottom"].desktop-browser #castDetail .browser-person-detail,
+html[data-nav-placement="bottom"].desktop-browser #castDetail .browser-person-detail-shell,
 html[data-nav-placement="bottom"].desktop-browser #folderDetail .desktop-folder-detail-shell {
   padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 96px);
+}
+
+/* Settings now carries `.desktop-navigation-enabled`, so the shared clearance
+   above follows the bar's collapsed/expanded height. Its workspace already had
+   its own 56px tail; use the same 40px content tail as Search and Library
+   instead of stacking both. */
+html[data-nav-placement="bottom"].desktop-browser
+  .settings-shell
+  .settings-workspace {
+  padding-bottom: 40px;
 }
 
 /* ---------------------------------------------------------------------------
@@ -17443,6 +17715,78 @@ html[data-nav-placement="bottom"].desktop-browser #folderDetail .desktop-folder-
   line-height: 1.5;
   overflow-wrap: anywhere;
 }
+
+/* The bottom rail triggers are the same circle as the top-right one in the
+   same layout. On the narrow layout that means the same 44px control; on the
+   wide layout it means the same circle the Back button wears. The panel keeps
+   its 10px gap above the button. */
+html[data-layout="mobile"][data-nav-placement="sidebar"][data-nav-rail-corner="bottom-right"]
+  .desktop-browser
+  .settings-shell
+  .desktop-navigation-reveal,
+html[data-layout="mobile"][data-nav-placement="sidebar"][data-nav-rail-corner="bottom-left"]
+  .desktop-browser
+  .settings-shell
+  .desktop-navigation-reveal {
+  width: 44px;
+  height: 44px;
+}
+
+html[data-layout="desktop"][data-nav-placement="sidebar"][data-nav-rail-corner="bottom-right"]
+  .desktop-browser
+  .settings-shell
+  .desktop-navigation-reveal,
+html[data-layout="desktop"][data-nav-placement="sidebar"][data-nav-rail-corner="bottom-left"]
+  .desktop-browser
+  .settings-shell
+  .desktop-navigation-reveal {
+  width: calc(var(--browser-floating-nav-height) + 2px);
+  height: calc(var(--browser-floating-nav-height) + 2px);
+}
+
+html[data-layout="mobile"][data-nav-placement="sidebar"][data-nav-rail-corner="bottom-right"]
+  .desktop-browser
+  .settings-shell
+  .desktop-navigation,
+html[data-layout="mobile"][data-nav-placement="sidebar"][data-nav-rail-corner="bottom-left"]
+  .desktop-browser
+  .settings-shell
+  .desktop-navigation {
+  bottom: calc(var(--browser-nav-rail-bottom) + 54px);
+}
+
+html[data-layout="desktop"][data-nav-placement="sidebar"][data-nav-rail-corner="bottom-right"]
+  .desktop-browser
+  .settings-shell
+  .desktop-navigation,
+html[data-layout="desktop"][data-nav-placement="sidebar"][data-nav-rail-corner="bottom-left"]
+  .desktop-browser
+  .settings-shell
+  .desktop-navigation {
+  bottom: calc(
+    var(--browser-nav-rail-bottom) + var(--browser-floating-nav-height) + 12px
+  );
+}
+
+/* Cloud's Search belongs beside Refresh, as the same square action. Left to
+   its generic row rule it took the picker row's text height and, on a tablet,
+   stayed next to the pickers while Refresh was pushed to the far edge. */
+.desktop-browser
+  .library-picker-row.library-cloud-filter-row
+  .library-search-button {
+  flex: 0 0 52px;
+  align-self: center;
+  width: 52px;
+  min-width: 52px;
+  height: 52px;
+  min-height: 52px;
+  margin-left: auto;
+  border-radius: 14px;
+}
+
+.desktop-browser .library-cloud-filter-row .library-cloud-refresh-button {
+  align-self: center;
+  margin-left: 0;
 
 /* Poster focus mirrors Continue Watching: one 2px outer ring, no colored
    inner border. This applies across Home, Discover, Library, Search, See All,
