@@ -240,6 +240,10 @@ export async function openSignedInHome(page, { expect, path = "/" } = {}) {
 
 // The screens a signed-in start can show before the app proper: the profile
 // picker and, on a profile's first start, Quick Setup.
+//
+// Right after an email sign-in the sign-in screen is still the settled route
+// while the token request and profile pull are in flight. That is not a
+// startup screen: deciding on it would skip the profile picker that follows.
 export async function enterPastStartup(page, { expect, profileId = "1" } = {}) {
   const profileCard = page.locator(`#profileSelection [data-profile-id="${profileId}"]`);
   const skipSetup = page.getByRole("button", { name: "Skip setup", exact: true });
@@ -248,7 +252,11 @@ export async function enterPastStartup(page, { expect, profileId = "1" } = {}) {
       const route = history.state?.route || null;
       return route && window.__NUVIO_CURRENT_ROUTE__ === route ? route : null;
     });
-  await expect.poll(settled).not.toBeNull();
+  const settledPastSignIn = async () => {
+    const route = await settled();
+    return route === "authSignIn" || route === "authQrSignIn" ? null : route;
+  };
+  await expect.poll(settledPastSignIn).not.toBeNull();
   if ((await settled()) === "profileSelection") {
     await profileCard.click();
     await expect.poll(settled).not.toBe("profileSelection");
