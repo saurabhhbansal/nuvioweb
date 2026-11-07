@@ -4317,12 +4317,13 @@ export const MetaDetailsScreen = {
     // It moves below the artwork instead. A mouse keeps the cinema framing, and
     // TV keeps the single collapsible body its trailer transition animates.
     const heroMetaBelowArtwork = detailUsesTouchLayout();
+    const heroDescriptionHasToggle = heroMetaBelowArtwork || Platform.isBrowser();
     const heroMeta = `
       ${this.renderResumeIndicator()}
       ${creditLine ? `<p class="series-detail-support">${escapeHtml(creditPrefix)}: ${escapeHtml(creditLine)}</p>` : ""}
       ${externalRatings}
       ${
-        heroMetaBelowArtwork
+        heroDescriptionHasToggle
           ? `<p class="series-detail-description">${escapeHtml(
               meta.description || t("detail.noDescription", {}, "No description.")
             )}<button class="detail-description-toggle focusable" type="button"
@@ -5975,6 +5976,9 @@ export const MetaDetailsScreen = {
       episode.offlineDownloadId ||
       (offlineEpisodeMediaId && this.offlineEpisodeMediaIds?.has(offlineEpisodeMediaId))
     );
+    const episodeWatchLabel = isWatched
+      ? t("episodes_mark_unwatched", {}, "Mark as unwatched")
+      : t("episodes_mark_watched", {}, "Mark as watched");
     const metaParts = [
       episode.runtimeMinutes > 0 ? renderEpisodeRuntimeLabel(episode.runtimeMinutes) : "",
       rating != null
@@ -5993,7 +5997,21 @@ export const MetaDetailsScreen = {
         <div class="series-episode-thumb">
           <div class="series-episode-image${shouldBlur ? " is-blurred" : ""}"${episode.thumbnail ? ` data-thumb="${escapeHtml(episode.thumbnail)}"` : ""}></div>
           <div class="series-episode-overlay"></div>
-          ${isWatched ? `<div class="series-episode-status complete">${renderWatchedBadgeGlyph()}</div>` : progressRatio < 0.02 ? `<div class="series-episode-status idle"></div>` : ""}
+          ${
+            Platform.isBrowser()
+              ? `<button type="button"
+                         class="series-episode-status series-episode-watch-toggle ${isWatched ? "complete" : "idle"}"
+                         data-action="toggleEpisodeWatched"
+                         data-video-id="${escapeAttribute(episode.id)}"
+                         aria-label="${escapeAttribute(episodeWatchLabel)}"
+                         aria-pressed="${isWatched ? "true" : "false"}"
+                         title="${escapeAttribute(episodeWatchLabel)}">${isWatched ? renderWatchedBadgeGlyph() : ""}</button>`
+              : isWatched
+                ? `<div class="series-episode-status complete">${renderWatchedBadgeGlyph()}</div>`
+                : progressRatio < 0.02
+                  ? `<div class="series-episode-status idle"></div>`
+                  : ""
+          }
           ${Platform.isBrowser() && isDownloaded ? `<span class="series-episode-offline-status" role="img" aria-label="${escapeAttribute(t("offline.downloaded", {}, "Downloaded"))}"><span class="material-icons" aria-hidden="true">download</span></span>` : ""}
           ${canOfferOfflineSubtitleHandoff(this.getOfflineSubtitlesForEpisode(episode)) ? `<button type="button" class="series-episode-subtitle-action" data-episode-subtitle="${escapeAttribute(episode.id)}" aria-label="${escapeAttribute(t("offline.sendSubtitle", {}, "Send subtitle to another app"))}" title="${escapeAttribute(t("offline.sendSubtitle", {}, "Send subtitle to another app"))}"><span class="material-icons" aria-hidden="true">closed_caption</span></button>` : ""}
           ${isUnavailable ? `<div class="series-episode-unavailable">${escapeHtml(t("episodes_unavailable", {}, "Unavailable").toUpperCase())}</div>` : ""}
@@ -6294,8 +6312,33 @@ export const MetaDetailsScreen = {
       Boolean(LayoutPreferences.get().blurUnwatchedEpisodes) && !isWatched
     );
 
+    const watchLabel = isWatched
+      ? t("episodes_mark_unwatched", {}, "Mark as unwatched")
+      : t("episodes_mark_watched", {}, "Mark as watched");
     let statusNode = thumb.querySelector(".series-episode-status");
-    if (isWatched) {
+    if (Platform.isBrowser()) {
+      if (
+        !(statusNode instanceof HTMLButtonElement) ||
+        !statusNode.classList.contains("series-episode-watch-toggle")
+      ) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "series-episode-status series-episode-watch-toggle";
+        if (statusNode instanceof HTMLElement) {
+          statusNode.replaceWith(button);
+        } else {
+          thumb.appendChild(button);
+        }
+        statusNode = button;
+      }
+      statusNode.className = `series-episode-status series-episode-watch-toggle ${isWatched ? "complete" : "idle"}`;
+      statusNode.dataset.action = "toggleEpisodeWatched";
+      statusNode.dataset.videoId = videoId;
+      statusNode.setAttribute("aria-label", watchLabel);
+      statusNode.setAttribute("aria-pressed", isWatched ? "true" : "false");
+      statusNode.title = watchLabel;
+      statusNode.innerHTML = isWatched ? renderWatchedBadgeGlyph() : "";
+    } else if (isWatched) {
       if (!(statusNode instanceof HTMLElement)) {
         statusNode = document.createElement("div");
         thumb.appendChild(statusNode);
@@ -8314,6 +8357,11 @@ export const MetaDetailsScreen = {
     }
     const useTmdbRecommendationPoster =
       String(railKey || "").startsWith("morelike:") && this.moreLikeThisSource === "tmdb";
+    // Collection cards are poster cards too. Their TMDB payload also contains
+    // a backdrop, and preferring it made the collection rail look like a set
+    // of stills rather than the films' posters.
+    const usePosterFirst =
+      useTmdbRecommendationPoster || String(railKey || "").startsWith("collection:");
     const cards = items
       .map((rawItem) => {
         const item = normalizePreviewItem(rawItem, fallbackType);
@@ -8321,13 +8369,11 @@ export const MetaDetailsScreen = {
         // TMDB recommendations provide distinct portrait and backdrop paths. The
         // desktop recommendation rail is a poster rail, so never substitute a
         // backdrop for a missing TMDB poster.
-        const primaryImage = useTmdbRecommendationPoster
-          ? item.poster || ""
+        const primaryImage = usePosterFirst
+          ? item.poster || item.landscapePoster || ""
           : item.landscapePoster || item.poster || "";
         const fallbackImage =
-          !useTmdbRecommendationPoster && item.poster && item.poster !== primaryImage
-            ? item.poster
-            : "";
+          !usePosterFirst && item.poster && item.poster !== primaryImage ? item.poster : "";
         return `
       <article class="detail-morelike-card focusable"${Platform.isBrowser() ? ' role="button"' : ""}
            data-action="openMoreLikeDetail"
@@ -8386,7 +8432,7 @@ export const MetaDetailsScreen = {
       .slice(0, 10)
       .map(
         (company) => `
-      <article class="detail-company-card focusable${production ? " detail-production-company-card" : ""}"
+      <article class="detail-company-card focusable${production ? " detail-production-company-card" : " detail-network-company-card"}"
                data-company-name="${escapeHtml(company.name || "")}">
         ${company.logo ? `<img src="${company.logo}" alt="${escapeHtml(company.name || "Company")}" loading="lazy" decoding="async" />` : `<span>${escapeHtml(company.name || "")}</span>`}
       </article>
@@ -8394,7 +8440,7 @@ export const MetaDetailsScreen = {
       )
       .join("");
     return `
-      <section class="detail-company-section${production ? " detail-production-section" : ""}">
+      <section class="detail-company-section${production ? " detail-production-section" : " detail-network-section"}">
         <h3 class="detail-company-title">${escapeHtml(title)}</h3>
         <div class="detail-company-track" data-scroll-key="company:${escapeHtml(String(title || "").toLowerCase())}">${logos}</div>
       </section>
@@ -8919,6 +8965,25 @@ export const MetaDetailsScreen = {
           void this.sendOfflineSubtitleForEpisode(episode);
         };
         this.container.addEventListener("click", this.boundEpisodeSubtitleActionHandler, true);
+      }
+      if (Platform.isBrowser() && !this.boundEpisodeWatchActionHandler) {
+        this.boundEpisodeWatchActionHandler = (event) => {
+          const target = event.target instanceof Element ? event.target : null;
+          const button = target?.closest?.(
+            "button[data-action='toggleEpisodeWatched'].series-episode-watch-toggle"
+          );
+          if (!button || !this.container?.contains(button)) return;
+          // The card itself opens the stream picker. Claim the circle before
+          // the rail's card click sees it.
+          event.preventDefault();
+          event.stopPropagation();
+          const episode = this.getEpisodeByVideoId(button.dataset.videoId);
+          if (!episode) return;
+          void this.setEpisodeWatchedState(episode, !this.isEpisodeMarkedWatched(episode)).catch(
+            (error) => console.warn("Failed to toggle episode watched state", error)
+          );
+        };
+        this.container.addEventListener("click", this.boundEpisodeWatchActionHandler, true);
       }
       this.browserCardTouchIntentCleanup?.();
       this.browserCardTouchIntentCleanup = bindBrowserCardTouchIntent(this.container, {
@@ -12671,6 +12736,10 @@ export const MetaDetailsScreen = {
     if (this.boundEpisodeSubtitleActionHandler && this.container) {
       this.container.removeEventListener("click", this.boundEpisodeSubtitleActionHandler, true);
       this.boundEpisodeSubtitleActionHandler = null;
+    }
+    if (this.boundEpisodeWatchActionHandler && this.container) {
+      this.container.removeEventListener("click", this.boundEpisodeWatchActionHandler, true);
+      this.boundEpisodeWatchActionHandler = null;
     }
     if (this.boundDesktopInsightTabActionHandler && this.container) {
       this.container.removeEventListener("click", this.boundDesktopInsightTabActionHandler);
