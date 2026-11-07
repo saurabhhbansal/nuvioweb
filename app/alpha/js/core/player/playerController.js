@@ -331,6 +331,12 @@ export const PlayerController = {
         if (this.remuxAudio !== state) return;
         state.probe = probe;
         state.status = "ready";
+        // The plain file's own track is AC-3/E-AC-3 this browser plays silent:
+        // switch to the converted track right away.
+        if (probe.nativeNeedsConversion && this.playbackEngine === "native-file") {
+          this.selectRemuxAudioTrack(probe.nativeIndex);
+          return;
+        }
         this.emitVideoEvent("audiotrackschanged", { playbackEngine: this.playbackEngine });
       })
       .catch((error) => {
@@ -353,7 +359,7 @@ export const PlayerController = {
     const state = this.remuxAudio;
     if (state?.status !== "ready" || !state.probe) return null;
     if (this.playbackEngine !== "native-file" && this.playbackEngine !== "remux") return null;
-    const { nativeIndex } = state.probe;
+    const { nativeIndex, nativeNeedsConversion } = state.probe;
     const activeIndex = state.session ? state.activeIndex : nativeIndex;
     return state.probe.audioTracks.map((track) => ({
       id: `remux-${track.id}`,
@@ -363,9 +369,10 @@ export const PlayerController = {
       codec: track.codec,
       channels: track.channels,
       selected: track.index === activeIndex,
-      // The plain file already plays its first track; the others need MSE.
-      supported: track.index === nativeIndex || track.playable,
-      converted: track.index !== nativeIndex && Boolean(track.converted),
+      // The plain file already plays its first track (unless it needs
+      // converting); the others need MSE.
+      supported: (track.index === nativeIndex && !nativeNeedsConversion) || track.playable,
+      converted: Boolean(track.converted) && (track.index !== nativeIndex || Boolean(nativeNeedsConversion)),
       engine: "remux",
       raw: track
     }));
@@ -375,11 +382,11 @@ export const PlayerController = {
     const state = this.remuxAudio;
     const target = state?.probe?.audioTracks?.[index];
     if (!target) return false;
-    const { nativeIndex } = state.probe;
-    const current = state.session ? state.activeIndex : nativeIndex;
-    if (index === current) return true;
-    if (index === nativeIndex) {
-      this.leaveRemuxAudio();
+    const { nativeIndex, nativeNeedsConversion } = state.probe;
+    if (state.session && index === state.activeIndex) return true;
+    if (index === nativeIndex && !nativeNeedsConversion) {
+      // The plain file plays this track itself.
+      if (state.session) this.leaveRemuxAudio();
       return true;
     }
     if (!target.playable) return false;

@@ -283,3 +283,93 @@ test("a file on a host without CORS keeps today's message and the external playe
   // The plain file still plays.
   await expect.poll(() => page.evaluate(() => window.__player.video.readyState)).toBeGreaterThanOrEqual(1);
 });
+
+// Starts sound on the picker's <video> (a click, for the autoplay policy) and
+// exposes the same dominantFrequency() as the remux harness for expectTone.
+async function listenToPlayer(page) {
+  await page.evaluate(() => {
+    const video = window.__player.video;
+    const button = document.createElement("button");
+    button.id = "listen";
+    button.textContent = "listen";
+    document.body.append(button);
+    button.addEventListener("click", () => {
+      const context = new AudioContext();
+      const sourceNode = context.createMediaElementSource(video);
+      const analyser = context.createAnalyser();
+      analyser.fftSize = 8192;
+      sourceNode.connect(analyser);
+      analyser.connect(context.destination);
+      context.resume();
+      video.play().catch(() => {});
+      window.__remux = {
+        dominantFrequency() {
+          const data = new Float32Array(analyser.frequencyBinCount);
+          analyser.getFloatFrequencyData(data);
+          let best = 0;
+          for (let index = 1; index < data.length; index += 1) if (data[index] > data[best]) best = index;
+          return data[best] < -90 ? 0 : (best * context.sampleRate) / analyser.fftSize;
+        }
+      };
+    });
+  });
+  await page.click("#listen");
+}
+
+function canConvertInPicker(page) {
+  return page.evaluate(async () =>
+    (await import("/__fixture/source/js/core/player/remux/remuxAudio.js")).canTranscodeInThisBrowser()
+  );
+}
+
+test("a file whose first track is AC-3 starts converted and still switches", async ({ page }) => {
+  await openPicker(page, `${MEDIA}/ac3-first.mp4`);
+  const items = page.locator('#playerAudioDialog [data-audio-column="tracks"]');
+  await expect(items).toHaveCount(2);
+  const engine = () => page.evaluate(() => window.__player.PlayerController.playbackEngine);
+  if (!(await canConvertInPicker(page))) {
+    // Without WebCodecs Opus the plain file keeps playing (silent there).
+    expect(await engine()).toBe("native-file");
+    await expect(items.nth(0)).not.toContainText("Converted to stereo in browser");
+    return;
+  }
+  await expect.poll(engine).toBe("remux");
+  await expect(items.nth(0)).toHaveClass(/selected/);
+  await expect(items.nth(0)).toContainText("Converted to stereo in browser");
+  await expect(items.nth(1)).not.toContainText("Converted to stereo in browser");
+  await listenToPlayer(page);
+  await expectTone(page, 660);
+
+  // To the copied AAC track and back: both stay on the remux path.
+  await page.evaluate(() => window.__player.screen.applyAudioTrack(1));
+  await expectTone(page, 440);
+  expect(await engine()).toBe("remux");
+  await page.evaluate(async () => {
+    window.__player.video.currentTime = 0.5;
+    window.__player.screen.applyAudioTrack(0);
+  });
+  await expect(items.nth(0)).toHaveClass(/selected/);
+  expect(await engine()).toBe("remux");
+  await expectTone(page, 660);
+  expect(await page.evaluate(() => window.__player.video.error)).toBeNull();
+});
+
+test("a file with a single AC-3 track is converted too", async ({ page }) => {
+  await openPicker(page, `${MEDIA}/ac3-only.mkv`);
+  const controller = (expression) =>
+    page.evaluate((code) => {
+      const { PlayerController } = window.__player;
+      return code === "engine" ? PlayerController.playbackEngine : PlayerController.getRemuxAudioUnavailableReason();
+    }, expression);
+  if (!(await canConvertInPicker(page))) {
+    await expect.poll(() => controller("reason")).toBe("single-audio");
+    expect(await controller("engine")).toBe("native-file");
+    return;
+  }
+  await expect.poll(() => controller("engine")).toBe("remux");
+  const items = page.locator('#playerAudioDialog [data-audio-column="tracks"]');
+  await expect(items).toHaveCount(1);
+  await expect(items.nth(0)).toContainText("Converted to stereo in browser");
+  await listenToPlayer(page);
+  await expectTone(page, 660);
+});

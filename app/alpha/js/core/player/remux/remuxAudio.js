@@ -35,17 +35,22 @@ export async function describeRemuxSource(source, { canTranscode = canTranscodeI
     throw new RemuxUnavailableError("video-codec", `Video codec ${videoTrack.codec} can't be remuxed here`);
   }
   const audioTracks = demuxer.tracks.filter((track) => track.kind === "audio");
-  if (audioTracks.length < 2) throw new RemuxUnavailableError("single-audio");
+  if (!audioTracks.length) throw new RemuxUnavailableError("single-audio");
   for (const track of audioTracks) {
     // AC-3/E-AC-3 that MSE rejects is converted to Opus instead of copied.
     track.transcode = !isRemuxTrackPlayable(track) && isTranscodeCandidate(track) && (await canTranscode());
   }
+  // A file with one track is still worth remuxing when that track needs converting.
+  if (audioTracks.length < 2 && !audioTracks[0].transcode) throw new RemuxUnavailableError("single-audio");
   return {
     demuxer,
     container,
     videoTrack,
     // The plain <video src> path plays the file's first audio track.
     nativeIndex: 0,
+    // That track is AC-3/E-AC-3 the browser can't decode: the plain file plays
+    // silent, so the player converts it from the start.
+    nativeNeedsConversion: audioTracks[0].transcode,
     audioTracks: audioTracks.map((track, index) => ({
       index,
       id: String(track.id),
