@@ -2980,7 +2980,9 @@ export const SettingsScreen = {
     planned = false
   }) {
     const inert = disabled || planned;
-    const trailing = external ? "external" : icon;
+    // An unknown icon name would crash the whole section (`ROW_ICONS[name]` is
+    // undefined), so fall back to the chevron. An empty name still means no icon.
+    const trailing = external ? "external" : !icon || ROW_ICONS[icon] ? icon : "chevron";
     const tailContent = [
       planned ? `<span class="settings-row-badge">${escapeHtml(t("common.soon"))}</span>` : "",
       value ? `<span class="settings-row-value">${escapeHtml(value)}</span>` : "",
@@ -8652,6 +8654,23 @@ export const SettingsScreen = {
     void poll();
   },
 
+  async copyTrackingDeviceCode(provider) {
+    const target = {
+      trakt: { service: TraktAuthService, prefix: "desktopTrakt" },
+      simkl: { service: SimklAuthService, prefix: "desktopSimkl" }
+    }[provider];
+    const code = String(target?.service.getCurrentAuthState().userCode || "").trim();
+    if (!code) return false;
+    const copied = await copyDeviceAuthorizationCode(code);
+    // Approval or polling may replace the code while the clipboard resolves.
+    if (String(target.service.getCurrentAuthState().userCode || "").trim() !== code) return copied;
+    this[`${target.prefix}StatusMessage`] = copied ? t("debug_console_copy_done", {}, "Copied") : null;
+    this[`${target.prefix}ErrorMessage`] = copied
+      ? null
+      : t("debug_console_copy_failed", {}, "Copy failed");
+    return copied;
+  },
+
   renderDesktopTrackingSection() {
     const redirect = this.traktRedirectMessages();
     if (redirect) {
@@ -8730,6 +8749,11 @@ export const SettingsScreen = {
         this.desktopSimklErrorMessage = String(error?.message || error || "Unable to start Simkl sign-in.");
       }
     });
+    for (const provider of ["trakt", "simkl"]) {
+      this.actionMap.set(`tracking:desktop:${provider}:copy`, () =>
+        this.copyTrackingDeviceCode(provider)
+      );
+    }
     this.actionMap.set("tracking:desktop:simkl:open", () => {
       const url = String(SimklAuthService.getCurrentAuthState().verificationUrl || "").trim();
       if (url) window.open?.(url, "_blank", "noopener,noreferrer");
@@ -8855,6 +8879,7 @@ export const SettingsScreen = {
              <code class="settings-tracking-activation-code">${escapeHtml(simkl.userCode || "-")}</code>
              <div class="settings-tracking-activation-url">${escapeHtml(activationUrl)}</div>
              <div class="settings-tracking-inline-actions">
+               ${inlineButton("tracking:desktop:simkl:copy", "Copy code")}
                ${inlineButton("tracking:desktop:simkl:open", "Open Simkl PIN")}
                ${inlineButton("tracking:desktop:simkl:cancel", "Cancel", "is-secondary")}
              </div>
@@ -8875,6 +8900,7 @@ export const SettingsScreen = {
              <code class="settings-tracking-activation-code">${escapeHtml(trakt.userCode || "-")}</code>
              <div class="settings-tracking-activation-url">${escapeHtml(trakt.verificationUrl || "https://trakt.tv/activate")}</div>
              <div class="settings-tracking-inline-actions">
+               ${inlineButton("tracking:desktop:trakt:copy", "Copy code")}
                ${inlineButton("tracking:desktop:trakt:open", "Open Trakt")}
                ${inlineButton("tracking:desktop:trakt:cancel", "Cancel", "is-secondary")}
              </div>
