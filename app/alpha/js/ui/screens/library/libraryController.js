@@ -748,6 +748,7 @@ export class LibraryController {
     const persistedSimklStatusKey = LibraryPreferencesStore.getBrowserSimklStatusKey();
     const nextSelectedListKey =
       sourceMode === LibrarySourceMode.TRAKT ||
+      sourceMode === LibrarySourceMode.MDBLIST ||
       (sourceMode === LibrarySourceMode.SIMKL && !Platform.isBrowser())
         ? selectedListCandidate && listTabs.some((item) => item.key === selectedListCandidate)
           ? selectedListCandidate
@@ -896,6 +897,9 @@ export class LibraryController {
     if (this.state.sourceMode === LibrarySourceMode.SIMKL) {
       return "SIMKL";
     }
+    if (this.state.sourceMode === LibrarySourceMode.MDBLIST) {
+      return t("library_source_mdblist", {}, "MDBLIST");
+    }
     if (this.state.isNuvioAccount) {
       return t("library_source_nuvio", {}, "NUVIO");
     }
@@ -943,7 +947,10 @@ export class LibraryController {
     if (this.state.sourceMode === LibrarySourceMode.TRAKT && !this.state.isTraktAuthenticated) {
       return t("library_empty_trakt_not_auth_title", {}, "Trakt not connected");
     }
-    if (this.state.sourceMode === LibrarySourceMode.TRAKT) {
+    if (
+      this.state.sourceMode === LibrarySourceMode.TRAKT ||
+      this.state.sourceMode === LibrarySourceMode.MDBLIST
+    ) {
       return t(
         "library_empty_trakt_title",
         [selectedTypeLabel],
@@ -964,7 +971,10 @@ export class LibraryController {
         "Connect your Trakt account in Settings to view your Trakt library"
       );
     }
-    if (this.state.sourceMode === LibrarySourceMode.TRAKT) {
+    if (
+      this.state.sourceMode === LibrarySourceMode.TRAKT ||
+      this.state.sourceMode === LibrarySourceMode.MDBLIST
+    ) {
       return t(
         "library_empty_trakt_subtitle",
         {},

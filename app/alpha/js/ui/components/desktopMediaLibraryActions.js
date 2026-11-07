@@ -8,7 +8,7 @@ import { NuvioDialog } from "./nuvioDialog.js";
 
 function membershipKeyForSource(sourceMode) {
   if (sourceMode === LibrarySourceMode.SIMKL) return "simkl:status:plantowatch";
-  if (sourceMode === LibrarySourceMode.TRAKT) return "watchlist";
+  if (sourceMode === LibrarySourceMode.TRAKT || sourceMode === LibrarySourceMode.MDBLIST) return "watchlist";
   return "local";
 }
 

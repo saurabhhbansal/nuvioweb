@@ -8713,7 +8713,8 @@ export const SettingsScreen = {
     const librarySources = [
       { id: TraktLibrarySourceMode.LOCAL, label: "Nuvio" },
       ...(traktConnected ? [{ id: TraktLibrarySourceMode.TRAKT, label: "Trakt" }] : []),
-      ...(simklConnected ? [{ id: TraktLibrarySourceMode.SIMKL, label: "Simkl" }] : [])
+      ...(simklConnected ? [{ id: TraktLibrarySourceMode.SIMKL, label: "Simkl" }] : []),
+      ...(mdbListConnected ? [{ id: TraktLibrarySourceMode.MDBLIST, label: t("tracking_mdblist_title", {}, "MDBList") }] : [])
     ];
     const progressSources = [
       { id: WatchProgressSource.NUVIO_SYNC, label: "Nuvio Sync" },
@@ -8782,6 +8783,9 @@ export const SettingsScreen = {
           this.desktopMdbListStatusMessage = null;
           if (settings.watchProgressSource === WatchProgressSource.MDBLIST) {
             TraktSettingsStore.setWatchProgressSource(WatchProgressSource.NUVIO_SYNC);
+          }
+          if (settings.librarySourceMode === TraktLibrarySourceMode.MDBLIST) {
+            TraktSettingsStore.setLibrarySourceMode(TraktLibrarySourceMode.LOCAL);
           }
         }
       });
