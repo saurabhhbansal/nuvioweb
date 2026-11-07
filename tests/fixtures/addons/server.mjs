@@ -5,7 +5,7 @@ import { resolve } from "node:path";
 
 const scenarios = new Set(["source-order","basic","objects","configured","cors-denied","malformed","shape","slow","failure","empty","timeout","partial","declared","conflicting-codecs","unknown-quality","unsupported-mime","quality-1080","quality-2160","quality-hls","quality-dash","quality-expired","quality-restricted","quality-hls-cors","startup-header-required"]);
 const mediaRoot = new URL("../media/",import.meta.url);
-const multiAudioFiles = new Set(["multi-audio.mp4","multi-audio.mkv","multi-audio.webm","eac3-surround.mkv"]);
+const multiAudioFiles = new Set(["multi-audio.mp4","multi-audio.mkv","multi-audio.webm","eac3-surround.mkv","ac3-first.mp4","ac3-only.mkv"]);
 const qualityFiles = new Set(["original-1080p.mp4","original-2160p.mp4","native-1080p.mp4","native-2160p.mp4",...["1080p","2160p","canonical1080p","canonical2160p"].flatMap(size => ["init.mp4","segment.m4s","stream.m3u8","manifest.mpd"].map(file => `${size}/${file}`))]);
 
 export function createAddonFixtureServer() {

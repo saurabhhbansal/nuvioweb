@@ -7,7 +7,9 @@ is playing. No third-party media. Output is dedicated to the public domain
 
 Run with PyAV (FFmpeg bindings), e.g.:
     python -m venv .venv && .venv/bin/pip install av==18.1.0 numpy
-    .venv/bin/python scripts/generate-multi-audio-media.py
+    .venv/bin/python scripts/generate-multi-audio-media.py [file ...]
+Name files to (re)generate only those; the others keep their committed bytes
+and provenance entries.
 Encoder output can differ between FFmpeg builds; provenance.json records
 the hashes of the committed files.
 """
@@ -62,6 +64,24 @@ FILES = {
         "audio": [
             ("aac", 440, "eng", "English", True),
             ("eac3", 550, "spa", "Español E-AC-3 5.1", False, "5.1(side)"),
+        ],
+    },
+    # AC-3 as the first (default) track: the plain file plays it silent in
+    # Chromium and Firefox, so the app converts it from the start.
+    "ac3-first.mp4": {
+        "format": "mp4",
+        "video": ("libx264", {"g": "10", "bf": "2", "preset": "veryfast", "crf": "30", "profile": "high"}),
+        "audio": [
+            ("ac3", 660, "deu", "Deutsch AC-3", True),
+            ("aac", 440, "eng", "English", False),
+        ],
+    },
+    # A single AC-3 track: nothing to pick, but it still needs converting.
+    "ac3-only.mkv": {
+        "format": "matroska",
+        "video": ("libx264", {"g": "10", "bf": "2", "preset": "veryfast", "crf": "30", "profile": "high"}),
+        "audio": [
+            ("ac3", 660, "deu", "Deutsch AC-3", True),
         ],
     },
 }
@@ -171,7 +191,15 @@ def write(name, spec):
 
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
-    files = [write(name, spec) for name, spec in FILES.items()]
+    only = set(sys.argv[1:])
+    unknown = only - FILES.keys()
+    if unknown:
+        sys.exit(f"Unknown fixture(s): {', '.join(sorted(unknown))}")
+    previous = {}
+    existing = OUT / "provenance.json"
+    if only and existing.exists():
+        previous = {entry["file"]: entry for entry in json.loads(existing.read_text(encoding="utf-8"))["files"]}
+    files = [write(name, spec) if not only or name in only else previous[name] for name, spec in FILES.items()]
     provenance = {
         "generator": "scripts/generate-multi-audio-media.py",
         "pyav": av.__version__,

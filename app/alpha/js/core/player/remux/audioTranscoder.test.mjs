@@ -383,3 +383,37 @@ test("describeRemuxSource marks AC-3/E-AC-3 as converted when MSE rejects them",
     [true, true, false]
   );
 });
+
+test("describeRemuxSource converts an AC-3 first track, even when it's the only one", async (t) => {
+  globalThis.MediaSource = { isTypeSupported: (mime) => !/ac-3|ec-3/.test(mime) };
+  t.after(() => delete globalThis.MediaSource);
+  const first = await describeRemuxSource(createMemorySource(fixture("ac3-first.mp4")), {
+    canTranscode: async () => true
+  });
+  assert.equal(first.nativeNeedsConversion, true);
+  assert.deepEqual(
+    first.audioTracks.map((track) => [track.codec, track.converted]),
+    [
+      ["ac-3", true],
+      ["mp4a.40.2", false]
+    ]
+  );
+  const only = await describeRemuxSource(createMemorySource(fixture("ac3-only.mkv")), {
+    canTranscode: async () => true
+  });
+  assert.equal(only.nativeNeedsConversion, true);
+  assert.equal(only.audioTracks.length, 1);
+  const multi = await describeRemuxSource(createMemorySource(fixture("multi-audio.mkv")), {
+    canTranscode: async () => true
+  });
+  assert.equal(multi.nativeNeedsConversion, false);
+  // Without conversion a single track has nothing to offer.
+  await assert.rejects(
+    describeRemuxSource(createMemorySource(fixture("ac3-only.mkv")), { canTranscode: async () => false }),
+    (error) => error.reason === "single-audio"
+  );
+  const unconverted = await describeRemuxSource(createMemorySource(fixture("ac3-first.mp4")), {
+    canTranscode: async () => false
+  });
+  assert.equal(unconverted.nativeNeedsConversion, false);
+});

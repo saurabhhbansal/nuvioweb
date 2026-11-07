@@ -108,6 +108,43 @@
           "toneChannel": "FC"
         }
       ]
+    },
+    {
+      "file": "ac3-first.mp4",
+      "bytes": 126568,
+      "sha256": "9aebe87db5ba06a05573f48d64bdd2c03582ac6b440ac061ff0684c7dd8b2c75",
+      "video": "libx264 320x180 10 fps, 6 s",
+      "audio": [
+        {
+          "codec": "ac3",
+          "toneHz": 660,
+          "language": "deu",
+          "title": "Deutsch AC-3",
+          "default": true
+        },
+        {
+          "codec": "aac",
+          "toneHz": 440,
+          "language": "eng",
+          "title": "English",
+          "default": false
+        }
+      ]
+    },
+    {
+      "file": "ac3-only.mkv",
+      "bytes": 85597,
+      "sha256": "1557b7bd211f8a095d746319006dcadeed434a831dac4564e80a1bae19bce610",
+      "video": "libx264 320x180 10 fps, 6 s",
+      "audio": [
+        {
+          "codec": "ac3",
+          "toneHz": 660,
+          "language": "deu",
+          "title": "Deutsch AC-3",
+          "default": true
+        }
+      ]
     }
   ]
 }
