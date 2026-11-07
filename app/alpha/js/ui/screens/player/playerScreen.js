@@ -8753,7 +8753,8 @@ export const PlayerScreen = {
       ["seeked", onSeeked],
       ["hlstrackschanged", onTrackListChanged],
       ["dashtrackschanged", onTrackListChanged],
-      ["audiotrackschanged", onTrackListChanged]
+      ["audiotrackschanged", onTrackListChanged],
+      ["embeddedsubtitleschanged", () => this.mergeEmbeddedSubtitleCandidates()]
     ];
 
     bindings.forEach(([eventName, handler]) => {
@@ -11241,6 +11242,7 @@ export const PlayerScreen = {
   },
 
   clearMountedExternalSubtitleTracks() {
+    this.stopEmbeddedSubtitleFeed();
     this.externalTrackNodes.forEach((node) => node.remove());
     this.externalTrackNodes = [];
     this.revokeExternalSubtitleObjectUrls();
@@ -13462,6 +13464,7 @@ export const PlayerScreen = {
     track.setAttribute("data-addon-subtitle-id", subtitleId);
     video.appendChild(track);
     this.externalTrackNodes.push(track);
+    if (subtitle.embeddedTrackId != null) this.startEmbeddedSubtitleFeed(track, subtitle);
 
     const failOfflineSubtitleLoad = () => {
       if (!subtitle.isOffline || !isCurrentSelection()) {
@@ -16080,9 +16083,96 @@ export const PlayerScreen = {
     } finally {
       if (requestToken === this.subtitleLoadToken) {
         this.subtitleLoading = false;
+        this.mergeEmbeddedSubtitleCandidates({ refresh: false });
         this.refreshTrackDialogs();
       }
     }
+  },
+
+  // Text subtitles inside the playing MKV (PlayerController's header read).
+  // Each is offered like an add-on subtitle: an empty WebVTT track that is
+  // filled a couple of minutes at a time while it is selected.
+  embeddedSubtitleCandidates() {
+    const tracks =
+      typeof PlayerController.getEmbeddedSubtitleTracks === "function"
+        ? PlayerController.getEmbeddedSubtitleTracks()
+        : [];
+    return tracks.map((track) => ({
+      id: `embedded:${track.id}`,
+      url: `data:text/vtt;charset=utf-8,WEBVTT%0A%0ANOTE%20embedded%20track%20${encodeURIComponent(track.id)}%0A`,
+      lang: track.language || "und",
+      label: track.label || "",
+      name: track.label || "",
+      forced: track.forced,
+      addonName: t("player.subtitles.embedded", {}, "In the file"),
+      embeddedTrackId: track.id
+    }));
+  },
+
+  mergeEmbeddedSubtitleCandidates({ refresh = true } = {}) {
+    const current = (this.subtitles || []).filter((subtitle) => subtitle?.embeddedTrackId == null);
+    this.subtitles = this.mergeSubtitleCandidates(this.embeddedSubtitleCandidates(), current);
+    if (refresh) this.refreshTrackDialogs();
+  },
+
+  startEmbeddedSubtitleFeed(trackNode, subtitle) {
+    this.stopEmbeddedSubtitleFeed();
+    const video = PlayerController.video;
+    const loader =
+      typeof PlayerController.createEmbeddedSubtitleLoader === "function"
+        ? PlayerController.createEmbeddedSubtitleLoader(subtitle.embeddedTrackId)
+        : null;
+    if (!video || !loader) return;
+    const BEHIND_SECONDS = 5;
+    const AHEAD_SECONDS = 120;
+    const feed = { loader, trackNode, from: Infinity, until: -Infinity, busy: false, controller: new AbortController() };
+    const pump = async () => {
+      if (feed.busy || this.embeddedSubtitleFeed !== feed) return;
+      // Loading the (empty) track's src clears its cues, so add none before it.
+      if (trackNode.readyState !== 2) return;
+      const time = Number(video.currentTime || 0);
+      if (time - BEHIND_SECONDS >= feed.from && time + 30 <= feed.until) return;
+      const from = Math.max(0, time - BEHIND_SECONDS);
+      const until = time + AHEAD_SECONDS;
+      feed.busy = true;
+      try {
+        const lines = await loader.load(from, until, { signal: feed.controller.signal });
+        if (this.embeddedSubtitleFeed !== feed) return;
+        const textTrack = trackNode.track;
+        const Cue = globalThis.VTTCue || globalThis.TextTrackCue;
+        lines.forEach((line) => {
+          try {
+            textTrack?.addCue(new Cue(line.start, line.end, line.text));
+          } catch (_) {
+            // A malformed line is skipped, not fatal.
+          }
+        });
+        const joins = from <= feed.until && until >= feed.from;
+        feed.from = joins ? Math.min(feed.from, from) : from;
+        feed.until = joins ? Math.max(feed.until, until) : until;
+        if (lines.length) this.refreshSubtitleCueStyles();
+      } catch (error) {
+        if (!feed.controller.signal.aborted) console.warn("Embedded subtitle lines failed to load", error);
+      } finally {
+        feed.busy = false;
+      }
+    };
+    feed.onTime = () => void pump();
+    trackNode.addEventListener("load", feed.onTime, { once: true });
+    video.addEventListener("timeupdate", feed.onTime);
+    video.addEventListener("seeked", feed.onTime);
+    feed.video = video;
+    this.embeddedSubtitleFeed = feed;
+    void pump();
+  },
+
+  stopEmbeddedSubtitleFeed() {
+    const feed = this.embeddedSubtitleFeed;
+    this.embeddedSubtitleFeed = null;
+    if (!feed) return;
+    feed.controller.abort();
+    feed.video?.removeEventListener("timeupdate", feed.onTime);
+    feed.video?.removeEventListener("seeked", feed.onTime);
   },
 
   attachExternalSubtitles() {

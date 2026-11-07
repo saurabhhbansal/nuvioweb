@@ -21,6 +21,8 @@ import sys
 from fractions import Fraction
 from pathlib import Path
 
+import tempfile
+
 import av
 import numpy as np
 
@@ -76,6 +78,19 @@ FILES = {
             ("aac", 440, "eng", "English", False),
         ],
     },
+    # Text subtitle tracks muxed by FFmpeg, which indexes every subtitle block
+    # in the Cues (as mkvmerge does): one line per second, numbered.
+    "subtitles.mkv": {
+        "format": "matroska",
+        "video": ("libx264", {"g": "10", "bf": "2", "preset": "veryfast", "crf": "30", "profile": "high"}),
+        "audio": [
+            ("aac", 440, "eng", "English", True),
+        ],
+        "subtitles": [
+            ("srt", "eng", "English", "English line {n}"),
+            ("ass", "spa", "Español", "Línea {n} en español"),
+        ],
+    },
     # A single AC-3 track: nothing to pick, but it still needs converting.
     "ac3-only.mkv": {
         "format": "matroska",
@@ -108,9 +123,35 @@ def tone(frequency, start, count):
     return (0.4 * np.sin(2 * math.pi * frequency * t)).astype(np.float32)
 
 
+def subtitle_source(kind, text, folder):
+    """A subtitle file FFmpeg can read; its packets are copied, not encoded."""
+    lines = [text.format(n=n) for n in range(SECONDS)]
+    stamp = lambda seconds, sep: f"00:00:{seconds:02d}{sep}"
+    if kind == "srt":
+        body = "".join(
+            f"{n + 1}\n{stamp(n, ',')}000 --> {stamp(n, ',')}800\n{line}\n\n" for n, line in enumerate(lines)
+        )
+    else:
+        body = (
+            "[Script Info]\nScriptType: v4.00+\nPlayResX: 320\nPlayResY: 180\n\n"
+            "[V4+ Styles]\nFormat: Name, Fontname, Fontsize, PrimaryColour, Alignment\n"
+            "Style: Default,Arial,16,&H00FFFFFF,2\n\n"
+            "[Events]\nFormat: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\n"
+            + "".join(
+                f"Dialogue: 0,0:00:{n:02d}.00,0:00:{n:02d}.80,Default,,0,0,0,,{{\\i1}}{line}{{\\i0}}\n"
+                for n, line in enumerate(lines)
+            )
+        )
+    path = Path(folder) / f"track.{kind}"
+    path.write_text(body, encoding="utf-8")
+    return av.open(str(path))
+
+
 def write(name, spec):
     path = OUT / name
     container = av.open(str(path), mode="w", format=spec["format"])
+    temp = tempfile.TemporaryDirectory()
+    subtitle_inputs = []
     codec, options = spec["video"]
     video = container.add_stream(codec, rate=FPS, options=options)
     video.width, video.height, video.pix_fmt = WIDTH, HEIGHT, "yuv420p"
@@ -133,6 +174,12 @@ def write(name, spec):
         stream.metadata["handler_name"] = title
         stream.disposition = av.stream.Disposition.default if default else av.stream.Disposition(0)
         audio_streams.append((stream, frequency, layout))
+    for kind, language, title, text in spec.get("subtitles", []):
+        source = subtitle_source(kind, text, temp.name)
+        stream = container.add_stream_from_template(source.streams.subtitles[0])
+        stream.metadata["language"] = language
+        stream.metadata["title"] = title
+        subtitle_inputs.append((source, stream))
 
     for index in range(FPS * SECONDS):
         frame = av.VideoFrame.from_ndarray(frame_image(index), format="rgb24")
@@ -167,7 +214,15 @@ def write(name, spec):
             position += size
         for packet in stream.encode():
             container.mux(packet)
+    for source, stream in subtitle_inputs:
+        for packet in source.demux(source.streams.subtitles[0]):
+            if not packet.size:
+                continue
+            packet.stream = stream
+            container.mux(packet)
+        source.close()
     container.close()
+    temp.cleanup()
 
     data = path.read_bytes()
     return {
@@ -186,6 +241,16 @@ def write(name, spec):
             }
             for codec_name, frequency, language, title, default, *rest in spec["audio"]
         ],
+        **(
+            {
+                "subtitles": [
+                    {"format": kind, "language": language, "title": title, "text": text}
+                    for kind, language, title, text in spec["subtitles"]
+                ]
+            }
+            if spec.get("subtitles")
+            else {}
+        ),
     }
 
 
