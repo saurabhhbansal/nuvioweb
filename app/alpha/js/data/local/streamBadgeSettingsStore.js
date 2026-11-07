@@ -12,7 +12,8 @@ const DEFAULT_STREAM_BADGE_SETTINGS = {
   rules: { imports: [] },
   showFileSizeBadges: true,
   showAddonLogo: true,
-  badgePlacement: "BOTTOM"
+  badgePlacement: "BOTTOM",
+  checkPlayability: true
 };
 
 function normalizeBadgePlacement(value = "") {
@@ -33,6 +34,7 @@ function normalizeStreamBadgeSettings(value = {}) {
     null;
   const showFileSizeBadges = source.showFileSizeBadges ?? source.show_file_size_badges;
   const showAddonLogo = source.showAddonLogo ?? source.show_addon_logo;
+  const checkPlayability = source.checkPlayability ?? source.check_playability;
   const badgePlacement =
     source.badgePlacement ??
     source.badge_placement ??
@@ -42,7 +44,8 @@ function normalizeStreamBadgeSettings(value = {}) {
     rules: normalizeStreamBadgeRules(rulesSource),
     showFileSizeBadges: showFileSizeBadges !== false,
     showAddonLogo: showAddonLogo !== false,
-    badgePlacement: normalizeBadgePlacement(badgePlacement)
+    badgePlacement: normalizeBadgePlacement(badgePlacement),
+    checkPlayability: checkPlayability !== false
   };
 }
 
@@ -194,6 +197,10 @@ export const StreamBadgeSettingsStore = {
 
   setShowFileSizeBadges(enabled) {
     store.set({ showFileSizeBadges: Boolean(enabled) });
+  },
+
+  setCheckPlayability(enabled) {
+    store.set({ checkPlayability: Boolean(enabled) });
   },
 
   setShowAddonLogo(enabled) {

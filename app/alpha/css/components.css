@@ -20979,3 +20979,14 @@ html[data-card-depth="true"][data-card-depth-trailers="true"] .detail-trailer-ca
   font-weight: 600;
   line-height: 1.4;
 }
+
+/* Labels from a source's header check: quiet when it plays, warm when not. */
+.stream-route-source-hint[data-source-hint-tone="positive"] {
+  border-color: rgba(129, 199, 132, 0.55);
+  color: #a5d6a7;
+}
+
+.stream-route-source-hint[data-source-hint-tone="warning"] {
+  border-color: rgba(255, 183, 77, 0.6);
+  color: #ffcc80;
+}

@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
 
-const scenarios = new Set(["source-order","basic","objects","configured","cors-denied","malformed","shape","slow","failure","empty","timeout","partial","declared","conflicting-codecs","unknown-quality","unsupported-mime","quality-1080","quality-2160","quality-hls","quality-dash","quality-expired","quality-restricted","quality-hls-cors","startup-header-required"]);
+const scenarios = new Set(["source-order","basic","objects","configured","cors-denied","malformed","shape","slow","failure","empty","timeout","partial","declared","conflicting-codecs","unknown-quality","unsupported-mime","quality-1080","quality-2160","quality-hls","quality-dash","quality-expired","quality-restricted","quality-hls-cors","startup-header-required","playability"]);
 const mediaRoot = new URL("../media/",import.meta.url);
 const multiAudioFiles = new Set(["multi-audio.mp4","multi-audio.mkv","multi-audio.webm","eac3-surround.mkv","ac3-first.mp4","ac3-only.mkv"]);
 const qualityFiles = new Set(["original-1080p.mp4","original-2160p.mp4","native-1080p.mp4","native-2160p.mp4",...["1080p","2160p","canonical1080p","canonical2160p"].flatMap(size => ["init.mp4","segment.m4s","stream.m3u8","manifest.mpd"].map(file => `${size}/${file}`))]);
@@ -122,6 +122,16 @@ export function createAddonFixtureServer() {
             webm("headers-required",{behaviorHints:{proxyHeaders:{request:{"X-Fixture-Required":"fixture-only"}}}}),
             webm("declared-expired",{expiresAt:"2026-01-01T00:00:00Z"})
           ]}); return;
+        }
+        if (scenario === "playability") {
+          const file = (id, name, extra = {}) => ({id,name,url:`${origin}/media/multi-audio/${name}`,...extra});
+          json({streams:[
+            file("aac-first","multi-audio.mkv"),
+            file("ac3-first","ac3-first.mp4"),
+            file("ac3-only","ac3-only.mkv"),
+            {id:"no-cors",name:"no-cors",url:`${origin}/cors-denied/media/multi-audio/multi-audio.mp4`},
+            file("needs-headers","multi-audio.webm",{behaviorHints:{proxyHeaders:{request:{"X-Fixture-Required":"fixture-only"}}}})
+          ].map((stream) => ({...stream,name:stream.id}))}); return;
         }
         if (scenario === "startup-header-required") {
           json({streams:[{id:"startup-header-required",name:"Header restricted WebDL",title:"Generated legal fixture",url:`${origin}/media/header-restricted.webm`,mimeType:'video/webm; codecs="vp8,opus"',video:{codec:"vp8",width:640,height:360},behaviorHints:{notWebReady:true,proxyHeaders:{request:{"X-Fixture-Required":"fixture-only"}}}}]}); return;

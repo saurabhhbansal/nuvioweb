@@ -42,6 +42,7 @@ export async function openHttpSource(url, { fetchImpl = globalThis.fetch, header
   try {
     response = await request(0, PROBE_BYTES - 1, controller.signal);
   } catch (error) {
+    if (error instanceof RemuxUnavailableError) throw error;
     throw new RemuxUnavailableError("cors", String(error?.message || error));
   }
   if (response.status === 200) {

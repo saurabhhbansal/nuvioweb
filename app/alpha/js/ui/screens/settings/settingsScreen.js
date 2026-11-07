@@ -6496,6 +6496,10 @@ export const SettingsScreen = {
       StreamBadgeSettingsStore.setShowAddonLogo(!badgeSettings.showAddonLogo);
     });
 
+    this.actionMap.set("streams:toggle:checkPlayability", () => {
+      StreamBadgeSettingsStore.setCheckPlayability(badgeSettings.checkPlayability === false);
+    });
+
     const badgePlacement =
       String(badgeSettings.badgePlacement || "BOTTOM")
         .trim()
@@ -6755,6 +6759,16 @@ export const SettingsScreen = {
               "Show addon logo and name next to stream sources."
             ),
             checked: badgeSettings.showAddonLogo === true
+          })}
+          ${this.renderToggleRow({
+            focusKey: "streams:toggle:checkPlayability",
+            title: t("settings_stream_check_playability_title", {}, "Check sources before playing"),
+            subtitle: t(
+              "settings_stream_check_playability_description",
+              {},
+              "Reads the start of the first few files, and of any source you point at, straight from its host to label whether it plays here. Some add-ons prepare a link when it is read."
+            ),
+            checked: badgeSettings.checkPlayability !== false
           })}
           ${this.renderActionRow({
             focusKey: "streams:badgePlacement",
