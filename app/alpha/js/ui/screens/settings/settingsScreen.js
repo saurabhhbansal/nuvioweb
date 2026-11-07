@@ -2902,7 +2902,9 @@ export const SettingsScreen = {
     planned = false
   }) {
     const inert = disabled || planned;
-    const trailing = external ? "external" : icon;
+    // An unknown icon name would crash the whole section (`ROW_ICONS[name]` is
+    // undefined), so fall back to the chevron. An empty name still means no icon.
+    const trailing = external ? "external" : !icon || ROW_ICONS[icon] ? icon : "chevron";
     const tailContent = [
       planned ? `<span class="settings-row-badge">${escapeHtml(t("common.soon"))}</span>` : "",
       value ? `<span class="settings-row-value">${escapeHtml(value)}</span>` : "",
