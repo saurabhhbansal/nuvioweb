@@ -31,18 +31,26 @@ test("source list keeps add-on order with compact hints and fits a phone", async
   context,
   request,
 }, testInfo) => {
-  await context.addInitScript(
-    (provider) =>
-      localStorage.setItem(
-        "installedAddonUrls",
-        JSON.stringify({
-          __profileScoped: true,
-          version: 1,
-          profiles: { 1: [`${provider}/source-order`] },
-        }),
-      ),
-    provider,
-  );
+  await context.addInitScript((provider) => {
+    localStorage.setItem(
+      "installedAddonUrls",
+      JSON.stringify({
+        __profileScoped: true,
+        version: 1,
+        profiles: { 1: [`${provider}/source-order`] },
+      }),
+    );
+    // Header checks have their own spec (stream-playability); with them off,
+    // the list must not touch media at all.
+    localStorage.setItem(
+      "streamBadgeSettings",
+      JSON.stringify({
+        __profileScoped: true,
+        version: 1,
+        profiles: { 1: { checkPlayability: false } },
+      }),
+    );
+  }, provider);
   await installFakeAccount(context, { addons: [`${provider}/source-order`] });
   await openSignedInHome(page, { expect });
   await page
@@ -70,7 +78,7 @@ test("source list keeps add-on order with compact hints and fits a phone", async
   await expect(page.getByRole("button", { name: "Device-aware order" })).toHaveCount(0);
   await expect(page.locator(".stream-route-source-correction")).toHaveCount(0);
 
-  // Rendering the list never probes media.
+  // With the header check off, rendering the list never reads media.
   const requests = await (await request.get(`${provider}/__fixture/requests`)).json();
   expect(requests.some((entry) => entry.path.startsWith("/media/"))).toBe(false);
 

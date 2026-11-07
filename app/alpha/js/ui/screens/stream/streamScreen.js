@@ -33,6 +33,11 @@ import { DebridStreamPresentation } from "../../../core/debrid/directDebridStrea
 import { DebridSettingsStore } from "../../../data/local/debridSettingsStore.js";
 import { StreamBadgeSettingsStore } from "../../../data/local/streamBadgeSettingsStore.js";
 import {
+  canCheckPlayabilityHere,
+  createPlayabilityQueue,
+  playabilityProbeUrl
+} from "../../../core/streams/streamPlayability.js";
+import {
   getCachedAddonLogoDisplayUrl,
   hasFailedAddonLogo,
   normalizeAddonLogoLookup,
@@ -251,6 +256,10 @@ function getAddonBadgeLabel(name = "") {
     .slice(0, 2);
   return letters || cleaned.charAt(0).toUpperCase();
 }
+
+// How many sources, from the top of the list, get their header checked
+// without the viewer pointing at them.
+const STREAM_PLAYABILITY_AUTO_CHECKS = 6;
 
 export async function preloadStreamBadgeImages(settings = StreamBadgeSettingsStore.snapshot()) {
   const rules = normalizeStreamBadgeRules(settings?.rules);
@@ -2510,10 +2519,71 @@ export const StreamScreen = {
       }
     }
     this.bindDesktopPointerActions();
+    this.bindPlayabilityFocusChecks();
+    this.scheduleStreamPlayabilityChecks();
     this.bindListScrollState();
     this.renderedDownloadStatuses = this.collectOfflineDownloadStatuses();
     this.renderedOfflineCopyCount = (this.offlineLocalCopies || []).length;
     this.hasRenderedStreamRouteShell = true;
+  },
+
+  // Source labels: read the header of the first few files, and of any card the
+  // viewer points at or focuses, to say what this browser will do with it.
+  playabilityChecksEnabled() {
+    return (
+      Platform.isBrowser() &&
+      StreamBadgeSettingsStore.snapshot().checkPlayability !== false &&
+      canCheckPlayabilityHere()
+    );
+  },
+
+  ensurePlayabilityQueue() {
+    if (!this.playabilityQueue) {
+      this.playabilityQueue = createPlayabilityQueue({
+        probe: async (url, { signal }) =>
+          (await import("../../../core/player/remux/remuxAudio.js")).probeStreamPlayability(url, {
+            signal
+          }),
+        onResult: (_url, hint) => {
+          if (hint) this.requestRender({ delayMs: 120 });
+        }
+      });
+    }
+    return this.playabilityQueue;
+  },
+
+  scheduleStreamPlayabilityChecks() {
+    if (!this.playabilityChecksEnabled()) return;
+    const urls = this.getFilteredStreams()
+      .slice(0, STREAM_PLAYABILITY_AUTO_CHECKS)
+      .map((stream) => playabilityProbeUrl(stream))
+      .filter(Boolean);
+    if (urls.length) this.ensurePlayabilityQueue().add(urls);
+  },
+
+  bindPlayabilityFocusChecks() {
+    if (!this.container || this.boundPlayabilityFocusHandler || !this.playabilityChecksEnabled()) return;
+    this.boundPlayabilityFocusHandler = (event) => {
+      const card = event.target instanceof Element ? event.target.closest("[data-card-action='play'][data-stream-id]") : null;
+      if (!card || !this.container?.contains(card)) return;
+      const stream = (Array.isArray(this.streams) ? this.streams : []).find(
+        (entry) => String(entry?.id) === card.dataset.streamId
+      );
+      const url = stream ? playabilityProbeUrl(stream) : "";
+      if (url) this.ensurePlayabilityQueue().add([url], { first: true });
+    };
+    this.container.addEventListener("focusin", this.boundPlayabilityFocusHandler);
+    this.container.addEventListener("pointerover", this.boundPlayabilityFocusHandler);
+  },
+
+  unbindPlayabilityChecks() {
+    if (this.boundPlayabilityFocusHandler && this.container) {
+      this.container.removeEventListener("focusin", this.boundPlayabilityFocusHandler);
+      this.container.removeEventListener("pointerover", this.boundPlayabilityFocusHandler);
+    }
+    this.boundPlayabilityFocusHandler = null;
+    this.playabilityQueue?.close();
+    this.playabilityQueue = null;
   },
 
   bindDesktopPointerActions() {
@@ -3339,6 +3409,7 @@ export const StreamScreen = {
   },
 
   cleanup() {
+    this.unbindPlayabilityChecks();
     this.externalPlayerChooserDialog?.destroy?.();
     this.externalPlayerChooserDialog = null;
     this.clearExternalHandoffWatch();

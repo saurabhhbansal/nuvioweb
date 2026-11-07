@@ -8,6 +8,7 @@ import {
 import { matchStreamBadges, normalizeStreamBadgeChipColor } from "../../core/streams/streamBadgeRules.js";
 import { I18n } from "../../i18n/index.js";
 import { assessSourceForDevice } from "../../core/streams/sourcePreference.js";
+import { cachedPlayabilityHint } from "../../core/streams/streamPlayability.js";
 
 const STREAM_BADGE_LIMIT = 9;
 
@@ -23,7 +24,7 @@ const SOURCE_HINT_KEYS = {
 
 function translateSourceHint(hint) {
   if (!hint) return null;
-  const key = SOURCE_HINT_KEYS[hint.reason];
+  const key = hint.labelKey || SOURCE_HINT_KEYS[hint.reason];
   return key ? { ...hint, label: t(key, {}, hint.label) } : hint;
 }
 
@@ -182,7 +183,11 @@ export function normalizeSourceForDisplay(
     normalizeAddonLogoUrl(source.addonLogo) || resolveAddonLogo(addonName, addonLogoLookup);
   const displayAddonLogoUrl = getCachedAddonLogoDisplayUrl(addonLogoUrl) || addonLogoUrl;
   const descriptionLines = getSourceDescriptionLines(source);
-  const sourceHint = translateSourceHint(assessSourceForDevice(stream));
+  // A known problem with the link outranks what its header said.
+  const sourceHint = translateSourceHint(
+    assessSourceForDevice(stream) ||
+      (badgeSettings?.checkPlayability !== false ? cachedPlayabilityHint(stream) : null)
+  );
   const filename = String(source.behaviorHints?.filename || "").trim();
   return {
     source,
@@ -207,5 +212,5 @@ export function renderBrowserSourceCardContent(model = {}) {
   const addonIdentity = model.showAddonLogo
     ? `<div class="stream-route-card-side"><div class="stream-route-addon-badge">${model.addonLogoUrl ? `<img src="${escapeHtml(model.addonLogoUrl)}" alt="${escapeHtml(model.addonName || "Addon")}" decoding="async" loading="lazy" referrerpolicy="no-referrer" /><span hidden>${escapeHtml(model.addonBadgeLabel || "A")}</span>` : `<span>${escapeHtml(model.addonBadgeLabel || "A")}</span>`}</div><div class="stream-route-addon-name" title="${escapeHtml(model.addonName || "Addon")}">${escapeHtml(model.addonName || "Addon")}</div></div>`
     : "";
-  return `<div class="stream-route-card-copy"><div class="stream-route-card-heading">${escapeHtml(model.headline || t("stream_unknown_source", {}, "Unknown source"))}</div>${model.topBadges || ""}${!badges ? `<div class="stream-route-card-quality">${escapeHtml(model.quality || t("common.auto", {}, "Auto"))}</div>` : ""}${(model.descriptionLines || []).map((line, index) => `<div class="stream-route-card-line${index > 0 ? " secondary" : ""}" title="${escapeHtml(line)}">${escapeHtml(line)}</div>`).join("")}${model.bottomBadges || ""}${model.sourceHint ? `<span class="stream-route-source-hint" data-source-hint="${escapeHtml(model.sourceHint.reason)}">${escapeHtml(model.sourceHint.label)}</span>` : ""}</div>${addonIdentity}`;
+  return `<div class="stream-route-card-copy"><div class="stream-route-card-heading">${escapeHtml(model.headline || t("stream_unknown_source", {}, "Unknown source"))}</div>${model.topBadges || ""}${!badges ? `<div class="stream-route-card-quality">${escapeHtml(model.quality || t("common.auto", {}, "Auto"))}</div>` : ""}${(model.descriptionLines || []).map((line, index) => `<div class="stream-route-card-line${index > 0 ? " secondary" : ""}" title="${escapeHtml(line)}">${escapeHtml(line)}</div>`).join("")}${model.bottomBadges || ""}${model.sourceHint ? `<span class="stream-route-source-hint" data-source-hint="${escapeHtml(model.sourceHint.reason)}"${model.sourceHint.tone ? ` data-source-hint-tone="${escapeHtml(model.sourceHint.tone)}"` : ""}${model.sourceHint.detail ? ` title="${escapeHtml(model.sourceHint.detail)}"` : ""}>${escapeHtml(model.sourceHint.label)}</span>` : ""}</div>${addonIdentity}`;
 }

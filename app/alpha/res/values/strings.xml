@@ -3093,6 +3093,13 @@
     <string name="player_volume">Volume</string>
     <string name="settings.plugins.comingSoon">Plugin support is coming soon.</string>
     <string name="stream_source_hint_expired">Link expired</string>
+    <string name="stream_playability_plays_here">Plays here</string>
+    <string name="stream_playability_audio_converted">Audio converted</string>
+    <string name="stream_playability_change_audio">Change audio track</string>
+    <string name="stream_playability_no_sound">No sound here</string>
+    <string name="stream_playability_video_unplayable">Video won\'t play here</string>
+    <string name="settings_stream_check_playability_title">Check sources before playing</string>
+    <string name="settings_stream_check_playability_description">Reads the start of the first few files, and of any source you point at, straight from its host to label whether it plays here. Some add-ons prepare a link when it is read.</string>
     <string name="stream_title_untitled">Untitled</string>
     <string name="stream_unknown_source">Unknown source</string>
 </resources>
