@@ -66,7 +66,13 @@ async function startRemux(page, url, audioIndex) {
         onFatal: (error) => state.errors.push(String(error?.message || error))
       });
       await state.session.start({ startTime: 0 });
-      return state.probe.audioTracks.map(({ label, language, codec, playable }) => ({ label, language, codec, playable }));
+      return state.probe.audioTracks.map(({ label, language, codec, playable, converted }) => ({
+        label,
+        language,
+        codec,
+        playable,
+        converted
+      }));
     },
     { url, audioIndex }
   );
@@ -80,6 +86,10 @@ async function expectTone(page, hz) {
     .toBeLessThan(25);
 }
 
+function canConvert(page) {
+  return page.evaluate(() => window.__remux.remux.canTranscodeInThisBrowser());
+}
+
 for (const file of ["multi-audio.mp4", "multi-audio.mkv", "multi-audio.webm"]) {
   test(`remux plays ${file} with the chosen audio track, switches and seeks`, async ({ page }) => {
     await openHarness(page);
@@ -88,7 +98,11 @@ for (const file of ["multi-audio.mp4", "multi-audio.mkv", "multi-audio.webm"]) {
       file.endsWith(".webm") ? ["English", "Français"] : ["English", "Français", "Deutsch AC-3"]
     );
     expect(tracks.map((track) => track.language).slice(0, 2)).toEqual(["eng", "fra"]);
-    if (!file.endsWith(".webm")) expect(tracks[2]).toMatchObject({ codec: "ac-3", playable: false });
+    if (!file.endsWith(".webm")) {
+      // AC-3 is converted to Opus where WebCodecs can encode it, else Unsupported.
+      const converts = await canConvert(page);
+      expect(tracks[2]).toMatchObject({ codec: "ac-3", playable: converts, converted: converts });
+    }
 
     await page.click("#start");
     await expect.poll(() => page.evaluate(() => window.__remux.video.currentTime)).toBeGreaterThan(0.8);
@@ -102,6 +116,50 @@ for (const file of ["multi-audio.mp4", "multi-audio.mkv", "multi-audio.webm"]) {
     });
     await expect.poll(() => page.evaluate(() => window.__remux.video.currentTime)).toBeGreaterThan(4.5);
     await expectTone(page, 440);
+    expect(await page.evaluate(() => window.__remux.errors)).toEqual([]);
+    expect(await page.evaluate(() => window.__remux.video.error)).toBeNull();
+  });
+}
+
+// AC-3 and E-AC-3: decoded in WASM, mixed to stereo, re-encoded to Opus.
+for (const [file, index, hz] of [
+  ["multi-audio.mp4", 2, 660],
+  ["multi-audio.mkv", 2, 660],
+  ["eac3-surround.mkv", 1, 550]
+]) {
+  test(`a converted ${file.includes("eac3") ? "5.1 E-AC-3" : "AC-3"} track in ${file} plays, seeks and switches`, async ({
+    page
+  }) => {
+    await openHarness(page);
+    test.skip(!(await canConvert(page)), "this engine can't encode Opus with WebCodecs");
+    const tracks = await startRemux(page, `${MEDIA}/${file}`, index);
+    expect(tracks[index]).toMatchObject({ playable: true, converted: true });
+
+    await page.click("#start");
+    await expect.poll(() => page.evaluate(() => window.__remux.video.currentTime)).toBeGreaterThan(0.8);
+    // The centre-only 5.1 tone has to reach both stereo sides.
+    await expectTone(page, hz);
+
+    await page.evaluate(() => {
+      window.__remux.video.currentTime = 4.2;
+    });
+    await expect.poll(() => page.evaluate(() => window.__remux.video.currentTime)).toBeGreaterThan(4.5);
+    await expectTone(page, hz);
+
+    // Converted -> copied AAC (changeType back from Opus), then converted again.
+    await page.evaluate(() => {
+      window.__remux.video.currentTime = 1;
+    });
+    await page.evaluate(() => window.__remux.session.switchAudio(window.__remux.probe.audioTracks[0].track));
+    await expectTone(page, 440);
+    // The clip is 6 s long: rewind so the last check doesn't race its end.
+    await page.evaluate(async (target) => {
+      const { video, session, probe } = window.__remux;
+      video.currentTime = 0.5;
+      await session.switchAudio(probe.audioTracks[target].track);
+      video.play().catch(() => {});
+    }, index);
+    await expectTone(page, hz);
     expect(await page.evaluate(() => window.__remux.errors)).toEqual([]);
     expect(await page.evaluate(() => window.__remux.video.error)).toBeNull();
   });
@@ -169,7 +227,15 @@ test("the audio picker lists a CORS-enabled file's tracks and switches through r
   await expect(items).toHaveCount(3);
   await expect(items.nth(0)).toHaveClass(/selected/);
   await expect(items.nth(0)).toContainText("English");
-  await expect(items.nth(2)).toHaveClass(/disabled/);
+  const converts = await page.evaluate(async () =>
+    (await import("/__fixture/source/js/core/player/remux/remuxAudio.js")).canTranscodeInThisBrowser()
+  );
+  if (converts) {
+    await expect(items.nth(2)).not.toHaveClass(/disabled/);
+    await expect(items.nth(2)).toContainText("Converted to stereo in browser");
+  } else {
+    await expect(items.nth(2)).toHaveClass(/disabled/);
+  }
   expect(await page.evaluate(() => window.__player.PlayerController.playbackEngine)).toBe("native-file");
 
   await page.evaluate(() => window.__player.screen.applyAudioTrack(1, { rememberSelection: true }));

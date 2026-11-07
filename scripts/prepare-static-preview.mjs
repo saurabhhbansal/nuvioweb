@@ -29,7 +29,8 @@ const root = fileURLToPath(new URL("../", import.meta.url));
 const noticePaths = [
   "hls.js/LICENSE", "dashjs/LICENSE.md", "dashjs/dist/dash.all.min.js.LICENSE.txt",
   "libbitsub/LICENSE", "libbitsub/pkg/LICENSE", "jszip/LICENSE.markdown",
-  "pako/LICENSE", "lie/license.md", "immediate/LICENSE.txt", "setimmediate/LICENSE.txt"
+  "pako/LICENSE", "lie/license.md", "immediate/LICENSE.txt", "setimmediate/LICENSE.txt",
+  "@audio/decode-eac3/LICENSE", "@audio/decode-eac3/LICENSE.ffmpeg"
 ];
 
 // The public TMDB key ships in the browser bundle like any client key, but it

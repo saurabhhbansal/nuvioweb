@@ -54,7 +54,21 @@ FILES = {
             ("libopus", 880, "fra", "Français", False),
         ],
     },
+    # 5.1 E-AC-3 with the tone in the centre channel only: browsers that convert
+    # it to stereo must mix the centre into both sides.
+    "eac3-surround.mkv": {
+        "format": "matroska",
+        "video": ("libx264", {"g": "10", "bf": "2", "preset": "veryfast", "crf": "30", "profile": "high"}),
+        "audio": [
+            ("aac", 440, "eng", "English", True),
+            ("eac3", 550, "spa", "Español E-AC-3 5.1", False, "5.1(side)"),
+        ],
+    },
 }
+
+# Channel order of each layout in FFmpeg's planar frames; the tone goes to "FC"
+# when a layout has a centre, otherwise to every channel.
+LAYOUT_CHANNELS = {"stereo": ["FL", "FR"], "5.1(side)": ["FL", "FR", "FC", "LFE", "SL", "SR"]}
 
 
 def frame_image(index):
@@ -81,13 +95,16 @@ def write(name, spec):
     video = container.add_stream(codec, rate=FPS, options=options)
     video.width, video.height, video.pix_fmt = WIDTH, HEIGHT, "yuv420p"
     audio_streams = []
-    for codec_name, frequency, language, title, default in spec["audio"]:
+    for codec_name, frequency, language, title, default, *rest in spec["audio"]:
+        layout = rest[0] if rest else "stereo"
         stream = container.add_stream(codec_name, rate=RATE)
-        stream.layout = "stereo"
+        stream.layout = layout
         if codec_name == "aac":
             stream.bit_rate = 48000
         elif codec_name == "ac3":
             stream.bit_rate = 96000
+        elif codec_name == "eac3":
+            stream.bit_rate = 192000
         else:
             stream.bit_rate = 32000
         stream.metadata["language"] = language
@@ -95,7 +112,7 @@ def write(name, spec):
         # MP4 keeps a track's name in its handler box.
         stream.metadata["handler_name"] = title
         stream.disposition = av.stream.Disposition.default if default else av.stream.Disposition(0)
-        audio_streams.append((stream, frequency))
+        audio_streams.append((stream, frequency, layout))
 
     for index in range(FPS * SECONDS):
         frame = av.VideoFrame.from_ndarray(frame_image(index), format="rgb24")
@@ -106,17 +123,22 @@ def write(name, spec):
     for packet in video.encode():
         container.mux(packet)
 
-    for stream, frequency in audio_streams:
+    for stream, frequency, layout in audio_streams:
         size = stream.codec_context.frame_size or 1024
         total = RATE * SECONDS
         position = 0
+        channels = LAYOUT_CHANNELS[layout]
         while position < total:
             count = min(size, total - position)
             mono = tone(frequency, position, count)
             if count < size:
                 mono = np.pad(mono, (0, size - count))
-            samples = np.vstack([mono, mono])
-            frame = av.AudioFrame.from_ndarray(samples, format="fltp", layout="stereo")
+            silence = np.zeros_like(mono)
+            if "FC" in channels:
+                samples = np.vstack([mono if name == "FC" else silence for name in channels])
+            else:
+                samples = np.vstack([mono for _ in channels])
+            frame = av.AudioFrame.from_ndarray(samples, format="fltp", layout=layout)
             frame.sample_rate = RATE
             frame.pts = position
             frame.time_base = Fraction(1, RATE)
@@ -134,8 +156,15 @@ def write(name, spec):
         "sha256": hashlib.sha256(data).hexdigest(),
         "video": f"{codec} {WIDTH}x{HEIGHT} {FPS} fps, {SECONDS} s",
         "audio": [
-            {"codec": codec_name, "toneHz": frequency, "language": language, "title": title, "default": default}
-            for codec_name, frequency, language, title, default in spec["audio"]
+            {
+                "codec": codec_name,
+                "toneHz": frequency,
+                "language": language,
+                "title": title,
+                "default": default,
+                **({"layout": rest[0], "toneChannel": "FC"} if rest else {}),
+            }
+            for codec_name, frequency, language, title, default, *rest in spec["audio"]
         ],
     }
 

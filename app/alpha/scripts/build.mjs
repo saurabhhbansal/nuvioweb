@@ -158,7 +158,17 @@ async function collectLocaleAssets(directory, relativeDirectory = "") {
   return assets;
 }
 
-async function buildBrowserServiceWorker(chunks) {
+// Chunks only ever used while streaming from the network, too big to download
+// at every install and update: the AC-3/E-AC-3 decoder (about 200 KB gzip).
+// The worker leaves unlisted files to the network.
+const ONLINE_ONLY_CHUNK_PREFIXES = ["chunks/decode-eac3-"];
+
+function precachedChunks(chunks) {
+  return chunks.filter((chunk) => !ONLINE_ONLY_CHUNK_PREFIXES.some((prefix) => chunk.startsWith(prefix)));
+}
+
+async function buildBrowserServiceWorker(allChunks) {
+  const chunks = precachedChunks(allChunks);
   const { version } = await readAppMetadata();
   const source = await readFile(path.join(rootDir, "sw.js"), "utf8");
   const localeAssets = await collectLocaleAssets(path.join(rootDir, "res"));
@@ -232,6 +242,15 @@ async function runBuild() {
     await cp(
       path.join(rootDir, "node_modules", "libbitsub", "LICENSE"),
       path.join(distDir, "assets", "libs", "libbitsub.LICENSE")
+    );
+    // AC-3/E-AC-3 decoder (FFmpeg, LGPL-2.1-or-later), bundled into a lazy chunk.
+    await cp(
+      path.join(rootDir, "node_modules", "@audio", "decode-eac3", "LICENSE"),
+      path.join(distDir, "assets", "libs", "decode-eac3.LICENSE")
+    );
+    await cp(
+      path.join(rootDir, "node_modules", "@audio", "decode-eac3", "LICENSE.ffmpeg"),
+      path.join(distDir, "assets", "libs", "decode-eac3.LICENSE.ffmpeg")
     );
 
     const { chunks, initialChunks } = await buildBundle();

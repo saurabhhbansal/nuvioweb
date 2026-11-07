@@ -84,6 +84,30 @@
           "default": false
         }
       ]
+    },
+    {
+      "file": "eac3-surround.mkv",
+      "bytes": 196176,
+      "sha256": "b2bf83fba6827e97558cd9113df9dcdd0e84a3c35b887f6bf96a0b9f7c9c57af",
+      "video": "libx264 320x180 10 fps, 6 s",
+      "audio": [
+        {
+          "codec": "aac",
+          "toneHz": 440,
+          "language": "eng",
+          "title": "English",
+          "default": true
+        },
+        {
+          "codec": "eac3",
+          "toneHz": 550,
+          "language": "spa",
+          "title": "Español E-AC-3 5.1",
+          "default": false,
+          "layout": "5.1(side)",
+          "toneChannel": "FC"
+        }
+      ]
     }
   ]
 }
