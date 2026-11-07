@@ -1548,7 +1548,8 @@ function librarySnapshotHasMembership(listMembership = {}, sourceMode) {
   if (sourceMode === LibrarySourceMode.SIMKL) {
     return Object.values(listMembership).some(Boolean);
   }
-  const key = sourceMode === LibrarySourceMode.TRAKT ? "watchlist" : "local";
+  const key =
+    sourceMode === LibrarySourceMode.TRAKT || sourceMode === LibrarySourceMode.MDBLIST ? "watchlist" : "local";
   return listMembership[key] === true;
 }
 
@@ -6791,6 +6792,9 @@ export const MetaDetailsScreen = {
     if (sourceMode === LibrarySourceMode.TRAKT) {
       return "Trakt";
     }
+    if (sourceMode === LibrarySourceMode.MDBLIST) {
+      return t("tracking_mdblist_title", {}, "MDBList");
+    }
     return "Nuvio";
   },
 
@@ -6798,7 +6802,9 @@ export const MetaDetailsScreen = {
     if (sourceMode === LibrarySourceMode.SIMKL) {
       return "simkl:status:plantowatch";
     }
-    return sourceMode === LibrarySourceMode.TRAKT ? "watchlist" : "local";
+    return sourceMode === LibrarySourceMode.TRAKT || sourceMode === LibrarySourceMode.MDBLIST
+      ? "watchlist"
+      : "local";
   },
 
   decorateDesktopLibraryDestinationDialog() {

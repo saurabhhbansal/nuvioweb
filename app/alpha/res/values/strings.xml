@@ -1293,6 +1293,7 @@
     <string name="trakt_stat_watched_hours">Watched Hours</string>
     <string name="trakt_disconnect">Disconnect</string>
     <string name="tracking_mdblist_title">MDBList</string>
+    <string name="library_source_mdblist">MDBLIST</string>
     <string name="tracking_mdblist_not_connected">Not connected</string>
     <string name="tracking_mdblist_connect">Connect MDBList</string>
     <string name="tracking_mdblist_connect_description">Connect MDBList to sync watched history, playback progress, and scrobbles. Uses your MDBList API key, sent straight to MDBList.</string>

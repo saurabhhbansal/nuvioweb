@@ -123,7 +123,7 @@ export function getPosterOptions(state, options = {}) {
     actions.push({
       action: "toggleLibrary",
       label:
-        state.sourceMode === LibrarySourceMode.TRAKT
+        state.sourceMode === LibrarySourceMode.TRAKT || state.sourceMode === LibrarySourceMode.MDBLIST
           ? t("library_manage_lists", {}, "Manage Lists")
           : state.sourceMode === LibrarySourceMode.SIMKL
             ? "Manage Simkl Status"

@@ -76,3 +76,35 @@ test("MDBList connects with an API key and becomes a watch progress source", asy
   const saved = await page.evaluate(() => localStorage.getItem("mdbListSettings"));
   expect(saved).toContain("fixture-mdblist-key");
 });
+
+test("MDBList's watchlist and lists show up as the Library", async ({ page, context }) => {
+  await context.route("**/*", async (route) => {
+    const url = new URL(route.request().url());
+    if (url.origin === "http://127.0.0.1:4371") return route.continue();
+    if (url.origin !== MDBLIST) return route.abort("blockedbyclient");
+    const json = (body) =>
+      route.fulfill({ status: 200, headers: { "Access-Control-Allow-Origin": "*" }, body: JSON.stringify(body) });
+    if (url.pathname === "/lists/user") return json([{ id: 7, name: "Favourites", type: "static" }]);
+    if (url.pathname === "/watchlist/items")
+      return json({ movies: [{ title: "Arrival", release_year: 2016, imdb_id: "tt2543164", mediatype: "movie" }], shows: [] });
+    if (url.pathname === "/lists/7/items")
+      return json({ movies: [], shows: [{ title: "Dark", release_year: 2017, imdb_id: "tt5753856", mediatype: "show" }] });
+    return json([]);
+  });
+  await context.addInitScript(() => {
+    const scoped = (value) => JSON.stringify({ __profileScoped: true, version: 1, profiles: { 1: value } });
+    localStorage.setItem("mdbListSettings", scoped({ apiKey: "fixture-mdblist-key", trackingEnabled: true }));
+    localStorage.setItem("traktSettings", scoped({ librarySourceMode: "mdblist", watchProgressSource: "nuvio_sync" }));
+  });
+  await installFakeAccount(context);
+  await openSignedInHome(page, { expect });
+  await page.getByRole("button", { name: "Library", exact: true }).click();
+  await expect(page.locator('#library .library-grid-card[data-item-id="tt2543164"]')).toBeVisible();
+  await expect(page.locator("#library")).toContainText("MDBLIST · 1 title");
+  // The user's static lists are offered next to the watchlist.
+  await page.locator('#library [data-action="toggleLibraryFilters"]').click();
+  await page.locator('#library .library-picker-anchor[data-picker="list"]').click();
+  await page.locator('#library .library-picker-option[data-picker="list"]', { hasText: "Favourites" }).click();
+  await expect(page.locator('#library .library-grid-card[data-item-id="tt5753856"]')).toBeVisible();
+  await expect(page.locator('#library .library-grid-card[data-item-id="tt2543164"]')).toHaveCount(0);
+});
