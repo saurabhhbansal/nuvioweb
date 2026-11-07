@@ -17787,6 +17787,7 @@ html[data-layout="desktop"][data-nav-placement="sidebar"][data-nav-rail-corner="
 .desktop-browser .library-cloud-filter-row .library-cloud-refresh-button {
   align-self: center;
   margin-left: 0;
+}
 
 /* Poster focus mirrors Continue Watching: one 2px outer ring, no colored
    inner border. This applies across Home, Discover, Library, Search, See All,
