@@ -10,6 +10,7 @@ These are short (6 s, 320x180, 10 fps) files with one video track and one or mor
 | `eac3-surround.mkv` | H.264 High, B-frames | AAC 440 Hz `eng` "English"; E-AC-3 5.1 (side) `spa` "Español E-AC-3 5.1" with a 550 Hz tone in the centre channel only and the other five channels silent |
 | `ac3-first.mp4` | H.264 High, B-frames | AC-3 660 Hz `deu` "Deutsch AC-3" (first, default); AAC 440 Hz `eng` "English" |
 | `ac3-only.mkv` | H.264 High, B-frames | AC-3 660 Hz `deu` "Deutsch AC-3" only |
+| `subtitles.mkv` | H.264 High, B-frames | AAC 440 Hz `eng` "English"; subtitles: SRT `eng` "English" ("English line 0" to "English line 5") and ASS `spa` "Español" ("Línea N en español", in italics), one line per second, indexed in the Cues by FFmpeg |
 
 These files are dedicated to the public domain under [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/). No third-party film, music, artwork or stream is used. Generator source follows the repository license.
 

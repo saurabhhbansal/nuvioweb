@@ -47,6 +47,8 @@ const ID = {
   CueTrackPositions: 0xb7,
   CueTrack: 0xf7,
   CueClusterPosition: 0xf1,
+  CueRelativePosition: 0xf0,
+  CueDuration: 0xb2,
   Cluster: 0x1f43b675,
   Timecode: 0xe7,
   SimpleBlock: 0xa3,
@@ -218,6 +220,7 @@ function parseTrackEntry(bytes, node) {
               if (compression.id === ID.ContentCompAlgo) algorithm = readUint(bytes, compression.start, compression.end);
               if (compression.id === ID.ContentCompSettings) settings = bytes.slice(compression.start, compression.end);
             }
+            track.compressionAlgorithm = algorithm;
             if (algorithm === 3) track.headerStrip = settings;
             else track.unsupportedReason = "compressed";
           }
@@ -241,11 +244,23 @@ function parseCues(bytes, node, segmentStart) {
       if (field.id !== ID.CueTrackPositions) continue;
       let track = 0;
       let cluster = -1;
+      let relative = -1;
+      let duration = 0;
       for (const position of elements(bytes, field.start, field.end)) {
         if (position.id === ID.CueTrack) track = readUint(bytes, position.start, position.end);
         if (position.id === ID.CueClusterPosition) cluster = readUint(bytes, position.start, position.end);
+        // Subtitle cues also point inside the cluster at the block itself.
+        if (position.id === ID.CueRelativePosition) relative = readUint(bytes, position.start, position.end);
+        if (position.id === ID.CueDuration) duration = readUint(bytes, position.start, position.end);
       }
-      if (cluster >= 0) positions.push({ track, offset: segmentStart + cluster });
+      if (cluster >= 0) {
+        positions.push({
+          track,
+          offset: segmentStart + cluster,
+          ...(relative >= 0 ? { relative } : {}),
+          ...(duration > 0 ? { duration } : {})
+        });
+      }
     }
     if (time >= 0 && positions.length) cues.push({ time, positions });
   }
@@ -395,7 +410,7 @@ export async function openMatroska(source) {
   for (const entry of elements(tracks.bytes, tracks.node.start, tracks.node.end)) {
     if (entry.id !== ID.TrackEntry) continue;
     const raw = parseTrackEntry(tracks.bytes, entry);
-    const kind = raw.type === 1 ? "video" : raw.type === 2 ? "audio" : "";
+    const kind = raw.type === 1 ? "video" : raw.type === 2 ? "audio" : raw.type === 17 ? "subtitle" : "";
     if (!kind || !raw.number) continue;
     const described = describeMatroskaCodec(raw);
     parsedTracks.push({

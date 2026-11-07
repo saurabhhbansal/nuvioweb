@@ -8,6 +8,9 @@ import { openMatroska } from "./mkvDemuxer.js";
 import { openMp4 } from "./mp4Demuxer.js";
 import { canTranscodeInThisBrowser, isTranscodeCandidate } from "./audioTranscoder.js";
 import { RemuxSession, canRemuxInThisBrowser, isRemuxTrackPlayable } from "./remuxSession.js";
+import { createEmbeddedSubtitleLoader, listTextSubtitleTracks } from "./mkvSubtitles.js";
+
+export { createEmbeddedSubtitleLoader, listTextSubtitleTracks };
 
 // A source check reads the file's header only: a few small range reads, and
 // for an MP4 with its index at the end, that index. Past this it gives up.
@@ -30,6 +33,17 @@ export async function describeRemuxSource(source, { canTranscode = canTranscodeI
   const container = sniffContainer(head);
   if (!container) throw new RemuxUnavailableError("container");
   const demuxer = container === "mp4" ? await openMp4(source) : await openMatroska(source);
+  try {
+    return await describeOpenedSource(demuxer, container, { canTranscode });
+  } catch (error) {
+    // The file is open even when its audio can't be switched here: its
+    // embedded subtitles can still be offered.
+    if (error && typeof error === "object") error.demuxer = demuxer;
+    throw error;
+  }
+}
+
+async function describeOpenedSource(demuxer, container, { canTranscode }) {
   if (container === "matroska") {
     if (!demuxer.seekable) throw new RemuxUnavailableError("no-cues");
     await demuxer.resolveFrameDependentTracks();

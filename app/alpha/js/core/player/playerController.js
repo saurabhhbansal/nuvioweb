@@ -329,6 +329,7 @@ export const PlayerController = {
       })
       .then((probe) => {
         if (this.remuxAudio !== state) return;
+        this.noteEmbeddedSubtitles(state, probe.demuxer);
         state.probe = probe;
         state.status = "ready";
         // The plain file's own track is AC-3/E-AC-3 this browser plays silent:
@@ -341,10 +342,32 @@ export const PlayerController = {
       })
       .catch((error) => {
         if (this.remuxAudio !== state) return;
+        this.noteEmbeddedSubtitles(state, error?.demuxer);
         state.status = "unavailable";
         state.reason = String(error?.reason || "error");
         this.emitVideoEvent("audiotrackschanged", { playbackEngine: this.playbackEngine });
       });
+  },
+
+  // Text subtitles inside an MKV, found by the same header read. Offered to the
+  // subtitle picker and loaded a few lines at a time (remux/mkvSubtitles.js).
+  noteEmbeddedSubtitles(state, demuxer) {
+    if (!demuxer || !state.module?.listTextSubtitleTracks) return;
+    const tracks = state.module.listTextSubtitleTracks(demuxer);
+    if (!tracks.length) return;
+    state.embeddedSubtitles = { demuxer, tracks };
+    this.emitVideoEvent("embeddedsubtitleschanged", { count: tracks.length });
+  },
+
+  getEmbeddedSubtitleTracks() {
+    return this.remuxAudio?.embeddedSubtitles?.tracks || [];
+  },
+
+  createEmbeddedSubtitleLoader(trackId) {
+    const state = this.remuxAudio;
+    const embedded = state?.embeddedSubtitles;
+    if (!embedded || !state.module?.createEmbeddedSubtitleLoader) return null;
+    return state.module.createEmbeddedSubtitleLoader(embedded.demuxer, Number(trackId));
   },
 
   isRemuxAudioProbePending() {
