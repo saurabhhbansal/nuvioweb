@@ -112,6 +112,8 @@ import { TraktAuthService } from "../../../data/repository/traktAuthService.js";
 import { SimklAuthService } from "../../../data/repository/simklAuthService.js";
 import { SimklSyncService } from "../../../data/repository/simklSyncService.js";
 import { mdbListRepository } from "../../../data/repository/mdbListRepository.js";
+import { MdbListTracking } from "../../../data/repository/mdbListApi.js";
+import { MdbListSyncService } from "../../../data/repository/mdbListSyncService.js";
 import {
   getStreamBadgePreviewSections,
   normalizeStreamBadgeChipColor,
@@ -8697,6 +8699,7 @@ export const SettingsScreen = {
     const simkl = SimklAuthService.getCurrentAuthState();
     const traktConnected = TraktAuthService.isAuthenticated();
     const simklConnected = SimklAuthService.isAuthenticated();
+    const mdbListConnected = MdbListTracking.isAuthenticated();
     const traktBridgeStatus = TraktAuthService.getBrowserBridgeStatus();
     const traktWaiting = Boolean(trakt.deviceCode && Number(trakt.expiresAt || 0) > Date.now());
     const simklWaiting = Boolean(simkl.userCode && Number(simkl.expiresAt || 0) > Date.now());
@@ -8715,10 +8718,74 @@ export const SettingsScreen = {
     const progressSources = [
       { id: WatchProgressSource.NUVIO_SYNC, label: "Nuvio Sync" },
       ...(traktConnected ? [{ id: WatchProgressSource.TRAKT, label: "Trakt" }] : []),
-      ...(simklConnected ? [{ id: WatchProgressSource.SIMKL, label: "Simkl" }] : [])
+      ...(simklConnected ? [{ id: WatchProgressSource.SIMKL, label: "Simkl" }] : []),
+      ...(mdbListConnected ? [{ id: WatchProgressSource.MDBLIST, label: t("tracking_mdblist_title", {}, "MDBList") }] : [])
     ];
 
     this.actionMap.set("tracking:desktop:trakt", () => this.toggleDesktopTrackingSection("trakt"));
+    this.actionMap.set("tracking:desktop:mdblist", () => this.toggleDesktopTrackingSection("mdblist"));
+    this.actionMap.set("tracking:desktop:mdblist:connect", () => {
+      this.desktopMdbListErrorMessage = null;
+      this.openTextDialog({
+        title: t("tracking_mdblist_key_title", {}, "MDBList API key"),
+        value: MdbListSettingsStore.get().apiKey || "",
+        placeholder: t("tracking_mdblist_key_placeholder", {}, "Paste the key from mdblist.com/preferences"),
+        returnFocusKey: "tracking:desktop:mdblist",
+        onSubmit: async (value) => {
+          const trimmed = String(value || "").trim();
+          if (!trimmed) return false;
+          if (this.textDialog) {
+            this.textDialog.statusMessage = t("action_saving", {}, "Saving...");
+            this.textDialog.statusKind = "info";
+            await this.render({ refreshModel: false });
+          }
+          if (!(await mdbListRepository.validateApiKey(trimmed))) {
+            if (this.textDialog) {
+              this.textDialog.statusMessage = t("settings.integration.mdblist.invalidApiKey");
+              this.textDialog.statusKind = "error";
+            }
+            return false;
+          }
+          MdbListSettingsStore.set({ apiKey: trimmed, trackingEnabled: true });
+          MdbListSyncService.clearCurrentProfile();
+          this.desktopMdbListStatusMessage = t("tracking_mdblist_connected_hint", {}, "Connected. Choose MDBList under Sources & Behavior to use it for watch progress.");
+          return true;
+        }
+      });
+    });
+    this.actionMap.set("tracking:desktop:mdblist:refresh", async () => {
+      this.desktopMdbListErrorMessage = null;
+      this.desktopMdbListStatusMessage = t("tracking_mdblist_syncing", {}, "Syncing MDBList...");
+      await this.render();
+      try {
+        await MdbListSyncService.refresh({ force: true });
+        this.desktopMdbListStatusMessage = t("tracking_mdblist_synced", {}, "MDBList synced.");
+      } catch (error) {
+        this.desktopMdbListStatusMessage = null;
+        this.desktopMdbListErrorMessage = String(error?.message || error || t("tracking_mdblist_unreachable", {}, "Unable to reach MDBList. Try again."));
+      }
+    });
+    this.actionMap.set("tracking:desktop:mdblist:disconnect", () => {
+      this.openOptionDialog({
+        title: t("tracking_mdblist_disconnect_title", {}, "Disconnect MDBList?"),
+        options: [
+          { id: "disconnect", label: t("trakt_disconnect", {}, "Disconnect") },
+          { id: "cancel", label: t("action_cancel", {}, "Cancel") }
+        ],
+        selectedId: "cancel",
+        returnFocusKey: "tracking:desktop:mdblist",
+        onSelect: (option) => {
+          if (option.id !== "disconnect") return;
+          // The key stays: MDBList ratings use it too.
+          MdbListSettingsStore.set({ trackingEnabled: false });
+          MdbListSyncService.clearCurrentProfile();
+          this.desktopMdbListStatusMessage = null;
+          if (settings.watchProgressSource === WatchProgressSource.MDBLIST) {
+            TraktSettingsStore.setWatchProgressSource(WatchProgressSource.NUVIO_SYNC);
+          }
+        }
+      });
+    });
     this.actionMap.set("tracking:desktop:simkl", () => this.toggleDesktopTrackingSection("simkl"));
     this.actionMap.set("tracking:desktop:behavior", () => this.toggleDesktopTrackingSection("behavior"));
     this.actionMap.set("tracking:desktop:trakt:connect", async () => {
@@ -8901,6 +8968,14 @@ export const SettingsScreen = {
            </div>`
         : `<p class="settings-row-subtitle">Connect Simkl to sync lists, watched history, playback progress, and scrobbles.</p>
            ${inlineButton("tracking:desktop:simkl:connect", "Connect Simkl")}`;
+    const mdbListBody = mdbListConnected
+      ? `<p class="settings-tracking-provider-status">${escapeHtml(this.desktopMdbListStatusMessage || t("tracking_mdblist_connected_status", {}, "Connected with your API key"))}</p>
+         <div class="settings-tracking-inline-actions">
+           ${inlineButton("tracking:desktop:mdblist:refresh", t("cd_refresh", {}, "Refresh"))}
+           ${inlineButton("tracking:desktop:mdblist:disconnect", t("trakt_disconnect", {}, "Disconnect"), "is-danger")}
+         </div>`
+      : `<p class="settings-row-subtitle">${escapeHtml(t("tracking_mdblist_connect_description", {}, "Connect MDBList to sync watched history, playback progress, and scrobbles. Uses your MDBList API key, sent straight to MDBList."))}</p>
+         ${inlineButton("tracking:desktop:mdblist:connect", t("tracking_mdblist_connect", {}, "Connect MDBList"))}`;
     // Without Trakt sign-in on this site the row only stays for a saved
     // connection, so it can be disconnected.
     const showTrakt = getSidecarCapabilities().traktAuth || traktConnected;
@@ -8939,6 +9014,7 @@ export const SettingsScreen = {
         <div class="settings-stack settings-desktop-tracking-stack">
           ${showTrakt ? this.renderCollapsibleRow({ focusKey: "tracking:desktop:trakt", title: "Trakt", subtitle: traktConnected ? `Connected as ${trakt.username || "Trakt user"}` : traktWaiting ? "Waiting for approval" : traktBridgeStatus === "unavailable" ? "Unavailable on this server" : "Not connected", expanded: Boolean(expanded.trakt), bodyHtml: expanded.trakt ? `${traktBody}${this.desktopTraktErrorMessage ? `<p class="settings-tracking-error">${escapeHtml(this.desktopTraktErrorMessage)}</p>` : ""}` : "", classes: "settings-collapsible-tracking" }) : ""}
           ${this.renderCollapsibleRow({ focusKey: "tracking:desktop:simkl", title: "Simkl", subtitle: simklConnected ? `Connected as ${simkl.username || "Simkl user"}` : simklWaiting ? "Waiting for approval" : "Not connected", expanded: Boolean(expanded.simkl), bodyHtml: expanded.simkl ? `${simklBody}${this.desktopSimklErrorMessage ? `<p class="settings-tracking-error">${escapeHtml(this.desktopSimklErrorMessage)}</p>` : ""}` : "", classes: "settings-collapsible-tracking" })}
+          ${this.renderCollapsibleRow({ focusKey: "tracking:desktop:mdblist", title: t("tracking_mdblist_title", {}, "MDBList"), subtitle: mdbListConnected ? t("debrid_connected", {}, "Connected") : t("tracking_mdblist_not_connected", {}, "Not connected"), expanded: Boolean(expanded.mdblist), bodyHtml: expanded.mdblist ? `${mdbListBody}${this.desktopMdbListErrorMessage ? `<p class="settings-tracking-error">${escapeHtml(this.desktopMdbListErrorMessage)}</p>` : ""}` : "", classes: "settings-collapsible-tracking" })}
           ${this.renderCollapsibleRow({ focusKey: "tracking:desktop:behavior", title: "Sources & Behavior", subtitle: "Choose the sources used for Library, progress, and related content.", expanded: Boolean(expanded.behavior), bodyHtml: expanded.behavior ? behaviorBody : "", classes: "settings-collapsible-tracking" })}
         </div>
       </div>

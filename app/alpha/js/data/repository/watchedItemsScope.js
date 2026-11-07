@@ -5,7 +5,7 @@ import { isWatchProgressFromOtherSource, watchProgressOwner } from "./watchProgr
 // list. Trakt is deliberately absent: it ships its watched shows through the
 // progress snapshot's seeds instead, so this list holds nothing of Trakt's and
 // narrowing it would only blank the episode index.
-const PROVIDERS_OWNING_WATCHED_ITEMS = new Set([WatchProgressSource.SIMKL]);
+const PROVIDERS_OWNING_WATCHED_ITEMS = new Set([WatchProgressSource.SIMKL, WatchProgressSource.MDBLIST]);
 
 /**
  * Whether Next Up may be seeded from the local watched-items store.

@@ -493,3 +493,60 @@ test("recent history must not evict paused playback before deduplication", async
     "and the cards are the paused titles, not the finished ones"
   );
 });
+
+// ---------------------------------------------------------------------------
+// MDBList as the source (direct API calls with the profile's key)
+// ---------------------------------------------------------------------------
+
+async function connectMdbList(device, { playback = [], watched = {} } = {}) {
+  const { MdbListSettingsStore } = await import("../local/mdbListSettingsStore.js");
+  MdbListSettingsStore.set({ apiKey: "mdblist-key", trackingEnabled: true });
+  const calls = [];
+  globalThis.fetch = async (url, init = {}) => {
+    const { pathname } = new URL(url);
+    calls.push({ pathname, method: init.method || "GET" });
+    const body = pathname === "/sync/playback" ? playback : pathname === "/sync/watched" && !init.body ? watched : { ok: true };
+    return { ok: true, status: 200, text: async () => JSON.stringify(body) };
+  };
+  return calls;
+}
+
+test("selecting MDBList without connecting it leaves Continue Watching on Nuvio Sync", async () => {
+  const device = await freshDevice();
+  const { MdbListSettingsStore } = await import("../local/mdbListSettingsStore.js");
+  // A key saved for ratings alone is not a tracking connection.
+  MdbListSettingsStore.set({ apiKey: "ratings-key", trackingEnabled: false });
+  selectSource(device, device.Source.MDBLIST);
+  assert.equal(device.repo.getContinueWatchingSource(), device.Source.NUVIO_SYNC);
+});
+
+test("MDBList's own playback entries become Continue Watching cards", async () => {
+  const device = await freshDevice();
+  await connectMdbList(device, {
+    playback: [
+      {
+        id: 9,
+        type: "movie",
+        progress: 35,
+        runtime: 116,
+        paused_at: new Date(Date.now() - 60_000).toISOString(),
+        movie: { title: "Arrival", year: 2016, ids: { imdb: "tt2543164", tmdb: 329865 } }
+      }
+    ]
+  });
+  selectSource(device, device.Source.MDBLIST);
+  await device.repo.forceRefreshSelectedSource();
+  assert.equal(device.repo.getContinueWatchingSource(), device.Source.MDBLIST);
+  assert.deepEqual(idsOf(await device.repo.getRecent(20, { enrichMetadata: false })), ["tt2543164"]);
+});
+
+test("a completion recorded while MDBList owned the row is tagged to it and sent there", async () => {
+  const device = await freshDevice();
+  const calls = await connectMdbList(device);
+  selectSource(device, device.Source.MDBLIST);
+  await device.watched.mark({ contentId: "tt1375666", contentType: "movie", title: "Inception" });
+  const [record] = await device.watched.listLocal();
+  assert.equal(record.source, "mdblist_local");
+  await new Promise((done) => setTimeout(done, 0));
+  assert.ok(calls.some((call) => call.pathname === "/sync/watched" && call.method === "POST"));
+});

@@ -5,6 +5,9 @@ const KEY = "mdbListSettings";
 const DEFAULTS = {
   enabled: false,
   apiKey: "",
+  // Tracking (watched history, Continue Watching, scrobbles) is its own switch:
+  // a key saved for ratings doesn't opt anyone into sync.
+  trackingEnabled: false,
   showTrakt: true,
   showImdb: true,
   showTmdb: true,
@@ -21,6 +24,7 @@ function normalizeMdbListSettings(value = {}) {
     ...(value || {}),
     enabled: Boolean(value?.enabled),
     apiKey: String(value?.apiKey || "").trim(),
+    trackingEnabled: Boolean(value?.trackingEnabled),
     showTrakt: value?.showTrakt !== false,
     showImdb: value?.showImdb !== false,
     showTmdb: value?.showTmdb !== false,

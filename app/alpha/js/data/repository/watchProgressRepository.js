@@ -13,6 +13,8 @@ import { TraktAuthStore } from "../local/traktAuthStore.js";
 import { TraktAuthService } from "./traktAuthService.js";
 import { SimklAuthStore } from "../local/simklAuthStore.js";
 import { SimklSyncService } from "./simklSyncService.js";
+import { MdbListSyncService } from "./mdbListSyncService.js";
+import { MdbListTracking } from "./mdbListApi.js";
 import { metaRepository } from "./metaRepository.js";
 import {
   deduplicateContinueWatchingItems,
@@ -175,6 +177,10 @@ function isSimklProgressItem(item = {}) {
   return watchProgressOwner(item) === WatchProgressSource.SIMKL;
 }
 
+function isMdbListProgressItem(item = {}) {
+  return watchProgressOwner(item) === WatchProgressSource.MDBLIST;
+}
+
 function isTraktCompatibleContentId(contentId) {
   const raw = String(contentId || "").trim();
   if (!raw) {
@@ -198,6 +204,9 @@ function selectedContinueWatchingSource() {
   if (requestedSource === WatchProgressSource.SIMKL && SimklAuthStore.isAuthenticated()) {
     return WatchProgressSource.SIMKL;
   }
+  if (requestedSource === WatchProgressSource.MDBLIST && MdbListTracking.isAuthenticated()) {
+    return WatchProgressSource.MDBLIST;
+  }
   return WatchProgressSource.NUVIO_SYNC;
 }
 
@@ -207,6 +216,7 @@ function selectedLocalProgressSource() {
   const source = selectedContinueWatchingSource();
   if (source === WatchProgressSource.TRAKT) return "trakt_local";
   if (source === WatchProgressSource.SIMKL) return "simkl_local";
+  if (source === WatchProgressSource.MDBLIST) return "mdblist_local";
   return WatchProgressSource.NUVIO_SYNC;
 }
 
@@ -226,7 +236,15 @@ function filterForSelectedContinueWatchingSource(items = []) {
           !/^(tvdb|mal|anidb|anilist|kitsu|simkl):/i.test(String(item?.contentId || "")))
     );
   }
-  return all.filter((item) => !isTraktProgressItem(item) && !isSimklProgressItem(item));
+  if (source === WatchProgressSource.MDBLIST) {
+    // MDBList speaks IMDb/TMDB/Trakt ids, like Trakt.
+    return all.filter(
+      (item) => isMdbListProgressItem(item) || !isTraktCompatibleContentId(item?.contentId)
+    );
+  }
+  return all.filter(
+    (item) => !isTraktProgressItem(item) && !isSimklProgressItem(item) && !isMdbListProgressItem(item)
+  );
 }
 
 function normalizeContentIdList(values = []) {
@@ -514,6 +532,16 @@ async function fetchSimklProgressSnapshot() {
   return SimklSyncService.getProgressSnapshot();
 }
 
+async function fetchMdbListProgressSnapshot() {
+  if (
+    selectedContinueWatchingSource() !== WatchProgressSource.MDBLIST ||
+    !MdbListTracking.isAuthenticated()
+  ) {
+    return { historyItems: [], playbackItems: [], watchedShowSeedItems: [] };
+  }
+  return MdbListSyncService.getProgressSnapshot();
+}
+
 // Cache for enriched metadata (5-minute TTL)
 const enrichedMetaCache = new Map();
 const ENRICHED_META_CACHE_TTL_MS = 5 * 60 * 1000;
@@ -669,6 +697,7 @@ class WatchProgressRepository {
     const now = Date.now();
     const useTraktProgress = selectedContinueWatchingSource() === WatchProgressSource.TRAKT;
     const useSimklProgress = selectedContinueWatchingSource() === WatchProgressSource.SIMKL;
+    const useMdbListProgress = selectedContinueWatchingSource() === WatchProgressSource.MDBLIST;
     const daysCap = normalizeTraktContinueWatchingDaysCap(
       TraktSettingsStore.get().continueWatchingDaysCap
     );
@@ -683,8 +712,10 @@ class WatchProgressRepository {
       traktHistoryItems = snapshot.historyItems;
       playbackItems = snapshot.playbackItems;
       watchedShowSeedItems = snapshot.watchedShowSeedItems;
-    } else if (useSimklProgress) {
-      const snapshot = await fetchSimklProgressSnapshot();
+    } else if (useSimklProgress || useMdbListProgress) {
+      const snapshot = useSimklProgress
+        ? await fetchSimklProgressSnapshot()
+        : await fetchMdbListProgressSnapshot();
       traktHistoryItems = snapshot.historyItems;
       playbackItems = snapshot.playbackItems;
       watchedShowSeedItems = snapshot.watchedShowSeedItems;
@@ -731,7 +762,9 @@ class WatchProgressRepository {
     const snapshot =
       selectedContinueWatchingSource() === WatchProgressSource.TRAKT
         ? await fetchTraktProgressSnapshot()
-        : await fetchSimklProgressSnapshot();
+        : selectedContinueWatchingSource() === WatchProgressSource.MDBLIST
+          ? await fetchMdbListProgressSnapshot()
+          : await fetchSimklProgressSnapshot();
     // A suppression only means something against the account it was made for,
     // so drop the set outright when the profile or source changes.
     continueWatchingRemovalSuppression.scopeTo(this.getContinueWatchingSourceKey());
@@ -782,6 +815,10 @@ class WatchProgressRepository {
       traktProgressSnapshotCache = null;
       return true;
     }
+    if (source === WatchProgressSource.MDBLIST && MdbListTracking.isAuthenticated()) {
+      await MdbListSyncService.refresh({ force: true }).catch(() => false);
+      return true;
+    }
     // Imported here because the sync services import this module in turn.
     const [{ WatchProgressSyncService }, { WatchedItemsSyncService }] = await Promise.all([
       import("../../core/profile/watchProgressSyncService.js"),
@@ -825,6 +862,8 @@ class WatchProgressRepository {
     const removeRemote =
       source === WatchProgressSource.SIMKL && SimklAuthStore.isAuthenticated()
         ? () => SimklSyncService.removePlaybackForContent(normalizedContentId)
+        : source === WatchProgressSource.MDBLIST && MdbListTracking.isAuthenticated()
+          ? () => MdbListSyncService.removePlaybackForContent(normalizedContentId)
         : source === WatchProgressSource.TRAKT && TraktAuthStore.isAuthenticated()
           ? () => removeTraktPlaybackForContent(normalizedContentId)
           : null;
