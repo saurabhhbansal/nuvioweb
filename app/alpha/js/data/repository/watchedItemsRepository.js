@@ -4,6 +4,8 @@ import { LocalStore } from "../../core/storage/localStore.js";
 import { WatchProgressSource } from "../local/traktSettingsStore.js";
 import { SimklAuthStore } from "../local/simklAuthStore.js";
 import { SimklSyncService } from "./simklSyncService.js";
+import { MdbListSyncService } from "./mdbListSyncService.js";
+import { MdbListTracking } from "./mdbListApi.js";
 import { TraktAuthService, requestJson as traktRequestJson } from "./traktAuthService.js";
 import { ownsWatchProgress } from "./trackingWriteScope.js";
 import {
@@ -30,7 +32,12 @@ function activeProfileId() {
 function selectedLocalWatchedSource() {
   if (shouldUseTrakt()) return "trakt_local";
   if (shouldUseSimkl()) return "simkl_local";
+  if (shouldUseMdbList()) return "mdblist_local";
   return WatchProgressSource.NUVIO_SYNC;
+}
+
+function shouldUseMdbList() {
+  return ownsWatchProgress(WatchProgressSource.MDBLIST) && MdbListTracking.isAuthenticated();
 }
 
 function shouldUseSimkl() {
@@ -114,6 +121,7 @@ async function writeTraktHistory(item, remove = false) {
 // real time. See trackerOutbox.js.
 registerTrackerSender("trakt", "history", (item) => writeTraktHistory(item, false));
 registerTrackerSender("simkl", "history", (item) => SimklSyncService.markWatched(item));
+registerTrackerSender("mdblist", "history", (item) => MdbListSyncService.markWatched(item));
 installTrackerOutboxFlush();
 
 function sendWatchedToTracker(provider, item, send) {
@@ -311,8 +319,9 @@ class WatchedItemsRepository {
   async getAll(limit = Infinity, { allowStale = false } = {}) {
     const profileId = activeProfileId();
     const local = WatchedItemsStore.listForProfile(profileId);
-    if (!shouldUseSimkl()) return local.slice(0, limit);
-    const fetched = await SimklSyncService.getWatchedItems({ allowStale }).catch(() => []);
+    const provider = shouldUseSimkl() ? SimklSyncService : shouldUseMdbList() ? MdbListSyncService : null;
+    if (!provider) return local.slice(0, limit);
+    const fetched = await provider.getWatchedItems({ allowStale }).catch(() => []);
     const remote = applyUnmarkTombstones(fetched, profileId);
     const remoteKeys = new Set(remote.map(watchedKey));
     return [...remote, ...local.filter((item) => !remoteKeys.has(watchedKey(item)))].slice(
@@ -362,6 +371,13 @@ class WatchedItemsRepository {
         }
       );
     }
+    if (shouldUseMdbList() && options.skipTrackingWrite !== true) {
+      void sendWatchedToTracker("mdblist", tracked, (payload) => MdbListSyncService.markWatched(payload)).catch(
+        (error) => {
+          console.warn("MDBList watched history update failed", error);
+        }
+      );
+    }
     if (shouldUseTrakt() && options.skipTrackingWrite !== true) {
       void sendWatchedToTracker("trakt", tracked, (payload) => writeTraktHistory(payload, false)).catch(
         (error) => {
@@ -402,7 +418,7 @@ class WatchedItemsRepository {
     const unwatched = removedItems.length
       ? removedItems
       : [{ contentId, season: options?.season ?? null, episode: options?.episode ?? null }];
-    for (const provider of ["trakt", "simkl"]) {
+    for (const provider of ["trakt", "simkl", "mdblist"]) {
       unwatched.forEach((item) =>
         dropTrackerWrite({ provider, kind: "history", key: trackerHistoryKey(item), profileId: pid })
       );
@@ -413,14 +429,16 @@ class WatchedItemsRepository {
 
     if (options?.skipTrackingWrite === true) return;
 
-    if (shouldUseSimkl()) {
+    if (shouldUseSimkl() || shouldUseMdbList()) {
+      const provider = shouldUseSimkl() ? SimklSyncService : MdbListSyncService;
+      const providerName = shouldUseSimkl() ? "SIMKL" : "MDBList";
       void (async () => {
         // With no local row to name, the provider's own list is the only place
         // the identity can come from -- and that lookup is exactly why this
         // cannot be in front of the removal.
         const remoteMatches = removedItems.length
           ? []
-          : (await SimklSyncService.getWatchedItems().catch(() => [])).filter((item) =>
+          : (await provider.getWatchedItems().catch(() => [])).filter((item) =>
               matchesWatchedTarget(item, contentId, options)
             );
         const targets = removedItems.length
@@ -442,10 +460,10 @@ class WatchedItemsRepository {
                 }
               ];
         for (const item of targets) {
-          await SimklSyncService.unmarkWatched(item);
+          await provider.unmarkWatched(item);
         }
       })().catch((error) => {
-        console.warn("SIMKL watched history removal failed", error);
+        console.warn(`${providerName} watched history removal failed`, error);
       });
     }
 

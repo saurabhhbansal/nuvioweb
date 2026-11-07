@@ -22,6 +22,8 @@ test("a provider's own records belong to it too", () => {
   assert.equal(watchProgressOwner({ source: "simkl_playback" }), WatchProgressSource.SIMKL);
   assert.equal(watchProgressOwner({ source: "simkl_history" }), WatchProgressSource.SIMKL);
   assert.equal(watchProgressOwner({ source: "trakt_history" }), WatchProgressSource.TRAKT);
+  assert.equal(watchProgressOwner({ source: "mdblist_playback" }), WatchProgressSource.MDBLIST);
+  assert.equal(watchProgressOwner({ source: "mdblist_local" }), WatchProgressSource.MDBLIST);
 });
 
 test("Nuvio Sync's own playback belongs to no provider", () => {
