@@ -17613,6 +17613,7 @@ html[data-layout="desktop"][data-nav-placement="sidebar"][data-nav-rail-corner="
 .desktop-browser .library-cloud-filter-row .library-cloud-refresh-button {
   align-self: center;
   margin-left: 0;
+}
 
 /* Match Home's card protection on other media cards only. Page copy,
    action sheets and editable controls retain normal selection. Preserve the
